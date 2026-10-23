@@ -132,20 +132,28 @@ app.get(['/health', '/api/health'], (req, res) => {
 });
 
 // ============================================================
-// ROUTES API  — semua diawali /api
+// ROUTES API — didukung baik dengan awalan /api maupun tanpa /api
 // ============================================================
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/siswa', siswaRoutes);
-app.use('/api/spmb', spmbRoutes);
-app.use('/api/tagihan', tagihanRoutes);
-app.use('/api/absensi', absensiRoutes);
-app.use('/api/lms', materiRoutes);
-app.use('/api/ujian', ujianRoutes);
-app.use('/api/klub', klubRoutes);
-app.use('/api/pertemuan', pertemuanRoutes);
-app.use('/api/akademik', akademikRoutes);
-app.use('/api/periode-ujian', periodeUjianRoutes);
+const registerRoutes = (prefix = '') => {
+  app.use(`${prefix}/auth`, authRoutes);
+  app.use(`${prefix}/users`, userRoutes);
+  app.use(`${prefix}/siswa`, siswaRoutes);
+  app.use(`${prefix}/spmb`, spmbRoutes);
+  app.use(`${prefix}/tagihan`, tagihanRoutes);
+  app.use(`${prefix}/absensi`, absensiRoutes);
+  app.use(`${prefix}/lms`, materiRoutes);
+  app.use(`${prefix}/ujian`, ujianRoutes);
+  app.use(`${prefix}/klub`, klubRoutes);
+  app.use(`${prefix}/pertemuan`, pertemuanRoutes);
+  app.use(`${prefix}/akademik`, akademikRoutes);
+  app.use(`${prefix}/periode-ujian`, periodeUjianRoutes);
+};
+
+// Dukung akses standar /api/...
+registerRoutes('/api');
+
+// Dukung akses langsung (misal subdomain api.pkbmbinamandiri.sch.id/...)
+registerRoutes('');
 
 // ============================================================
 // HANDLER 404
