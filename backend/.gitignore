@@ -22,6 +22,8 @@ uploads/**/*
 
 # SQL dumps & backups
 *.sql
+!migrations/*.sql
+!pkbm_bina_mandiri.sql
 *.sqlite
 *.sqlite3
 
