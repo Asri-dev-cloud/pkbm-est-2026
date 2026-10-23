@@ -18,7 +18,7 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
 
   // Jika tidak ada token → belum login → redirect ke halaman login
   if (!token) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
     // 'replace' agar halaman login tidak masuk ke history browser
     // sehingga tombol "Back" tidak membawa user ke halaman terproteksi
   }
@@ -30,7 +30,7 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
   } catch {
     // Jika data user korup → hapus sesi dan redirect ke login
     localStorage.clear();
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // Jika ada pembatasan role DAN role user tidak termasuk dalam daftar

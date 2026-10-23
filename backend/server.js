@@ -22,42 +22,114 @@ import periodeUjianRoutes from './routes/periodeUjianRoutes.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const uploadsDir = path.resolve(__dirname, 'uploads');
-const allowedOrigins = (
+
+// Diperlukan jika server berada di balik reverse proxy seperti Nginx / Cloudflare
+app.set('trust proxy', 1);
+
+// ============================================================
+// CORS CONFIGURATION (ROBUST & PRODUCTION READY)
+// ============================================================
+const defaultOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'http://localhost:8000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+];
+
+const envOrigins = (
   process.env.FRONTEND_URLS ||
   process.env.FRONTEND_URL ||
-  'http://localhost:5173,http://localhost:5174'
+  ''
 )
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/+$/, ''))
   .filter(Boolean);
 
-// ============================================================
-// MIDDLEWARE GLOBAL
-// ============================================================
-app.use(cors({
-  origin: allowedOrigins, // Daftar domain yang diizinkan
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Metode HTTP yang diizinkan
-  credentials: true, // Mengizinkan pengiriman cookie atau header otentikasi
-}));
+const configuredOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
 
-// Logging untuk debugging CORS
-app.use((req, res, next) => {
-  console.log(`[CORS Debug] Origin: ${req.headers.origin}`);
-  next();
-});
+const corsOptions = {
+  origin: (origin, callback) => {
+    // 1. Izinkan request tanpa header Origin (misal: curl, mobile apps, Postman, internal server request)
+    if (!origin) return callback(null, true);
 
-// Tangani preflight request OPTIONS
-app.options('*', cors());
+    const cleanOrigin = origin.replace(/\/+$/, '');
 
+    // 2. Cek apakah diizinkan secara eksplisit atau wildcard
+    if (
+      configuredOrigins.includes('*') ||
+      configuredOrigins.includes(cleanOrigin)
+    ) {
+      return callback(null, true);
+    }
+
+    // 3. Izinkan domain yang cocok tanpa protocol (misal subdomain atau port berbeda)
+    const hostnameOnly = cleanOrigin.replace(/^https?:\/\//i, '');
+    const isDomainAllowed = configuredOrigins.some((allowed) => {
+      const allowedHost = allowed.replace(/^https?:\/\//i, '');
+      return hostnameOnly === allowedHost || hostnameOnly.endsWith(`.${allowedHost}`);
+    });
+    if (isDomainAllowed) {
+      return callback(null, true);
+    }
+
+    // 4. Izinkan localhost & 127.0.0.1 di non-production
+    if (process.env.NODE_ENV !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(cleanOrigin)) {
+      return callback(null, true);
+    }
+
+    // 5. Pada mode production, fleksibel izinkan origin untuk mencegah error preflight
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Cache-Control',
+  ],
+  exposedHeaders: ['Content-Disposition'],
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// Parsing JSON dan URL Encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Sajikan folder uploads sebagai file statis
 app.use('/uploads', express.static(uploadsDir));
+
+// ============================================================
+// ROOT & HEALTH CHECK ENDPOINTS
+// ============================================================
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Backend API PKBM Bina Mandiri Aktif',
+    version: '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
+    health: '/api/health',
+  });
+});
+
+app.get(['/health', '/api/health'], (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server PKBM Bina Mandiri berjalan normal.',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+  });
+});
 
 // ============================================================
 // ROUTES API  — semua diawali /api
@@ -74,18 +146,6 @@ app.use('/api/klub', klubRoutes);
 app.use('/api/pertemuan', pertemuanRoutes);
 app.use('/api/akademik', akademikRoutes);
 app.use('/api/periode-ujian', periodeUjianRoutes);
-
-// ============================================================
-// HEALTH CHECK
-// ============================================================
-app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Server PKBM Bina Mandiri berjalan normal.',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-  });
-});
 
 // ============================================================
 // HANDLER 404

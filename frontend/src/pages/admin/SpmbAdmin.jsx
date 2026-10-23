@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
-import { SiswaAPI, SpmbAPI } from '../../services/api.js';
+import { SiswaAPI, SpmbAPI, toAssetUrl } from '../../services/api.js';
 
 function SpmbAdmin() {
   const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
@@ -384,7 +384,7 @@ function SpmbAdmin() {
 
                               {berkas.path_file && (
                                 <a
-                                  href={`http://localhost:3000/${berkas.path_file.replace(/\\/g, '/')}`}
+                                  href={toAssetUrl(berkas.path_file)}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="btn btn-secondary"

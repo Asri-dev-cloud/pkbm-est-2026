@@ -8,15 +8,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
-import apiClient, { PertemuanAPI, LmsAPI, AbsensiAPI, SiswaAPI, UjianAPI, AkademikAPI } from '../../services/api.js';
-
-function toAssetUrl(path) {
-  if (!path) return '';
-  if (/^https?:\/\//i.test(path)) return path;
-  const apiUrl = import.meta.env.VITE_API_URL || '';
-  const origin = apiUrl.replace(/\/api$/, '');
-  return `${origin}/${String(path).replace(/\\/g, '/')}`;
-}
+import apiClient, { PertemuanAPI, LmsAPI, AbsensiAPI, SiswaAPI, UjianAPI, AkademikAPI, toAssetUrl } from '../../services/api.js';
 
 function KelasTerpaduSiswa() {
   const { mapelId } = useParams();

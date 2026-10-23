@@ -20,7 +20,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
-import { LmsAPI, SiswaAPI } from '../../services/api.js';
+import { LmsAPI, SiswaAPI, toAssetUrl } from '../../services/api.js';
 
 // ── Konstanta ────────────────────────────────────────────────
 const TIPE_ICON = {
@@ -511,7 +511,7 @@ function KelasTutor() {
                                 {/* Link file pengumpulan */}
                                 {p.path_file && (
                                   <a
-                                    href={`http://localhost:3000/${p.path_file}`}
+                                    href={toAssetUrl(p.path_file)}
                                     target="_blank" rel="noopener noreferrer"
                                     style={{ fontSize: '0.8rem', color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6 }}
                                   >

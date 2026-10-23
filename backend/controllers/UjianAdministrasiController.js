@@ -15,7 +15,10 @@ const backendRootDir = path.resolve(__dirname, '..');
 const toPublicFileUrl = (req, filePath) => {
   if (!filePath) return null;
   const normalized = String(filePath).replace(/\\/g, '/').replace(/^\/+/, '');
-  return `${req.protocol}://${req.get('host')}/${normalized}`;
+  if (/^https?:\/\//i.test(normalized)) return normalized;
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const host = req.headers['x-forwarded-host'] || req.get('host');
+  return `${protocol}://${host}/${normalized}`;
 };
 
 const withKartuUrl = (req, payload) => {

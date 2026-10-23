@@ -1,0 +1,51 @@
+# ============================================================
+# .gitignore — Ekosistem Digital PKBM Bina Mandiri (Root)
+# ============================================================
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*/.env
+*/.env.local
+*/.env.*.local
+!*.env.example
+!*/.env.example
+
+# Build outputs
+dist/
+*/dist/
+dist-ssr/
+*/dist-ssr/
+
+# Uploads content (preserve directory structure via .gitkeep)
+backend/uploads/**/*
+!backend/uploads/**/.gitkeep
+uploads/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Temporary files
+tmp/
+*/tmp/
+var/
+.cache/

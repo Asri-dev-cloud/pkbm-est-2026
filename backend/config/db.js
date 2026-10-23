@@ -40,8 +40,13 @@ export const testConnection = async () => {
     console.log(`   Host: ${process.env.DB_HOST} | DB: ${process.env.DB_NAME}`);
     connection.release(); // Kembalikan koneksi ke pool setelah selesai diuji
   } catch (error) {
-    console.error('❌ Gagal konek ke database MySQL:', error.message);
-    // Hentikan proses jika database tidak bisa diakses
+    console.error('\n❌ Gagal konek ke database MySQL:', error.message);
+    console.error('💡 Solusi:');
+    console.error(`   1. Pastikan service MySQL/MariaDB (XAMPP / Laragon) sudah berjalan di ${process.env.DB_HOST}:${process.env.DB_PORT || 3306}.`);
+    console.error(`   2. Pastikan database "${process.env.DB_NAME}" sudah dibuat dan file "pkbm_bina_mandiri.sql" sudah di-import.`);
+    console.error('   3. Catatan: Database dump siap pakai tersedia di folder backend/pkbm_bina_mandiri.sql.');
+    console.error('   4. Jika hanya ingin mengembangkan Frontend, Anda dapat menggunakan server live:');
+    console.error('      Ubah VITE_API_URL=https://pkbmbinamandiri.sch.id/api pada frontend/.env\n');
     process.exit(1);
   }
 };

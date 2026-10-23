@@ -11,15 +11,7 @@
 
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
-import { LmsAPI, SiswaAPI } from '../../services/api.js';
-
-function toAssetUrl(path) {
-  if (!path) return '';
-  if (/^https?:\/\//i.test(path)) return path;
-  const apiUrl = import.meta.env.VITE_API_URL || '';
-  const origin = apiUrl.replace(/\/api$/, '');
-  return `${origin}/${String(path).replace(/\\/g, '/')}`;
-}
+import { LmsAPI, SiswaAPI, toAssetUrl } from '../../services/api.js';
 
 function MateriSiswa() {
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('pkbm_user') || '{}'));

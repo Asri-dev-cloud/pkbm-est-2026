@@ -8,14 +8,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import './Sidebar.css';
-
-function toAssetUrl(path) {
-  if (!path) return '';
-  if (/^https?:\/\//i.test(path)) return path;
-  const apiUrl = import.meta.env.VITE_API_URL || '';
-  const origin = apiUrl.replace(/\/api$/, '');
-  return `${origin}/${String(path).replace(/\\/g, '/')}`;
-}
+import { toAssetUrl } from '../services/api.js';
 
 // Definisi menu per role
 const MENU_PER_ROLE = {

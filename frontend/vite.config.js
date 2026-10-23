@@ -22,9 +22,14 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000', // Sesuaikan dengan port backend kamu
+        target: process.env.VITE_PROXY_TARGET || 'https://pkbmbinamandiri.sch.id',
         changeOrigin: true,
-        secure: false, // Jika backend pakai HTTPS self-signed, bisa di-set false
+        secure: false,
+      },
+      '/uploads': {
+        target: process.env.VITE_PROXY_TARGET || 'https://pkbmbinamandiri.sch.id',
+        changeOrigin: true,
+        secure: false,
       },
     },
   },

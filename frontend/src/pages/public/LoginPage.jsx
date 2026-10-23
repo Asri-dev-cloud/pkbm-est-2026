@@ -61,7 +61,9 @@ function LoginPage() {
     } catch (err) {
       const msg =
         err.response?.data?.message ||
-        "Login gagal. Periksa koneksi internet Anda.";
+        (err.code === "ERR_NETWORK" || !err.response
+          ? "Tidak dapat terhubung ke server backend. Periksa konfigurasi API atau pastikan server aktif."
+          : "Login gagal. Periksa kembali email dan password Anda.");
       setError(msg);
     } finally {
       setLoading(false);

@@ -12,18 +12,10 @@
 // ============================================================
 
 import { useState, useEffect } from 'react';
-import { SiswaAPI, AbsensiAPI, TagihanAPI } from '../../services/api.js';
+import { SiswaAPI, AbsensiAPI, TagihanAPI, toAssetUrl } from '../../services/api.js';
 import Sidebar from '../../components/Sidebar.jsx';
 import ProfileEditorCard from '../../components/ProfileEditorCard.jsx';
 import './DashboardSiswa.css';
-
-function toAssetUrl(path) {
-  if (!path) return '';
-  if (/^https?:\/\//i.test(path)) return path;
-  const apiUrl = import.meta.env.VITE_API_URL || '';
-  const origin = apiUrl.replace(/\/api$/, '');
-  return `${origin}/${String(path).replace(/\\/g, '/')}`;
-}
 
 function DashboardSiswa() {
   // ── Ambil data user dari localStorage (sudah disimpan saat login) ──

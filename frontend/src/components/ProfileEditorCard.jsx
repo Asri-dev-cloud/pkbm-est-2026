@@ -1,16 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AuthAPI } from '../services/api.js';
-
-function getApiOrigin() {
-  const apiUrl = import.meta.env.VITE_API_URL || '';
-  return apiUrl.replace(/\/api$/, '');
-}
-
-function toAssetUrl(path) {
-  if (!path) return '';
-  if (/^https?:\/\//i.test(path)) return path;
-  return `${getApiOrigin()}/${String(path).replace(/\\/g, '/')}`;
-}
+import { AuthAPI, toAssetUrl } from '../services/api.js';
 
 function normalizeSessionUser(profile) {
   return {

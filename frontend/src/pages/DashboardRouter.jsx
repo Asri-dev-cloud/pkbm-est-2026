@@ -24,7 +24,7 @@ function DashboardRouter() {
     user = JSON.parse(userRaw);
   } catch {
     // Data rusak → kembalikan ke login
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // Peta role → path dashboard tujuan
@@ -41,7 +41,7 @@ function DashboardRouter() {
 
   if (!targetPath) {
     // Role tidak dikenal → kembali ke login
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // Redirect ke dashboard yang sesuai

@@ -1,0 +1,19 @@
+[Unit]
+Description=PKBM Bina Mandiri Backend Service
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/pkbm/backend
+ExecStart=/usr/bin/node /var/www/pkbm/backend/server.js
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=PORT=8000
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=pkbm-backend
+
+[Install]
+WantedBy=multi-user.target
