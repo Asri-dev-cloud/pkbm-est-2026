@@ -39,6 +39,18 @@ export const testConnection = async () => {
     console.log('✅ Koneksi database MySQL berhasil!');
     console.log(`   Host: ${process.env.DB_HOST} | DB: ${process.env.DB_NAME}`);
     connection.release(); // Kembalikan koneksi ke pool setelah selesai diuji
+
+    // Otomatis pastikan kolom schema baru tersedia
+    try {
+      await pool.query(
+        'ALTER TABLE rombel_mapel ADD COLUMN rps_file_path VARCHAR(255) NULL DEFAULT NULL AFTER urutan'
+      );
+      console.log('✅ Kolom rps_file_path berhasil ditambahkan ke tabel rombel_mapel.');
+    } catch (migErr) {
+      if (migErr.code !== 'ER_DUP_COLUMN_NAME') {
+        // Abaikan jika sudah ada (ER_DUP_COLUMN_NAME)
+      }
+    }
   } catch (error) {
     console.error('\n❌ Gagal konek ke database MySQL:', error.message);
     console.error('💡 Solusi:');
