@@ -92,8 +92,20 @@ const UserModel = {
       VALUES (?, ?, ?, ?, 1, NOW())
     `;
     const [result] = await pool.execute(sql, [nama_lengkap, email, password_hash, role]);
-    // result.insertId adalah ID baris yang baru saja dibuat
-    return result.insertId;
+    const insertId = result.insertId;
+
+    if (role === 'tutor') {
+      try {
+        await pool.execute(
+          'INSERT INTO tutor (user_id, created_at) VALUES (?, NOW())',
+          [insertId]
+        );
+      } catch (tutorErr) {
+        console.warn('[UserModel.create] Could not insert tutor profile:', tutorErr.message);
+      }
+    }
+
+    return insertId;
   },
 
   // -----------------------------------------------------------
