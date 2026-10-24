@@ -24,9 +24,13 @@ const MENU_PER_ROLE = {
   ],
   admin: [
     { path: '/dashboard/admin', icon: 'bi-speedometer2', label: 'Dashboard' },
+    { path: '/dashboard/siswa/ruang-belajar', icon: 'bi-mortarboard-fill', label: 'Ruang Belajar' },
     { path: '/dashboard/admin/spmb', icon: 'bi-person-plus-fill', label: 'Verifikasi SPMB' },
     { path: '/dashboard/admin/siswa', icon: 'bi-people-fill', label: 'Data Siswa' },
+    { path: '/dashboard/admin/periode-ujian', icon: 'bi-calendar3', label: 'Periode Ujian' },
     { path: '/dashboard/admin/peserta-ujian', icon: 'bi-file-earmark-check-fill', label: 'Peserta Ujian' },
+    { path: '/dashboard/admin/master-mapel', icon: 'bi-journal-bookmark-fill', label: 'Master Mapel' },
+    { path: '/dashboard/admin/mapel-rombel', icon: 'bi-diagram-3-fill', label: 'Mapel per Rombel' },
     { path: '/dashboard/admin/tagihan', icon: 'bi-cash-stack', label: 'Keuangan' },
     { path: '/dashboard/admin/klub', icon: 'bi-trophy-fill', label: 'Klub Minat Bakat' },
   ],
