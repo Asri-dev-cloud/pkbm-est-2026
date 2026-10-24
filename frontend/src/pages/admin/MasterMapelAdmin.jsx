@@ -26,7 +26,7 @@ const EMPTY_FORM = {
 
 function MasterMapelAdmin() {
   const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
-  const canManage = user.role === 'super_admin';
+  const canManage = ['super_admin', 'admin'].includes(user.role);
   const [mapelList, setMapelList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

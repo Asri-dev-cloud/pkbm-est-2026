@@ -12,7 +12,7 @@ const EMPTY_FORM = {
 
 function MapelPerRombelAdmin() {
   const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
-  const canManage = user.role === 'super_admin';
+  const canManage = ['super_admin', 'admin'].includes(user.role);
   const [rombelOptions, setRombelOptions] = useState([]);
   const [tutorOptions, setTutorOptions] = useState([]);
   const [mapelOptions, setMapelOptions] = useState([]);
