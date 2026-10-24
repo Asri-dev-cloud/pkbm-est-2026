@@ -108,6 +108,12 @@ function DashboardAdmin() {
                       <a href="/dashboard/admin/spmb" className="btn btn-secondary">
                         <i className="bi bi-person-check"></i> Verifikasi SPMB
                       </a>
+                      <a href="/dashboard/admin/master-mapel" className="btn btn-secondary">
+                        <i className="bi bi-journal-bookmark-fill"></i> Master Mapel
+                      </a>
+                      <a href="/dashboard/admin/mapel-rombel" className="btn btn-secondary">
+                        <i className="bi bi-diagram-3-fill"></i> Mapel per Rombel
+                      </a>
                       <a href="/dashboard/admin/tagihan" className="btn btn-secondary">
                         <i className="bi bi-cash-stack"></i> Kelola Tagihan
                       </a>
