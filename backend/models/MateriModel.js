@@ -55,7 +55,7 @@ export const MateriModel = {
     return rows[0];
   },
 
-  create: async ({ rombel_id, mapel_id, tutor_id, judul, deskripsi, tipe, path_file, url, urutan, pertemuan_id }) => {
+  create: async ({ rombel_id, mapel_id, tutor_id, judul, deskripsi, tipe, path_file, url, urutan, is_published = 1, pertemuan_id }) => {
     const finalUrutan = Number(urutan) > 0
       ? Number(urutan)
       : await MateriModel.findNextUrutanByRombel(rombel_id, mapel_id);
@@ -63,11 +63,12 @@ export const MateriModel = {
     const sql = `
       INSERT INTO materi_pembelajaran
         (rombel_id, mapel_id, tutor_id, judul, deskripsi, tipe, path_file, url, urutan, is_published, pertemuan_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const [result] = await pool.execute(sql, [
       rombel_id, mapel_id, tutor_id, judul,
       deskripsi || null, tipe, path_file || null, url || null, finalUrutan,
+      is_published ? 1 : 0,
       pertemuan_id || null
     ]);
     return result.insertId;

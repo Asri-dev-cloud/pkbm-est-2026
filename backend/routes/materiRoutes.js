@@ -29,10 +29,10 @@ router.get(
   MateriController.getById
 );
 
-// POST /api/materi — Tutor upload materi baru
+// POST /api/materi — Tutor / Admin upload materi baru
 router.post(
   '/materi',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   (req, res, next) => { req.uploadFolder = 'materi'; next(); },
   upload.single('file'),
   MateriController.create
@@ -41,7 +41,7 @@ router.post(
 // PUT /api/materi/:id/publish — Toggle publish/draft
 router.put(
   '/materi/:id/publish',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   MateriController.togglePublish
 );
 
@@ -63,17 +63,17 @@ router.get(
   TugasController.getByRombel
 );
 
-// GET /api/tugas/:id — Detail tugas + pengumpulan (untuk Tutor)
+// GET /api/tugas/:id — Detail tugas + pengumpulan (untuk Tutor & Admin)
 router.get(
   '/tugas/:id',
-  checkRole(ROLES.TUTOR, ROLES.WARGA_BELAJAR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.WARGA_BELAJAR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   TugasController.getById
 );
 
-// POST /api/tugas — Tutor buat tugas baru
+// POST /api/tugas — Tutor / Admin buat tugas baru
 router.post(
   '/tugas',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   TugasController.create
 );
 
@@ -86,10 +86,10 @@ router.post(
   TugasController.kumpulkan
 );
 
-// PUT /api/tugas/pengumpulan/:pengumpulanId/nilai — Tutor menilai
+// PUT /api/tugas/pengumpulan/:pengumpulanId/nilai — Tutor / Admin menilai
 router.put(
   '/tugas/pengumpulan/:pengumpulanId/nilai',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   TugasController.nilaiTugas
 );
 
@@ -104,10 +104,10 @@ router.get(
   JadwalController.getByRombel
 );
 
-// POST /api/jadwal — Tutor buat jadwal pertemuan
+// POST /api/jadwal — Tutor / Admin buat jadwal pertemuan
 router.post(
   '/jadwal',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   JadwalController.create
 );
 

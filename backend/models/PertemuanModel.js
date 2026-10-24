@@ -11,15 +11,15 @@ const PertemuanModel = {
   // -----------------------------------------------------------
   // Buat pertemuan belajar baru
   // -----------------------------------------------------------
-  create: async ({ rombel_id, mapel_id, tutor_id, pertemuan_ke, judul, rencana_materi, metode_belajar, tanggal_pelaksanaan, pengumuman }) => {
+  create: async ({ rombel_id, mapel_id, tutor_id, pertemuan_ke, judul, rencana_materi, metode_belajar, tanggal_pelaksanaan, pengumuman, is_published = 1 }) => {
     const sql = `
       INSERT INTO pertemuan_belajar
         (rombel_id, mapel_id, tutor_id, pertemuan_ke, judul, rencana_materi, metode_belajar, tanggal_pelaksanaan, is_published, pengumuman)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const [result] = await pool.execute(sql, [
       rombel_id, mapel_id, tutor_id, pertemuan_ke, judul,
-      rencana_materi || null, metode_belajar || 'hybrid', tanggal_pelaksanaan, pengumuman || null
+      rencana_materi || null, metode_belajar || 'hybrid', tanggal_pelaksanaan, is_published ? 1 : 0, pengumuman || null
     ]);
     return result.insertId;
   },

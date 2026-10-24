@@ -74,7 +74,8 @@ const AbsensiController = {
   tutupSesi: async (req, res) => {
     try {
       const { sesiId } = req.params;
-      const affected = await AbsensiModel.tutupSesi(parseInt(sesiId), req.user.id);
+      const isPrivileged = req.user.role === 'super_admin' || req.user.role === 'admin';
+      const affected = await AbsensiModel.tutupSesi(parseInt(sesiId), isPrivileged ? null : req.user.id);
 
       if (affected === 0) {
         return res.status(404).json({

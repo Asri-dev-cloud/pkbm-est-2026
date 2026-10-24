@@ -99,7 +99,7 @@ function TagihanAdmin() {
 
   // Fetch daftar siswa untuk dropdown (saat mode 'buat' dipilih)
   useEffect(() => {
-    if (tab === 'buat' && siswaOptions.length === 0) {
+    if (tab === 'buat') {
       SiswaAPI.getAll({ is_aktif: 1 })
         .then(r => setSiswaOptions(r.data.data || []))
         .catch(() => {});

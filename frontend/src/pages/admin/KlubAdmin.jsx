@@ -3,7 +3,7 @@
 // ============================================================
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
-import { KlubAPI } from '../../services/api.js';
+import { KlubAPI, AkademikAPI } from '../../services/api.js';
 import './KlubAdmin.css';
 
 const KATEGORI_LIST = ['seni', 'olahraga', 'teknologi', 'bahasa', 'sains', 'lainnya'];
@@ -23,6 +23,7 @@ function KlubAdmin() {
   const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
 
   const [klubList,    setKlubList]    = useState([]);
+  const [tutorList,   setTutorList]   = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState('');
   const [search,      setSearch]      = useState('');
@@ -47,7 +48,12 @@ function KlubAdmin() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchKlub(); }, []);
+  useEffect(() => {
+    fetchKlub();
+    AkademikAPI.getTutorOptions()
+      .then(res => setTutorList(res.data.data || []))
+      .catch(() => {});
+  }, []);
 
   const filtered = klubList.filter(k => {
     const q = search.toLowerCase();
@@ -331,8 +337,17 @@ function KlubAdmin() {
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">ID Pembimbing <span style={{ color: 'var(--color-text-muted)', fontWeight: 400, fontSize: '0.8rem' }}>(opsional — user_id Tutor)</span></label>
-            <input type="number" className="form-input" placeholder="Kosongkan jika belum ada pembimbing" value={formData.pembimbing_id} onChange={e => setForm('pembimbing_id', e.target.value)} />
+            <label className="form-label">Guru Pembimbing <span style={{ color: 'var(--color-text-muted)', fontWeight: 400, fontSize: '0.8rem' }}>(opsional — Tutor)</span></label>
+            <select
+              className="form-input"
+              value={formData.pembimbing_id || ''}
+              onChange={e => setForm('pembimbing_id', e.target.value ? Number(e.target.value) : '')}
+            >
+              <option value="">-- Pilih Guru Pembimbing (Opsional) --</option>
+              {tutorList.map(t => (
+                <option key={t.id} value={t.id}>{t.nama_lengkap} ({t.email})</option>
+              ))}
+            </select>
           </div>
 
           {feedback.msg && (

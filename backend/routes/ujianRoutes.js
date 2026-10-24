@@ -47,39 +47,39 @@ router.post('/peserta/:id/generate-kartu',
 
 // ── BANK SOAL  /api/ujian/soal ───────────────────────────────
 // GET    /api/ujian/soal           — Daftar soal (filter: mapel, jenjang, jenis)
-router.get('/soal',    checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN), BankSoalController.getAll);
+router.get('/soal',    checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN), BankSoalController.getAll);
 // GET    /api/ujian/soal/:id       — Detail satu soal
-router.get('/soal/:id', checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN), BankSoalController.getById);
+router.get('/soal/:id', checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN), BankSoalController.getById);
 // POST   /api/ujian/soal           — Tambah soal baru
-router.post('/soal',   checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN), BankSoalController.create);
+router.post('/soal',   checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN), BankSoalController.create);
 // PUT    /api/ujian/soal/:id       — Edit soal
-router.put('/soal/:id', checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN), BankSoalController.update);
+router.put('/soal/:id', checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN), BankSoalController.update);
 // DELETE /api/ujian/soal/:id       — Hapus soal
-router.delete('/soal/:id', checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN), BankSoalController.delete);
+router.delete('/soal/:id', checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN), BankSoalController.delete);
 
 // ── PAKET UJIAN  /api/ujian/paket ────────────────────────────
 // GET  /api/ujian/paket/rombel/:rombelId — Daftar paket ujian satu rombel
 router.get('/paket/rombel/:rombelId',
-  checkRole(ROLES.TUTOR, ROLES.WARGA_BELAJAR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.WARGA_BELAJAR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   PaketUjianController.getByRombel
 );
 // GET  /api/ujian/paket/:id         — Detail paket + daftar soal
 router.get('/paket/:id',
-  checkRole(ROLES.TUTOR, ROLES.WARGA_BELAJAR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.WARGA_BELAJAR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   PaketUjianController.getById
 );
-// POST /api/ujian/paket             — Tutor buat paket ujian
+// POST /api/ujian/paket             — Tutor / Admin buat paket ujian
 router.post('/paket',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   PaketUjianController.create
 );
-// GET  /api/ujian/paket/:id/rekap   — Rekap nilai semua WB (Tutor)
+// GET  /api/ujian/paket/:id/rekap   — Rekap nilai semua WB (Tutor / Admin)
 router.get('/paket/:id/rekap',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   PaketUjianController.getRekap
 );
 router.put('/paket/:id/nilai-manual',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   PaketUjianController.simpanNilaiManual
 );
 

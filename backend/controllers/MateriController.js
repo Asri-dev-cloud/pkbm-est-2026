@@ -62,6 +62,7 @@ export const MateriController = {
         path_file: req.file ? req.file.path : null,
         url:       url || null,
         urutan:    urutan ? parseInt(urutan) : null,
+        is_published: req.body.is_published !== undefined ? (Number(req.body.is_published) === 1 || req.body.is_published === 'true') : 1,
         pertemuan_id: pertemuan_id ? parseInt(pertemuan_id) : null
       });
 

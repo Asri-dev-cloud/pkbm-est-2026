@@ -10,11 +10,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
-import { LmsAPI } from '../../services/api.js';
+import { LmsAPI, SiswaAPI } from '../../services/api.js';
 
 function TugasSiswa() {
-  const user     = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
-  const rombelId = user.rombel_id;
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('pkbm_user') || '{}'));
 
   const [tugas,    setTugas]   = useState([]);
   const [loading,  setLoading] = useState(true);
@@ -23,17 +22,45 @@ function TugasSiswa() {
   const [formTerbuka, setFormTerbuka] = useState(null);
 
   useEffect(() => {
-    if (!rombelId) { setLoading(false); setError('Data rombel tidak ditemukan.'); return; }
-
-    const fetch_ = async () => {
+    const fetchTugas = async () => {
       try {
-        const res = await LmsAPI.getTugasByRombel(rombelId);
+        setLoading(true);
+        setError('');
+
+        let currentRombelId = user?.rombel_id;
+        if (!currentRombelId) {
+          const profilRes = await SiswaAPI.getProfilSaya();
+          const profil = profilRes.data.data;
+          currentRombelId = profil?.rombel_id;
+          if (currentRombelId) {
+            const nextUser = {
+              ...user,
+              rombel_id: currentRombelId,
+              nama_rombel: profil?.nama_rombel || null,
+              nis: profil?.nis || user?.nis || null,
+            };
+            setUser(nextUser);
+            localStorage.setItem('pkbm_user', JSON.stringify(nextUser));
+          }
+        }
+
+        if (!currentRombelId) {
+          setError('Data rombel Anda belum tersedia. Hubungi Admin TU untuk penempatan rombel.');
+          setTugas([]);
+          return;
+        }
+
+        const res = await LmsAPI.getTugasByRombel(currentRombelId);
         setTugas(res.data.data || []);
-      } catch { setError('Gagal memuat tugas.'); }
-      finally  { setLoading(false); }
+      } catch (err) {
+        setError(err.response?.data?.message || 'Gagal memuat tugas.');
+      } finally {
+        setLoading(false);
+      }
     };
-    fetch_();
-  }, [rombelId]);
+
+    fetchTugas();
+  }, []);
 
   // ── Hitung status deadline ───────────────────────────────
   const statusDeadline = (deadline) => {

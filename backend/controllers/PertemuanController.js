@@ -144,7 +144,7 @@ const PertemuanController = {
   // -----------------------------------------------------------
   create: async (req, res) => {
     try {
-      const { rombel_id, mapel_id, pertemuan_ke, judul, rencana_materi, metode_belajar, tanggal_pelaksanaan, pengumuman } = req.body;
+      const { rombel_id, mapel_id, pertemuan_ke, judul, rencana_materi, metode_belajar, tanggal_pelaksanaan, pengumuman, is_published } = req.body;
 
       if (!rombel_id || !mapel_id || !pertemuan_ke || !judul || !tanggal_pelaksanaan) {
         return res.status(400).json({
@@ -165,7 +165,8 @@ const PertemuanController = {
         rencana_materi,
         metode_belajar,
         tanggal_pelaksanaan,
-        pengumuman
+        pengumuman,
+        is_published: is_published !== undefined ? (Number(is_published) === 1 || is_published === true || is_published === 'true') : 1
       });
 
       return res.status(201).json({

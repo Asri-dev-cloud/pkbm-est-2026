@@ -17,21 +17,21 @@ router.use(verifyToken);
 // POST /api/absensi/sesi — Buka sesi absensi baru
 router.post(
   '/sesi',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   AbsensiController.bukaSesi
 );
 
-// GET /api/absensi/sesi-aktif — Cek sesi yang sedang berjalan milik Tutor login
+// GET /api/absensi/sesi-aktif — Cek sesi yang sedang berjalan milik Tutor/Admin atau untuk WB
 router.get(
   '/sesi-aktif',
-  checkRole(ROLES.TUTOR, ROLES.WARGA_BELAJAR),
+  checkRole(ROLES.TUTOR, ROLES.WARGA_BELAJAR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   AbsensiController.getSesiAktif
 );
 
 // PUT /api/absensi/sesi/:sesiId/tutup — Tutup sesi secara manual
 router.put(
   '/sesi/:sesiId/tutup',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   AbsensiController.tutupSesi
 );
 
@@ -46,14 +46,14 @@ router.get(
 // Endpoint ini di-polling oleh frontend Tutor setiap beberapa detik
 router.get(
   '/sesi/:sesiId/daftar-wb',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   AbsensiController.getDaftarWbDiSesi
 );
 
 // POST /api/absensi/sesi/:sesiId/submit-manual — Submit absensi manual (isi semua WB)
 router.post(
   '/sesi/:sesiId/submit-manual',
-  checkRole(ROLES.TUTOR, ROLES.SUPER_ADMIN),
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   AbsensiController.submitManual
 );
 
