@@ -4,13 +4,13 @@
   "description": "Platform digital PKBM Bina Mandiri untuk pendaftaran, pembelajaran, ujian, dan administrasi pendidikan nonformal.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f5f7fb",
-  "theme_color": "#176c3d",
+  "background_color": "#061324",
+  "theme_color": "#0F3C65",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any"
     }
   ]
