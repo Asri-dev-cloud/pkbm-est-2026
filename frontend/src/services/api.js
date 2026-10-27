@@ -50,6 +50,11 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
+    // Jika data adalah FormData, hapus Content-Type bawaan agar browser/axios
+    // membuat header multipart/form-data beserta boundary unik secara otomatis
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -181,12 +186,10 @@ export const SpmbAPI = {
   daftar: (payload) =>
     apiClient.post('/spmb/daftar', payload),
 
-  // POST /api/spmb/:id/berkas ÔÇö Upload berkas (FormData)
-  // Gunakan FormData karena ini multipart/form-data
+  // POST /api/spmb/:id/berkas — Upload berkas (FormData)
+  // Boundary dibuat otomatis oleh browser & interceptor
   uploadBerkas: (id, formData) =>
-    apiClient.post(`/spmb/${id}/berkas`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+    apiClient.post(`/spmb/${id}/berkas`, formData),
 
   // GET /api/spmb ÔÇö Daftar semua pendaftar (Admin)
   getAll: (params = {}) =>

@@ -1,303 +1,823 @@
 // ============================================================
-// src/pages/public/DaftarSpmbPage.jsx - Formulir SPMB Publik
-// Palet: Sky Blue #5CB8FF | Soft Cream #FFF8EE | Dark Navy #243B53
+// src/pages/public/DaftarSpmbPage.jsx — Formulir SPMB Publik
+// Tema: Biru (Midnight Navy & Royal Blue), Putih, Kuning, Hitam
 // ============================================================
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  GraduationCap,
+  ArrowRight,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  UploadCloud,
+  FileText,
+  Lock,
+  Mail,
+  User,
+  Phone,
+  Calendar,
+  CheckCircle2,
+  Copy,
+  Check,
+  Sparkles,
+  Info,
+  ShieldCheck,
+  AlertCircle
+} from 'lucide-react';
 import { SpmbAPI } from '../../services/api.js';
 import './DaftarSpmbPage.css';
 
-// ═ COLOR PALETTE ═
-const PRIMARY       = "#059669";   // Emerald 600
-const PRIMARY_DARK  = "#047857";   // Emerald 700
-const PRIMARY_LIGHT = "#ECFDF5";   // Mint Light
-const FOREST_DARK   = "#021B14";   // Deep Pine Forest
-const NAVY          = "#0F172A";   // Slate 900
-const CREAM         = "#F4F8F6";   // Fresh Light Background
-const LIGHT_TEXT    = "#64748B";   // Gray
-const SURFACE       = "#ffffff";
-const BORDER        = "#E2ECE7";   // Mint Border
-const ERROR         = "#ef4444";
-const SUCCESS       = "#10B981";
-const WARNING       = "#f59e0b";
-
 const DAFTAR_BERKAS = [
-  { key: 'kk',     label: 'Kartu Keluarga (KK)',   keterangan: 'Format JPG/PNG/PDF, maks 10MB' },
-  { key: 'ijazah', label: 'Ijazah Terakhir',        keterangan: 'Format JPG/PNG/PDF, maks 10MB' },
-  { key: 'foto',   label: 'Foto 3x4 Terbaru',       keterangan: 'Format JPG/PNG, maks 10MB' },
+  {
+    key: 'kk',
+    label: 'Kartu Keluarga (KK)',
+    keterangan: 'Format scan / foto JPG, PNG, atau PDF (maks. 10MB)',
+    icon: '📄'
+  },
+  {
+    key: 'ijazah',
+    label: 'Ijazah Terakhir / Raport / SKL',
+    keterangan: 'Ijazah jenjang sebelumnya (SD/SMP) atau dokumen pendukung',
+    icon: '📜'
+  },
+  {
+    key: 'foto',
+    label: 'Pas Foto 3x4 Terbaru',
+    keterangan: 'Foto formal calon siswa dengan latar belakang merah atau biru',
+    icon: '🖼️'
+  },
+];
+
+const JENJANG_PILIHAN = [
+  {
+    key: 'paket_a',
+    title: 'Paket A',
+    subtitle: 'Setara SD / MI',
+    badge: 'Tingkat Dasar',
+    desc: 'Untuk calon warga belajar usia anak atau dewasa yang belum tamat SD.'
+  },
+  {
+    key: 'paket_b',
+    title: 'Paket B',
+    subtitle: 'Setara SMP / MTs',
+    badge: 'Tingkat Pertama',
+    desc: 'Untuk lulusan SD yang ingin melanjutkan pendidikan kesetaraan tingkat SMP.'
+  },
+  {
+    key: 'paket_c',
+    title: 'Paket C',
+    subtitle: 'Setara SMA / SMK',
+    badge: 'Tingkat Atas',
+    desc: 'Pendidikan kesetaraan SMA resmi untuk kuliah, kerja, atau wirausaha.'
+  },
 ];
 
 function DaftarSpmbPage() {
-  const [step, setStep]                   = useState(1);
-  const [form, setForm]                   = useState({ nama_lengkap:'', email:'', nik:'', no_telp:'', password:'', konfirmasi_password:'', tanggal_lahir:'', jenis_kelamin:'L', jenjang_daftar:'paket_c', alamat:'', nama_wali:'' });
-  const [pendaftarId, setPendaftarId]     = useState(null);
-  const [files, setFiles]                 = useState({ kk:null, ijazah:null, foto:null });
-  const [uploadStatus, setUploadStatus]   = useState({ kk:'idle', ijazah:'idle', foto:'idle' });
-  const [loading, setLoading]             = useState(false);
-  const [error, setError]                 = useState('');
-  const [showPassword, setShowPassword]           = useState(false);
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState({
+    nama_lengkap: '',
+    email: '',
+    nik: '',
+    no_telp: '',
+    password: '',
+    konfirmasi_password: '',
+    tanggal_lahir: '',
+    jenis_kelamin: 'L',
+    jenjang_daftar: 'paket_c',
+    alamat: '',
+    nama_wali: ''
+  });
+
+  const [pendaftarId, setPendaftarId]   = useState(null);
+  const [files, setFiles]               = useState({ kk: null, ijazah: null, foto: null });
+  const [uploadStatus, setUploadStatus] = useState({ kk: 'idle', ijazah: 'idle', foto: 'idle' });
+  const [uploadMsg, setUploadMsg]       = useState({});
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState('');
+  const [copied, setCopied]             = useState(false);
+  const [showPassword, setShowPassword]               = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  const handleFileChange = (key, file) => { setFiles(prev => ({ ...prev, [key]: file })); setUploadStatus(prev => ({ ...prev, [key]: 'idle' })); };
-
-  const handleSubmitDataDiri = async (e) => {
-    e.preventDefault(); setError('');
-    const wajib = ['nama_lengkap','email','no_telp','password','konfirmasi_password','tanggal_lahir','jenjang_daftar','alamat','nama_wali'];
-    for (const field of wajib) { if (!String(form[field]||'').trim()) { setError('Harap isi semua kolom yang bertanda bintang (*).'); return; } }
-    if (form.password.length < 8) { setError('Password minimal 8 karakter.'); return; }
-    if (form.password !== form.konfirmasi_password) { setError('Konfirmasi password tidak cocok.'); return; }
-    setLoading(true);
-    try {
-      const res = await SpmbAPI.daftar({ nama_lengkap:form.nama_lengkap.trim(), email:form.email.trim(), nik:form.nik.trim(), no_telp:form.no_telp.trim(), password:form.password, jenjang_daftar:form.jenjang_daftar, tanggal_lahir:form.tanggal_lahir, jenis_kelamin:form.jenis_kelamin, alamat:form.alamat.trim(), nama_wali:form.nama_wali.trim() });
-      const id = res.data.data?.pendaftar_id;
-      if (!id) throw new Error('Nomor pendaftar tidak ditemukan.');
-      setPendaftarId(id); setStep(2); window.scrollTo({ top:0, behavior:'smooth' });
-    } catch (err) { setError(err.response?.data?.message || err.message || 'Gagal mengirim data.'); }
-    finally { setLoading(false); }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleJenjangSelect = (jenjangKey) => {
+    setForm(prev => ({ ...prev, jenjang_daftar: jenjangKey }));
+  };
+
+  const handleFileChange = (key, file) => {
+    setFiles(prev => ({ ...prev, [key]: file }));
+    setUploadStatus(prev => ({ ...prev, [key]: file ? 'ready' : 'idle' }));
+  };
+
+  // ── Step 1: Submit Data Diri ke Backend & Database ──
+  const handleSubmitDataDiri = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    // Validasi data wajib
+    const wajib = [
+      'nama_lengkap', 'email', 'no_telp', 'password',
+      'konfirmasi_password', 'tanggal_lahir', 'jenjang_daftar',
+      'alamat', 'nama_wali'
+    ];
+
+    for (const field of wajib) {
+      if (!String(form[field] || '').trim()) {
+        setError('Harap isi semua kolom bertanda bintang (*) sebelum melanjutkan.');
+        window.scrollTo({ top: 180, behavior: 'smooth' });
+        return;
+      }
+    }
+
+    if (form.password.length < 8) {
+      setError('Password akun minimal 8 karakter demi keamanan.');
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+      return;
+    }
+
+    if (form.password !== form.konfirmasi_password) {
+      setError('Konfirmasi password tidak cocok dengan password yang dibuat.');
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const payload = {
+        nama_lengkap: form.nama_lengkap.trim(),
+        email: form.email.trim(),
+        nik: form.nik ? form.nik.trim() : null,
+        no_telp: form.no_telp.trim(),
+        password: form.password,
+        jenjang_daftar: form.jenjang_daftar,
+        tanggal_lahir: form.tanggal_lahir,
+        jenis_kelamin: form.jenis_kelamin,
+        alamat: form.alamat.trim(),
+        nama_wali: form.nama_wali.trim()
+      };
+
+      const res = await SpmbAPI.daftar(payload);
+
+      if (res.data?.success) {
+        const id = res.data.data?.pendaftar_id;
+        setPendaftarId(id);
+        setStep(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        setError(res.data?.message || 'Gagal menyimpan data pendaftaran.');
+      }
+    } catch (err) {
+      const errMsg =
+        err.response?.data?.message ||
+        (err.code === 'ERR_NETWORK'
+          ? 'Koneksi ke server gagal. Pastikan jaringan internet aktif.'
+          : 'Terjadi kendala saat mengirim data formulir.');
+      setError(errMsg);
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Step 2: Upload Berkas ──
   const handleUploadBerkas = async (key) => {
     if (!files[key] || !pendaftarId) return;
+
     setUploadStatus(prev => ({ ...prev, [key]: 'uploading' }));
+    setUploadMsg(prev => ({ ...prev, [key]: '' }));
+
     try {
-      const fd = new FormData(); fd.append('file', files[key]); fd.append('jenis_berkas', key);
-      await SpmbAPI.uploadBerkas(pendaftarId, fd);
-      setUploadStatus(prev => ({ ...prev, [key]: 'done' }));
-    } catch { setUploadStatus(prev => ({ ...prev, [key]: 'error' })); }
+      const fd = new FormData();
+      fd.append('file', files[key]);
+      fd.append('jenis_berkas', key);
+
+      const res = await SpmbAPI.uploadBerkas(pendaftarId, fd);
+      if (res.data?.success) {
+        setUploadStatus(prev => ({ ...prev, [key]: 'done' }));
+        setUploadMsg(prev => ({ ...prev, [key]: 'Berkas berhasil tersimpan.' }));
+      } else {
+        setUploadStatus(prev => ({ ...prev, [key]: 'error' }));
+        setUploadMsg(prev => ({ ...prev, [key]: res.data?.message || 'Gagal mengupload berkas.' }));
+      }
+    } catch (err) {
+      setUploadStatus(prev => ({ ...prev, [key]: 'error' }));
+      setUploadMsg(prev => ({
+        ...prev,
+        [key]: err.response?.data?.message || 'Gagal mengunggah. Coba lagi.'
+      }));
+    }
   };
 
-  const semuaBerkasDone = DAFTAR_BERKAS.every(b => uploadStatus[b.key] === 'done');
-  const handleSelesai = () => { setStep(3); window.scrollTo({ top:0, behavior:'smooth' }); };
+  const handleCopyNumber = () => {
+    if (!pendaftarId) return;
+    const formatted = `#${String(pendaftarId).padStart(6, '0')}`;
+    navigator.clipboard?.writeText(formatted);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
 
   return (
-    <div style={{ minHeight:'100vh', background: CREAM }}>
-      <style>{`
-        @keyframes fadeInUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes spin { to { transform:rotate(360deg); } }
-        @media (max-width: 768px) { .form-grid-2 { grid-template-columns: 1fr !important; } }
-      `}</style>
+    <div className="spmb-page">
+      {/* ═ TOP BAR NAVIGATION ═ */}
+      <header className="spmb-topbar">
+        <div className="spmb-topbar-inner">
+          <Link to="/" className="spmb-topbar-back">
+            <ArrowLeft size={16} />
+            <span>Kembali ke Beranda</span>
+          </Link>
+          <div className="spmb-topbar-right">
+            <span className="spmb-topbar-link">
+              Sudah punya akun? <Link to="/login"><strong>Masuk di sini</strong></Link>
+            </span>
+          </div>
+        </div>
+      </header>
 
-      {/* HEADER */}
-      <div style={{ background:`linear-gradient(135deg, ${FOREST_DARK} 0%, #064E3B 55%, ${PRIMARY} 100%)`, padding:"48px 24px", textAlign:"center", color:"#fff" }}>
-        <div style={{ width:56, height:56, background:"rgba(255,255,255,0.15)", borderRadius:"14px", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", fontSize:"1.6rem", border:"1px solid rgba(255,255,255,0.25)" }}>🎓</div>
-        <h1 style={{ fontWeight:800, marginBottom:8, fontSize:"2rem", letterSpacing:"-0.02em" }}>Pendaftaran Warga Belajar Baru</h1>
-        <p style={{ opacity:0.9, fontSize:"0.98rem" }}>PKBM Bina Mandiri - Paket A, B, dan C</p>
-      </div>
+      {/* ═ HERO BANNER ═ */}
+      <section className="spmb-hero">
+        <div className="spmb-hero-content">
+          <div className="spmb-hero-pill">
+            <Sparkles size={14} />
+            <span>Penerimaan Warga Belajar Baru T.A. 2026/2027</span>
+          </div>
+          <div className="spmb-hero-icon">
+            <GraduationCap size={38} />
+          </div>
+          <h1 className="spmb-hero-title">Formulir Pendaftaran Online</h1>
+          <p className="spmb-hero-subtitle">
+            Pendidikan Kesetaraan Inklusif & Terakreditasi Resmi Kemendikbud: Paket A (SD), Paket B (SMP), dan Paket C (SMA).
+          </p>
+        </div>
+      </section>
 
-      <div style={{ maxWidth:640, margin:"32px auto 0", padding:"0 24px" }}><StepIndicator step={step} /></div>
+      {/* ═ MAIN CONTAINER ═ */}
+      <main className="spmb-main-container">
+        {/* Step Indicator */}
+        <div className="spmb-step-bar">
+          <div className={`spmb-step-node ${step === 1 ? 'active' : step > 1 ? 'completed' : ''}`}>
+            <div className="spmb-step-badge">
+              {step > 1 ? <Check size={18} /> : '1'}
+            </div>
+            <div>
+              <div className="spmb-step-text-title">Data Diri</div>
+              <div className="spmb-step-text-sub">Identitas & Akun</div>
+            </div>
+          </div>
 
-      <div style={{ maxWidth:640, margin:"24px auto 48px", padding:"0 24px" }}>
+          <div className={`spmb-step-connector ${step > 1 ? 'completed' : ''}`} />
 
-        {/* STEP 1 */}
+          <div className={`spmb-step-node ${step === 2 ? 'active' : step > 2 ? 'completed' : ''}`}>
+            <div className="spmb-step-badge">
+              {step > 2 ? <Check size={18} /> : '2'}
+            </div>
+            <div>
+              <div className="spmb-step-text-title">Upload Berkas</div>
+              <div className="spmb-step-text-sub">Dokumen Syarat</div>
+            </div>
+          </div>
+
+          <div className={`spmb-step-connector ${step > 2 ? 'completed' : ''}`} />
+
+          <div className={`spmb-step-node ${step === 3 ? 'active completed' : ''}`}>
+            <div className="spmb-step-badge">
+              {step === 3 ? '✓' : '3'}
+            </div>
+            <div>
+              <div className="spmb-step-text-title">Selesai</div>
+              <div className="spmb-step-text-sub">Nomor Pendaftar</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ══ STEP 1: FORM DATA DIRI ══ */}
         {step === 1 && (
-          <div style={{ background:SURFACE, borderRadius:"20px", padding:"32px", boxShadow:`0 16px 40px rgba(5,150,105,0.08)`, border:`1px solid ${BORDER}`, animation:"fadeInUp 0.4s ease-out" }}>
-            <div style={{ marginBottom:"28px" }}>
-              <h3 style={{ fontSize:"1.25rem", fontWeight:800, color:NAVY, marginBottom:8, display:"flex", alignItems:"center", gap:12 }}>
-                <span style={{ color:PRIMARY, fontSize:"1.5rem" }}>👤</span>Langkah 1: Data Diri Calon Warga Belajar
-              </h3>
-              <p style={{ fontSize:"0.9rem", color:LIGHT_TEXT, marginTop:6 }}>
-                Isi formulir dengan data yang benar. Kolom bertanda <span style={{ color:ERROR, fontWeight:700 }}>*</span> wajib diisi.
+          <div className="spmb-card">
+            <div className="spmb-card-header">
+              <h2 className="spmb-card-title">
+                <User size={22} color="var(--spmb-blue-royal)" />
+                Langkah 1: Identitas & Pembuatan Akun
+              </h2>
+              <p className="spmb-card-subtitle">
+                Isi formulir pendaftaran dengan data valid. Kolom bertanda (<span className="spmb-label-req">*</span>) wajib diisi. Akun login Anda akan langsung aktif setelah disimpan.
               </p>
             </div>
 
             {error && (
-              <div style={{ background:"rgba(239,68,68,0.1)", border:`1.5px solid ${ERROR}`, borderRadius:"8px", padding:"12px 16px", marginBottom:"24px", display:"flex", alignItems:"flex-start", gap:12, color:ERROR, fontSize:"0.9rem" }}>
-                <span style={{ fontSize:"1.2rem" }}>⚠️</span><span>{error}</span>
+              <div className="spmb-alert error">
+                <AlertCircle size={20} style={{ flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <strong>Terjadi Kesalahan:</strong> {error}
+                </div>
               </div>
             )}
 
-            <form onSubmit={handleSubmitDataDiri} style={{ marginBottom:24 }}>
-              <div className="form-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:20 }}>
-                <FormInput label="Nama Lengkap" name="nama_lengkap" type="text" value={form.nama_lengkap} onChange={handleChange} required />
-                <FormInput label="Email" name="email" type="email" value={form.email} onChange={handleChange} required />
+            <form onSubmit={handleSubmitDataDiri}>
+              {/* Row 1: Nama Lengkap & Email */}
+              <div className="spmb-form-grid">
+                <div className="spmb-form-group">
+                  <label className="spmb-label">
+                    Nama Lengkap Siswa <span className="spmb-label-req">*</span>
+                  </label>
+                  <div className="spmb-input-wrapper">
+                    <User size={18} className="spmb-input-icon" />
+                    <input
+                      type="text"
+                      name="nama_lengkap"
+                      value={form.nama_lengkap}
+                      onChange={handleChange}
+                      required
+                      placeholder="Contoh: Muhammad Rizky"
+                      className="spmb-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="spmb-form-group">
+                  <label className="spmb-label">
+                    Alamat Email Aktif <span className="spmb-label-req">*</span>
+                  </label>
+                  <div className="spmb-input-wrapper">
+                    <Mail size={18} className="spmb-input-icon" />
+                    <input
+                      type="email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      required
+                      placeholder="nama@email.com"
+                      className="spmb-input"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="form-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:20 }}>
-                <FormInput label="NIK" name="nik" type="text" value={form.nik} onChange={handleChange} placeholder="Opsional" />
-                <FormInput label="No. Telepon" name="no_telp" type="tel" value={form.no_telp} onChange={handleChange} required />
+
+              {/* Row 2: NIK & No Telepon */}
+              <div className="spmb-form-grid">
+                <div className="spmb-form-group">
+                  <label className="spmb-label">
+                    NIK (Nomor Induk Kependudukan)
+                  </label>
+                  <div className="spmb-input-wrapper">
+                    <FileText size={18} className="spmb-input-icon" />
+                    <input
+                      type="text"
+                      name="nik"
+                      value={form.nik}
+                      onChange={handleChange}
+                      maxLength={16}
+                      placeholder="16 digit NIK di KTP/KK (Opsional)"
+                      className="spmb-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="spmb-form-group">
+                  <label className="spmb-label">
+                    No. Handphone / WhatsApp <span className="spmb-label-req">*</span>
+                  </label>
+                  <div className="spmb-input-wrapper">
+                    <Phone size={18} className="spmb-input-icon" />
+                    <input
+                      type="tel"
+                      name="no_telp"
+                      value={form.no_telp}
+                      onChange={handleChange}
+                      required
+                      placeholder="08xxxxxxxxxx"
+                      className="spmb-input"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="form-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:20 }}>
-                <FormPasswordInput label="Password" name="password" value={form.password} onChange={handleChange} show={showPassword} onToggle={() => setShowPassword(!showPassword)} required />
-                <FormPasswordInput label="Konfirmasi Password" name="konfirmasi_password" value={form.konfirmasi_password} onChange={handleChange} show={showConfirmPassword} onToggle={() => setShowConfirmPassword(!showConfirmPassword)} required />
+
+              {/* Row 3: Buat Password & Konfirmasi Password */}
+              <div className="spmb-form-grid">
+                <div className="spmb-form-group">
+                  <label className="spmb-label">
+                    Buat Password Akun <span className="spmb-label-req">*</span>
+                  </label>
+                  <div className="spmb-input-wrapper">
+                    <Lock size={18} className="spmb-input-icon" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={form.password}
+                      onChange={handleChange}
+                      required
+                      minLength={8}
+                      placeholder="Minimal 8 karakter"
+                      className="spmb-input"
+                      style={{ paddingRight: 44 }}
+                    />
+                    <button
+                      type="button"
+                      className="spmb-input-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
+                      aria-label="Toggle password"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="spmb-form-group">
+                  <label className="spmb-label">
+                    Konfirmasi Password <span className="spmb-label-req">*</span>
+                  </label>
+                  <div className="spmb-input-wrapper">
+                    <Lock size={18} className="spmb-input-icon" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="konfirmasi_password"
+                      value={form.konfirmasi_password}
+                      onChange={handleChange}
+                      required
+                      minLength={8}
+                      placeholder="Ulangi password di atas"
+                      className="spmb-input"
+                      style={{ paddingRight: 44 }}
+                    />
+                    <button
+                      type="button"
+                      className="spmb-input-toggle"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      tabIndex={-1}
+                      aria-label="Toggle confirm password"
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="form-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:20 }}>
-                <FormInput label="Tanggal Lahir" name="tanggal_lahir" type="date" value={form.tanggal_lahir} onChange={handleChange} required />
-                <FormSelect label="Jenis Kelamin" name="jenis_kelamin" value={form.jenis_kelamin} onChange={handleChange} options={[{value:'L',label:'Laki-laki'},{value:'P',label:'Perempuan'}]} />
+
+              {/* Row 4: Tanggal Lahir & Jenis Kelamin */}
+              <div className="spmb-form-grid">
+                <div className="spmb-form-group">
+                  <label className="spmb-label">
+                    Tanggal Lahir <span className="spmb-label-req">*</span>
+                  </label>
+                  <div className="spmb-input-wrapper">
+                    <Calendar size={18} className="spmb-input-icon" />
+                    <input
+                      type="date"
+                      name="tanggal_lahir"
+                      value={form.tanggal_lahir}
+                      onChange={handleChange}
+                      required
+                      className="spmb-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="spmb-form-group">
+                  <label className="spmb-label">
+                    Jenis Kelamin <span className="spmb-label-req">*</span>
+                  </label>
+                  <select
+                    name="jenis_kelamin"
+                    value={form.jenis_kelamin}
+                    onChange={handleChange}
+                    required
+                    className="spmb-select"
+                  >
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
+                  </select>
+                </div>
               </div>
-              <div style={{ marginBottom:20 }}>
-                <FormSelect label="Jenjang Pendaftaran" name="jenjang_daftar" value={form.jenjang_daftar} onChange={handleChange} options={[{value:'paket_a',label:'Paket A (Setara SD)'},{value:'paket_b',label:'Paket B (Setara SMP)'},{value:'paket_c',label:'Paket C (Setara SMA)'}]} required />
+
+              {/* Row 5: Pilihan Jenjang Pendidikan */}
+              <div className="spmb-form-group">
+                <label className="spmb-label">
+                  Pilih Program Jenjang Kesetaraan <span className="spmb-label-req">*</span>
+                </label>
+                <div className="spmb-jenjang-grid">
+                  {JENJANG_PILIHAN.map(j => (
+                    <div
+                      key={j.key}
+                      className={`spmb-jenjang-card ${form.jenjang_daftar === j.key ? 'selected' : ''}`}
+                      onClick={() => handleJenjangSelect(j.key)}
+                    >
+                      <span className="spmb-jenjang-badge">{j.badge}</span>
+                      <div className="spmb-jenjang-title">{j.title}</div>
+                      <div className="spmb-jenjang-desc"><strong>{j.subtitle}</strong></div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: 4 }}>
+                        {j.desc}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ marginBottom:20 }}>
-                <label style={{ display:"block", fontSize:"0.9rem", fontWeight:600, color:NAVY, marginBottom:8 }}>Alamat Lengkap <span style={{ color:ERROR }}>*</span></label>
-                <textarea name="alamat" value={form.alamat} onChange={handleChange} required placeholder="Jalan, RT/RW, Desa, Kecamatan, Kabupaten"
-                  style={{ width:"100%", padding:"12px 16px", fontSize:"0.95rem", border:`1.5px solid ${BORDER}`, borderRadius:"8px", outline:"none", boxSizing:"border-box", color:NAVY, background:"#fff", minHeight:"100px", fontFamily:"inherit", resize:"vertical" }}
-                  onFocus={e => { e.target.style.borderColor=PRIMARY; e.target.style.boxShadow="0 0 0 3px rgba(92,184,255,0.2)"; }}
-                  onBlur={e => { e.target.style.borderColor=BORDER; e.target.style.boxShadow="none"; }} />
+
+              {/* Row 6: Alamat Lengkap */}
+              <div className="spmb-form-group">
+                <label className="spmb-label">
+                  Alamat Lengkap Tempat Tinggal <span className="spmb-label-req">*</span>
+                </label>
+                <textarea
+                  name="alamat"
+                  value={form.alamat}
+                  onChange={handleChange}
+                  required
+                  placeholder="Nama Jalan, No. Rumah, RT/RW, Dusun/Kelurahan, Kecamatan, Kota/Kabupaten"
+                  className="spmb-textarea"
+                />
               </div>
-              <div style={{ marginBottom:28 }}>
-                <FormInput label="Nama Wali / Orang Tua" name="nama_wali" type="text" value={form.nama_wali} onChange={handleChange} required />
+
+              {/* Row 7: Nama Orang Tua / Wali */}
+              <div className="spmb-form-group">
+                <label className="spmb-label">
+                  Nama Orang Tua / Wali <span className="spmb-label-req">*</span>
+                </label>
+                <div className="spmb-input-wrapper">
+                  <User size={18} className="spmb-input-icon" />
+                  <input
+                    type="text"
+                    name="nama_wali"
+                    value={form.nama_wali}
+                    onChange={handleChange}
+                    required
+                    placeholder="Nama lengkap orang tua / wali siswa"
+                    className="spmb-input"
+                  />
+                </div>
               </div>
-              <button type="submit" disabled={loading}
-                style={{ width:"100%", padding:"13px 16px", fontSize:"0.95rem", fontWeight:700, color:"#fff", background:loading ? `${PRIMARY}99` : `linear-gradient(135deg, ${PRIMARY} 0%, ${PRIMARY_DARK} 100%)`, border:"none", borderRadius:"8px", cursor:loading?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, boxShadow:`0 4px 14px rgba(92,184,255,0.3)` }}>
-                {loading ? <><div style={{ width:"16px", height:"16px", border:"2px solid rgba(255,255,255,0.4)", borderTopColor:"#fff", borderRadius:"50%", animation:"spin 0.7s linear infinite" }} />Memproses...</> : <>Lanjut ke Langkah 2 →</>}
+
+              <div className="spmb-alert info" style={{ marginTop: 24 }}>
+                <ShieldCheck size={20} color="var(--spmb-blue-royal)" style={{ flexShrink: 0 }} />
+                <span>
+                  Data pendaftaran Anda akan langsung tersimpan di database sistem PKBM Bina Mandiri.
+                  Password yang dibuat akan digunakan untuk masuk ke ruang belajar online.
+                </span>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="spmb-btn spmb-btn-primary spmb-btn-full"
+                style={{ marginTop: 8 }}
+              >
+                {loading ? (
+                  <>
+                    <div className="spmb-spinner" />
+                    <span>Menyimpan ke Database...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Lanjut ke Upload Berkas</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
               </button>
             </form>
           </div>
         )}
 
-        {/* STEP 2 */}
+        {/* ══ STEP 2: UPLOAD BERKAS ══ */}
         {step === 2 && (
-          <div style={{ background:SURFACE, borderRadius:"16px", padding:"32px", boxShadow:`0 8px 32px rgba(92,184,255,0.12)`, border:`1px solid ${BORDER}`, animation:"fadeInUp 0.4s ease-out" }}>
-            <div style={{ marginBottom:"28px" }}>
-              <h3 style={{ fontSize:"1.25rem", fontWeight:800, color:NAVY, marginBottom:8, display:"flex", alignItems:"center", gap:12 }}>
-                <span style={{ color:PRIMARY, fontSize:"1.5rem" }}>📄</span>Langkah 2: Upload Berkas Pendukung
-              </h3>
-              <p style={{ fontSize:"0.9rem", color:LIGHT_TEXT }}>Semua berkas wajib diupload untuk melanjutkan.</p>
+          <div className="spmb-card">
+            <div className="spmb-card-header">
+              <h2 className="spmb-card-title">
+                <UploadCloud size={24} color="var(--spmb-blue-royal)" />
+                Langkah 2: Upload Berkas Pendukung
+              </h2>
+              <p className="spmb-card-subtitle">
+                Nomor pendaftaran Anda sementara telah tersimpan di sistem: <strong>#{String(pendaftarId).padStart(6, '0')}</strong>.
+                Silakan unggah dokumen pendukung untuk kelengkapan berkas verifikasi.
+              </p>
             </div>
-            <div style={{ marginBottom:28 }}>
-              {DAFTAR_BERKAS.map(berkas => (
-                <BerkasUploadCard key={berkas.key} berkas={berkas} file={files[berkas.key]} status={uploadStatus[berkas.key]} onFileChange={file => handleFileChange(berkas.key, file)} onUpload={() => handleUploadBerkas(berkas.key)} />
-              ))}
+
+            <div className="spmb-alert info">
+              <Info size={18} style={{ flexShrink: 0 }} />
+              <span>
+                Jika belum memiliki scan berkas saat ini, Anda tetap dapat <strong>Menyelesaikan Pendaftaran</strong>. Berkas fisik dapat diserahkan langsung ke kantor PKBM atau disusulkan nanti.
+              </span>
             </div>
-            <div style={{ display:"flex", gap:12 }}>
-              <button onClick={() => setStep(1)} style={{ flex:1, padding:"12px 16px", fontWeight:700, color:PRIMARY_DARK, background:"#EBF6FF", border:"none", borderRadius:"8px", cursor:"pointer" }}>← Kembali</button>
-              <button onClick={handleSelesai} disabled={!semuaBerkasDone}
-                style={{ flex:1, padding:"12px 16px", fontWeight:700, color:"#fff", background:semuaBerkasDone?`linear-gradient(135deg,${PRIMARY},${PRIMARY_DARK})`:`${PRIMARY}55`, border:"none", borderRadius:"8px", cursor:semuaBerkasDone?"pointer":"not-allowed" }}>
-                Selesaikan Pendaftaran ✓
+
+            {/* List Berkas */}
+            <div style={{ marginBottom: 28 }}>
+              {DAFTAR_BERKAS.map((item) => {
+                const status = uploadStatus[item.key];
+                const file = files[item.key];
+                const msg = uploadMsg[item.key];
+
+                return (
+                  <div
+                    key={item.key}
+                    className={`spmb-upload-item ${status === 'done' ? 'done' : ''}`}
+                  >
+                    <div className="spmb-upload-top">
+                      <div>
+                        <div className="spmb-upload-title">
+                          <span style={{ marginRight: 8 }}>{item.icon}</span>
+                          {item.label}
+                        </div>
+                        <div className="spmb-upload-desc">{item.keterangan}</div>
+                      </div>
+
+                      <div>
+                        {status === 'done' && (
+                          <span className="spmb-upload-badge" style={{ background: '#DCFCE7', color: '#15803D' }}>
+                            <CheckCircle2 size={14} /> Berhasil
+                          </span>
+                        )}
+                        {status === 'ready' && (
+                          <span className="spmb-upload-badge" style={{ background: '#FEF08A', color: '#854D0E' }}>
+                            Siap Upload
+                          </span>
+                        )}
+                        {status === 'uploading' && (
+                          <span className="spmb-upload-badge" style={{ background: '#DBEAFE', color: '#1E40AF' }}>
+                            Mengunggah...
+                          </span>
+                        )}
+                        {status === 'error' && (
+                          <span className="spmb-upload-badge" style={{ background: '#FEE2E2', color: '#B91C1C' }}>
+                            Upload Gagal
+                          </span>
+                        )}
+                        {status === 'idle' && (
+                          <span className="spmb-upload-badge" style={{ background: '#F1F5F9', color: '#64748B' }}>
+                            Belum Ada File
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* File Input Trigger */}
+                    <label className="spmb-upload-drop">
+                      <UploadCloud size={20} color="var(--spmb-blue-royal)" />
+                      <span>{file ? file.name : `Pilih file ${item.label}`}</span>
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        onChange={(e) => handleFileChange(item.key, e.target.files?.[0] || null)}
+                        disabled={status === 'uploading' || status === 'done'}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+
+                    {/* Upload button for this file */}
+                    {file && status === 'ready' && (
+                      <button
+                        type="button"
+                        onClick={() => handleUploadBerkas(item.key)}
+                        className="spmb-btn spmb-btn-primary"
+                        style={{ width: '100%', marginTop: 12, padding: '10px 16px', fontSize: '0.88rem' }}
+                      >
+                        <UploadCloud size={16} />
+                        Unggah {item.label} Sekarang
+                      </button>
+                    )}
+
+                    {status === 'error' && (
+                      <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '0.8rem', color: '#DC2626' }}>{msg}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleUploadBerkas(item.key)}
+                          className="spmb-btn spmb-btn-secondary"
+                          style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+                        >
+                          Coba Lagi
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Navigation / Actions */}
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="spmb-btn spmb-btn-secondary"
+                style={{ flex: 1, minWidth: 140 }}
+              >
+                <ArrowLeft size={16} />
+                Kembali ke Data Diri
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setStep(3);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="spmb-btn spmb-btn-yellow"
+                style={{ flex: 1.5, minWidth: 200 }}
+              >
+                <span>Selesaikan & Simpan Pendaftaran</span>
+                <CheckCircle2 size={18} />
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 3 */}
+        {/* ══ STEP 3: SUKSES & NOMOR PENDAFTARAN ══ */}
         {step === 3 && (
-          <div style={{ background:SURFACE, borderRadius:"16px", padding:"48px 32px", boxShadow:`0 8px 32px rgba(92,184,255,0.12)`, border:`1px solid ${BORDER}`, textAlign:"center", animation:"fadeInUp 0.4s ease-out" }}>
-            <div style={{ width:80, height:80, background:"rgba(92,184,255,0.1)", borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px", fontSize:"2.5rem" }}>✅</div>
-            <h2 style={{ fontSize:"1.5rem", fontWeight:800, color:NAVY, marginBottom:12 }}>Pendaftaran Berhasil!</h2>
-            <p style={{ fontSize:"0.95rem", color:LIGHT_TEXT, marginBottom:16, lineHeight:1.6 }}>Terima kasih telah mendaftar di PKBM Bina Mandiri.</p>
-            <p style={{ fontSize:"0.9rem", color:PRIMARY_DARK, background:"#EBF6FF", padding:"12px 16px", borderRadius:"8px", marginBottom:28, fontWeight:600 }}>
-              <strong>Nomor Pendaftar:</strong> #{String(pendaftarId).padStart(6,'0')}
-            </p>
-            <p style={{ fontSize:"0.9rem", color:LIGHT_TEXT, marginBottom:28, lineHeight:1.6 }}>Tim kami akan memverifikasi data Anda dalam 1–3 hari kerja.</p>
-            <div style={{ display:"flex", gap:12 }}>
-              <Link to="/" style={{ flex:1, padding:"12px 16px", fontWeight:700, color:NAVY, background:"#f0f7ff", borderRadius:"8px", textDecoration:"none", display:"flex", alignItems:"center", justifyContent:"center" }}>Kembali ke Beranda</Link>
-              <Link to="/login" style={{ flex:1, padding:"12px 16px", fontWeight:700, color:"#fff", background:`linear-gradient(135deg,${PRIMARY},${PRIMARY_DARK})`, borderRadius:"8px", textDecoration:"none", display:"flex", alignItems:"center", justifyContent:"center" }}>Masuk Akun</Link>
+          <div className="spmb-card">
+            <div className="spmb-success-wrap">
+              <div className="spmb-success-icon-box">
+                <CheckCircle2 size={46} color="var(--spmb-blue-royal)" />
+              </div>
+
+              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--spmb-black)', marginBottom: 8 }}>
+                Pendaftaran Berhasil Tersimpan!
+              </h2>
+
+              <p style={{ fontSize: '1rem', color: 'var(--spmb-text-muted)', maxWidth: 520, margin: '0 auto' }}>
+                Selamat, formulir Anda telah resmi tercatat di database Sistem Informasi Akademik PKBM Bina Mandiri.
+              </p>
+
+              {/* Number Card */}
+              <div className="spmb-number-box">
+                <div style={{ fontSize: '0.85rem', color: '#E2E8F0', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                  Nomor Pendaftaran Resmi Anda
+                </div>
+                <div className="spmb-number-value">
+                  #{String(pendaftarId || '').padStart(6, '0')}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyNumber}
+                  style={{
+                    background: 'rgba(255,255,255,0.15)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    color: '#FFFFFF',
+                    padding: '6px 14px',
+                    borderRadius: 9999,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6
+                  }}
+                >
+                  {copied ? <Check size={14} color="#FACC15" /> : <Copy size={14} />}
+                  <span>{copied ? 'Tersalin ke Clipboard!' : 'Salin Nomor Pendaftaran'}</span>
+                </button>
+              </div>
+
+              {/* Next Steps Guide */}
+              <div className="spmb-guide-steps">
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--spmb-black)', marginBottom: 14 }}>
+                  Tahapan Selanjutnya:
+                </h4>
+                <div className="spmb-guide-item">
+                  <div className="spmb-guide-bullet">1</div>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--spmb-text-main)' }}>
+                    <strong>Verifikasi Berkas:</strong> Tim Tata Usaha akan memverifikasi data dan kelengkapan dokumen Anda dalam 1–3 hari kerja.
+                  </div>
+                </div>
+                <div className="spmb-guide-item">
+                  <div className="spmb-guide-bullet">2</div>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--spmb-text-main)' }}>
+                    <strong>Penerbitan NIS & Rombel:</strong> Setelah dinyatakan diterima, Anda akan mendapatkan NIS resmi dan dimasukkan ke rombongan belajar.
+                  </div>
+                </div>
+                <div className="spmb-guide-item">
+                  <div className="spmb-guide-bullet">3</div>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--spmb-text-main)' }}>
+                    <strong>Akses Ruang Belajar (LMS):</strong> Anda dapat langsung mencoba masuk ke portal menggunakan email dan password yang baru saja Anda buat.
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Links */}
+              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 24 }}>
+                <Link
+                  to="/"
+                  className="spmb-btn spmb-btn-secondary"
+                  style={{ flex: 1, minWidth: 160 }}
+                >
+                  <ArrowLeft size={16} />
+                  Kembali ke Beranda
+                </Link>
+
+                <Link
+                  to="/login"
+                  className="spmb-btn spmb-btn-primary"
+                  style={{ flex: 1.5, minWidth: 200 }}
+                >
+                  <span>Masuk ke Portal Belajar</span>
+                  <ArrowRight size={18} />
+                </Link>
+              </div>
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-// ═ HELPER COMPONENTS ═
-
-function StepIndicator({ step }) {
-  const steps = [{ num:1, label:'Data Diri' }, { num:2, label:'Upload Berkas' }, { num:3, label:'Selesai' }];
-  return (
-    <div style={{ display:"flex", alignItems:"center", marginBottom:"0.5rem" }}>
-      {steps.map((s, i) => (
-        <div key={s.num} style={{ display:"flex", alignItems:"center", flex: i < steps.length-1 ? 1 : "none" }}>
-          <div style={{ width:38, height:38, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: step>=s.num ? PRIMARY : "#E2ECE7", color: step>=s.num ? "white" : "#64748B", fontWeight:800, fontSize:"0.875rem", boxShadow: step>=s.num ? "0 4px 12px rgba(5,150,105,0.3)" : "none" }}>
-            {step > s.num ? "✓" : s.num}
-          </div>
-          <span style={{ marginLeft:8, fontSize:"0.76rem", fontWeight:700, color: step>=s.num ? PRIMARY_DARK : "#64748B", whiteSpace:"nowrap" }}>{s.label}</span>
-          {i < steps.length-1 && <div style={{ flex:1, height:2, background: step>s.num ? PRIMARY : "#E2ECE7", margin:"0 12px" }} />}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function FormInput({ label, name, type, value, onChange, required, placeholder }) {
-  return (
-    <div>
-      <label style={{ display:"block", fontSize:"0.9rem", fontWeight:600, color:NAVY, marginBottom:8 }}>
-        {label} {required && <span style={{ color:ERROR }}>*</span>}
-      </label>
-      <input type={type} name={name} value={value} onChange={onChange} required={required} placeholder={placeholder}
-        style={{ width:"100%", padding:"12px 16px", fontSize:"0.95rem", border:`1.5px solid ${BORDER}`, borderRadius:"8px", outline:"none", boxSizing:"border-box", color:NAVY, background:"#fff", fontFamily:"inherit" }}
-        onFocus={e => { e.target.style.borderColor=PRIMARY; e.target.style.boxShadow="0 0 0 3px rgba(92,184,255,0.2)"; }}
-        onBlur={e => { e.target.style.borderColor=BORDER; e.target.style.boxShadow="none"; }} />
-    </div>
-  );
-}
-
-function FormPasswordInput({ label, name, value, onChange, show, onToggle, required }) {
-  return (
-    <div>
-      <label style={{ display:"block", fontSize:"0.9rem", fontWeight:600, color:NAVY, marginBottom:8 }}>
-        {label} {required && <span style={{ color:ERROR }}>*</span>}
-      </label>
-      <div style={{ position:"relative" }}>
-        <input type={show?"text":"password"} name={name} value={value} onChange={onChange} required={required} placeholder="••••••••"
-          style={{ width:"100%", padding:"12px 44px 12px 16px", fontSize:"0.95rem", border:`1.5px solid ${BORDER}`, borderRadius:"8px", outline:"none", boxSizing:"border-box", color:NAVY, background:"#fff", fontFamily:"inherit" }}
-          onFocus={e => { e.target.style.borderColor=PRIMARY; e.target.style.boxShadow="0 0 0 3px rgba(92,184,255,0.2)"; }}
-          onBlur={e => { e.target.style.borderColor=BORDER; e.target.style.boxShadow="none"; }} />
-        <button type="button" onClick={onToggle}
-          style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#6b7280", fontSize:"1rem", padding:"4px" }}>
-          {show ? "👁️" : "👁️‍🗨️"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function FormSelect({ label, name, value, onChange, options, required }) {
-  return (
-    <div>
-      <label style={{ display:"block", fontSize:"0.9rem", fontWeight:600, color:NAVY, marginBottom:8 }}>
-        {label} {required && <span style={{ color:ERROR }}>*</span>}
-      </label>
-      <select name={name} value={value} onChange={onChange} required={required}
-        style={{ width:"100%", padding:"12px 36px 12px 16px", fontSize:"0.95rem", border:`1.5px solid ${BORDER}`, borderRadius:"8px", outline:"none", boxSizing:"border-box", color:NAVY, background:"#fff", fontFamily:"inherit", cursor:"pointer", appearance:"none",
-          backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23243B53' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-          backgroundRepeat:"no-repeat", backgroundPosition:"right 12px center" }}
-        onFocus={e => { e.target.style.borderColor=PRIMARY; e.target.style.boxShadow="0 0 0 3px rgba(92,184,255,0.2)"; }}
-        onBlur={e => { e.target.style.borderColor=BORDER; e.target.style.boxShadow="none"; }}>
-        {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-      </select>
-    </div>
-  );
-}
-
-function BerkasUploadCard({ berkas, file, status, onFileChange, onUpload }) {
-  const statusConfig = {
-    idle:      { color:LIGHT_TEXT, label:"Belum Upload" },
-    uploading: { color:WARNING, label:"Mengunggah..." },
-    done:      { color:PRIMARY_DARK, label:"✓ Berhasil" },
-    error:     { color:ERROR, label:"✗ Gagal" },
-  };
-  const cfg = statusConfig[status];
-  return (
-    <div style={{ background: status==='done' ? "#EBF6FF" : SURFACE, border:`1.5px dashed ${status==='done'?PRIMARY:BORDER}`, borderRadius:"12px", padding:"24px", marginBottom:"16px" }}>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"16px" }}>
-        <div>
-          <h4 style={{ fontSize:"0.95rem", fontWeight:700, color:NAVY, marginBottom:4 }}>{berkas.label}</h4>
-          <p style={{ fontSize:"0.8rem", color:LIGHT_TEXT }}>{berkas.keterangan}</p>
-        </div>
-        {status !== 'idle' && <span style={{ fontSize:"0.78rem", fontWeight:700, color:cfg.color, padding:"4px 10px", background:`${cfg.color}15`, borderRadius:"6px" }}>{cfg.label}</span>}
-      </div>
-
-      <label style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:12, padding:"14px", background:"#f0f7ff", border:`1.5px dashed ${BORDER}`, borderRadius:"8px", cursor:"pointer", fontSize:"0.9rem", fontWeight:600, color:NAVY }}>
-        <span>📁</span><span>{file ? file.name : "Klik untuk pilih file"}</span>
-        <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e => onFileChange(e.target.files?.[0]||null)} disabled={status==='uploading'||status==='done'} style={{ display:"none" }} />
-      </label>
-
-      {file && status==='idle' && (
-        <button onClick={onUpload} style={{ width:"100%", marginTop:"12px", padding:"10px 16px", fontSize:"0.9rem", fontWeight:700, color:"#fff", background:`linear-gradient(135deg,${PRIMARY},${PRIMARY_DARK})`, border:"none", borderRadius:"8px", cursor:"pointer" }}>
-          Upload Berkas
-        </button>
-      )}
-      {status==='uploading' && <div style={{ textAlign:"center", padding:"12px", color:WARNING, fontWeight:600 }}>⏳ Sedang mengunggah...</div>}
-      {status==='done' && <div style={{ textAlign:"center", padding:"12px", color:PRIMARY_DARK, fontWeight:700 }}>✓ Berkas berhasil diupload</div>}
-      {status==='error' && (
-        <div style={{ textAlign:"center", padding:"12px" }}>
-          <p style={{ color:ERROR, fontSize:"0.9rem", marginBottom:8 }}>Upload gagal, coba lagi</p>
-          <button onClick={onUpload} style={{ padding:"8px 16px", fontSize:"0.85rem", fontWeight:700, color:"#fff", background:ERROR, border:"none", borderRadius:"6px", cursor:"pointer" }}>Coba Lagi</button>
-        </div>
-      )}
+      </main>
     </div>
   );
 }
