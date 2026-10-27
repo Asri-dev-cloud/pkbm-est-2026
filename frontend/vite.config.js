@@ -20,6 +20,11 @@ export default defineConfig({
 
   server: {
     port: 5173,
+    host: true,
+    watch: {
+      usePolling: true,
+      interval: 100,
+    },
     proxy: {
       '/api': {
         target: process.env.VITE_PROXY_TARGET || 'https://pkbmbinamandiri.sch.id',

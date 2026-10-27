@@ -21,6 +21,24 @@ import './index.css';
 // Ambil elemen <div id="root"> dari index.html sebagai target render
 const rootElement = document.getElementById('root');
 
+// Pembersihan otomatis cache browser lama dan service worker yang tertinggal
+if (typeof window !== 'undefined') {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const registration of registrations) {
+        registration.unregister();
+      }
+    }).catch(() => {});
+  }
+  if ('caches' in window) {
+    caches.keys().then((names) => {
+      names.forEach((name) => {
+        caches.delete(name);
+      });
+    }).catch(() => {});
+  }
+}
+
 // Buat root React dan render aplikasi
 // React.StrictMode: mengaktifkan peringatan tambahan saat development
 // BrowserRouter: membungkus App agar semua komponen bisa pakai useNavigate, Link, dll.
