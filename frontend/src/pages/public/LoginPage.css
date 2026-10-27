@@ -1,29 +1,29 @@
 /* ============================================================
-   src/pages/public/LoginPage.css — Styling Halaman Login
-   Palet: Sky Blue #5CB8FF | Soft Cream #FFF8EE | Dark Navy #243B53
+   src/pages/public/LoginPage.css — Styling Halaman Login Modern
+   Tema: Deep Forest Pine (#022c22) & Vibrant Emerald (#059669, #10B981)
    ============================================================ */
 
 /* ═ COLOR VARIABLES ═ */
 :root {
-  --color-primary:       #5CB8FF;    /* Sky Blue */
-  --color-primary-dark:  #1a8fd1;    /* Sky Blue Darker */
-  --color-primary-light: #EBF6FF;    /* Sky Blue Light */
-  --color-text:          #243B53;    /* Dark Navy */
-  --color-text-muted:    #6b7280;    /* Gray */
-  --color-bg:            #FFF8EE;    /* Soft Cream */
+  --color-primary:       #059669;    /* Emerald 600 */
+  --color-primary-dark:  #047857;    /* Emerald 700 */
+  --color-primary-light: #ECFDF5;    /* Mint Light */
+  --color-text:          #0F172A;    /* Slate Dark */
+  --color-text-muted:    #64748B;    /* Gray */
+  --color-bg:            #F4F8F6;    /* Fresh Light Tint */
   --color-surface:       #ffffff;    /* White */
-  --color-border:        #d4eeff;    /* Light Blue Border */
+  --color-border:        #E2ECE7;    /* Light Mint Border */
   --color-error:         #ef4444;    /* Red */
   --color-error-light:   rgba(239, 68, 68, 0.1);
-  --color-success:       #5CB8FF;    /* Sky Blue */
+  --color-success:       #10B981;    /* Vibrant Emerald */
   
-  --shadow-lg: 0 10px 15px -3px rgba(92, 184, 255, 0.15);
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --shadow-lg: 0 12px 32px rgba(5, 150, 105, 0.15);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
   
-  --transition: all 0.2s ease;
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --text-sm: 0.875rem;
   --text-base: 1rem;
   --text-lg: 1.125rem;
@@ -41,16 +41,20 @@
   background-color: var(--color-bg);
 }
 
-/* ── Sisi Kiri: Branding Gradient ─────────────────────────── */
+/* ── Sisi Kiri: Branding Gradient Modern Emerald ──────────── */
 .login-branding {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem;
+  padding: 3rem;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #5CB8FF 0%, #1a8fd1 50%, #243B53 100%);
+  background-color: #022c22;
+  background-image: 
+    radial-gradient(circle at 80% 20%, rgba(52, 211, 153, 0.28) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.2) 0%, transparent 55%),
+    linear-gradient(135deg, #021B14 0%, #064E3B 55%, #059669 100%);
   min-height: 100vh;
 }
 
@@ -58,25 +62,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2.5rem;
+  gap: 2.25rem;
   z-index: 2;
-  max-width: 95%;
+  max-width: 90%;
   animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   text-align: center;
 }
 
 .login-branding-icon {
-  width: 120px;
-  height: 120px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 50%;
+  width: 108px;
+  height: 108px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3.5rem;
-  backdrop-filter: blur(10px);
-  border: 3px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  font-size: 3rem;
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  color: #FDE047;
 }
 
 .login-branding-info {
@@ -85,32 +90,52 @@
 }
 
 .login-branding-tagline {
-  font-size: 1.875rem;
+  font-size: 2.1rem;
   font-weight: 800;
   margin-bottom: 0.75rem;
   color: #ffffff;
-  letter-spacing: 0.3px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  line-height: 1.3;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  line-height: 1.2;
 }
 
 .login-branding-subtext {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.85);
-  max-width: 380px;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 400px;
   margin: 0 auto;
   line-height: 1.7;
   font-weight: 500;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
+.login-branding-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.login-badge-pill {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(6px);
+}
+
 /* ── Sisi Kanan: Form ─────────────────────────────────────── */
 .login-form-section {
-  flex: 0 0 460px;
+  flex: 0 0 480px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 2.5rem;
   background: var(--color-bg);
 }
 
@@ -119,10 +144,10 @@
   max-width: 420px;
   background: var(--color-surface);
   border-radius: var(--radius-xl);
-  padding: 2.5rem;
-  box-shadow: 0 8px 32px rgba(92, 184, 255, 0.12);
+  padding: 2.75rem 2.25rem;
+  box-shadow: 0 16px 40px rgba(5, 150, 105, 0.08), 0 2px 10px rgba(0, 0, 0, 0.02);
   border: 1px solid var(--color-border);
-  animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .login-card h2 {
@@ -130,6 +155,7 @@
   font-weight: 800;
   color: var(--color-text);
   margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
 }
 
 .login-card > p {
@@ -143,9 +169,9 @@
 /* ══════════════════════════════════════════════════════════ */
 
 .alert {
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
@@ -158,31 +184,25 @@
   color: var(--color-error);
 }
 
-.alert i {
-  font-size: 1.2rem;
-  margin-top: 0.125rem;
-  flex-shrink: 0;
-}
-
 /* ══════════════════════════════════════════════════════════ */
 /* FORM ELEMENTS */
 /* ══════════════════════════════════════════════════════════ */
 
 .form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.35rem;
 }
 
 .form-group label {
   display: block;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 700;
   color: var(--color-text);
   margin-bottom: 0.5rem;
 }
 
 .form-input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   font-size: 0.95rem;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -196,41 +216,17 @@
 
 .form-input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(92, 184, 255, 0.2);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
 }
 
 .form-input:disabled {
-  background-color: #f0f7ff;
+  background-color: #f1f8f5;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .form-input::placeholder {
-  color: #b0c4d8;
-}
-
-/* ── Input dengan Ikon ────────────────────────────────────── */
-.input-with-icon {
-  position: relative;
-}
-
-.input-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.form-input.with-icon {
-  padding-left: 2.75rem;
-}
-
-.form-input.with-icon-right {
-  padding-right: 2.75rem;
+  color: #94A3B8;
 }
 
 .input-icon-right {
@@ -242,12 +238,11 @@
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  font-size: 1.1rem;
   transition: var(--transition);
 }
 
@@ -265,7 +260,7 @@
 /* ══════════════════════════════════════════════════════════ */
 
 .btn {
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   font-size: 0.95rem;
   font-weight: 700;
   border: none;
@@ -277,24 +272,23 @@
   justify-content: center;
   gap: 0.5rem;
   font-family: inherit;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.02em;
 }
 
 .btn-primary {
   width: 100%;
   color: #fff;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  box-shadow: 0 4px 14px rgba(92, 184, 255, 0.3);
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.32);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, #0e6fa8 100%);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(92, 184, 255, 0.4);
+  box-shadow: 0 6px 22px rgba(5, 150, 105, 0.42);
 }
 
 .btn-primary:disabled {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -303,10 +297,9 @@
   transform: translateY(0);
 }
 
-/* ── Loading Spinner ────────────────────────────────────── */
 .spinner-sm {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border: 2px solid rgba(255, 255, 255, 0.4);
   border-top-color: white;
   border-radius: 50%;
@@ -319,7 +312,7 @@
 /* ══════════════════════════════════════════════════════════ */
 
 .login-card-footer {
-  margin-top: 1.5rem;
+  margin-top: 1.75rem;
   text-align: center;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
@@ -334,6 +327,7 @@
 
 .login-card-footer a:hover {
   color: var(--color-primary-dark);
+  text-decoration: underline;
 }
 
 /* ══════════════════════════════════════════════════════════ */
@@ -343,7 +337,7 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -363,11 +357,11 @@
 
 @media (max-width: 1024px) {
   .login-form-section {
-    flex: 0 0 400px;
-  }
-
-  .login-card {
+    flex: 0 0 420px;
     padding: 2rem;
+  }
+  .login-card {
+    padding: 2rem 1.75rem;
   }
 }
 
@@ -378,91 +372,37 @@
 
   .login-branding {
     flex: 0 0 auto;
-    min-height: 280px;
-    padding: 2rem 1.5rem;
+    min-height: 260px;
+    padding: 2.25rem 1.5rem;
   }
 
   .login-branding-container {
-    gap: 1.75rem;
+    gap: 1.25rem;
   }
 
   .login-branding-icon {
-    width: 100px;
-    height: 100px;
-    font-size: 3rem;
+    width: 72px;
+    height: 72px;
+    font-size: 2rem;
+    border-radius: 20px;
   }
 
   .login-branding-tagline {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
 
   .login-branding-subtext {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
   .login-form-section {
     flex: 1;
-    padding: 1.5rem;
+    padding: 1.75rem 1.25rem;
   }
 
   .login-card {
     box-shadow: none;
     border: none;
-    padding: 1.5rem 0;
-  }
-
-  .login-card h2 {
-    font-size: var(--text-xl);
-  }
-
-  .form-group {
-    margin-bottom: 1rem;
-  }
-
-  .btn {
-    padding: 0.65rem 0.875rem;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .login-branding {
-    min-height: 220px;
-    padding: 1.5rem 1rem;
-  }
-
-  .login-branding-icon {
-    width: 80px;
-    height: 80px;
-    font-size: 2.5rem;
-  }
-
-  .login-branding-tagline {
-    font-size: 1.25rem;
-  }
-
-  .login-branding-subtext {
-    font-size: 0.9rem;
-  }
-
-  .login-form-section {
-    padding: 1rem;
-  }
-
-  .login-card {
-    padding: 1.25rem;
-  }
-
-  .login-card h2 {
-    font-size: var(--text-lg);
-  }
-
-  .login-card > p {
-    font-size: 0.85rem;
-  }
-
-  .form-input {
-    padding: 0.625rem 0.875rem;
-    font-size: 0.9rem;
+    padding: 0;
   }
 }

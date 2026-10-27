@@ -1,23 +1,13 @@
 // ============================================================
-// src/pages/public/LoginPage.jsx — Halaman Login
-// Palet: Sky Blue #5CB8FF | Soft Cream #FFF8EE | Dark Navy #243B53
+// src/pages/public/LoginPage.jsx — Halaman Login Modern
+// Tema: Deep Forest Pine (#022c22) & Vibrant Emerald (#059669)
 // ============================================================
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { GraduationCap, Eye, EyeOff, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
 import { AuthAPI } from '../../services/api';
 import './LoginPage.css';
-
-// ═ COLOR PALETTE ═
-const PRIMARY       = "#5CB8FF";    // Sky Blue
-const PRIMARY_DARK  = "#1a8fd1";    // Sky Blue Darker
-const PRIMARY_LIGHT = "#EBF6FF";    // Sky Blue Light
-const NAVY          = "#243B53";    // Dark Navy
-const CREAM         = "#FFF8EE";    // Soft Cream
-const LIGHT_TEXT    = "#6b7280";    // Gray
-const SURFACE       = "#ffffff";    // White
-const BORDER        = "#d4eeff";    // Light Blue Border
-const ERROR         = "#ef4444";    // Red
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -76,12 +66,19 @@ function LoginPage() {
       {/* ═ LEFT SIDE - BRANDING GRADIENT ═ */}
       <div className="login-branding">
         <div className="login-branding-container">
-          <div className="login-branding-icon">🎓</div>
+          <div className="login-branding-icon">
+            <GraduationCap size={52} />
+          </div>
           <div className="login-branding-info">
             <h2 className="login-branding-tagline">PKBM Bina Mandiri</h2>
             <p className="login-branding-subtext">
-              Pendidikan Setara, Masa Depan Gemilang
+              Pendidikan Kesetaraan Inklusif, Modern, dan Terakreditasi Resmi Kemendikbud
             </p>
+          </div>
+          <div className="login-branding-badges">
+            <span className="login-badge-pill">✦ Paket A, B, dan C</span>
+            <span className="login-badge-pill">✦ Sistem LMS Digital</span>
+            <span className="login-badge-pill">✦ Seluruh Indonesia</span>
           </div>
         </div>
       </div>
@@ -91,19 +88,19 @@ function LoginPage() {
         <div className="login-card">
 
           {/* ═ HEADER ═ */}
-          <div style={{ marginBottom: 32 }}>
-            <h2 style={{ fontSize: "1.5rem", fontWeight: 800, color: NAVY, marginBottom: 8 }}>
-              Selamat Datang!
-            </h2>
-            <p style={{ color: LIGHT_TEXT, fontSize: "0.95rem" }}>
-              Silakan masuk dengan akun Anda.
-            </p>
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 9999, color: '#047857', fontSize: '0.75rem', fontWeight: 700, marginBottom: 12 }}>
+              <ShieldCheck size={14} />
+              <span>Portal Akses Aman</span>
+            </div>
+            <h2>Selamat Datang</h2>
+            <p>Silakan masuk untuk mengakses portal dan ruang belajar Anda.</p>
           </div>
 
           {/* ═ ERROR ALERT ═ */}
           {error && (
             <div className="alert alert-danger">
-              <span style={{ fontSize: "1.2rem" }}>⚠️</span>
+              <span style={{ fontSize: "1.1rem" }}>⚠️</span>
               <span>{error}</span>
             </div>
           )}
@@ -113,7 +110,7 @@ function LoginPage() {
 
             {/* Email Input */}
             <div className="form-group">
-              <label style={{ color: NAVY }}>
+              <label>
                 Email Address
               </label>
               <input
@@ -129,7 +126,7 @@ function LoginPage() {
 
             {/* Password Input */}
             <div className="form-group" style={{ marginBottom: 28 }}>
-              <label style={{ color: NAVY }}>
+              <label>
                 Password
               </label>
               <div style={{ position: "relative" }}>
@@ -148,8 +145,9 @@ function LoginPage() {
                   onClick={() => setShowPass(!showPass)}
                   disabled={loading}
                   className="input-icon-right"
+                  aria-label="Toggle password visibility"
                 >
-                  {showPass ? "👁️" : "👁️‍🗨️"}
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
@@ -166,7 +164,10 @@ function LoginPage() {
                   Memproses...
                 </>
               ) : (
-                "Masuk"
+                <>
+                  <span>Masuk ke Dashboard</span>
+                  <ArrowRight size={18} />
+                </>
               )}
             </button>
 

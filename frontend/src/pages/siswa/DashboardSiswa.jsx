@@ -313,7 +313,7 @@ function DashboardSiswa() {
                 <div className="quick-action-icon" style={{ background: '#FEF3C7', color: 'var(--color-accent-dark)' }}>
                   <i className="bi bi-pencil-square"></i>
                 </div>
-                <span>Kumpulkan Tugas</span>
+                <span>Tugas Mingguan</span>
               </a>
               <a href="/dashboard/siswa/ujian" className="quick-action-item">
                 <div className="quick-action-icon" style={{ background: '#EDE9FE', color: '#7C3AED' }}>

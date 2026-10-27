@@ -1,256 +1,487 @@
 /* ============================================================
-   src/components/Sidebar.css — Styling Navigasi Samping
+   src/components/Sidebar.css — Styling Navigasi Samping Modern & Kreatif
+   Tema: Vibrant Yellow (#FFE500) & Electric Sky Blue (#1F9BFF / #072242)
    ============================================================ */
 
-.app-sidebar {
+/* ── Container Sidebar Modern Kreatif ── */
+.modern-app-sidebar {
+  width: 255px;
+  background: linear-gradient(180deg, #072242 0%, #0A3766 52%, #051A33 100%);
+  color: #E2EDF7;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
-  padding: 0;
+  border-right: 1.5px solid rgba(31, 155, 255, 0.25);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  box-shadow: 6px 0 32px rgba(5, 20, 36, 0.55);
+  overflow: hidden;
 }
 
-.mobile-sidebar-toggle {
+/* Ambient Spotlight Glow di Belakang Sidebar */
+.modern-app-sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 220px;
+  background: radial-gradient(circle at 50% 0%, rgba(31, 155, 255, 0.25) 0%, rgba(255, 229, 0, 0.1) 45%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Mobile Sidebar Logic ── */
+@media (max-width: 1023px) {
+  .modern-app-sidebar {
+    transform: translateX(-100%);
+    width: min(85vw, 285px);
+  }
+  .modern-app-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 1024px) {
+  .modern-app-sidebar {
+    transform: translateX(0) !important;
+  }
+}
+
+/* ── Mobile Toggle Button ── */
+.modern-mobile-toggle {
   position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 220;
-  width: 46px;
-  height: 46px;
-  border: none;
+  top: 16px;
+  left: 16px;
+  z-index: 1100;
+  width: 44px;
+  height: 44px;
   border-radius: 14px;
-  background: rgba(255,255,255,0.96);
-  color: var(--color-primary);
-  box-shadow: var(--shadow-md);
+  border: 1.5px solid #FFE500;
+  background: #0A3766;
+  color: #FFE500;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  box-shadow: 0 6px 20px rgba(10, 55, 102, 0.45);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.mobile-sidebar-toggle.open {
-  background: rgba(248, 250, 251, 0.98);
-  color: #64748B;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+@media (min-width: 1024px) {
+  .modern-mobile-toggle {
+    display: none !important;
+  }
 }
 
-.mobile-sidebar-toggle.open i {
-  font-size: 1.5rem;
-  line-height: 1;
+.modern-mobile-toggle:hover {
+  background: #072242;
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(255, 229, 0, 0.4);
 }
 
-.mobile-sidebar-toggle:hover {
-  transform: translateY(-1px);
-}
-
-.mobile-sidebar-backdrop {
+.modern-sidebar-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(1px);
-  z-index: 140;
+  background: rgba(5, 20, 36, 0.82);
+  backdrop-filter: blur(6px);
+  z-index: 999;
 }
 
-/* ── Brand / Logo ─────────────────────────────────────────── */
-.sidebar-brand {
+/* ── Brand Header Bersih & Profesional (Logo di Tengah Tanpa Latar Belakang) ── */
+.modern-sidebar-header {
+  padding: 26px 16px 20px;
+  border-bottom: 1px solid rgba(31, 155, 255, 0.2);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.modern-brand-center {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
   gap: 12px;
-  padding: 20px 20px 16px;
-  border-bottom: 1px solid var(--color-border);
+}
+.modern-brand-center:hover {
+  text-decoration: none;
 }
 
-.sidebar-brand-icon {
-  width: 40px;
-  height: 40px;
-  background: var(--color-primary);
-  border-radius: var(--radius-md);
+/* Logo bersih di tengah, tanpa kotak kuning latar belakang */
+.brand-logo-clean-wrap {
+  width: 76px;
+  height: 76px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 1.2rem;
-  flex-shrink: 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.sidebar-brand-name {
-  display: block;
-  font-family: var(--font-heading);
+.modern-brand-center:hover .brand-logo-clean-wrap {
+  transform: scale(1.06);
+}
+
+.brand-logo-clean {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: transparent !important;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
+}
+
+.brand-text-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.brand-name-main {
+  font-size: 1.08rem;
   font-weight: 800;
-  font-size: var(--text-lg);
-  color: var(--color-primary);
-  line-height: 1.1;
+  color: #FFFFFF;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
 }
 
-.sidebar-brand-sub {
-  display: block;
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-  font-weight: 500;
+.brand-sub-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #FFE500;
+  opacity: 0.95;
 }
 
-/* ── Info User ────────────────────────────────────────────── */
-.sidebar-user {
+/* ── Navigasi Scrollable ── */
+.modern-sidebar-nav {
+  flex: 1;
+  padding: 16px 12px;
+  overflow-y: auto;
+  min-height: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-section-title {
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #FFE500;
+  opacity: 0.85;
+  padding: 10px 14px 6px;
+}
+
+.modern-menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* ── Menu Link & Active Pill Profesional (Kuning #FFE500 & Biru #072242 / #1F9BFF) ── */
+.modern-menu-link {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
-  background: var(--color-primary-light);
-  margin: 12px;
-  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  border-radius: 11px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #D6E8F7;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 42px;
+  position: relative;
 }
 
-.sidebar-user-avatar {
-  width: 38px;
-  height: 38px;
-  background: var(--color-primary);
-  color: white;
-  border-radius: 50%;
+.modern-menu-link:hover {
+  color: #FFFFFF;
+  background: rgba(31, 155, 255, 0.14);
+  transform: translateX(3px);
+  text-decoration: none;
+}
+
+.menu-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.modern-menu-link:hover .menu-icon {
+  color: #FFE500;
+  transform: scale(1.1);
+}
+
+/* Active Pill — Vibrant Yellow #FFE500 dengan Teks Biru Deep #072242 */
+.modern-menu-link.active-pill {
+  background: #FFE500;
+  color: #072242;
+  font-weight: 800;
+  box-shadow: 0 4px 18px rgba(255, 229, 0, 0.42);
+  transform: none;
+}
+
+.modern-menu-link.active-pill .menu-icon {
+  color: #072242;
+}
+
+.modern-menu-link.active-pill::before {
+  display: none !important;
+}
+
+/* ── Accordion (LMS & Pusat Administrasi) ── */
+.modern-accordion-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.modern-accordion-trigger {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: var(--text-base);
-  flex-shrink: 0;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: #D6E8F7;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 42px;
 }
 
-.sidebar-user-name {
+.modern-accordion-trigger:hover {
+  background: rgba(31, 155, 255, 0.14);
+  color: #FFE500;
+}
+
+.modern-accordion-trigger:hover .menu-icon {
+  color: #FFE500;
+}
+
+.modern-accordion-trigger.has-active-child {
+  color: #FFE500;
   font-weight: 700;
-  font-size: var(--text-sm);
-  color: var(--color-text);
+  background: rgba(31, 155, 255, 0.18);
+}
+
+.modern-accordion-trigger.has-active-child .menu-icon {
+  color: #FFE500;
+}
+
+.trigger-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trigger-arrow {
+  color: #FFE500;
+  opacity: 0.9;
+  transition: transform 0.22s ease;
+}
+
+/* ── Submenu List ── */
+.modern-submenu-list {
+  list-style: none;
+  margin: 3px 0 8px 16px;
+  padding: 4px 0 4px 12px;
+  border-left: 1.5px solid rgba(255, 229, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.modern-sub-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.81rem;
+  font-weight: 500;
+  color: #CBE1F5;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  min-height: 35px;
+}
+
+.modern-sub-link:hover {
+  color: #FFFFFF;
+  background: rgba(31, 155, 255, 0.14);
+  transform: translateX(3px);
+  text-decoration: none;
+}
+
+.modern-sub-link:hover .sub-menu-icon {
+  color: #FFE500;
+}
+
+.modern-sub-link.active {
+  color: #072242;
+  background: #FFE500;
+  font-weight: 800;
+  box-shadow: 0 2px 10px rgba(255, 229, 0, 0.35);
+}
+
+.modern-sub-link.active .sub-menu-icon {
+  color: #072242;
+}
+
+.sub-menu-icon {
+  flex-shrink: 0;
+}
+
+/* ── Footer Sidebar ── */
+.modern-sidebar-footer {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(31, 155, 255, 0.22);
+  background: rgba(5, 24, 46, 0.92);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── User Mini Card ── */
+.modern-user-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: rgba(31, 155, 255, 0.08);
+  border: 1px solid rgba(255, 229, 0, 0.32);
+  transition: all 0.2s ease;
+}
+
+.modern-user-card:hover {
+  background: rgba(31, 155, 255, 0.16);
+  border-color: rgba(255, 229, 0, 0.6);
+}
+
+.user-avatar-wrap {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.user-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #FFE500;
+}
+
+.user-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFE500 0%, #FFD000 100%);
+  color: #072242;
+  border: 1.5px solid #1F9BFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(255, 229, 0, 0.38);
+}
+
+.online-indicator-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22C55E;
+  border: 2px solid #072242;
+}
+
+.user-text-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.user-display-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #FFFFFF;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 2px;
+  line-height: 1.2;
 }
 
-.sidebar-user-role {
-  font-size: var(--text-xs);
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
-/* ── Navigasi Menu ────────────────────────────────────────── */
-.sidebar-nav {
-  flex: 1;
-  padding: 8px 12px;
-  overflow-y: auto;
-}
-
-.sidebar-nav-label {
-  font-size: var(--text-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
-  padding: 8px 8px 6px;
-}
-
-.sidebar-menu {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.sidebar-menu-item {
+.user-status-text {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
+  gap: 4px;
+  font-size: 0.68rem;
   font-weight: 600;
-  color: var(--color-text-muted);
-  text-decoration: none;
-  transition: all var(--transition);
-  min-height: 44px; /* Aksesibilitas: ukuran tap minimum */
+  color: #FFE500;
+  margin-top: 2px;
 }
 
-.sidebar-menu-item:hover {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  text-decoration: none;
+.status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #22C55E;
+  display: inline-block;
 }
 
-.sidebar-menu-item.active {
-  background: var(--color-primary);
-  color: white;
-}
-
-.sidebar-menu-item i {
-  font-size: 1.05rem;
-  width: 20px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-/* ── Footer / Logout ──────────────────────────────────────── */
-.sidebar-footer {
-  padding: 12px;
-  border-top: 1px solid var(--color-border);
-  margin-top: auto;
-}
-
-.sidebar-logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: var(--radius-md);
+.quick-logout-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   border: none;
-  background: transparent;
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-text-muted);
+  background: rgba(239, 68, 68, 0.18);
+  color: #FCA5A5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all var(--transition);
-  min-height: 44px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
-.sidebar-logout-btn:hover {
-  background: #FEE2E2;
-  color: var(--color-danger);
+.quick-logout-icon-btn:hover {
+  background: #EF4444;
+  color: #FFFFFF;
+  transform: scale(1.08);
 }
 
-.sidebar-logout-btn i {
-  font-size: 1.05rem;
-  width: 20px;
-  text-align: center;
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
 }
 
-@media (max-width: 768px) {
-  .mobile-sidebar-toggle {
-    display: inline-flex !important;
-  }
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-  .sidebar-brand {
-    padding: 1rem 1rem 0.9rem;
-    justify-content: center;
-    text-align: center;
-    flex-direction: column;
-    gap: 0.45rem;
-  }
-
-  .sidebar-nav {
-    padding-bottom: 1rem;
-  }
-
-  .sidebar-user {
-    margin-top: 0.5rem;
-  }
-
-  .sidebar-brand-text {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .sidebar-brand-name,
-  .sidebar-brand-sub {
-    text-align: center;
-  }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 229, 0, 0.35);
+  border-radius: 4px;
 }

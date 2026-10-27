@@ -98,6 +98,7 @@ function SeoMetaManager() {
       robots      = 'index, follow';
       description = 'Area dashboard internal PKBM Bina Mandiri.';
       if (path === '/dashboard/siswa')         title = 'Dashboard Siswa | PKBM Bina Mandiri';
+      else if (path === '/dashboard/siswa/tugas' || path === '/dashboard/siswa/tugas-mingguan') title = 'Tugas Mingguan Siswa | LMS PKBM Bina Mandiri';
       else if (path === '/dashboard/tutor')    title = 'Dashboard Tutor | PKBM Bina Mandiri';
       else if (path === '/dashboard/pimpinan') title = 'Dashboard Pimpinan | PKBM Bina Mandiri';
       else if (path === '/dashboard/admin')    title = user?.role === 'super_admin' ? 'Dashboard Super Admin | PKBM Bina Mandiri' : 'Dashboard Admin TU | PKBM Bina Mandiri';
@@ -164,7 +165,9 @@ function App() {
         <Route path="/dashboard/siswa/materi"
           element={<ProtectedRoute allowedRoles={['warga_belajar']}><MateriSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/tugas"
-          element={<ProtectedRoute allowedRoles={['warga_belajar']}><TugasSiswa /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['warga_belajar','tutor','admin','super_admin']}><TugasSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/tugas-mingguan"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','tutor','admin','super_admin']}><TugasSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/absensi"
           element={<ProtectedRoute allowedRoles={['warga_belajar']}><AbsensiSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/ujian"

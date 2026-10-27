@@ -558,5 +558,24 @@ export const PertemuanAPI = {
 };
 
 
+// ── AGENDA & KALENDER KEGIATAN (ADMIN) ───────────────────────
+export const AgendaAPI = {
+  getAll: () =>
+    apiClient.get('/agenda'),
+
+  getById: (id) =>
+    apiClient.get(`/agenda/${id}`),
+
+  create: (payload) =>
+    apiClient.post('/agenda', payload),
+
+  update: (id, payload) =>
+    apiClient.put(`/agenda/${id}`, payload),
+
+  delete: (id) =>
+    apiClient.delete(`/agenda/${id}`),
+};
+
 // Export instance Axios mentah juga, untuk kebutuhan custom request
 export default apiClient;
+

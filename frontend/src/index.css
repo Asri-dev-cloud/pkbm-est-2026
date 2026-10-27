@@ -2,43 +2,45 @@
    src/index.css — Design System Global PKBM Bina Mandiri
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS VARIABLES (Token Desain) ────────────────────────── */
+/* ── CSS VARIABLES (Token Desain: Midnight Blue & Buttermilk) ── */
 :root {
-  /* Palet Warna Utama - BARU */
-  --color-primary:       #5CB8FF;
-  --color-primary-dark:  #3a9ce8;
-  --color-primary-light: #e3f2fd;
-  --color-accent:        #FFaf5c;
-  --color-accent-dark:   #e89a47;
+  /* Palet Warna Utama: Midnight Blue & Buttermilk */
+  --color-primary:       #0F3C65;
+  --color-primary-dark:  #071E34;
+  --color-primary-light: #EBF3F9;
+  --color-accent:        #FFF2BA;
+  --color-accent-dark:   #E5C34D;
+  --color-pink:          #EC4899;
+  --color-pink-light:    #FDF2F8;
 
   /* Warna Role */
-  --color-siswa:    #5CB8FF;
-  --color-tutor:    #6BCB77;
-  --color-admin:    #FFaf5c;
-  --color-pimpinan: #F9C846;
+  --color-siswa:    #0F3C65;
+  --color-tutor:    #2563EB;
+  --color-admin:    #0F3C65;
+  --color-pimpinan: #D97706;
 
-  /* Warna Semantik - BARU */
-  --color-success: #6BCB77;
+  /* Warna Semantik */
+  --color-success: #10B981;
   --color-danger:  #EF4444;
-  --color-warning: #F9C846;
-  --color-info:    #5CB8FF;
+  --color-warning: #F59E0B;
+  --color-info:    #0F3C65;
 
-  /* Warna Netral - BARU */
-  --color-bg:         #FFF8EE;
+  /* Warna Netral */
+  --color-bg:         #FFFBEA;
   --color-surface:    #FFFFFF;
-  --color-border:     #E2E8F0;
-  --color-text:       #243B53;
+  --color-border:     #E5EAEF;
+  --color-text:       #0F2038;
   --color-text-muted: #64748B;
 
-  /* Tipografi — semua Source Sans Pro */
-  --font-body:    'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-heading: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Tipografi — Plus Jakarta Sans */
+  --font-body:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
   /* Ukuran Font */
   --text-xs:   0.75rem;
@@ -59,13 +61,13 @@
   --space-12: 3rem;
 
   /* Border & Shadow */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+  --shadow-sm: 0 1px 3px rgba(15,60,101,0.05), 0 1px 2px rgba(15,60,101,0.03);
+  --shadow-md: 0 4px 16px rgba(15,60,101,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 12px 40px rgba(15,60,101,0.14);
 
   /* Transisi */
   --transition: 0.2s ease;
@@ -76,7 +78,53 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* ── GORGEOUS CUSTOM SCROLLBAR SYSTEM (SEMUA SCROLLBAR INDAH, MODERN & HALUS) ── */
+/* Firefox */
+html, body, * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 60, 101, 0.32) transparent;
+}
+
+/* Webkit: Chrome, Edge, Safari, Opera */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 60, 101, 0.28);
+  border-radius: 9999px;
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 60, 101, 0.65);
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #0F3C65;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+body, button, input, select, textarea {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+.matcha-serif {
+  font-family: 'Playfair Display', Georgia, serif !important;
 }
 
 html {
@@ -85,7 +133,7 @@ html {
 }
 
 body {
-  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   background-color: var(--color-bg);
   color: var(--color-text);
   line-height: 1.6;
@@ -95,7 +143,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   font-weight: 700;
   line-height: 1.3;
   color: var(--color-text);
@@ -115,46 +163,48 @@ img {
   display: block;
 }
 
-/* ── LAYOUT UTAMA ─────────────────────────────────────────── */
+/* ── LAYOUT UTAMA (SEAMLESS BUTTERMILK CANVAS & MIDNIGHT BLUE) ── */
 .app-layout {
   display: flex;
   min-height: 100vh;
-}
-
-.app-sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  background: var(--color-surface);
-  border-right: 1px solid var(--color-border);
-  position: fixed;
-  top: 0; left: 0; bottom: 0;
-  overflow-y: auto;
-  z-index: 1000;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateX(-100%);
-  box-shadow: var(--shadow-lg);
-}
-
-.app-sidebar.open {
-  transform: translateX(0);
+  background: var(--color-bg);
 }
 
 .app-main {
   flex: 1;
+  min-width: 0;
   margin-left: 0;
+  background: var(--color-bg);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  min-width: 0;
-  overflow-x: hidden;
+  padding: 0;
 }
 
+@media (min-width: 1024px) {
+  .app-main {
+    margin-left: 250px;
+    padding: 0;
+  }
+}
+
+/* Kanvas Konten Menyatu Alami Tanpa Kotak Bertumpuk */
 .app-content {
   flex: 1;
-  padding: var(--space-8);
-  padding-top: 5.5rem;
-  min-width: 0;
-  max-width: 100%;
+  background: transparent;
+  padding: 24px 28px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    padding-top: 64px;
+  }
+  .app-content {
+    padding: 16px 14px;
+  }
 }
 
 .mobile-only { display: none !important; }
@@ -195,56 +245,67 @@ img {
 
 /* ── KOMPONEN KARTU ───────────────────────────────────────── */
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
 .card-header {
-  margin-bottom: var(--space-4);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #F1F5F9;
 }
 
 .card-title {
-  font-size: var(--text-lg);
-  font-weight: 700;
-  color: var(--color-text);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.02em;
 }
 
 /* ── TOMBOL ───────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: 0.625rem 1.25rem;
-  font-size: var(--text-sm);
+  gap: 8px;
+  padding: 9px 18px;
+  font-size: 0.84rem;
   font-weight: 600;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
-  min-height: 44px;
+  min-height: 40px;
 }
 
-.btn-primary { background: var(--color-primary); color: white; }
+.btn-primary {
+  background: linear-gradient(135deg, #0F3C65 0%, #174E7E 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(15, 60, 101, 0.25);
+}
 .btn-primary:hover {
-  background: var(--color-primary-dark);
+  background: linear-gradient(135deg, #071E34 0%, #0F3C65 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(92, 184, 255, 0.3);
+  box-shadow: 0 6px 18px rgba(15, 60, 101, 0.35);
   text-decoration: none;
-  color: white;
+  color: #FFFFFF;
 }
 
-.btn-secondary { background: var(--color-primary-light); color: var(--color-primary); }
-.btn-secondary:hover {
-  background: #bde5ff;
-  text-decoration: none;
-  color: var(--color-primary-dark);
+.btn-secondary {
+  background: #FFFFFF;
+  color: #0F3C65;
+  border: 1px solid #CBD5E1;
 }
+.btn-secondary:hover {
+  background: #FFF9DB;
+  border-color: #E5C34D;
+  color: #0F3C65;
+  transform: translateY(-1px);
+}
+
 
 .btn-danger { background: #FEF2F2; color: var(--color-danger); }
 .btn-danger:hover { background: var(--color-danger); color: white; text-decoration: none; }
@@ -280,7 +341,7 @@ img {
 
 .form-input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(92, 184, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(15, 60, 101, 0.15);
 }
 
 .form-input::placeholder { color: var(--color-text-muted); opacity: 0.7; }
@@ -397,38 +458,44 @@ img {
 
 /* ── STAT CARD ────────────────────────────────────────────── */
 .stat-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 18px;
+  padding: 18px 22px;
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition);
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.stat-card:hover { box-shadow: var(--shadow-md); }
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  border-color: #CBD5E1;
+}
 
 .stat-icon {
-  width: 52px; height: 52px;
-  border-radius: var(--radius-md);
+  width: 48px; height: 48px;
+  border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem; flex-shrink: 0;
+  font-size: 1.3rem; flex-shrink: 0;
 }
 
 .stat-body { flex: 1; }
 
 .stat-value {
-  font-size: var(--text-3xl);
+  font-size: 1.6rem;
   font-weight: 800;
-  line-height: 1;
-  margin-bottom: 4px;
+  line-height: 1.1;
+  color: #0F172A;
+  margin-bottom: 2px;
+  letter-spacing: -0.02em;
 }
 
 .stat-label {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  font-weight: 500;
+  font-size: 0.82rem;
+  color: #64748B;
+  font-weight: 600;
 }
 
 /* ── GRID ─────────────────────────────────────────────────── */
@@ -447,8 +514,8 @@ img {
     z-index: 180;
   }
   .app-sidebar.open { transform: translateX(0); }
-  .app-main { margin-left: 0; }
-  .app-content { padding: var(--space-4); padding-top: 5rem; }
+  .app-main { margin-left: 0; padding: 10px 8px; }
+  .app-content { padding: 18px 14px; border-radius: 20px; min-height: calc(100vh - 20px); }
 
   .grid-cols-2,
   .grid-cols-3,

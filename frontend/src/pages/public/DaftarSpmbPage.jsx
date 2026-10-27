@@ -9,16 +9,17 @@ import { SpmbAPI } from '../../services/api.js';
 import './DaftarSpmbPage.css';
 
 // ═ COLOR PALETTE ═
-const PRIMARY       = "#5CB8FF";   // Sky Blue
-const PRIMARY_DARK  = "#1a8fd1";   // Sky Blue Darker
-const PRIMARY_LIGHT = "#EBF6FF";   // Sky Blue Light
-const NAVY          = "#243B53";   // Dark Navy
-const CREAM         = "#FFF8EE";   // Soft Cream
-const LIGHT_TEXT    = "#6b7280";
+const PRIMARY       = "#059669";   // Emerald 600
+const PRIMARY_DARK  = "#047857";   // Emerald 700
+const PRIMARY_LIGHT = "#ECFDF5";   // Mint Light
+const FOREST_DARK   = "#021B14";   // Deep Pine Forest
+const NAVY          = "#0F172A";   // Slate 900
+const CREAM         = "#F4F8F6";   // Fresh Light Background
+const LIGHT_TEXT    = "#64748B";   // Gray
 const SURFACE       = "#ffffff";
-const BORDER        = "#d4eeff";
+const BORDER        = "#E2ECE7";   // Mint Border
 const ERROR         = "#ef4444";
-const SUCCESS       = "#5CB8FF";
+const SUCCESS       = "#10B981";
 const WARNING       = "#f59e0b";
 
 const DAFTAR_BERKAS = [
@@ -79,10 +80,10 @@ function DaftarSpmbPage() {
       `}</style>
 
       {/* HEADER */}
-      <div style={{ background:`linear-gradient(135deg, ${PRIMARY_DARK} 0%, ${NAVY} 100%)`, padding:"48px 24px", textAlign:"center", color:"#fff" }}>
-        <div style={{ width:52, height:52, background:"rgba(255,255,255,0.15)", borderRadius:"12px", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", fontSize:"1.5rem" }}>🎓</div>
-        <h1 style={{ fontWeight:800, marginBottom:8, fontSize:"1.875rem" }}>Pendaftaran Warga Belajar Baru</h1>
-        <p style={{ opacity:0.85, fontSize:"0.95rem" }}>PKBM Bina Mandiri - Paket A, B, dan C</p>
+      <div style={{ background:`linear-gradient(135deg, ${FOREST_DARK} 0%, #064E3B 55%, ${PRIMARY} 100%)`, padding:"48px 24px", textAlign:"center", color:"#fff" }}>
+        <div style={{ width:56, height:56, background:"rgba(255,255,255,0.15)", borderRadius:"14px", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", fontSize:"1.6rem", border:"1px solid rgba(255,255,255,0.25)" }}>🎓</div>
+        <h1 style={{ fontWeight:800, marginBottom:8, fontSize:"2rem", letterSpacing:"-0.02em" }}>Pendaftaran Warga Belajar Baru</h1>
+        <p style={{ opacity:0.9, fontSize:"0.98rem" }}>PKBM Bina Mandiri - Paket A, B, dan C</p>
       </div>
 
       <div style={{ maxWidth:640, margin:"32px auto 0", padding:"0 24px" }}><StepIndicator step={step} /></div>
@@ -91,7 +92,7 @@ function DaftarSpmbPage() {
 
         {/* STEP 1 */}
         {step === 1 && (
-          <div style={{ background:SURFACE, borderRadius:"16px", padding:"32px", boxShadow:`0 8px 32px rgba(92,184,255,0.12)`, border:`1px solid ${BORDER}`, animation:"fadeInUp 0.4s ease-out" }}>
+          <div style={{ background:SURFACE, borderRadius:"20px", padding:"32px", boxShadow:`0 16px 40px rgba(5,150,105,0.08)`, border:`1px solid ${BORDER}`, animation:"fadeInUp 0.4s ease-out" }}>
             <div style={{ marginBottom:"28px" }}>
               <h3 style={{ fontSize:"1.25rem", fontWeight:800, color:NAVY, marginBottom:8, display:"flex", alignItems:"center", gap:12 }}>
                 <span style={{ color:PRIMARY, fontSize:"1.5rem" }}>👤</span>Langkah 1: Data Diri Calon Warga Belajar
@@ -198,11 +199,11 @@ function StepIndicator({ step }) {
     <div style={{ display:"flex", alignItems:"center", marginBottom:"0.5rem" }}>
       {steps.map((s, i) => (
         <div key={s.num} style={{ display:"flex", alignItems:"center", flex: i < steps.length-1 ? 1 : "none" }}>
-          <div style={{ width:36, height:36, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: step>=s.num ? "#5CB8FF" : "#d4eeff", color: step>=s.num ? "white" : "#6b7280", fontWeight:800, fontSize:"0.875rem" }}>
+          <div style={{ width:38, height:38, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: step>=s.num ? PRIMARY : "#E2ECE7", color: step>=s.num ? "white" : "#64748B", fontWeight:800, fontSize:"0.875rem", boxShadow: step>=s.num ? "0 4px 12px rgba(5,150,105,0.3)" : "none" }}>
             {step > s.num ? "✓" : s.num}
           </div>
-          <span style={{ marginLeft:8, fontSize:"0.75rem", fontWeight:700, color: step>=s.num ? "#1a8fd1" : "#6b7280", whiteSpace:"nowrap" }}>{s.label}</span>
-          {i < steps.length-1 && <div style={{ flex:1, height:2, background: step>s.num ? "#5CB8FF" : "#d4eeff", margin:"0 12px" }} />}
+          <span style={{ marginLeft:8, fontSize:"0.76rem", fontWeight:700, color: step>=s.num ? PRIMARY_DARK : "#64748B", whiteSpace:"nowrap" }}>{s.label}</span>
+          {i < steps.length-1 && <div style={{ flex:1, height:2, background: step>s.num ? PRIMARY : "#E2ECE7", margin:"0 12px" }} />}
         </div>
       ))}
     </div>

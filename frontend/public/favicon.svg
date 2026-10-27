@@ -1,5 +1,42 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="PKBM Bina Mandiri">
-  <rect width="128" height="128" rx="24" fill="#176c3d"/>
-  <path d="M34 90V38h20l10 12 10-12h20v52H74V65H54v25H34Z" fill="#ffffff"/>
-  <path d="M54 50h20v7H54zm0 13h20v7H54z" fill="#176c3d"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="midnightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A2540" />
+      <stop offset="100%" stop-color="#0F3C65" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Background Pentagon / Shield in Midnight Blue -->
+  <polygon points="64,8 118,48 98,116 30,116 10,48" fill="url(#midnightGrad)" stroke="#FFF2BA" stroke-width="4" stroke-linejoin="round" />
+
+  <!-- Inner Circle in Buttermilk -->
+  <circle cx="64" cy="66" r="38" fill="#FFF2BA" />
+
+  <!-- Open Book Emblem -->
+  <!-- Left Page -->
+  <path d="M62 52 C52 50 38 52 38 78 C48 76 58 78 62 82 Z" fill="#0F3C65" />
+  <path d="M43 58 C48 57 54 58 58 59" stroke="#FFF2BA" stroke-width="2" stroke-linecap="round" fill="none" />
+  <path d="M43 64 C48 63 54 64 58 65" stroke="#FFF2BA" stroke-width="2" stroke-linecap="round" fill="none" />
+  <path d="M43 70 C48 69 54 70 58 71" stroke="#FFF2BA" stroke-width="2" stroke-linecap="round" fill="none" />
+
+  <!-- Right Page -->
+  <path d="M66 52 C76 50 90 52 90 78 C80 76 70 78 66 82 Z" fill="#0F3C65" />
+  <path d="M85 58 C80 57 74 58 70 59" stroke="#FFF2BA" stroke-width="2" stroke-linecap="round" fill="none" />
+  <path d="M85 64 C80 63 74 64 70 65" stroke="#FFF2BA" stroke-width="2" stroke-linecap="round" fill="none" />
+  <path d="M85 70 C80 69 74 70 70 71" stroke="#FFF2BA" stroke-width="2" stroke-linecap="round" fill="none" />
+
+  <!-- Center Stem & 3 Sprout Leaves -->
+  <path d="M64 82 L64 44" stroke="#0F3C65" stroke-width="3" stroke-linecap="round" />
+  <!-- Center Leaf -->
+  <path d="M64 44 C61 36 67 36 64 30 C61 36 67 36 64 44 Z" fill="#0F3C65" />
+  <!-- Left Leaf -->
+  <path d="M63 42 C56 38 56 46 52 42 C56 46 62 46 63 42 Z" fill="#0F3C65" />
+  <!-- Right Leaf -->
+  <path d="M65 42 C72 38 72 46 76 42 C72 46 66 46 65 42 Z" fill="#0F3C65" />
+
+  <!-- Bottom Accent Dot -->
+  <circle cx="64" cy="94" r="3" fill="#0F3C65" />
 </svg>

@@ -104,10 +104,12 @@ export const TugasModel = {
   findByRombel: async (rombel_id, mapel_id = null, { warga_belajar_id = null } = {}) => {
     let sql = `
       SELECT t.*, mp.nama AS nama_mapel, u.nama_lengkap AS nama_tutor,
+        pb.pertemuan_ke, pb.judul AS judul_pertemuan,
         (SELECT COUNT(*) FROM pengumpulan_tugas pt WHERE pt.tugas_id = t.id) AS jumlah_terkumpul
       FROM tugas t
       JOIN mata_pelajaran mp ON mp.id = t.mapel_id
       JOIN users u ON u.id = t.tutor_id
+      LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
       WHERE t.rombel_id = ?
     `;
     const params = [rombel_id];
