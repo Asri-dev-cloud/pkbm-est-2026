@@ -378,13 +378,13 @@ export default function HomePage() {
           animation: floatCute 5s ease-in-out infinite;
         }
 
-        /* Pill Buttons */
+        /* Modern CTA Buttons */
         .cute-pill-btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          border-radius: 9999px;
+          border-radius: 8px;
           font-weight: 700;
           font-size: 0.92rem;
           text-decoration: none;
@@ -438,11 +438,12 @@ export default function HomePage() {
           }
         }
 
-        /* Translucent Glass Pill for Hero */
+        /* Translucent Glass Button for Hero */
         .btn-glass-hero {
           background: rgba(255, 255, 255, 0.18);
           color: #FFFFFF !important;
           border: 2px solid rgba(255, 255, 255, 0.6);
+          border-radius: 8px;
           backdrop-filter: blur(8px);
         }
         .btn-glass-hero:hover {
@@ -451,14 +452,14 @@ export default function HomePage() {
           box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
         }
 
-        /* Floating Pill Nav Link Item */
+        /* Nav Link Item */
         .pill-nav-link {
           color: #334155;
           text-decoration: none;
           font-weight: 600;
           font-size: 0.82rem;
           padding: 5px 10px;
-          border-radius: 9999px;
+          border-radius: 6px;
           transition: all 0.2s ease;
           display: inline-flex;
           align-items: center;
