@@ -463,10 +463,6 @@ function TugasSiswa() {
             <div className="tugas-hero">
               <div className="tugas-hero-content">
                 <div className="tugas-hero-text">
-                  <div className="tugas-hero-badge">
-                    <Sparkles size={13} />
-                    <span>Portal Tugas Mingguan • LMS</span>
-                  </div>
                   <h1 className="tugas-hero-title">
                     {isStudent
                       ? `Halo, ${user?.nama_lengkap || 'Warga Belajar'}!`
@@ -849,9 +845,8 @@ function TugasSiswa() {
                         <div className="tugas-submeta-item">
                           <span>Batas Waktu:</span>
                           <span
-                            className={`tugas-deadline-text ${
-                              isSubmitted ? 'safe' : dl.isOverdue ? 'overdue' : dl.isUrgent ? 'urgent' : 'safe'
-                            }`}
+                            className={`tugas-deadline-text ${isSubmitted ? 'safe' : dl.isOverdue ? 'overdue' : dl.isUrgent ? 'urgent' : 'safe'
+                              }`}
                           >
                             {dl.formatted}
                           </span>
@@ -911,12 +906,12 @@ function TugasSiswa() {
                               Diserahkan:{' '}
                               {t.pengumpulan_saya.submitted_at
                                 ? new Date(t.pengumpulan_saya.submitted_at).toLocaleDateString('id-ID', {
-                                    day: 'numeric',
-                                    month: 'short',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
                                 : '-'}
                             </span>
                           </div>
