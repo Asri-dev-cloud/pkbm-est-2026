@@ -694,7 +694,7 @@ function LoginPage() {
                                   background: 'rgba(29, 78, 216, 0.1)',
                                   color: 'var(--spmb-blue-royal)',
                                   border: '1px solid rgba(29, 78, 216, 0.25)',
-                                  borderRadius: 14,
+                                  borderRadius: 4,
                                   padding: '2px 10px',
                                   fontSize: '0.75rem',
                                   fontWeight: 600,

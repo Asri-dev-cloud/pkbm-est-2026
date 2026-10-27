@@ -80,7 +80,7 @@
   font-size: 0.88rem;
   font-weight: 600;
   padding: 6px 14px;
-  border-radius: 9999px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   transition: all 0.2s ease;
@@ -164,7 +164,7 @@
   padding: 6px 16px;
   background: rgba(250, 204, 21, 0.15);
   border: 1px solid rgba(250, 204, 21, 0.45);
-  border-radius: 9999px;
+  border-radius: 6px;
   color: var(--login-yellow);
   font-size: 0.78rem;
   font-weight: 800;

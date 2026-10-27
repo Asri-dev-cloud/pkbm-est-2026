@@ -182,6 +182,7 @@ function Sidebar({ user }) {
               <NavLink
                 to={isAdminRole ? '/dashboard/admin' : role === 'warga_belajar' ? '/dashboard/siswa' : role === 'tutor' ? '/dashboard/tutor' : '/dashboard/pimpinan'}
                 end
+                onClick={() => setMobileOpen(false)}
                 className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}
               >
                 <LayoutDashboard size={18} className="menu-icon" />
@@ -216,6 +217,7 @@ function Sidebar({ user }) {
                           <li key={item.path}>
                             <NavLink
                               to={item.path}
+                              onClick={() => setMobileOpen(false)}
                               className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}
                             >
                               <Icon size={15} className="sub-menu-icon" />
@@ -252,6 +254,7 @@ function Sidebar({ user }) {
                           <li key={item.path}>
                             <NavLink
                               to={item.path}
+                              onClick={() => setMobileOpen(false)}
                               className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}
                             >
                               <Icon size={15} className="sub-menu-icon" />
@@ -268,6 +271,7 @@ function Sidebar({ user }) {
                 <li>
                   <NavLink
                     to="/dashboard/admin/tagihan"
+                    onClick={() => setMobileOpen(false)}
                     className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}
                   >
                     <Wallet size={18} className="menu-icon" />
@@ -294,17 +298,17 @@ function Sidebar({ user }) {
                   </button>
                   {lmsOpen && (
                     <ul className="modern-submenu-list">
-                      <li><NavLink to="/dashboard/siswa/ruang-belajar" className="modern-sub-link"><BookOpen size={15} /><span>Ruang Belajar</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/materi" className="modern-sub-link"><BookMarked size={15} /><span>Materi Belajar</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/tugas" className="modern-sub-link"><ClipboardCheck size={15} /><span>Tugas Mingguan</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/absensi" className="modern-sub-link"><Calendar size={15} /><span>Absensi Saya</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/ujian" className="modern-sub-link"><FileQuestion size={15} /><span>Ujian</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/klub" className="modern-sub-link"><Trophy size={15} /><span>Klub Minat</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/ruang-belajar" onClick={() => setMobileOpen(false)} className="modern-sub-link"><BookOpen size={15} /><span>Ruang Belajar</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/materi" onClick={() => setMobileOpen(false)} className="modern-sub-link"><BookMarked size={15} /><span>Materi Belajar</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/tugas" onClick={() => setMobileOpen(false)} className="modern-sub-link"><ClipboardCheck size={15} /><span>Tugas Mingguan</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/absensi" onClick={() => setMobileOpen(false)} className="modern-sub-link"><Calendar size={15} /><span>Absensi Saya</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/ujian" onClick={() => setMobileOpen(false)} className="modern-sub-link"><FileQuestion size={15} /><span>Ujian</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/klub" onClick={() => setMobileOpen(false)} className="modern-sub-link"><Trophy size={15} /><span>Klub Minat</span></NavLink></li>
                     </ul>
                   )}
                 </li>
                 <li>
-                  <NavLink to="/dashboard/siswa/tagihan" className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
+                  <NavLink to="/dashboard/siswa/tagihan" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
                     <Receipt size={18} className="menu-icon" />
                     <span className="menu-label">Tagihan Saya</span>
                   </NavLink>
@@ -316,25 +320,25 @@ function Sidebar({ user }) {
             {role === 'tutor' && (
               <>
                 <li>
-                  <NavLink to="/dashboard/siswa/ruang-belajar" className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
+                  <NavLink to="/dashboard/siswa/ruang-belajar" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
                     <BookOpen size={18} className="menu-icon" />
                     <span className="menu-label">Ruang Belajar</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/tutor/kelas" className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
+                  <NavLink to="/dashboard/tutor/kelas" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
                     <GraduationCap size={18} className="menu-icon" />
                     <span className="menu-label">Kelas Saya</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/tutor/absensi" className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
+                  <NavLink to="/dashboard/tutor/absensi" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
                     <Calendar size={18} className="menu-icon" />
                     <span className="menu-label">Absensi</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/tutor/ujian" className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
+                  <NavLink to="/dashboard/tutor/ujian" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
                     <ClipboardCheck size={18} className="menu-icon" />
                     <span className="menu-label">Soal & Ujian</span>
                   </NavLink>
@@ -346,13 +350,13 @@ function Sidebar({ user }) {
             {role === 'pimpinan' && (
               <>
                 <li>
-                  <NavLink to="/dashboard/admin/siswa" className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
+                  <NavLink to="/dashboard/admin/siswa" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
                     <Users size={18} className="menu-icon" />
                     <span className="menu-label">Data Siswa</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/admin/tagihan" className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
+                  <NavLink to="/dashboard/admin/tagihan" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
                     <Wallet size={18} className="menu-icon" />
                     <span className="menu-label">Laporan Keuangan</span>
                   </NavLink>
