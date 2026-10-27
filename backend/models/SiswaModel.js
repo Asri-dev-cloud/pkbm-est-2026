@@ -146,62 +146,104 @@ const SiswaModel = {
   // Ambil opsi rombel untuk penempatan WB saat SPMB diterima
   // Bisa difilter per jenjang dan diprioritaskan tahun ajaran aktif
   // -----------------------------------------------------------
+  // -----------------------------------------------------------
+  // Ambil opsi rombel: dibuat 1 per jenjang (Paket A, Paket B, Paket C)
+  // Tidak ada duplikasi, nama selalu rapi dan kompatibel
+  // -----------------------------------------------------------
   getRombelOptions: async ({ jenjang = null } = {}) => {
     let sql = `
       SELECT
-        r.id,
-        r.nama_rombel,
+        MIN(r.id) AS id,
+        CASE
+          WHEN r.jenjang = 'paket_a' THEN 'Paket A'
+          WHEN r.jenjang = 'paket_b' THEN 'Paket B'
+          WHEN r.jenjang = 'paket_c' THEN 'Paket C'
+          ELSE COALESCE(NULLIF(r.nama_rombel, ''), UPPER(r.jenjang))
+        END AS nama_rombel,
+        CASE
+          WHEN r.jenjang = 'paket_a' THEN 'Paket A'
+          WHEN r.jenjang = 'paket_b' THEN 'Paket B'
+          WHEN r.jenjang = 'paket_c' THEN 'Paket C'
+          ELSE COALESCE(NULLIF(r.nama_rombel, ''), UPPER(r.jenjang))
+        END AS nama,
         r.jenjang,
-        r.kapasitas,
-        ta.nama_tahun_ajaran,
-        ta.is_aktif
+        SUM(COALESCE(r.kapasitas, 40)) AS kapasitas,
+        MAX(ta.nama_tahun_ajaran) AS nama_tahun_ajaran,
+        1 AS is_aktif
       FROM rombel r
-      JOIN tahun_ajaran ta ON ta.id = r.tahun_ajaran_id
-      WHERE ta.is_aktif = 1
+      LEFT JOIN tahun_ajaran ta ON ta.id = r.tahun_ajaran_id
     `;
     const params = [];
 
     if (jenjang) {
-      sql += ` AND r.jenjang = ?`;
+      sql += ` WHERE r.jenjang = ?`;
       params.push(jenjang);
     }
 
-    sql += ` ORDER BY r.jenjang ASC, r.nama_rombel ASC`;
+    sql += ` GROUP BY r.jenjang ORDER BY r.jenjang ASC`;
     const [rows] = await pool.execute(sql, params);
     return rows;
   },
 
   // -----------------------------------------------------------
   // Ambil opsi mata pelajaran untuk dropdown tutor/admin
-  // Bisa difilter per jenjang atau rombel tertentu
+  // Otomatis fallback jika rombel_mapel belum diisi agar tidak pernah kosong
   // -----------------------------------------------------------
   getMapelOptions: async ({ jenjang = null, rombel_id = null } = {}) => {
+    // 1. Jika rombel_id diberikan, coba cari mapel dari rombel_mapel
+    if (rombel_id) {
+      const sqlRombel = `
+        SELECT DISTINCT
+          mp.id,
+          mp.nama,
+          mp.kode,
+          mp.jenjang,
+          u.nama_lengkap AS nama_tutor
+        FROM rombel_mapel rm
+        JOIN mata_pelajaran mp ON mp.id = rm.mapel_id
+        LEFT JOIN users u ON u.id = rm.tutor_id
+        WHERE rm.rombel_id = ? AND rm.is_visible = 1 AND mp.is_active = 1
+        ORDER BY mp.nama ASC
+      `;
+      const [rowsRombel] = await pool.execute(sqlRombel, [rombel_id]);
+      if (rowsRombel.length > 0) {
+        return rowsRombel;
+      }
+
+      // 2. Jika di rombel_mapel kosong, ambil jenjang dari rombel tersebut
+      const [rRows] = await pool.execute(`SELECT jenjang FROM rombel WHERE id = ? LIMIT 1`, [rombel_id]);
+      if (rRows.length > 0 && rRows[0].jenjang) {
+        jenjang = rRows[0].jenjang;
+      }
+    }
+
+    // 3. Ambil mapel berdasarkan jenjang (atau 'semua')
     let sql = `
       SELECT DISTINCT
         mp.id,
         mp.nama,
         mp.kode,
         mp.jenjang,
-        u.nama_lengkap AS nama_tutor
+        NULL AS nama_tutor
       FROM mata_pelajaran mp
-      LEFT JOIN rombel_mapel rm ON rm.mapel_id = mp.id
-      LEFT JOIN users u ON u.id = rm.tutor_id
       WHERE mp.is_active = 1
     `;
     const params = [];
 
-    if (rombel_id) {
-      sql += ` AND rm.rombel_id = ? AND rm.is_visible = 1`;
-      params.push(rombel_id);
-    }
-
     if (jenjang) {
-      sql += ` AND (mp.jenjang = ? OR mp.jenjang = 'semua')`;
+      sql += ` AND (mp.jenjang = ? OR mp.jenjang = 'semua' OR mp.jenjang IS NULL)`;
       params.push(jenjang);
     }
 
     sql += ` ORDER BY mp.nama ASC`;
     const [rows] = await pool.execute(sql, params);
+
+    // 4. Jika masih kosong, ambil seluruh mata pelajaran aktif
+    if (rows.length === 0) {
+      const [allRows] = await pool.execute(`SELECT id, nama, kode, jenjang FROM mata_pelajaran WHERE is_active = 1 ORDER BY nama ASC`);
+      return allRows;
+    }
+
     return rows;
   },
 };

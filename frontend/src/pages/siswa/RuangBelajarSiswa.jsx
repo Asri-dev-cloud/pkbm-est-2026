@@ -192,7 +192,7 @@ function RuangBelajarSiswa() {
                 >
                   {rombelList.map(r => (
                     <option key={r.id} value={r.id}>
-                      {r.nama_rombel} ({r.jenjang?.replace('_', ' ')?.toUpperCase()})
+                      {r.nama_rombel || r.nama || r.jenjang?.replace('_', ' ')?.toUpperCase()}
                     </option>
                   ))}
                 </select>

@@ -347,10 +347,43 @@ function TugasSiswa() {
     };
   }, [tugasList]);
 
+  // Normalisasi opsi rombel agar selalu tepat 1 per jenjang (Paket A, Paket B, Paket C)
+  const normalizedRombelOptions = useMemo(() => {
+    const mapByJenjang = new Map();
+    rombelOptions.forEach((r) => {
+      const jKey = (r.jenjang || 'paket_a').toLowerCase();
+      if (!mapByJenjang.has(jKey)) {
+        const cleanName =
+          jKey === 'paket_a' ? 'Paket A' :
+          jKey === 'paket_b' ? 'Paket B' :
+          jKey === 'paket_c' ? 'Paket C' :
+          (r.nama || r.nama_rombel || jKey.toUpperCase());
+
+        mapByJenjang.set(jKey, {
+          ...r,
+          id: r.id,
+          nama: cleanName,
+          nama_rombel: cleanName,
+          jenjang: jKey,
+        });
+      }
+    });
+
+    // Urutkan Paket A -> Paket B -> Paket C
+    const sortOrder = { paket_a: 1, paket_b: 2, paket_c: 3 };
+    return Array.from(mapByJenjang.values()).sort(
+      (a, b) => (sortOrder[a.jenjang] || 99) - (sortOrder[b.jenjang] || 99)
+    );
+  }, [rombelOptions]);
+
   // Objek Rombel terpilih saat ini
   const selectedRombelObj = useMemo(() => {
-    return rombelOptions.find((r) => String(r.id) === String(selectedRombelId));
-  }, [rombelOptions, selectedRombelId]);
+    return (
+      normalizedRombelOptions.find((r) => String(r.id) === String(selectedRombelId)) ||
+      normalizedRombelOptions[0] ||
+      null
+    );
+  }, [normalizedRombelOptions, selectedRombelId]);
 
   // Daftar opsi mata pelajaran unik
   const mapelOptions = useMemo(() => {
@@ -412,22 +445,52 @@ function TugasSiswa() {
   }, [tugasList, activeTab, mapelFilter, pertemuanFilter, searchQuery]);
 
   // ── 6. Handler Buat Tugas Baru (Tutor / Admin / Guru) ───────
+  // ── 6. Handler Buat Tugas Baru (Tutor / Admin / Guru) ───────
   const fetchMapelForBuat = async (rombelId) => {
-    if (!rombelId) return;
     try {
-      const res = await SiswaAPI.getMapelOptions({ rombel_id: rombelId });
-      const list = res.data.data || [];
-      setBuatMapelList(list);
-      if (list.length > 0 && !formBuat.mapel_id) {
-        setFormBuat((prev) => ({ ...prev, mapel_id: list[0].id }));
+      let list = [];
+      // 1. Coba ambil mapel khusus untuk rombel yang dipilih
+      if (rombelId) {
+        const res = await SiswaAPI.getMapelOptions({ rombel_id: rombelId });
+        list = res.data.data || [];
       }
-    } catch {
-      setBuatMapelList([]);
+      // 2. Jika kosong (belum di-assign khusus di rombel_mapel), fallback ambil seluruh mata pelajaran aktif
+      if (list.length === 0) {
+        const fallbackRes = await SiswaAPI.getMapelOptions();
+        list = fallbackRes.data.data || [];
+      }
+      setBuatMapelList(list);
+
+      // Auto-select mapel pertama agar dropdown tidak kosong dan tidak error validasi
+      if (list.length > 0) {
+        setFormBuat((prev) => ({
+          ...prev,
+          mapel_id: prev.mapel_id && list.some((m) => String(m.id) === String(prev.mapel_id))
+            ? prev.mapel_id
+            : String(list[0].id),
+        }));
+      }
+    } catch (err) {
+      console.error('[fetchMapelForBuat] Error:', err);
+      // Fallback cadangan jika request rombel_id gagal
+      try {
+        const fallbackRes = await SiswaAPI.getMapelOptions();
+        const list = fallbackRes.data.data || [];
+        setBuatMapelList(list);
+        if (list.length > 0) {
+          setFormBuat((prev) => ({
+            ...prev,
+            mapel_id: String(list[0].id),
+          }));
+        }
+      } catch {
+        setBuatMapelList([]);
+      }
     }
   };
 
   const handleOpenBuatModal = () => {
-    const targetRombel = selectedRombelId || (rombelOptions.length > 0 ? rombelOptions[0].id : '');
+    const targetRombel = selectedRombelId || (normalizedRombelOptions.length > 0 ? normalizedRombelOptions[0].id : '');
     setFormBuat({
       rombel_id: targetRombel,
       mapel_id: '',
@@ -444,9 +507,7 @@ function TugasSiswa() {
       ]
     });
     setCreateError('');
-    if (targetRombel) {
-      fetchMapelForBuat(targetRombel);
-    }
+    fetchMapelForBuat(targetRombel);
     setModalBuatOpen(true);
   };
 
@@ -883,9 +944,9 @@ function TugasSiswa() {
                       value={selectedRombelId}
                       onChange={handleRombelChange}
                     >
-                      {rombelOptions.map((r) => (
+                      {normalizedRombelOptions.map((r) => (
                         <option key={r.id} value={r.id}>
-                          {r.nama} ({r.jenjang?.toUpperCase()})
+                          {r.nama || `Paket ${r.jenjang?.replace('paket_', '').toUpperCase()}`}
                         </option>
                       ))}
                     </select>
@@ -1809,9 +1870,9 @@ function TugasSiswa() {
                             required
                           >
                             <option value="">-- Pilih Rombel --</option>
-                            {rombelOptions.map((r) => (
+                            {normalizedRombelOptions.map((r) => (
                               <option key={r.id} value={r.id}>
-                                {r.nama} ({r.jenjang?.toUpperCase()})
+                                {r.nama || `Paket ${r.jenjang?.replace('paket_', '').toUpperCase()}`}
                               </option>
                             ))}
                           </select>
@@ -1827,12 +1888,18 @@ function TugasSiswa() {
                             onChange={(e) => setFormBuat((prev) => ({ ...prev, mapel_id: e.target.value }))}
                             required
                           >
-                            <option value="">-- Pilih Mata Pelajaran --</option>
-                            {buatMapelList.map((m) => (
-                              <option key={m.id} value={m.id}>
-                                {m.nama}
-                              </option>
-                            ))}
+                            {buatMapelList.length === 0 ? (
+                              <option value="">Memuat data mata pelajaran...</option>
+                            ) : (
+                              <>
+                                <option value="">-- Pilih Mata Pelajaran --</option>
+                                {buatMapelList.map((m) => (
+                                  <option key={m.id} value={m.id}>
+                                    {m.nama} {m.jenjang && m.jenjang !== 'semua' ? `(${m.jenjang.toUpperCase()})` : ''}
+                                  </option>
+                                ))}
+                              </>
+                            )}
                           </select>
                         </div>
                       </div>

@@ -110,9 +110,14 @@ export const TugasModel = {
       JOIN mata_pelajaran mp ON mp.id = t.mapel_id
       JOIN users u ON u.id = t.tutor_id
       LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
-      WHERE t.rombel_id = ?
+      WHERE (
+        t.rombel_id = ?
+        OR t.rombel_id IN (
+          SELECT r2.id FROM rombel r2 WHERE r2.jenjang = (SELECT r1.jenjang FROM rombel r1 WHERE r1.id = ?)
+        )
+      )
     `;
-    const params = [rombel_id];
+    const params = [rombel_id, rombel_id];
     if (mapel_id) { sql += ` AND t.mapel_id = ?`; params.push(mapel_id); }
     sql += ` ORDER BY t.deadline ASC`;
     const [rows] = await pool.execute(sql, params);
