@@ -1026,3 +1026,329 @@
     justify-content: center;
   }
 }
+
+/* ── Tombol Tambah Tugas (Admin / Tutor) ───────────────────── */
+.btn-tambah-tugas-hero {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-accent, #FACC15);
+  color: #0F172A;
+  font-weight: 800;
+  font-size: var(--text-sm);
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid #EAB308;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.35);
+}
+
+.btn-tambah-tugas-hero:hover {
+  background: #FDE047;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(234, 179, 8, 0.45);
+}
+
+.btn-tambah-tugas-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--color-primary, #0F3C65);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: var(--text-xs);
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-primary-dark, #071E34);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-tambah-tugas-bar:hover {
+  background: #1D4ED8;
+  color: #FFFFFF;
+}
+
+/* ── Chip Tipe Tugas ──────────────────────────────────────── */
+.tugas-type-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.tugas-type-chip.pg {
+  background: #F3E8FF;
+  color: #7C3AED;
+  border: 1px solid #DDD6FE;
+}
+
+.tugas-type-chip.essay {
+  background: #EFF6FF;
+  color: #2563EB;
+  border: 1px solid #BFDBFE;
+}
+
+.tugas-type-chip.upload {
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+}
+
+/* ── Alert Petunjuk Pengerjaan ────────────────────────────── */
+.tugas-instructions-alert {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Pilihan Ganda Interaktif (Siswa) ─────────────────────── */
+.pg-quiz-card {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.pg-quiz-card:hover {
+  border-color: #CBD5E1;
+}
+
+.pg-quiz-question {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.pg-number-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #7C3AED;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pg-options-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.pg-option-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.pg-option-item:hover {
+  border-color: #A78BFA;
+  background: #FAF5FF;
+}
+
+.pg-option-item.selected {
+  border-color: #7C3AED;
+  background: #F5F3FF;
+  box-shadow: 0 0 0 1px #7C3AED;
+}
+
+.pg-option-letter {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: #F1F5F9;
+  color: #475569;
+  font-weight: 800;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+}
+
+.pg-option-item.selected .pg-option-letter {
+  background: #7C3AED;
+  color: #FFFFFF;
+}
+
+.pg-option-text {
+  font-size: 0.88rem;
+  color: #1E293B;
+  font-weight: 600;
+}
+
+/* ── Essay (Siswa) ────────────────────────────────────────── */
+.essay-question-item {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.essay-question-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #1E293B;
+  line-height: 1.5;
+}
+
+.essay-number-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: #2563EB;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Selector Tipe Tugas (Modal Buat Tugas) ─────────────────── */
+.tugas-type-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.85rem;
+}
+
+.tugas-type-select-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid #E2E8F0;
+  background: #FFFFFF;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.tugas-type-select-card:hover {
+  border-color: #94A3B8;
+  transform: translateY(-2px);
+}
+
+.tugas-type-select-card.active {
+  border-color: var(--color-primary, #0F3C65);
+  background: #F0F7FF;
+  box-shadow: 0 4px 12px rgba(15, 60, 101, 0.1);
+}
+
+.tugas-type-select-card .type-icon {
+  color: var(--color-primary, #0F3C65);
+  margin-bottom: 0.25rem;
+}
+
+.tugas-type-select-card .type-title {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #0F172A;
+}
+
+.tugas-type-select-card .type-desc {
+  font-size: 0.74rem;
+  color: #64748B;
+  line-height: 1.4;
+}
+
+/* ── Builder Soal PG & Essay (Modal Buat) ───────────────────── */
+.builder-section {
+  background: #F8FAFC;
+  border: 1.5px dashed #CBD5E1;
+  border-radius: 10px;
+  padding: 1.15rem;
+  margin-bottom: 1.25rem;
+}
+
+.soal-builder-card {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.soal-builder-label {
+  font-weight: 800;
+  font-size: 0.82rem;
+  color: #0F172A;
+  background: #F1F5F9;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.btn-trash-soal {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-trash-soal:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+.pg-builder-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem;
+}
+
+.pg-builder-opt-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pg-builder-opt-item .opt-prefix {
+  font-weight: 800;
+  font-size: 0.78rem;
+  width: 22px;
+  text-align: center;
+  color: #475569;
+}
+
+.pg-builder-opt-item .opt-input {
+  flex: 1;
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  height: auto;
+}
+

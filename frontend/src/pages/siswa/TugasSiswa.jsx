@@ -30,9 +30,35 @@ import {
   Eye,
   Check,
   Send,
-  Info
+  Info,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Trash2,
+  ListChecks,
+  HelpCircle,
+  Edit3,
+  Camera,
+  Layers,
+  CheckSquare
 } from 'lucide-react';
 import './TugasSiswa.css';
+
+// Helper parser metadata tugas
+export const parseTaskDescription = (rawDesc) => {
+  if (!rawDesc) return { cleanDesc: '', meta: { tipe: 'upload', soal_pg: [], soal_essay: [] } };
+  const match = rawDesc.match(/<!-- PKBM_TASK_META:(.*?) -->/);
+  if (match) {
+    try {
+      const meta = JSON.parse(match[1]);
+      const cleanDesc = rawDesc.replace(/<!-- PKBM_TASK_META:.*? -->/, '').trim();
+      return { cleanDesc, meta };
+    } catch {
+      return { cleanDesc: rawDesc, meta: { tipe: 'upload', soal_pg: [], soal_essay: [] } };
+    }
+  }
+  return { cleanDesc: rawDesc, meta: { tipe: 'upload', soal_pg: [], soal_essay: [] } };
+};
 
 function TugasSiswa() {
   const [user, setUser] = useState(() => {
@@ -62,11 +88,36 @@ function TugasSiswa() {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedDesc, setExpandedDesc] = useState({});
 
-  // State modal upload
+  const canManage = user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'tutor';
+
+  // State Modal Buat Tugas (Khusus Admin / Tutor / Guru)
+  const [modalBuatOpen, setModalBuatOpen] = useState(false);
+  const [formBuat, setFormBuat] = useState({
+    rombel_id: '',
+    mapel_id: '',
+    judul: '',
+    deskripsi: '',
+    tipe_tugas: 'upload', // 'upload' | 'essay' | 'pilihan_ganda'
+    deadline: '',
+    nilai_maks: 100,
+    soal_pg: [
+      { id: 1, pertanyaan: '', opsi_a: '', opsi_b: '', opsi_c: '', opsi_d: '', kunci: 'a' }
+    ],
+    soal_essay: [
+      { id: 1, pertanyaan: '' }
+    ]
+  });
+  const [buatMapelList, setBuatMapelList] = useState([]);
+  const [creatingTugas, setCreatingTugas] = useState(false);
+  const [createError, setCreateError] = useState('');
+
+  // State modal upload & pengerjaan siswa
   const [modalUploadOpen, setModalUploadOpen] = useState(false);
   const [selectedTugas, setSelectedTugas] = useState(null);
   const [fileUpload, setFileUpload] = useState(null);
   const [catatanSiswa, setCatatanSiswa] = useState('');
+  const [jawabanPG, setJawabanPG] = useState({});
+  const [jawabanEssay, setJawabanEssay] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
@@ -341,12 +392,175 @@ function TugasSiswa() {
     });
   }, [tugasList, activeTab, mapelFilter, pertemuanFilter, searchQuery]);
 
-  // ── 6. Handler Modal Upload & Pengumpulan ───────────────────
+  // ── 6. Handler Buat Tugas Baru (Tutor / Admin / Guru) ───────
+  const fetchMapelForBuat = async (rombelId) => {
+    if (!rombelId) return;
+    try {
+      const res = await SiswaAPI.getMapelOptions({ rombel_id: rombelId });
+      const list = res.data.data || [];
+      setBuatMapelList(list);
+      if (list.length > 0 && !formBuat.mapel_id) {
+        setFormBuat((prev) => ({ ...prev, mapel_id: list[0].id }));
+      }
+    } catch {
+      setBuatMapelList([]);
+    }
+  };
+
+  const handleOpenBuatModal = () => {
+    const targetRombel = selectedRombelId || (rombelOptions.length > 0 ? rombelOptions[0].id : '');
+    setFormBuat({
+      rombel_id: targetRombel,
+      mapel_id: '',
+      judul: '',
+      deskripsi: '',
+      tipe_tugas: 'upload',
+      deadline: '',
+      nilai_maks: 100,
+      soal_pg: [
+        { id: 1, pertanyaan: '', opsi_a: '', opsi_b: '', opsi_c: '', opsi_d: '', kunci: 'a' }
+      ],
+      soal_essay: [
+        { id: 1, pertanyaan: '' }
+      ]
+    });
+    setCreateError('');
+    if (targetRombel) {
+      fetchMapelForBuat(targetRombel);
+    }
+    setModalBuatOpen(true);
+  };
+
+  const handleCloseBuatModal = () => {
+    if (creatingTugas) return;
+    setModalBuatOpen(false);
+    setCreateError('');
+  };
+
+  const handleBuatRombelChange = (e) => {
+    const rId = e.target.value;
+    setFormBuat((prev) => ({ ...prev, rombel_id: rId, mapel_id: '' }));
+    fetchMapelForBuat(rId);
+  };
+
+  const handleAddSoalPG = () => {
+    setFormBuat((prev) => ({
+      ...prev,
+      soal_pg: [
+        ...prev.soal_pg,
+        {
+          id: prev.soal_pg.length + 1,
+          pertanyaan: '',
+          opsi_a: '',
+          opsi_b: '',
+          opsi_c: '',
+          opsi_d: '',
+          kunci: 'a'
+        }
+      ]
+    }));
+  };
+
+  const handleRemoveSoalPG = (idx) => {
+    if (formBuat.soal_pg.length <= 1) return;
+    setFormBuat((prev) => ({
+      ...prev,
+      soal_pg: prev.soal_pg.filter((_, i) => i !== idx)
+    }));
+  };
+
+  const handleUpdateSoalPG = (idx, field, val) => {
+    setFormBuat((prev) => {
+      const updated = [...prev.soal_pg];
+      updated[idx] = { ...updated[idx], [field]: val };
+      return { ...prev, soal_pg: updated };
+    });
+  };
+
+  const handleAddSoalEssay = () => {
+    setFormBuat((prev) => ({
+      ...prev,
+      soal_essay: [
+        ...prev.soal_essay,
+        { id: prev.soal_essay.length + 1, pertanyaan: '' }
+      ]
+    }));
+  };
+
+  const handleRemoveSoalEssay = (idx) => {
+    if (formBuat.soal_essay.length <= 1) return;
+    setFormBuat((prev) => ({
+      ...prev,
+      soal_essay: prev.soal_essay.filter((_, i) => i !== idx)
+    }));
+  };
+
+  const handleUpdateSoalEssay = (idx, val) => {
+    setFormBuat((prev) => {
+      const updated = [...prev.soal_essay];
+      updated[idx] = { ...updated[idx], pertanyaan: val };
+      return { ...prev, soal_essay: updated };
+    });
+  };
+
+  const handleCreateTugas = async (e) => {
+    e.preventDefault();
+    if (!formBuat.rombel_id || !formBuat.mapel_id || !formBuat.judul || !formBuat.deadline) {
+      setCreateError('Rombel, Mata Pelajaran, Judul, dan Batas Waktu wajib diisi.');
+      return;
+    }
+
+    if (formBuat.tipe_tugas === 'pilihan_ganda') {
+      const validPG = formBuat.soal_pg.filter(s => s.pertanyaan.trim() && s.opsi_a.trim() && s.opsi_b.trim());
+      if (validPG.length === 0) {
+        setCreateError('Minimal isi 1 soal Pilihan Ganda lengkap dengan pertanyaan dan opsi pilihan.');
+        return;
+      }
+    }
+
+    if (formBuat.tipe_tugas === 'essay') {
+      const validEssay = formBuat.soal_essay.filter(s => s.pertanyaan.trim());
+      if (validEssay.length === 0 && !formBuat.deskripsi.trim()) {
+        setCreateError('Harap tuliskan pertanyaan essay atau petunjuk tugas.');
+        return;
+      }
+    }
+
+    setCreatingTugas(true);
+    setCreateError('');
+
+    try {
+      await LmsAPI.createTugas({
+        rombel_id: parseInt(formBuat.rombel_id),
+        mapel_id: parseInt(formBuat.mapel_id),
+        judul: formBuat.judul,
+        deskripsi: formBuat.deskripsi || 'Silakan kerjakan tugas sesuai instruksi yang diberikan.',
+        deadline: formBuat.deadline,
+        nilai_maks: parseFloat(formBuat.nilai_maks) || 100,
+        tipe_tugas: formBuat.tipe_tugas,
+        soal_pg: formBuat.tipe_tugas === 'pilihan_ganda' ? formBuat.soal_pg : [],
+        soal_essay: formBuat.tipe_tugas === 'essay' ? formBuat.soal_essay : []
+      });
+
+      showToast('🎉 Berhasil! Tugas mingguan baru telah diterbitkan ke database.');
+      handleCloseBuatModal();
+      await loadTugas(selectedRombelId || formBuat.rombel_id);
+    } catch (err) {
+      console.error('[handleCreateTugas]', err);
+      setCreateError(err.response?.data?.message || 'Gagal membuat tugas. Silakan periksa kembali data input.');
+    } finally {
+      setCreatingTugas(false);
+    }
+  };
+
+  // ── 7. Handler Modal Upload & Pengerjaan Siswa ───────────────
   const handleOpenUploadModal = (tugas) => {
     setSelectedTugas(tugas);
     setFileUpload(null);
     setCatatanSiswa(tugas.pengumpulan_saya?.catatan_siswa || '');
     setUploadError('');
+    setJawabanPG({});
+    setJawabanEssay({});
     setModalUploadOpen(true);
   };
 
@@ -356,6 +570,8 @@ function TugasSiswa() {
     setSelectedTugas(null);
     setFileUpload(null);
     setCatatanSiswa('');
+    setJawabanPG({});
+    setJawabanEssay({});
     setUploadError('');
   };
 
@@ -393,10 +609,26 @@ function TugasSiswa() {
 
   const handleSubmitPengumpulan = async () => {
     if (!selectedTugas) return;
+    const { meta } = parseTaskDescription(selectedTugas.deskripsi);
 
-    if (!fileUpload && !selectedTugas.pengumpulan_saya?.path_file) {
-      setUploadError('Pilih berkas tugas terlebih dahulu.');
-      return;
+    // Validasi sesuai tipe tugas
+    if (meta.tipe === 'pilihan_ganda') {
+      const dijawab = Object.keys(jawabanPG).length;
+      if (dijawab === 0 && !fileUpload) {
+        setUploadError('Harap pilih jawaban soal pilihan ganda atau unggah foto lembar jawaban Anda.');
+        return;
+      }
+    } else if (meta.tipe === 'essay') {
+      const adaTeks = Object.values(jawabanEssay).some(v => v && v.trim());
+      if (!adaTeks && !catatanSiswa.trim() && !fileUpload && !selectedTugas.pengumpulan_saya?.path_file) {
+        setUploadError('Harap ketik jawaban essay Anda atau unggah berkas/foto lembar jawaban.');
+        return;
+      }
+    } else {
+      if (!fileUpload && !selectedTugas.pengumpulan_saya?.path_file) {
+        setUploadError('Pilih berkas tugas (Foto / PDF / Dokumen) terlebih dahulu.');
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -408,6 +640,13 @@ function TugasSiswa() {
         fd.append('file', fileUpload);
       }
       fd.append('catatan_siswa', catatanSiswa);
+      if (meta.tipe === 'pilihan_ganda' && Object.keys(jawabanPG).length > 0) {
+        fd.append('jawaban_pg', JSON.stringify(jawabanPG));
+      }
+      if (meta.tipe === 'essay' && Object.keys(jawabanEssay).length > 0) {
+        const textArr = Object.entries(jawabanEssay).map(([idx, ans]) => `Soal #${Number(idx) + 1}:\n${ans}`);
+        fd.append('jawaban_essay', textArr.join('\n\n'));
+      }
 
       const res = await LmsAPI.kumpulkanTugas(selectedTugas.id, fd);
       const updatedPengumpulan = res.data.data;
@@ -416,13 +655,13 @@ function TugasSiswa() {
       setTugasList((prev) =>
         prev.map((t) =>
           t.id === selectedTugas.id
-            ? { ...t, pengumpulan_saya: updatedPengumpulan || { path_file: 'uploaded', nama_file: fileUpload?.name || 'File Tugas', catatan_siswa: catatanSiswa, submitted_at: new Date().toISOString() } }
+            ? { ...t, pengumpulan_saya: updatedPengumpulan || { path_file: fileUpload ? 'uploaded' : 'text_submission', nama_file: fileUpload?.name || 'Jawaban Online', catatan_siswa: catatanSiswa, submitted_at: new Date().toISOString() } }
             : t
         )
       );
 
       handleCloseUploadModal();
-      showToast('🎉 Berhasil! Tugas Anda telah tersimpan dan siap dinilai oleh tutor.');
+      showToast('🎉 Berhasil! Tugas Anda telah tersimpan ke database.');
     } catch (err) {
       console.error('[TugasSiswa.handleSubmitPengumpulan] Error:', err);
       setUploadError(err.response?.data?.message || 'Gagal mengumpulkan tugas. Silakan coba kembali.');
@@ -466,13 +705,25 @@ function TugasSiswa() {
                   <h1 className="tugas-hero-title">
                     {isStudent
                       ? `Halo, ${user?.nama_lengkap || 'Warga Belajar'}!`
-                      : 'Pratinjau Tugas Mingguan'}
+                      : 'Manajemen & Pratinjau Tugas Mingguan'}
                   </h1>
                   <p className="tugas-hero-desc">
                     {isStudent
                       ? `Kelola dan kumpulkan seluruh tugas mingguan Anda tepat waktu. Dapatkan umpan balik langsung dari tutor untuk memaksimalkan capaian belajar Anda.`
-                      : `Tinjau daftar tugas mingguan yang diberikan kepada rombel dan periksa bagaimana siswa melihat instruksi serta mengunggah berkas tugas.`}
+                      : `Kelola penugasan mingguan: buat tugas baru (Upload Berkas, Essay, atau Pilihan Ganda) dan pantau pengumpulan tugas siswa rombel secara realtime.`}
                   </p>
+                  {canManage && (
+                    <div style={{ marginTop: '1.25rem' }}>
+                      <button
+                        type="button"
+                        className="btn-tambah-tugas-hero"
+                        onClick={handleOpenBuatModal}
+                      >
+                        <Plus size={18} />
+                        <span>+ Buat Tugas Mingguan Baru</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="tugas-hero-stats-box">
@@ -501,25 +752,35 @@ function TugasSiswa() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                   <Info size={18} />
                   <span>
-                    <strong>Mode Pratinjau Administrator/Tutor:</strong> Anda sedang melihat antarmuka pengumpulan tugas dari sudut pandang siswa.
+                    <strong>Area Administrator/Tutor:</strong> Anda dapat mengelola tugas dan melihat tampilan dari sudut pandang siswa.
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <label htmlFor="select-rombel" style={{ fontWeight: 700, fontSize: 'var(--text-xs)' }}>
-                    Pilih Rombel:
-                  </label>
-                  <select
-                    id="select-rombel"
-                    className="tugas-preview-select"
-                    value={selectedRombelId}
-                    onChange={handleRombelChange}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <label htmlFor="select-rombel" style={{ fontWeight: 700, fontSize: 'var(--text-xs)' }}>
+                      Rombel:
+                    </label>
+                    <select
+                      id="select-rombel"
+                      className="tugas-preview-select"
+                      value={selectedRombelId}
+                      onChange={handleRombelChange}
+                    >
+                      {rombelOptions.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.nama} ({r.jenjang?.toUpperCase()})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-tambah-tugas-bar"
+                    onClick={handleOpenBuatModal}
                   >
-                    {rombelOptions.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.nama} ({r.jenjang?.toUpperCase()})
-                      </option>
-                    ))}
-                  </select>
+                    <Plus size={15} />
+                    <span>Buat Tugas Baru</span>
+                  </button>
                 </div>
               </div>
             )}
@@ -770,6 +1031,7 @@ function TugasSiswa() {
                   const isSubmitted = !!t.pengumpulan_saya;
                   const isGraded = t.pengumpulan_saya?.nilai != null;
                   const isDescOpen = !!expandedDesc[t.id];
+                  const { cleanDesc, meta } = parseTaskDescription(t.deskripsi);
 
                   // Tentukan kelas status untuk border strip
                   let cardStatusClass = 'status-pending';
@@ -787,6 +1049,24 @@ function TugasSiswa() {
                             <BookOpen size={13} />
                             <span>{t.nama_mapel}</span>
                           </span>
+
+                          {/* Chip Tipe Tugas */}
+                          {meta.tipe === 'pilihan_ganda' ? (
+                            <span className="tugas-type-chip pg">
+                              <ListChecks size={13} />
+                              <span>Pilihan Ganda ({meta.soal_pg?.length || 0} Soal)</span>
+                            </span>
+                          ) : meta.tipe === 'essay' ? (
+                            <span className="tugas-type-chip essay">
+                              <Edit3 size={13} />
+                              <span>Tugas Essay</span>
+                            </span>
+                          ) : (
+                            <span className="tugas-type-chip upload">
+                              <UploadCloud size={13} />
+                              <span>Upload Berkas / Foto</span>
+                            </span>
+                          )}
 
                           {/* Chip Pertemuan / Minggu */}
                           {t.pertemuan_ke ? (
@@ -859,13 +1139,13 @@ function TugasSiswa() {
                       </div>
 
                       {/* Deskripsi & Instruksi Pengerjaan */}
-                      {t.deskripsi && (
+                      {cleanDesc && (
                         <div className="tugas-desc-box">
-                          {isDescOpen || t.deskripsi.length <= 220
-                            ? t.deskripsi
-                            : `${t.deskripsi.substring(0, 220)}...`}
+                          {isDescOpen || cleanDesc.length <= 220
+                            ? cleanDesc
+                            : `${cleanDesc.substring(0, 220)}...`}
 
-                          {t.deskripsi.length > 220 && (
+                          {cleanDesc.length > 220 && (
                             <button
                               type="button"
                               onClick={() => toggleDesc(t.id)}
@@ -917,7 +1197,7 @@ function TugasSiswa() {
                           </div>
 
                           {/* Lampiran Berkas Siswa */}
-                          {t.pengumpulan_saya.path_file && (
+                          {t.pengumpulan_saya.path_file && t.pengumpulan_saya.path_file !== 'text_submission' && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                               <a
                                 href={toAssetUrl(t.pengumpulan_saya.path_file)}
@@ -937,9 +1217,9 @@ function TugasSiswa() {
 
                           {/* Catatan Siswa saat Pengumpulan */}
                           {t.pengumpulan_saya.catatan_siswa && (
-                            <p className="tugas-student-note">
-                              "{t.pengumpulan_saya.catatan_siswa}"
-                            </p>
+                            <div className="tugas-student-note" style={{ whiteSpace: 'pre-line' }}>
+                              {t.pengumpulan_saya.catatan_siswa}
+                            </div>
                           )}
 
                           {/* Blok Penilaian & Feedback Tutor */}
@@ -976,8 +1256,22 @@ function TugasSiswa() {
                             className="btn-upload-tugas"
                             onClick={() => handleOpenUploadModal(t)}
                           >
-                            <UploadCloud size={16} />
-                            <span>Kumpulkan Tugas</span>
+                            {meta.tipe === 'pilihan_ganda' ? (
+                              <>
+                                <ListChecks size={16} />
+                                <span>Kerjakan Pilihan Ganda</span>
+                              </>
+                            ) : meta.tipe === 'essay' ? (
+                              <>
+                                <Edit3 size={16} />
+                                <span>Kerjakan Tugas Essay</span>
+                              </>
+                            ) : (
+                              <>
+                                <UploadCloud size={16} />
+                                <span>Kumpulkan Berkas / Foto</span>
+                              </>
+                            )}
                           </button>
                         ) : !isGraded ? (
                           <button
@@ -986,7 +1280,7 @@ function TugasSiswa() {
                             onClick={() => handleOpenUploadModal(t)}
                           >
                             <UploadCloud size={15} />
-                            <span>Kirim Ulang / Perbarui File</span>
+                            <span>Perbarui Jawaban / Berkas</span>
                           </button>
                         ) : (
                           <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-success)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
@@ -1001,32 +1295,300 @@ function TugasSiswa() {
               </div>
             )}
 
-            {/* ══ 5. MODAL UNGGAH TUGAS (DRAG & DROP) ══════════════ */}
-            {modalUploadOpen && selectedTugas && (
+            {/* ══ 5. MODAL PENGERJAAN & PENGUMPULAN TUGAS (SISWA) ═════ */}
+            {modalUploadOpen && selectedTugas && (() => {
+              const { cleanDesc, meta } = parseTaskDescription(selectedTugas.deskripsi);
+              return (
+                <div
+                  className="tugas-modal-overlay"
+                  onClick={handleCloseUploadModal}
+                  role="dialog"
+                  aria-modal="true"
+                >
+                  <div
+                    className="tugas-modal-container"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ maxWidth: meta.tipe === 'pilihan_ganda' ? '760px' : '680px' }}
+                  >
+                    {/* Modal Header */}
+                    <div className="tugas-modal-header">
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+                          {meta.tipe === 'pilihan_ganda' ? (
+                            <span className="tugas-type-chip pg">
+                              <ListChecks size={13} />
+                              <span>Soal Pilihan Ganda</span>
+                            </span>
+                          ) : meta.tipe === 'essay' ? (
+                            <span className="tugas-type-chip essay">
+                              <Edit3 size={13} />
+                              <span>Tugas Essay</span>
+                            </span>
+                          ) : (
+                            <span className="tugas-type-chip upload">
+                              <UploadCloud size={13} />
+                              <span>Upload Berkas / Foto</span>
+                            </span>
+                          )}
+                          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                            Tenggat: {getDeadlineInfo(selectedTugas.deadline).formatted}
+                          </span>
+                        </div>
+                        <h3 className="tugas-modal-title">
+                          {meta.tipe === 'pilihan_ganda'
+                            ? `Kerjakan Soal Pilihan Ganda`
+                            : meta.tipe === 'essay'
+                            ? `Kerjakan Tugas Essay`
+                            : selectedTugas.pengumpulan_saya ? 'Perbarui Pengumpulan Tugas' : 'Unggah Jawaban Tugas'}
+                        </h3>
+                        <p className="tugas-modal-sub">
+                          {selectedTugas.nama_mapel} • {selectedTugas.judul} (Maks: {Math.round(selectedTugas.nilai_maks || 100)} Poin)
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="tugas-modal-close"
+                        onClick={handleCloseUploadModal}
+                        aria-label="Tutup jendela"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Modal Body */}
+                    <div className="tugas-modal-body" style={{ maxHeight: 'calc(80vh - 140px)', overflowY: 'auto' }}>
+                      {uploadError && (
+                        <div className="alert alert-danger" style={{ padding: '0.65rem 0.85rem', fontSize: 'var(--text-xs)' }}>
+                          <AlertTriangle size={16} />
+                          <span>{uploadError}</span>
+                        </div>
+                      )}
+
+                      {/* Instruksi Tugas */}
+                      {cleanDesc && (
+                        <div className="tugas-instructions-alert">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 800, marginBottom: '0.35rem', color: '#1E3A8A' }}>
+                            <HelpCircle size={15} />
+                            <span>Petunjuk Pengerjaan:</span>
+                          </div>
+                          <div style={{ fontSize: '0.86rem', color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                            {cleanDesc}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* MODE 1: PILIHAN GANDA (INTERAKTIF) */}
+                      {meta.tipe === 'pilihan_ganda' && meta.soal_pg && meta.soal_pg.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <ListChecks size={16} color="#7C3AED" />
+                            <span>Daftar Soal Pilihan Ganda ({meta.soal_pg.length} Butir):</span>
+                          </div>
+
+                          {meta.soal_pg.map((soal, sIdx) => (
+                            <div key={soal.id || sIdx} className="pg-quiz-card">
+                              <div className="pg-quiz-question">
+                                <span className="pg-number-badge">{sIdx + 1}</span>
+                                <span style={{ flex: 1, fontWeight: 700, color: '#1E293B' }}>{soal.pertanyaan}</span>
+                              </div>
+                              <div className="pg-options-grid">
+                                {['a', 'b', 'c', 'd'].map((optKey) => {
+                                  const optVal = soal[`opsi_${optKey}`];
+                                  if (!optVal) return null;
+                                  const isSelected = jawabanPG[soal.id || sIdx + 1] === optKey;
+                                  return (
+                                    <label
+                                      key={optKey}
+                                      className={`pg-option-item ${isSelected ? 'selected' : ''}`}
+                                      onClick={() => setJawabanPG((prev) => ({ ...prev, [soal.id || sIdx + 1]: optKey }))}
+                                    >
+                                      <span className="pg-option-letter">{optKey.toUpperCase()}</span>
+                                      <span className="pg-option-text">{optVal}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* MODE 2: TUGAS ESSAY */}
+                      {meta.tipe === 'essay' && meta.soal_essay && meta.soal_essay.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.25rem' }}>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <Edit3 size={16} color="#2563EB" />
+                            <span>Pertanyaan Essay:</span>
+                          </div>
+                          {meta.soal_essay.map((soal, sIdx) => (
+                            <div key={soal.id || sIdx} className="essay-question-item">
+                              <div className="essay-question-prompt">
+                                <span className="essay-number-badge">{sIdx + 1}</span>
+                                <span style={{ flex: 1, fontWeight: 700 }}>{soal.pertanyaan}</span>
+                              </div>
+                              <textarea
+                                className="form-input"
+                                rows={3}
+                                placeholder={`Tuliskan jawaban essay Anda untuk pertanyaan nomor ${sIdx + 1} di sini...`}
+                                value={jawabanEssay[sIdx] || ''}
+                                onChange={(e) => setJawabanEssay((prev) => ({ ...prev, [sIdx]: e.target.value }))}
+                                style={{ fontSize: '0.85rem', marginTop: '0.5rem', resize: 'vertical' }}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* AREA UPLOAD FILE (FOTO/PDF/DOKUMEN) */}
+                      <div style={{ marginTop: '0.75rem', marginBottom: '1rem' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <Camera size={16} color="#059669" />
+                          <span>
+                            {meta.tipe === 'upload'
+                              ? 'Unggah Berkas Tugas (Foto / PDF / Dokumen):'
+                              : 'Lampirkan Foto Lembar Jawaban / Berkas PDF (Opsional / Jika Diperlukan):'}
+                          </span>
+                        </div>
+
+                        {/* Area Drag & Drop */}
+                        <div
+                          className={`tugas-dropzone ${isDragOver ? 'dragover' : ''}`}
+                          onDrop={handleDrop}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <div className="tugas-dropzone-icon">
+                            <UploadCloud size={28} />
+                          </div>
+                          <div className="tugas-dropzone-title">
+                            Tarik & lepaskan file / foto jawaban Anda di sini, atau <span style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>Pilih File</span>
+                          </div>
+                          <div className="tugas-dropzone-hint">
+                            Bisa berupa Foto (.jpg, .jpeg, .png), PDF, Word (.docx), atau Excel. Maksimal 15 MB.
+                          </div>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.zip,.rar"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files.length > 0) {
+                                handleFileSelect(e.target.files[0]);
+                              }
+                            }}
+                          />
+                        </div>
+
+                        {/* Pratinjau File yang Dipilih */}
+                        {fileUpload && (
+                          <div className="tugas-file-preview-card" style={{ marginTop: '0.75rem' }}>
+                            <div className="tugas-file-preview-left">
+                              <div className="tugas-file-preview-icon">
+                                {renderFileIcon(fileUpload.name)}
+                              </div>
+                              <div style={{ minWidth: 0 }}>
+                                <div className="tugas-file-preview-name" title={fileUpload.name}>
+                                  {fileUpload.name}
+                                </div>
+                                <div className="tugas-file-preview-size">
+                                  {formatFileSize(fileUpload.size)}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              className="tugas-file-remove-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFileUpload(null);
+                              }}
+                              title="Hapus file terpilih"
+                            >
+                              <X size={15} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Catatan untuk Tutor */}
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label" style={{ fontSize: 'var(--text-xs)', fontWeight: 700 }}>
+                          Catatan Tambahan untuk Tutor (Opsional)
+                        </label>
+                        <textarea
+                          className="form-input"
+                          rows={2}
+                          placeholder="Tuliskan catatan tambahan jika ada..."
+                          value={catatanSiswa}
+                          onChange={(e) => setCatatanSiswa(e.target.value)}
+                          disabled={submitting}
+                          style={{ fontSize: 'var(--text-xs)', resize: 'vertical' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Modal Footer */}
+                    <div className="tugas-modal-footer">
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        onClick={handleCloseUploadModal}
+                        disabled={submitting}
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={handleSubmitPengumpulan}
+                        disabled={submitting}
+                      >
+                        {submitting ? (
+                          <>
+                            <div className="spinner-sm" />
+                            <span>Menyimpan ke Database...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send size={15} />
+                            <span>Kirim & Simpan Jawaban</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ══ 6. MODAL BUAT TUGAS BARU (TUTOR / ADMIN / GURU) ═══════ */}
+            {modalBuatOpen && (
               <div
                 className="tugas-modal-overlay"
-                onClick={handleCloseUploadModal}
+                onClick={handleCloseBuatModal}
                 role="dialog"
                 aria-modal="true"
               >
                 <div
                   className="tugas-modal-container"
                   onClick={(e) => e.stopPropagation()}
+                  style={{ maxWidth: '820px' }}
                 >
                   {/* Modal Header */}
                   <div className="tugas-modal-header">
                     <div>
                       <h3 className="tugas-modal-title">
-                        {selectedTugas.pengumpulan_saya ? 'Perbarui Pengumpulan Tugas' : 'Unggah Jawaban Tugas'}
+                        + Buat Tugas Mingguan Baru
                       </h3>
                       <p className="tugas-modal-sub">
-                        {selectedTugas.nama_mapel} • {selectedTugas.judul}
+                        Tugas akan tersimpan langsung di database dan dapat diakses siswa dari HP maupun desktop.
                       </p>
                     </div>
                     <button
                       type="button"
                       className="tugas-modal-close"
-                      onClick={handleCloseUploadModal}
+                      onClick={handleCloseBuatModal}
                       aria-label="Tutup jendela"
                     >
                       <X size={18} />
@@ -1034,133 +1596,316 @@ function TugasSiswa() {
                   </div>
 
                   {/* Modal Body */}
-                  <div className="tugas-modal-body">
-                    {uploadError && (
-                      <div className="alert alert-danger" style={{ padding: '0.65rem 0.85rem', fontSize: 'var(--text-xs)' }}>
-                        <AlertTriangle size={16} />
-                        <span>{uploadError}</span>
-                      </div>
-                    )}
+                  <form onSubmit={handleCreateTugas}>
+                    <div className="tugas-modal-body" style={{ maxHeight: 'calc(80vh - 140px)', overflowY: 'auto' }}>
+                      {createError && (
+                        <div className="alert alert-danger" style={{ padding: '0.65rem 0.85rem', fontSize: 'var(--text-xs)' }}>
+                          <AlertTriangle size={16} />
+                          <span>{createError}</span>
+                        </div>
+                      )}
 
-                    {/* Area Drag & Drop */}
-                    <div
-                      className={`tugas-dropzone ${isDragOver ? 'dragover' : ''}`}
-                      onDrop={handleDrop}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <div className="tugas-dropzone-icon">
-                        <UploadCloud size={28} />
-                      </div>
-                      <div className="tugas-dropzone-title">
-                        Tarik & lepaskan file Anda di sini, atau <span style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>Pilih File</span>
-                      </div>
-                      <div className="tugas-dropzone-hint">
-                        Format didukung: PDF, Word (.docx), Excel (.xlsx), Foto (.jpg, .png), atau Arsip (.zip). Maksimal 15 MB.
-                      </div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.zip,.rar"
-                        style={{ display: 'none' }}
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files.length > 0) {
-                            handleFileSelect(e.target.files[0]);
-                          }
-                        }}
-                      />
-                    </div>
+                      {/* Baris 1: Rombel & Mata Pelajaran */}
+                      <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                          <label className="form-label" style={{ fontWeight: 700, fontSize: 'var(--text-xs)' }}>
+                            Target Rombel Belajar *
+                          </label>
+                          <select
+                            className="form-input"
+                            value={formBuat.rombel_id}
+                            onChange={handleBuatRombelChange}
+                            required
+                          >
+                            <option value="">-- Pilih Rombel --</option>
+                            {rombelOptions.map((r) => (
+                              <option key={r.id} value={r.id}>
+                                {r.nama} ({r.jenjang?.toUpperCase()})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
 
-                    {/* Pratinjau File yang Dipilih */}
-                    {fileUpload && (
-                      <div className="tugas-file-preview-card">
-                        <div className="tugas-file-preview-left">
-                          <div className="tugas-file-preview-icon">
-                            {renderFileIcon(fileUpload.name)}
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                          <label className="form-label" style={{ fontWeight: 700, fontSize: 'var(--text-xs)' }}>
+                            Mata Pelajaran *
+                          </label>
+                          <select
+                            className="form-input"
+                            value={formBuat.mapel_id}
+                            onChange={(e) => setFormBuat((prev) => ({ ...prev, mapel_id: e.target.value }))}
+                            required
+                          >
+                            <option value="">-- Pilih Mata Pelajaran --</option>
+                            {buatMapelList.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.nama}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Baris 2: Judul Tugas */}
+                      <div className="form-group" style={{ marginBottom: '1rem' }}>
+                        <label className="form-label" style={{ fontWeight: 700, fontSize: 'var(--text-xs)' }}>
+                          Judul Tugas Mingguan *
+                        </label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Contoh: Tugas Minggu 3: Analisis Ekosistem & Keanekaragaman Hayati"
+                          value={formBuat.judul}
+                          onChange={(e) => setFormBuat((prev) => ({ ...prev, judul: e.target.value }))}
+                          required
+                        />
+                      </div>
+
+                      {/* Baris 3: Deadline & Nilai Maksimal */}
+                      <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                          <label className="form-label" style={{ fontWeight: 700, fontSize: 'var(--text-xs)' }}>
+                            Batas Waktu Pengumpulan (Deadline) *
+                          </label>
+                          <input
+                            type="datetime-local"
+                            className="form-input"
+                            value={formBuat.deadline}
+                            onChange={(e) => setFormBuat((prev) => ({ ...prev, deadline: e.target.value }))}
+                            required
+                          />
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                          <label className="form-label" style={{ fontWeight: 700, fontSize: 'var(--text-xs)' }}>
+                            Bobot Nilai Maksimal
+                          </label>
+                          <input
+                            type="number"
+                            min="10"
+                            max="1000"
+                            className="form-input"
+                            value={formBuat.nilai_maks}
+                            onChange={(e) => setFormBuat((prev) => ({ ...prev, nilai_maks: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Baris 4: Pemilihan Tipe Tugas */}
+                      <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                        <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0F172A', marginBottom: '0.5rem', display: 'block' }}>
+                          Pilih Jenis / Format Tugas:
+                        </label>
+                        <div className="tugas-type-selector-grid">
+                          <button
+                            type="button"
+                            className={`tugas-type-select-card ${formBuat.tipe_tugas === 'upload' ? 'active' : ''}`}
+                            onClick={() => setFormBuat((prev) => ({ ...prev, tipe_tugas: 'upload' }))}
+                          >
+                            <UploadCloud size={22} className="type-icon" />
+                            <div className="type-title">Upload Berkas / Foto</div>
+                            <div className="type-desc">Siswa mengunggah foto lembar tugas, PDF, Word, atau Excel.</div>
+                          </button>
+
+                          <button
+                            type="button"
+                            className={`tugas-type-select-card ${formBuat.tipe_tugas === 'essay' ? 'active' : ''}`}
+                            onClick={() => setFormBuat((prev) => ({ ...prev, tipe_tugas: 'essay' }))}
+                          >
+                            <Edit3 size={22} className="type-icon" />
+                            <div className="type-title">Tugas Essay</div>
+                            <div className="type-desc">Siswa menjawab teks pertanyaan essay dan/atau melampirkan foto.</div>
+                          </button>
+
+                          <button
+                            type="button"
+                            className={`tugas-type-select-card ${formBuat.tipe_tugas === 'pilihan_ganda' ? 'active' : ''}`}
+                            onClick={() => setFormBuat((prev) => ({ ...prev, tipe_tugas: 'pilihan_ganda' }))}
+                          >
+                            <ListChecks size={22} className="type-icon" />
+                            <div className="type-title">Pilihan Ganda</div>
+                            <div className="type-desc">Kuis interaktif pilihan ganda A, B, C, D di layar siswa.</div>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Deskripsi / Petunjuk Umum */}
+                      <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                        <label className="form-label" style={{ fontWeight: 700, fontSize: 'var(--text-xs)' }}>
+                          Petunjuk & Instruksi Tugas *
+                        </label>
+                        <textarea
+                          className="form-input"
+                          rows={3}
+                          placeholder="Jelaskan petunjuk pengerjaan tugas secara rinci untuk warga belajar..."
+                          value={formBuat.deskripsi}
+                          onChange={(e) => setFormBuat((prev) => ({ ...prev, deskripsi: e.target.value }))}
+                          required
+                          style={{ resize: 'vertical' }}
+                        />
+                      </div>
+
+                      {/* KHUSUS: BUILDER SOAL PILIHAN GANDA */}
+                      {formBuat.tipe_tugas === 'pilihan_ganda' && (
+                        <div className="builder-section">
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+                            <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#7C3AED', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <ListChecks size={18} />
+                              <span>Butir Soal Pilihan Ganda ({formBuat.soal_pg.length})</span>
+                            </div>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline"
+                              onClick={handleAddSoalPG}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                            >
+                              <Plus size={14} />
+                              <span>Tambah Soal</span>
+                            </button>
                           </div>
-                          <div style={{ minWidth: 0 }}>
-                            <div className="tugas-file-preview-name" title={fileUpload.name}>
-                              {fileUpload.name}
-                            </div>
-                            <div className="tugas-file-preview-size">
-                              {formatFileSize(fileUpload.size)}
-                            </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {formBuat.soal_pg.map((soal, sIdx) => (
+                              <div key={sIdx} className="soal-builder-card">
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                  <span className="soal-builder-label">Nomor {sIdx + 1}</span>
+                                  {formBuat.soal_pg.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveSoalPG(sIdx)}
+                                      className="btn-trash-soal"
+                                      title="Hapus butir soal ini"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  )}
+                                </div>
+
+                                <textarea
+                                  className="form-input"
+                                  rows={2}
+                                  placeholder={`Tuliskan teks pertanyaan soal nomor ${sIdx + 1}...`}
+                                  value={soal.pertanyaan}
+                                  onChange={(e) => handleUpdateSoalPG(sIdx, 'pertanyaan', e.target.value)}
+                                  required
+                                  style={{ marginBottom: '0.65rem' }}
+                                />
+
+                                <div className="pg-builder-options-grid">
+                                  {['a', 'b', 'c', 'd'].map((optKey) => (
+                                    <div key={optKey} className="pg-builder-opt-item">
+                                      <span className="opt-prefix">{optKey.toUpperCase()}</span>
+                                      <input
+                                        type="text"
+                                        className="form-input opt-input"
+                                        placeholder={`Teks pilihan ${optKey.toUpperCase()}`}
+                                        value={soal[`opsi_${optKey}`]}
+                                        onChange={(e) => handleUpdateSoalPG(sIdx, `opsi_${optKey}`, e.target.value)}
+                                        required
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginTop: '0.65rem', fontSize: 'var(--text-xs)' }}>
+                                  <span style={{ fontWeight: 700, color: '#475569' }}>Kunci Jawaban Benar:</span>
+                                  <select
+                                    className="form-input"
+                                    style={{ width: 'auto', padding: '4px 10px', fontSize: 'var(--text-xs)', height: 'auto' }}
+                                    value={soal.kunci}
+                                    onChange={(e) => handleUpdateSoalPG(sIdx, 'kunci', e.target.value)}
+                                  >
+                                    <option value="a">A</option>
+                                    <option value="b">B</option>
+                                    <option value="c">C</option>
+                                    <option value="d">D</option>
+                                  </select>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                        <button
-                          type="button"
-                          className="tugas-file-remove-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFileUpload(null);
-                          }}
-                          title="Hapus file terpilih"
-                        >
-                          <X size={15} />
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Catatan untuk Tutor */}
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label" style={{ fontSize: 'var(--text-xs)', fontWeight: 700 }}>
-                        Catatan untuk Tutor (Opsional)
-                      </label>
-                      <textarea
-                        className="form-input"
-                        rows={3}
-                        placeholder="Contoh: Selamat siang Tutor, berikut tugas analisis yang telah saya kerjakan sesuai instruksi pada modul pertemuan ke-3..."
-                        value={catatanSiswa}
-                        onChange={(e) => setCatatanSiswa(e.target.value)}
-                        disabled={submitting}
-                        style={{ fontSize: 'var(--text-xs)', resize: 'vertical' }}
-                      />
-                    </div>
-
-                    {/* Panduan Singkat */}
-                    <div className="tugas-guidelines-box">
-                      <div className="tugas-guidelines-title">
-                        <Check size={14} />
-                        <span>Panduan Pengumpulan Tugas:</span>
-                      </div>
-                      <ul style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: 1.5 }}>
-                        <li>Pastikan tugas merupakan hasil pengerjaan mandiri yang orisinal.</li>
-                        <li>Gunakan format file resmi agar berkas dapat dibuka dengan jelas oleh Tutor.</li>
-                        <li>Anda dapat memperbarui tugas sebelum Tutor memberikan penilaian final.</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Modal Footer */}
-                  <div className="tugas-modal-footer">
-                    <button
-                      type="button"
-                      className="btn btn-outline"
-                      onClick={handleCloseUploadModal}
-                      disabled={submitting}
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={handleSubmitPengumpulan}
-                      disabled={submitting || (!fileUpload && !selectedTugas.pengumpulan_saya?.path_file)}
-                    >
-                      {submitting ? (
-                        <>
-                          <div className="spinner-sm" />
-                          <span>Mengunggah...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Send size={15} />
-                          <span>Kirim Tugas Sekarang</span>
-                        </>
                       )}
-                    </button>
-                  </div>
+
+                      {/* KHUSUS: BUILDER SOAL ESSAY */}
+                      {formBuat.tipe_tugas === 'essay' && (
+                        <div className="builder-section">
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+                            <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#2563EB', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <Edit3 size={18} />
+                              <span>Pertanyaan Essay ({formBuat.soal_essay.length})</span>
+                            </div>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline"
+                              onClick={handleAddSoalEssay}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                            >
+                              <Plus size={14} />
+                              <span>Tambah Pertanyaan</span>
+                            </button>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                            {formBuat.soal_essay.map((soal, sIdx) => (
+                              <div key={sIdx} className="soal-builder-card">
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                  <span className="soal-builder-label">Pertanyaan #{sIdx + 1}</span>
+                                  {formBuat.soal_essay.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveSoalEssay(sIdx)}
+                                      className="btn-trash-soal"
+                                      title="Hapus pertanyaan ini"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  )}
+                                </div>
+                                <textarea
+                                  className="form-input"
+                                  rows={2}
+                                  placeholder={`Tuliskan instruksi pertanyaan essay nomor ${sIdx + 1}...`}
+                                  value={soal.pertanyaan}
+                                  onChange={(e) => handleUpdateSoalEssay(sIdx, e.target.value)}
+                                  required
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Modal Footer */}
+                    <div className="tugas-modal-footer">
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        onClick={handleCloseBuatModal}
+                        disabled={creatingTugas}
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        className="btn btn-primary"
+                        disabled={creatingTugas}
+                      >
+                        {creatingTugas ? (
+                          <>
+                            <div className="spinner-sm" />
+                            <span>Menerbitkan Tugas...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send size={15} />
+                            <span>Terbitkan Tugas Sekarang</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             )}

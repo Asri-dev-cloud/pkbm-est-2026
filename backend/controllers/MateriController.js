@@ -145,16 +145,28 @@ export const TugasController = {
     }
   },
 
-  // POST /api/tugas — Tutor membuat tugas baru
+  // POST /api/tugas — Tutor / Admin membuat tugas baru
   create: async (req, res) => {
     try {
-      const { rombel_id, mapel_id, judul, deskripsi, deadline, nilai_maks, pertemuan_id } = req.body;
+      const { rombel_id, mapel_id, judul, deskripsi, deadline, nilai_maks, pertemuan_id, tipe_tugas, soal_pg, soal_essay } = req.body;
       if (!rombel_id || !mapel_id || !judul || !deskripsi || !deadline) {
         return res.status(400).json({ success: false, message: 'Field wajib: rombel_id, mapel_id, judul, deskripsi, deadline.' });
       }
+
+      // Format deskripsi dengan metadata tipe_tugas, soal PG / Essay jika ada
+      let finalDeskripsi = deskripsi;
+      if (tipe_tugas || soal_pg || soal_essay) {
+        const metadata = {
+          tipe: tipe_tugas || 'upload',
+          soal_pg: soal_pg || [],
+          soal_essay: soal_essay || []
+        };
+        finalDeskripsi = `${deskripsi}\n\n<!-- PKBM_TASK_META:${JSON.stringify(metadata)} -->`;
+      }
+
       const id = await TugasModel.create({
         rombel_id: parseInt(rombel_id), mapel_id: parseInt(mapel_id),
-        tutor_id: req.user.id, judul, deskripsi, deadline, nilai_maks,
+        tutor_id: req.user.id, judul, deskripsi: finalDeskripsi, deadline, nilai_maks: nilai_maks || 100,
         pertemuan_id: pertemuan_id ? parseInt(pertemuan_id) : null
       });
       return res.status(201).json({ success: true, message: 'Tugas berhasil dibuat.', data: { id } });
@@ -164,19 +176,33 @@ export const TugasController = {
     }
   },
 
-  // POST /api/tugas/:id/kumpulkan — WB mengumpulkan tugas (upload file)
+  // POST /api/tugas/:id/kumpulkan — WB mengumpulkan tugas (upload file foto/pdf/doc atau jawaban teks)
   kumpulkan: async (req, res) => {
     try {
-      if (!req.file) return res.status(400).json({ success: false, message: 'File tugas wajib diupload.' });
+      const { catatan_siswa, jawaban_pg, jawaban_essay } = req.body;
+      if (!req.file && !catatan_siswa && !jawaban_pg && !jawaban_essay) {
+        return res.status(400).json({ success: false, message: 'Harap lampirkan berkas jawaban (foto/PDF) atau ketik jawaban Anda.' });
+      }
       const wb = await SiswaModel.findByUserId(req.user.id);
       if (!wb) return res.status(404).json({ success: false, message: 'Profil WB tidak ditemukan.' });
+
+      let finalCatatan = catatan_siswa || '';
+      if (jawaban_essay) {
+        finalCatatan = (finalCatatan ? finalCatatan + '\n\n' : '') + `[Jawaban Essay]:\n${jawaban_essay}`;
+      }
+      if (jawaban_pg) {
+        finalCatatan = (finalCatatan ? finalCatatan + '\n\n' : '') + `[Jawaban Pilihan Ganda]:\n${typeof jawaban_pg === 'object' ? JSON.stringify(jawaban_pg) : jawaban_pg}`;
+      }
+
+      const filePath = req.file ? req.file.path : 'text_submission';
+      const fileName = req.file ? req.file.originalname : 'Jawaban Online';
 
       await TugasModel.kumpulkanTugas({
         tugas_id: parseInt(req.params.id),
         warga_belajar_id: wb.id,
-        path_file: req.file.path,
-        nama_file: req.file.originalname,
-        catatan_siswa: req.body.catatan_siswa || null,
+        path_file: filePath,
+        nama_file: fileName,
+        catatan_siswa: finalCatatan || null,
       });
 
       const pengumpulan = await TugasModel.findPengumpulanByTugasDanWb(parseInt(req.params.id), wb.id);
