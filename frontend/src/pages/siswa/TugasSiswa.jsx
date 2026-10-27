@@ -40,7 +40,10 @@ import {
   Edit3,
   Camera,
   Layers,
-  CheckSquare
+  CheckSquare,
+  Users,
+  FileCheck,
+  GraduationCap
 } from 'lucide-react';
 import './TugasSiswa.css';
 
@@ -122,6 +125,14 @@ function TugasSiswa() {
   const [uploadError, setUploadError] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef(null);
+
+  // State Modal Penilaian / Koreksi Jawaban Siswa (Khusus Admin / Tutor)
+  const [modalSubmissionsOpen, setModalSubmissionsOpen] = useState(false);
+  const [selectedTugasSubmissions, setSelectedTugasSubmissions] = useState(null);
+  const [submissionsList, setSubmissionsList] = useState([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+  const [gradingState, setGradingState] = useState({});
+  const [savingGradeId, setSavingGradeId] = useState(null);
 
   // State toast pemberitahuan
   const [toastMessage, setToastMessage] = useState('');
@@ -300,10 +311,12 @@ function TugasSiswa() {
     let sudahDikumpul = 0;
     let sudahDinilai = 0;
     let totalNilai = 0;
+    let totalPengumpulan = 0;
 
     tugasList.forEach((t) => {
       const isSubmitted = !!t.pengumpulan_saya;
       const dl = getDeadlineInfo(t.deadline);
+      totalPengumpulan += parseInt(t.jumlah_terkumpul || 0, 10);
 
       if (isSubmitted) {
         sudahDikumpul++;
@@ -328,10 +341,16 @@ function TugasSiswa() {
       mendesak,
       sudahDikumpul,
       sudahDinilai,
+      totalPengumpulan,
       rataNilai,
       percentSelesai,
     };
   }, [tugasList]);
+
+  // Objek Rombel terpilih saat ini
+  const selectedRombelObj = useMemo(() => {
+    return rombelOptions.find((r) => String(r.id) === String(selectedRombelId));
+  }, [rombelOptions, selectedRombelId]);
 
   // Daftar opsi mata pelajaran unik
   const mapelOptions = useMemo(() => {
@@ -691,6 +710,78 @@ function TugasSiswa() {
     setExpandedDesc((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // ── 6. Handler Pengumpulan & Koreksi Nilai Siswa (Admin / Tutor) ──
+  const handleOpenSubmissionsModal = async (tugas) => {
+    setSelectedTugasSubmissions(tugas);
+    setModalSubmissionsOpen(true);
+    setLoadingSubmissions(true);
+    try {
+      const res = await LmsAPI.getTugasById(tugas.id);
+      const detail = res.data.data;
+      const list = detail.pengumpulan || [];
+      setSubmissionsList(list);
+
+      // Inisialisasi form koreksi nilai & feedback
+      const initialGrading = {};
+      list.forEach((p) => {
+        initialGrading[p.id] = {
+          nilai: p.nilai != null ? p.nilai : '',
+          feedback_tutor: p.feedback_tutor || ''
+        };
+      });
+      setGradingState(initialGrading);
+    } catch (err) {
+      console.error('[handleOpenSubmissionsModal] Error:', err);
+      showToast('Gagal memuat daftar jawaban siswa untuk tugas ini.');
+    } finally {
+      setLoadingSubmissions(false);
+    }
+  };
+
+  const handleCloseSubmissionsModal = () => {
+    setModalSubmissionsOpen(false);
+    setSelectedTugasSubmissions(null);
+    setSubmissionsList([]);
+  };
+
+  const handleGradingChange = (pengumpulanId, field, val) => {
+    setGradingState((prev) => ({
+      ...prev,
+      [pengumpulanId]: {
+        ...prev[pengumpulanId],
+        [field]: val
+      }
+    }));
+  };
+
+  const handleSaveGrade = async (pengumpulanId) => {
+    const data = gradingState[pengumpulanId];
+    if (!data || data.nilai === '') {
+      showToast('Harap masukkan angka nilai tugas (0 - 100).');
+      return;
+    }
+    setSavingGradeId(pengumpulanId);
+    try {
+      await LmsAPI.nilaiTugas(pengumpulanId, {
+        nilai: parseFloat(data.nilai),
+        feedback_tutor: data.feedback_tutor || ''
+      });
+      setSubmissionsList((prev) =>
+        prev.map((p) =>
+          p.id === pengumpulanId
+            ? { ...p, nilai: parseFloat(data.nilai), feedback_tutor: data.feedback_tutor }
+            : p
+        )
+      );
+      showToast('🎉 Berhasil! Nilai dan ulasan tugas siswa telah tersimpan.');
+    } catch (err) {
+      console.error('[handleSaveGrade] Error:', err);
+      showToast(err.response?.data?.message || 'Gagal menyimpan penilaian.');
+    } finally {
+      setSavingGradeId(null);
+    }
+  };
+
   return (
     <div className="app-layout">
       <Sidebar user={user} />
@@ -702,15 +793,19 @@ function TugasSiswa() {
             <div className="tugas-hero">
               <div className="tugas-hero-content">
                 <div className="tugas-hero-text">
+                  <div className="tugas-hero-badge">
+                    <BookOpen size={14} />
+                    <span>{isStudent ? 'Portal Tugas Warga Belajar' : 'Panel Manajemen Tugas Tutor & Admin'}</span>
+                  </div>
                   <h1 className="tugas-hero-title">
                     {isStudent
                       ? `Halo, ${user?.nama_lengkap || 'Warga Belajar'}!`
-                      : 'Manajemen & Pratinjau Tugas Mingguan'}
+                      : 'Manajemen & Monitoring Tugas Mingguan'}
                   </h1>
                   <p className="tugas-hero-desc">
                     {isStudent
                       ? `Kelola dan kumpulkan seluruh tugas mingguan Anda tepat waktu. Dapatkan umpan balik langsung dari tutor untuk memaksimalkan capaian belajar Anda.`
-                      : `Kelola penugasan mingguan: buat tugas baru (Upload Berkas, Essay, atau Pilihan Ganda) dan pantau pengumpulan tugas siswa rombel secara realtime.`}
+                      : `Kelola penugasan mingguan: terbitkan tugas baru (Berkas, Essay, atau Pilihan Ganda), pantau respon pengumpulan siswa, dan berikan evaluasi nilai secara realtime.`}
                   </p>
                   {canManage && (
                     <div style={{ marginTop: '1.25rem' }}>
@@ -720,49 +815,71 @@ function TugasSiswa() {
                         onClick={handleOpenBuatModal}
                       >
                         <Plus size={18} />
-                        <span>+ Buat Tugas Mingguan Baru</span>
+                        <span>Buat Tugas Mingguan Baru</span>
                       </button>
                     </div>
                   )}
                 </div>
 
-                <div className="tugas-hero-stats-box">
-                  <div className="tugas-progress-label">
-                    <span>Kemajuan Belajar</span>
-                    <span style={{ color: 'var(--color-accent)', fontSize: '0.95rem' }}>
-                      {stats.percentSelesai}%
-                    </span>
+                {isStudent ? (
+                  <div className="tugas-hero-stats-box">
+                    <div className="tugas-progress-label">
+                      <span>Kemajuan Belajar</span>
+                      <span style={{ color: 'var(--color-accent)', fontSize: '0.95rem' }}>
+                        {stats.percentSelesai}%
+                      </span>
+                    </div>
+                    <div className="tugas-progress-bar-bg">
+                      <div
+                        className="tugas-progress-bar-fill"
+                        style={{ width: `${stats.percentSelesai}%` }}
+                      />
+                    </div>
+                    <div className="tugas-progress-sub">
+                      <strong>{stats.sudahDikumpul}</strong> dari <strong>{stats.total}</strong> tugas telah Anda serahkan
+                    </div>
                   </div>
-                  <div className="tugas-progress-bar-bg">
-                    <div
-                      className="tugas-progress-bar-fill"
-                      style={{ width: `${stats.percentSelesai}%` }}
-                    />
+                ) : (
+                  <div className="tugas-hero-admin-badge-box">
+                    <div className="hero-admin-badge-header">
+                      <span className="hero-admin-tag">Status Monitoring</span>
+                      <span className="hero-admin-status-dot">● Aktif</span>
+                    </div>
+                    <div className="hero-admin-stat-main">
+                      <div className="hero-admin-stat-num">{stats.totalPengumpulan}</div>
+                      <div className="hero-admin-stat-label">Jawaban Siswa Masuk</div>
+                    </div>
+                    <div className="hero-admin-rombel-summary">
+                      <Users size={14} />
+                      <span>Rombel: <strong>{selectedRombelObj ? `${selectedRombelObj.nama}` : 'Pilih Rombel'}</strong></span>
+                    </div>
                   </div>
-                  <div className="tugas-progress-sub">
-                    <strong>{stats.sudahDikumpul}</strong> dari <strong>{stats.total}</strong> tugas telah Anda serahkan
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
-            {/* ══ MODE PRATINJAU TUTOR / ADMIN ═════════════════════ */}
+            {/* ══ KONTROL ROMBEL KHUSUS TUTOR / ADMIN ═══════════════ */}
             {!isStudent && (
-              <div className="tugas-preview-alert">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <Info size={18} />
-                  <span>
-                    <strong>Area Administrator/Tutor:</strong> Anda dapat mengelola tugas dan melihat tampilan dari sudut pandang siswa.
-                  </span>
+              <div className="tugas-admin-control-card">
+                <div className="tugas-admin-control-left">
+                  <div className="tugas-admin-icon-pill">
+                    <Users size={20} />
+                  </div>
+                  <div>
+                    <div className="tugas-admin-control-title">Rombongan Belajar (Rombel) Aktif</div>
+                    <div className="tugas-admin-control-subtitle">
+                      Pilih rombel untuk menerbitkan tugas baru, melihat tugas aktif, atau mengoreksi nilai siswa.
+                    </div>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <label htmlFor="select-rombel" style={{ fontWeight: 700, fontSize: 'var(--text-xs)' }}>
+                <div className="tugas-admin-control-right">
+                  <div className="tugas-admin-select-wrapper">
+                    <label htmlFor="select-rombel" className="tugas-admin-select-label">
                       Rombel:
                     </label>
                     <select
                       id="select-rombel"
-                      className="tugas-preview-select"
+                      className="tugas-admin-select"
                       value={selectedRombelId}
                       onChange={handleRombelChange}
                     >
@@ -775,64 +892,118 @@ function TugasSiswa() {
                   </div>
                   <button
                     type="button"
-                    className="btn-tambah-tugas-bar"
-                    onClick={handleOpenBuatModal}
+                    className="btn-admin-quick-refresh"
+                    onClick={handleRefresh}
+                    disabled={refreshing || loading}
+                    title="Segarkan daftar tugas rombel ini"
                   >
-                    <Plus size={15} />
-                    <span>Buat Tugas Baru</span>
+                    <RefreshCw size={14} className={refreshing ? 'spin-animation' : ''} />
+                    <span>Segarkan Data</span>
                   </button>
                 </div>
               </div>
             )}
 
             {/* ══ 2. RINGKASAN METRIK KARTU ════════════════════════ */}
-            <div className="tugas-stats-grid">
-              {/* Total Tugas */}
-              <div className="tugas-stat-card">
-                <div className="tugas-stat-icon" style={{ background: '#EFF6FF', color: '#2563EB' }}>
-                  <BookOpen size={22} />
+            {isStudent ? (
+              <div className="tugas-stats-grid">
+                {/* Total Tugas */}
+                <div className="tugas-stat-card">
+                  <div className="tugas-stat-icon" style={{ background: '#EFF6FF', color: '#2563EB' }}>
+                    <BookOpen size={22} />
+                  </div>
+                  <div className="tugas-stat-info">
+                    <span className="tugas-stat-val">{stats.total}</span>
+                    <span className="tugas-stat-label">Total Tugas Aktif</span>
+                  </div>
                 </div>
-                <div className="tugas-stat-info">
-                  <span className="tugas-stat-val">{stats.total}</span>
-                  <span className="tugas-stat-label">Total Tugas Aktif</span>
-                </div>
-              </div>
 
-              {/* Perlu Dikerjakan */}
-              <div className="tugas-stat-card">
-                <div className="tugas-stat-icon" style={{ background: '#FEF3C7', color: '#D97706' }}>
-                  <Clock size={22} />
+                {/* Perlu Dikerjakan */}
+                <div className="tugas-stat-card">
+                  <div className="tugas-stat-icon" style={{ background: '#FEF3C7', color: '#D97706' }}>
+                    <Clock size={22} />
+                  </div>
+                  <div className="tugas-stat-info">
+                    <span className="tugas-stat-val">{stats.belumDikumpul}</span>
+                    <span className="tugas-stat-label">Perlu Dikerjakan</span>
+                  </div>
                 </div>
-                <div className="tugas-stat-info">
-                  <span className="tugas-stat-val">{stats.belumDikumpul}</span>
-                  <span className="tugas-stat-label">Perlu Dikerjakan</span>
-                </div>
-              </div>
 
-              {/* Deadline Mendesak */}
-              <div className="tugas-stat-card">
-                <div className="tugas-stat-icon" style={{ background: '#FEE2E2', color: '#DC2626' }}>
-                  <AlertTriangle size={22} />
+                {/* Deadline Mendesak */}
+                <div className="tugas-stat-card">
+                  <div className="tugas-stat-icon" style={{ background: '#FEE2E2', color: '#DC2626' }}>
+                    <AlertTriangle size={22} />
+                  </div>
+                  <div className="tugas-stat-info">
+                    <span className="tugas-stat-val" style={{ color: stats.mendesak > 0 ? '#DC2626' : 'inherit' }}>
+                      {stats.mendesak}
+                    </span>
+                    <span className="tugas-stat-label">Tenggat Mendesak</span>
+                  </div>
                 </div>
-                <div className="tugas-stat-info">
-                  <span className="tugas-stat-val" style={{ color: stats.mendesak > 0 ? '#DC2626' : 'inherit' }}>
-                    {stats.mendesak}
-                  </span>
-                  <span className="tugas-stat-label">Tenggat Mendesak</span>
-                </div>
-              </div>
 
-              {/* Rata-Rata Nilai */}
-              <div className="tugas-stat-card">
-                <div className="tugas-stat-icon" style={{ background: '#D1FAE5', color: '#059669' }}>
-                  <Award size={22} />
-                </div>
-                <div className="tugas-stat-info">
-                  <span className="tugas-stat-val">{stats.rataNilai}</span>
-                  <span className="tugas-stat-label">Rata-Rata Nilai ({stats.sudahDinilai} dinilai)</span>
+                {/* Rata-Rata Nilai */}
+                <div className="tugas-stat-card">
+                  <div className="tugas-stat-icon" style={{ background: '#D1FAE5', color: '#059669' }}>
+                    <Award size={22} />
+                  </div>
+                  <div className="tugas-stat-info">
+                    <span className="tugas-stat-val">{stats.rataNilai}</span>
+                    <span className="tugas-stat-label">Rata-Rata Nilai ({stats.sudahDinilai} dinilai)</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="tugas-stats-grid">
+                {/* Total Tugas Terbit */}
+                <div className="tugas-stat-card">
+                  <div className="tugas-stat-icon" style={{ background: '#EFF6FF', color: '#2563EB' }}>
+                    <BookOpen size={22} />
+                  </div>
+                  <div className="tugas-stat-info">
+                    <span className="tugas-stat-val">{stats.total}</span>
+                    <span className="tugas-stat-label">Total Tugas Diterbitkan</span>
+                  </div>
+                </div>
+
+                {/* Jawaban Siswa Masuk */}
+                <div className="tugas-stat-card">
+                  <div className="tugas-stat-icon" style={{ background: '#ECFDF5', color: '#059669' }}>
+                    <FileCheck size={22} />
+                  </div>
+                  <div className="tugas-stat-info">
+                    <span className="tugas-stat-val">{stats.totalPengumpulan}</span>
+                    <span className="tugas-stat-label">Jawaban Siswa Masuk</span>
+                  </div>
+                </div>
+
+                {/* Tipe Penugasan */}
+                <div className="tugas-stat-card">
+                  <div className="tugas-stat-icon" style={{ background: '#F5F3FF', color: '#7C3AED' }}>
+                    <Layers size={22} />
+                  </div>
+                  <div className="tugas-stat-info">
+                    <span className="tugas-stat-val">3 Format</span>
+                    <span className="tugas-stat-label">Berkas, Essay & PG</span>
+                  </div>
+                </div>
+
+                {/* Target Rombel */}
+                <div className="tugas-stat-card">
+                  <div className="tugas-stat-icon" style={{ background: '#FFFBEB', color: '#D97706' }}>
+                    <GraduationCap size={22} />
+                  </div>
+                  <div className="tugas-stat-info">
+                    <span className="tugas-stat-val" style={{ fontSize: '1.2rem' }}>
+                      {selectedRombelObj ? selectedRombelObj.nama : '-'}
+                    </span>
+                    <span className="tugas-stat-label">
+                      Jenjang {selectedRombelObj?.jenjang?.toUpperCase() || 'Rombel'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* ══ 3. KONTROL FILTER & PENCARIAN ════════════════════ */}
             <div className="tugas-filter-card">
@@ -1172,8 +1343,8 @@ function TugasSiswa() {
                         </div>
                       )}
 
-                      {/* Info Pengumpulan Tugas (Jika Siswa Telah Mengumpulkan) */}
-                      {isSubmitted && (
+                      {/* Info Pengumpulan Tugas (Khusus Siswa yang Telah Mengumpulkan) */}
+                      {isStudent && isSubmitted && (
                         <div className={`tugas-submission-panel ${isGraded ? 'has-grade' : ''}`}>
                           <div className="tugas-submission-header">
                             <div className="tugas-submission-title">
@@ -1250,7 +1421,27 @@ function TugasSiswa() {
 
                       {/* Tombol Aksi di Bawah Kartu */}
                       <div className="tugas-card-footer">
-                        {!isSubmitted ? (
+                        {!isStudent ? (
+                          <div className="tugas-card-admin-actions">
+                            <button
+                              type="button"
+                              className="btn-admin-view-submissions"
+                              onClick={() => handleOpenSubmissionsModal(t)}
+                            >
+                              <Eye size={16} />
+                              <span>Lihat Jawaban Siswa ({t.jumlah_terkumpul || 0} Terkumpul)</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-admin-preview-test"
+                              onClick={() => handleOpenUploadModal(t)}
+                              title="Buka form pengerjaan untuk menguji pratinjau dari sudut pandang siswa"
+                            >
+                              <Sparkles size={15} />
+                              <span>Pratinjau Siswa</span>
+                            </button>
+                          </div>
+                        ) : !isSubmitted ? (
                           <button
                             type="button"
                             className="btn-upload-tugas"
@@ -1910,7 +2101,254 @@ function TugasSiswa() {
               </div>
             )}
 
-            {/* ══ 6. TOAST NOTIFIKASI SUKSES ══════════════════════ */}
+            {/* ══ 6. MODAL DAFTAR PENGUMPULAN & KOREKSI NILAI (ADMIN/TUTOR) ══ */}
+            {modalSubmissionsOpen && selectedTugasSubmissions && (
+              <div
+                className="tugas-modal-overlay"
+                onClick={handleCloseSubmissionsModal}
+                role="dialog"
+                aria-modal="true"
+              >
+                <div
+                  className="tugas-modal-container submissions-modal-container"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ maxWidth: '840px' }}
+                >
+                  {/* Modal Header */}
+                  <div className="tugas-modal-header">
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+                        <span className="tugas-subject-chip">
+                          <BookOpen size={13} />
+                          <span>{selectedTugasSubmissions.nama_mapel}</span>
+                        </span>
+                        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                          Tenggat: {getDeadlineInfo(selectedTugasSubmissions.deadline).formatted}
+                        </span>
+                      </div>
+                      <h3 className="tugas-modal-title">
+                        Evaluasi Pengumpulan Siswa
+                      </h3>
+                      <p style={{ margin: '0.25rem 0 0', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                        Tugas: <strong>{selectedTugasSubmissions.judul}</strong> &bull; Nilai Maks: <strong>{selectedTugasSubmissions.nilai_maks || 100}</strong>
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="tugas-modal-close"
+                      onClick={handleCloseSubmissionsModal}
+                      aria-label="Tutup modal pengumpulan"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  {/* Modal Body */}
+                  <div className="tugas-modal-body" style={{ maxHeight: '72vh', overflowY: 'auto' }}>
+                    {loadingSubmissions ? (
+                      <div style={{ padding: '3rem 1rem', textAlign: 'center' }}>
+                        <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
+                        <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                          Memuat data pengumpulan tugas dari siswa...
+                        </p>
+                      </div>
+                    ) : submissionsList.length === 0 ? (
+                      <div style={{ padding: '3.5rem 1.5rem', textAlign: 'center', background: '#F8FAFC', borderRadius: 'var(--radius-lg)', border: '1px dashed #CBD5E1' }}>
+                        <div
+                          style={{
+                            width: 64,
+                            height: 64,
+                            borderRadius: '50%',
+                            background: '#EFF6FF',
+                            color: 'var(--color-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 1rem',
+                          }}
+                        >
+                          <Users size={30} />
+                        </div>
+                        <h4 style={{ fontWeight: 800, color: '#1E293B', marginBottom: '0.4rem', fontSize: '1.1rem' }}>
+                          Belum Ada Siswa Mengumpulkan
+                        </h4>
+                        <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', maxWidth: 440, margin: '0 auto' }}>
+                          Belum ada kiriman berkas atau lembar jawaban masuk dari siswa rombel ini. Jawaban yang dikirimkan siswa akan langsung muncul di sini secara otomatis.
+                        </p>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid #E2E8F0' }}>
+                          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#334155' }}>
+                            Daftar Pengumpulan ({submissionsList.length} Siswa)
+                          </span>
+                          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                            {submissionsList.filter(s => s.nilai != null).length} dari {submissionsList.length} telah dinilai
+                          </span>
+                        </div>
+
+                        {submissionsList.map((sub, sIdx) => {
+                          const isGraded = sub.nilai != null;
+                          const currentGrading = gradingState[sub.id] || { nilai: '', feedback_tutor: '' };
+                          const isSaving = savingGradeId === sub.id;
+
+                          return (
+                            <div key={sub.id || sIdx} className="submission-student-card">
+                              {/* Header Baris Siswa */}
+                              <div className="submission-student-header">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  <div className="student-avatar-badge">
+                                    {(sub.nama_lengkap || 'S').charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <div className="student-name-text">{sub.nama_lengkap || 'Warga Belajar'}</div>
+                                    <div className="student-nis-text">NIS: {sub.nis || '-'}</div>
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                                  {isGraded ? (
+                                    <span className="badge-grade-status graded">
+                                      <CheckCircle2 size={13} />
+                                      <span>Ternilai: {sub.nilai}</span>
+                                    </span>
+                                  ) : (
+                                    <span className="badge-grade-status pending">
+                                      <Clock size={13} />
+                                      <span>Menunggu Koreksi</span>
+                                    </span>
+                                  )}
+                                  <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                                    {sub.submitted_at
+                                      ? new Date(sub.submitted_at).toLocaleDateString('id-ID', {
+                                          day: 'numeric',
+                                          month: 'short',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })
+                                      : '-'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Isi Pengumpulan: Berkas / Teks / Catatan */}
+                              <div className="submission-content-area">
+                                {sub.path_file && sub.path_file !== 'text_submission' && (
+                                  <div style={{ marginBottom: '0.75rem' }}>
+                                    <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '0.35rem' }}>
+                                      Berkas / Foto Jawaban Siswa:
+                                    </span>
+                                    <a
+                                      href={toAssetUrl(sub.path_file)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="tugas-file-badge"
+                                      style={{ display: 'inline-flex' }}
+                                      title="Klik untuk membuka/mengunduh berkas jawaban"
+                                    >
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                                        {renderFileIcon(sub.nama_file)}
+                                        <span>{sub.nama_file || 'Unduh Berkas Siswa'}</span>
+                                      </div>
+                                      <Download size={14} />
+                                    </a>
+                                  </div>
+                                )}
+
+                                {sub.catatan_siswa && (
+                                  <div style={{ marginBottom: '0.75rem' }}>
+                                    <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '0.35rem' }}>
+                                      Jawaban Teks / Catatan Pengumpulan:
+                                    </span>
+                                    <div className="submission-text-display">
+                                      {sub.catatan_siswa}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Form Koreksi Nilai & Catatan Evaluasi Inline */}
+                              <div className="submission-grade-action-box">
+                                <div style={{ fontWeight: 700, fontSize: 'var(--text-xs)', color: '#1E293B', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                  <Award size={14} color="#059669" />
+                                  <span>Penilaian & Ulasan Tutor</span>
+                                </div>
+
+                                <div className="grade-inputs-grid">
+                                  <div style={{ width: '130px' }}>
+                                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '0.25rem' }}>
+                                      Nilai (Maks {selectedTugasSubmissions.nilai_maks || 100}):
+                                    </label>
+                                    <input
+                                      type="number"
+                                      className="form-input"
+                                      placeholder="0 - 100"
+                                      min={0}
+                                      max={selectedTugasSubmissions.nilai_maks || 100}
+                                      value={currentGrading.nilai}
+                                      onChange={(e) => handleGradingChange(sub.id, 'nilai', e.target.value)}
+                                      style={{ fontWeight: 800, fontSize: '0.95rem' }}
+                                    />
+                                  </div>
+
+                                  <div style={{ flex: 1 }}>
+                                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '0.25rem' }}>
+                                      Ulasan / Masukan Perbaikan Tutor:
+                                    </label>
+                                    <input
+                                      type="text"
+                                      className="form-input"
+                                      placeholder="Tuliskan apresiasi atau poin saran perbaikan untuk siswa..."
+                                      value={currentGrading.feedback_tutor}
+                                      onChange={(e) => handleGradingChange(sub.id, 'feedback_tutor', e.target.value)}
+                                    />
+                                  </div>
+
+                                  <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-primary"
+                                      onClick={() => handleSaveGrade(sub.id)}
+                                      disabled={isSaving}
+                                      style={{ height: '38px', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                                    >
+                                      {isSaving ? (
+                                        <>
+                                          <div className="spinner-sm" />
+                                          <span>Menyimpan...</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Check size={14} />
+                                          <span>Simpan Nilai</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="tugas-modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      onClick={handleCloseSubmissionsModal}
+                    >
+                      Tutup
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ══ 7. TOAST NOTIFIKASI SUKSES ══════════════════════ */}
             {toastMessage && (
               <div className="tugas-toast-success" role="alert">
                 <CheckCircle2 size={20} color="#34D399" />
