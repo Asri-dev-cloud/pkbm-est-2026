@@ -88,13 +88,44 @@ const AuthController = {
             }
 
             if (spmb.status === 'diterima') {
+              // Auto-provision akun user dan profil Warga Belajar jika belum ada di tabel users
+              try {
+                const { ensureWargaBelajarAccount } = await import('./SpmbController.js');
+                const provision = await ensureWargaBelajarAccount(spmb.id, null, null);
+                if (provision) {
+                  const token = jwt.sign(
+                    { id: provision.userId, role: 'warga_belajar' },
+                    process.env.JWT_SECRET,
+                    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+                  );
+
+                  return res.status(200).json({
+                    success: true,
+                    message: `Selamat datang di PKBM Bina Mandiri, ${spmb.nama_lengkap}! Akun Ruang Belajar Anda telah aktif.`,
+                    data: {
+                      token,
+                      user: {
+                        id: provision.userId,
+                        nama_lengkap: spmb.nama_lengkap,
+                        email: spmb.email,
+                        role: 'warga_belajar',
+                        nis: provision.nis,
+                        foto_profil: null,
+                      },
+                    },
+                  });
+                }
+              } catch (provErr) {
+                console.error('[AuthController.login] Auto-provision failed:', provErr);
+              }
+
               return res.status(403).json({
                 success: false,
                 is_spmb: true,
                 spmb_status: 'diterima',
                 pendaftar_id: spmb.id,
                 nama_lengkap: spmb.nama_lengkap,
-                message: `Pendaftaran atas nama "${spmb.nama_lengkap}" telah DITERIMA oleh Admin TU! Akun Anda sedang dalam proses penetapan rombel/kelas belajar. Silakan coba login beberapa saat lagi atau hubungi Admin TU.`,
+                message: `Pendaftaran atas nama "${spmb.nama_lengkap}" telah DITERIMA oleh Admin TU! Akun Anda sedang disinkronkan. Silakan coba login beberapa saat lagi atau hubungi Admin TU.`,
               });
             }
           }

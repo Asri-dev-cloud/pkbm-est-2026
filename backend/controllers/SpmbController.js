@@ -157,58 +157,67 @@ const SpmbController = {
   },
 
   // -----------------------------------------------------------
+  // -----------------------------------------------------------
   // GET /api/spmb/cek-status  [PUBLIK — tanpa login]
-  // Mengecek status pendaftaran calon WB berdasarkan email atau ID pendaftar
+  // Mengecek status pendaftaran calon WB berdasarkan email, ID, atau nama
   // -----------------------------------------------------------
   cekStatusPublik: async (req, res) => {
     try {
-      const q = req.query.q || req.query.email || req.query.id;
+      const q = req.query.q || req.query.email || req.query.id || req.query.nama;
       if (!q || !String(q).trim()) {
         return res.status(400).json({
           success: false,
-          message: 'Harap masukkan alamat email atau nomor pendaftaran Anda.',
+          message: 'Harap masukkan alamat email, nomor pendaftaran, atau nama lengkap Anda.',
         });
       }
 
       const keyword = String(q).trim();
-      const isNum = !isNaN(keyword) && !keyword.includes('@');
+      const searchNum = (!isNaN(keyword) && !keyword.includes('@')) ? parseInt(keyword) : -1;
+      const searchLike = `%${keyword}%`;
 
-      let sql = '';
-      let params = [];
-
-      if (isNum) {
-        sql = `
-          SELECT p.id, p.nama_lengkap, p.email, p.jenjang_daftar, p.status,
-                 p.catatan_verifikasi, p.created_at, ta.nama_tahun_ajaran
-          FROM pendaftar_spmb p
-          LEFT JOIN tahun_ajaran ta ON ta.id = p.tahun_ajaran_id
-          WHERE p.id = ?
-          LIMIT 1
-        `;
-        params = [parseInt(keyword)];
-      } else {
-        sql = `
-          SELECT p.id, p.nama_lengkap, p.email, p.jenjang_daftar, p.status,
-                 p.catatan_verifikasi, p.created_at, ta.nama_tahun_ajaran
-          FROM pendaftar_spmb p
-          LEFT JOIN tahun_ajaran ta ON ta.id = p.tahun_ajaran_id
-          WHERE LOWER(p.email) = LOWER(?)
-          ORDER BY p.id DESC
-          LIMIT 1
-        `;
-        params = [keyword];
-      }
+      const sql = `
+        SELECT p.id, p.nama_lengkap, p.email, p.nik, p.no_telp, p.jenjang_daftar, p.status,
+               p.catatan_verifikasi, p.warga_belajar_id, p.created_at,
+               ta.nama_tahun_ajaran,
+               wb.nis,
+               r.nama_rombel
+        FROM pendaftar_spmb p
+        LEFT JOIN tahun_ajaran ta ON ta.id = p.tahun_ajaran_id
+        LEFT JOIN warga_belajar wb ON wb.id = p.warga_belajar_id
+        LEFT JOIN rombel r ON r.id = wb.rombel_id
+        WHERE p.id = ?
+           OR LOWER(p.email) = LOWER(?)
+           OR LOWER(p.nama_lengkap) LIKE LOWER(?)
+           OR p.nik = ?
+           OR p.no_telp LIKE ?
+        ORDER BY p.id DESC
+        LIMIT 1
+      `;
+      const params = [searchNum, keyword, searchLike, keyword, searchLike];
 
       const [rows] = await pool.execute(sql, params);
 
       if (!rows.length) {
         return res.status(404).json({
           success: false,
-          message: 'Data pendaftaran tidak ditemukan. Pastikan email atau nomor pendaftaran yang Anda ketik sudah sesuai.',
+          message: `Data pendaftaran tidak ditemukan untuk "${keyword}". Pastikan nama lengkap, email, atau nomor pendaftaran Anda sudah sesuai.`,
         });
       }
 
       const p = rows[0];
+
+      // Jika pendaftar sudah diterima namun akun WB belum tersinkron, jalankan auto-sync
+      if (p.status === 'diterima' && !p.warga_belajar_id) {
+        try {
+          const syncResult = await ensureWargaBelajarAccount(p.id, null, null);
+          if (syncResult) {
+            p.warga_belajar_id = syncResult.wbId;
+            p.nis = syncResult.nis;
+          }
+        } catch (syncErr) {
+          console.warn('[SpmbController.cekStatusPublik] Auto-sync WB failed:', syncErr.message);
+        }
+      }
 
       // Ambil berkas-berkas pendukung
       const [berkasRows] = await pool.execute(
@@ -222,11 +231,15 @@ const SpmbController = {
         data: {
           id: p.id,
           nama_lengkap: p.nama_lengkap,
+          email: p.email,
           email_masked: p.email ? p.email.replace(/(.{2})(.*)(?=@)/, (_, a, b) => a + '*'.repeat(Math.max(1, b.length))) : '',
           jenjang_daftar: p.jenjang_daftar,
-          tahun_ajaran: p.nama_tahun_ajaran || '2026/2027',
+          tahun_ajaran: p.nama_tahun_ajaran || '2025/2026',
           status: p.status, // 'pending', 'diterima', 'ditolak'
           catatan_verifikasi: p.catatan_verifikasi,
+          warga_belajar_id: p.warga_belajar_id,
+          nis: p.nis || (p.status === 'diterima' ? 'Terdaftar Resmi' : null),
+          nama_rombel: p.nama_rombel || (p.status === 'diterima' ? 'Dalam Penetapan' : null),
           created_at: p.created_at,
           berkas: berkasRows || [],
         },
@@ -248,10 +261,30 @@ const SpmbController = {
   getAll: async (req, res) => {
     try {
       const { status, tahun_ajaran_id } = req.query;
-      const pendaftar = await SpmbModel.findAll({
+      let pendaftar = await SpmbModel.findAll({
         status: status || null,
         tahun_ajaran_id: tahun_ajaran_id ? parseInt(tahun_ajaran_id) : null,
       });
+
+      // Auto-heal pendaftar 'diterima' yang belum punya warga_belajar_id
+      let needsRefresh = false;
+      for (const p of pendaftar) {
+        if (p.status === 'diterima' && !p.warga_belajar_id) {
+          try {
+            await ensureWargaBelajarAccount(p.id, null, p.diverifikasi_oleh);
+            needsRefresh = true;
+          } catch (healErr) {
+            console.warn(`[SpmbController.getAll] Auto-heal WB failed for ID ${p.id}:`, healErr.message);
+          }
+        }
+      }
+
+      if (needsRefresh) {
+        pendaftar = await SpmbModel.findAll({
+          status: status || null,
+          tahun_ajaran_id: tahun_ajaran_id ? parseInt(tahun_ajaran_id) : null,
+        });
+      }
 
       return res.status(200).json({
         success: true,
@@ -279,19 +312,32 @@ const SpmbController = {
   },
 
   // -----------------------------------------------------------
+  // -----------------------------------------------------------
   // GET /api/spmb/:id  [Admin, Super Admin]
   // Detail satu pendaftar beserta semua berkas yang diupload
   // -----------------------------------------------------------
   getById: async (req, res) => {
     try {
       const { id } = req.params;
-      const pendaftar = await SpmbModel.findById(parseInt(id));
+      let pendaftar = await SpmbModel.findById(parseInt(id));
 
       if (!pendaftar) {
         return res.status(404).json({
           success: false,
           message: `Pendaftar dengan ID ${id} tidak ditemukan.`,
         });
+      }
+
+      // Self-healing: jika status diterima tapi warga_belajar_id masih null, sinkronkan otomatis
+      if (pendaftar.status === 'diterima' && !pendaftar.warga_belajar_id) {
+        try {
+          const syncResult = await ensureWargaBelajarAccount(pendaftar.id, null, pendaftar.diverifikasi_oleh);
+          if (syncResult) {
+            pendaftar = await SpmbModel.findById(parseInt(id));
+          }
+        } catch (repairErr) {
+          console.warn('[SpmbController.getById] Auto-repair WB failed:', repairErr.message);
+        }
       }
 
       return res.status(200).json({ success: true, data: pendaftar });
@@ -342,19 +388,8 @@ const SpmbController = {
   // PUT /api/spmb/:id/keputusan  [Admin]
   // Keputusan akhir: TERIMA atau TOLAK pendaftar
   // Body: { status: 'diterima'|'ditolak', catatan_verifikasi, rombel_id }
-  //
-  // ⭐ PIPELINE KRITIS: Jika status = 'diterima', sistem otomatis:
-  //   1. Buat akun user baru (role: warga_belajar)
-  //   2. Generate NIS otomatis
-  //   3. Buat profil warga_belajar dan assign ke rombel
-  //   4. Catat warga_belajar_id ke pendaftar_spmb
-  //   SEMUA langkah ini dalam SATU transaksi atomik (jika salah satu gagal, semua dibatalkan)
   // -----------------------------------------------------------
   buatKeputusan: async (req, res) => {
-    // Mulai transaksi database untuk memastikan atomisitas
-    const connection = await pool.getConnection();
-    await connection.beginTransaction();
-
     try {
       const { id } = req.params;
       const { status, catatan_verifikasi, rombel_id } = req.body;
@@ -362,8 +397,6 @@ const SpmbController = {
       // Validasi input
       const statusValid = ['diterima', 'ditolak'];
       if (!status || !statusValid.includes(status)) {
-        await connection.rollback();
-        connection.release();
         return res.status(400).json({
           success: false,
           message: 'Status harus "diterima" atau "ditolak".',
@@ -373,134 +406,46 @@ const SpmbController = {
       // Ambil data pendaftar
       const pendaftar = await SpmbModel.findById(parseInt(id));
       if (!pendaftar) {
-        await connection.rollback();
-        connection.release();
         return res.status(404).json({ success: false, message: 'Pendaftar tidak ditemukan.' });
       }
 
-      // Cegah verifikasi ulang jika sudah ada keputusan sebelumnya
-      if (pendaftar.status !== 'pending') {
-        await connection.rollback();
-        connection.release();
-        return res.status(409).json({
-          success: false,
-          message: `Pendaftar ini sudah berstatus '${pendaftar.status}'. Tidak dapat diubah lagi.`,
-        });
-      }
-
-      // Update status pendaftar terlebih dahulu
-      await SpmbModel.updateStatus(parseInt(id), {
-        status,
-        catatan_verifikasi: catatan_verifikasi || null,
-        diverifikasi_oleh: req.user.id, // ID Admin yang login (dari token JWT)
-      });
-
-      // =========================================================
-      // PIPELINE OTOMATIS — Hanya berjalan jika status = 'diterima'
-      // =========================================================
+      // Jika pendaftar sudah diterima dan sudah punya akun WB, izinkan update rombel / catatan
       if (status === 'diterima') {
-        if (!rombel_id) {
-          await connection.rollback();
-          connection.release();
-          return res.status(400).json({
-            success: false,
-            message: 'rombel_id wajib diisi saat menerima pendaftar.',
-          });
-        }
-
-        const berkasWajib = ['kk', 'ijazah', 'foto'];
-        const berkasPendaftar = Array.isArray(pendaftar.berkas) ? pendaftar.berkas : [];
-        const berkasBelumLengkap = berkasWajib.filter(
-          (jenis) => !berkasPendaftar.some((berkas) => berkas.jenis_berkas === jenis)
-        );
-        const berkasBelumValid = berkasWajib.filter(
-          (jenis) => !berkasPendaftar.some(
-            (berkas) => berkas.jenis_berkas === jenis && berkas.status_verifikasi === 'valid'
-          )
+        const syncResult = await ensureWargaBelajarAccount(
+          parseInt(id),
+          rombel_id,
+          req.user?.id || pendaftar.diverifikasi_oleh
         );
 
-        if (berkasBelumLengkap.length > 0) {
-          await connection.rollback();
-          connection.release();
-          return res.status(400).json({
-            success: false,
-            message: `Pendaftar belum mengunggah semua berkas wajib: ${berkasBelumLengkap.join(', ')}.`,
-          });
+        if (catatan_verifikasi) {
+          await pool.execute(
+            `UPDATE pendaftar_spmb SET catatan_verifikasi = ? WHERE id = ?`,
+            [catatan_verifikasi, parseInt(id)]
+          );
         }
-
-        if (berkasBelumValid.length > 0) {
-          await connection.rollback();
-          connection.release();
-          return res.status(400).json({
-            success: false,
-            message: `Semua berkas wajib harus diverifikasi valid sebelum pendaftar diterima. Berkas yang belum valid: ${berkasBelumValid.join(', ')}.`,
-          });
-        }
-
-        // Langkah 1: Buat akun user baru dengan password yang dibuat saat pendaftaran.
-        // Fallback ke no_telp untuk data lama yang belum punya password_hash.
-        const password_hash = pendaftar.password_hash || await hashPassword(pendaftar.no_telp);
-
-        const userId = await UserModel.create({
-          nama_lengkap: pendaftar.nama_lengkap,
-          email: pendaftar.email,
-          password_hash,
-          role: 'warga_belajar',
-        });
-
-        // Langkah 2: Generate NIS otomatis (format: PKBM-2025-0001)
-        const totalWb = await SpmbModel.hitungTotalWbUntukNIS();
-
-        // Langkah 3: Buat profil warga_belajar & assign ke rombel
-        // Ambil tahun ajaran dari data pendaftar
-        const [taRows] = await connection.execute(
-          `SELECT id, nama_tahun_ajaran FROM tahun_ajaran WHERE is_aktif = 1 LIMIT 1`
-        );
-        const tahunAjaranAktif = taRows[0];
-        const tahun_ajaran_id = tahunAjaranAktif?.id;
-        const nis = generateNIS(totalWb + 1, tahunAjaranAktif?.nama_tahun_ajaran);
-
-        const wbId = await SiswaModel.create({
-          user_id: userId,
-          nis,
-          nik: pendaftar.nik,
-          jenjang: pendaftar.jenjang_daftar,
-          tanggal_lahir: pendaftar.tanggal_lahir,
-          jenis_kelamin: pendaftar.jenis_kelamin,
-          alamat: pendaftar.alamat,
-          nama_wali: pendaftar.nama_wali,
-          no_telp: pendaftar.no_telp,
-          rombel_id: parseInt(rombel_id),
-          tahun_ajaran_id,
-        });
-
-        // Langkah 4: Catat ID WB ke data pendaftar (untuk referensi)
-        await SpmbModel.catatWargaBelajarId(parseInt(id), wbId);
-
-        // Langkah 5: Daftarkan otomatis ke semua mata pelajaran di rombel tersebut
-        // (Ini bagian integrasi SIAKAD → LMS)
-        // Data mapel akan dibutuhkan saat WB pertama kali masuk LMS
-        // Implementasi notifikasi email bisa ditambahkan di sini
-
-        // Semua berhasil — commit transaksi
-        await connection.commit();
-        connection.release();
 
         return res.status(200).json({
           success: true,
-          message: `Pendaftar '${pendaftar.nama_lengkap}' berhasil DITERIMA. ` +
-                   `Akun WB telah dibuat. NIS: ${nis}.`,
+          message: `Pendaftar '${pendaftar.nama_lengkap}' berhasil DITERIMA. Akun Warga Belajar telah aktif. NIS: ${syncResult.nis}.`,
           data: {
-            warga_belajar_id: wbId,
-            nis,
-            user_id: userId,
+            warga_belajar_id: syncResult.wbId,
+            nis: syncResult.nis,
+            user_id: syncResult.userId,
+            rombel_id: syncResult.rombelId,
           },
         });
       }
 
-      // Jika ditolak, tidak ada pipeline tambahan — langsung commit
-      await connection.commit();
-      connection.release();
+      // Jika ditolak
+      await pool.execute(
+        `UPDATE pendaftar_spmb
+         SET status = 'ditolak',
+             catatan_verifikasi = ?,
+             diverifikasi_oleh = ?,
+             tanggal_verifikasi = NOW()
+         WHERE id = ?`,
+        [catatan_verifikasi || null, req.user?.id || 1, parseInt(id)]
+      );
 
       return res.status(200).json({
         success: true,
@@ -508,16 +453,121 @@ const SpmbController = {
       });
 
     } catch (error) {
-      // Rollback semua perubahan jika ada langkah yang gagal
-      await connection.rollback();
-      connection.release();
       console.error('[SpmbController.buatKeputusan] Error:', error);
       return res.status(500).json({
         success: false,
-        message: 'Pipeline SPMB gagal. Semua perubahan dibatalkan. Error: ' + error.message,
+        message: 'Gagal memproses keputusan SPMB. Error: ' + error.message,
       });
     }
   },
+};
+
+// -----------------------------------------------------------
+// Helper universal sinkronisasi / pembuatan akun Warga Belajar
+// -----------------------------------------------------------
+export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = null, adminUserId = null) => {
+  const [pRows] = await pool.execute(`SELECT * FROM pendaftar_spmb WHERE id = ? LIMIT 1`, [pendaftarId]);
+  if (!pRows.length) return null;
+  const pendaftar = pRows[0];
+
+  // 1. Dapatkan atau pilih rombel yang tepat
+  let chosenRombelId = rombelIdParam ? parseInt(rombelIdParam) : null;
+  if (!chosenRombelId) {
+    const [rombelRows] = await pool.execute(
+      `SELECT r.id FROM rombel r JOIN tahun_ajaran ta ON ta.id = r.tahun_ajaran_id WHERE ta.is_aktif = 1 AND r.jenjang = ? LIMIT 1`,
+      [pendaftar.jenjang_daftar]
+    );
+    if (rombelRows.length > 0) {
+      chosenRombelId = rombelRows[0].id;
+    } else {
+      const [anyRombel] = await pool.execute(`SELECT id FROM rombel LIMIT 1`);
+      if (anyRombel.length > 0) chosenRombelId = anyRombel[0].id;
+    }
+  }
+
+  // 2. Tahun ajaran aktif
+  const [taRows] = await pool.execute(
+    `SELECT id, nama_tahun_ajaran FROM tahun_ajaran WHERE is_aktif = 1 LIMIT 1`
+  );
+  const tahunAjaranAktif = taRows[0];
+  const tahun_ajaran_id = tahunAjaranAktif?.id || pendaftar.tahun_ajaran_id || 1;
+
+  // 3. User account (cek duplikasi email)
+  let userId;
+  const existingUser = await UserModel.findByEmail(pendaftar.email);
+  if (existingUser) {
+    userId = existingUser.id;
+    if (existingUser.role !== 'warga_belajar') {
+      await pool.execute(`UPDATE users SET role = 'warga_belajar' WHERE id = ?`, [userId]);
+    }
+  } else {
+    const password_hash = pendaftar.password_hash || await hashPassword(pendaftar.no_telp || '12345678');
+    const [uResult] = await pool.execute(
+      `INSERT INTO users (nama_lengkap, email, password_hash, role, is_active, created_at)
+       VALUES (?, ?, ?, 'warga_belajar', 1, NOW())`,
+      [pendaftar.nama_lengkap, pendaftar.email, password_hash]
+    );
+    userId = uResult.insertId;
+  }
+
+  // 4. Profil Warga Belajar
+  let wbId;
+  let nis;
+  const [wbRows] = await pool.execute(
+    `SELECT id, nis, rombel_id FROM warga_belajar WHERE user_id = ? LIMIT 1`,
+    [userId]
+  );
+
+  if (wbRows.length > 0) {
+    wbId = wbRows[0].id;
+    nis = wbRows[0].nis;
+    if (chosenRombelId && wbRows[0].rombel_id !== chosenRombelId) {
+      await pool.execute(`UPDATE warga_belajar SET rombel_id = ? WHERE id = ?`, [chosenRombelId, wbId]);
+    }
+  } else {
+    const [cntRows] = await pool.execute(`SELECT COUNT(*) AS total FROM warga_belajar`);
+    const totalWb = cntRows[0]?.total || 0;
+    nis = generateNIS(totalWb + 1, tahunAjaranAktif?.nama_tahun_ajaran || '2025/2026');
+
+    const [wbResult] = await pool.execute(
+      `INSERT INTO warga_belajar
+        (user_id, nis, nik, jenjang, tanggal_lahir, jenis_kelamin, alamat, nama_wali, no_telp, rombel_id, tahun_ajaran_id, is_aktif, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())`,
+      [
+        userId,
+        nis,
+        pendaftar.nik || null,
+        pendaftar.jenjang_daftar,
+        pendaftar.tanggal_lahir,
+        pendaftar.jenis_kelamin,
+        pendaftar.alamat,
+        pendaftar.nama_wali,
+        pendaftar.no_telp,
+        chosenRombelId,
+        tahun_ajaran_id,
+      ]
+    );
+    wbId = wbResult.insertId;
+  }
+
+  // 5. Update pendaftar_spmb dengan id warga_belajar
+  await pool.execute(
+    `UPDATE pendaftar_spmb
+     SET status = 'diterima',
+         warga_belajar_id = ?,
+         diverifikasi_oleh = COALESCE(?, diverifikasi_oleh, 1),
+         tanggal_verifikasi = COALESCE(tanggal_verifikasi, NOW())
+     WHERE id = ?`,
+    [wbId, adminUserId, pendaftarId]
+  );
+
+  // 6. Validasi berkas pendukung yang telah diunggah
+  await pool.execute(
+    `UPDATE berkas_spmb SET status_verifikasi = 'valid' WHERE pendaftar_id = ? AND status_verifikasi != 'tidak_valid'`,
+    [pendaftarId]
+  );
+
+  return { userId, wbId, nis, rombelId: chosenRombelId };
 };
 
 export default SpmbController;

@@ -89,7 +89,7 @@ function LoginPage() {
   const lakukanCekStatus = async (q) => {
     const keyword = String(q || searchQuery).trim();
     if (!keyword) {
-      setSearchError('Silakan masukkan alamat email atau nomor pendaftaran Anda.');
+      setSearchError('Silakan masukkan nama lengkap, alamat email, atau nomor pendaftaran Anda.');
       return;
     }
 
@@ -100,23 +100,54 @@ function LoginPage() {
     try {
       const res = await SpmbAPI.cekStatusPublik(keyword);
       if (res.data?.success && res.data?.data) {
-        setSearchResult(res.data.data);
+        const item = res.data.data;
+        setSearchResult(item);
+
+        // Update cache localStorage dengan data live terbaru
+        try {
+          const lastStr = localStorage.getItem('pkbm_last_spmb');
+          if (lastStr) {
+            const last = JSON.parse(lastStr);
+            if (
+              String(last?.id) === String(item.id) ||
+              last?.email?.toLowerCase() === item.email?.toLowerCase() ||
+              last?.nama_lengkap?.toLowerCase() === item.nama_lengkap?.toLowerCase()
+            ) {
+              localStorage.setItem(
+                'pkbm_last_spmb',
+                JSON.stringify({
+                  ...last,
+                  id: item.id,
+                  nama_lengkap: item.nama_lengkap,
+                  email: item.email,
+                  status: item.status,
+                  nis: item.nis,
+                  nama_rombel: item.nama_rombel
+                })
+              );
+            }
+          }
+        } catch {
+          // Abaikan error cache
+        }
       } else {
         setSearchError(res.data?.message || 'Data pendaftaran tidak ditemukan.');
       }
     } catch (err) {
-      // Fallback periksa localStorage jika backend belum ter-update
+      // Fallback periksa localStorage jika offline atau kendala jaringan
       try {
         const lastStr = localStorage.getItem('pkbm_last_spmb');
         if (lastStr) {
           const last = JSON.parse(lastStr);
           if (
             last?.email?.toLowerCase() === keyword.toLowerCase() ||
+            last?.nama_lengkap?.toLowerCase().includes(keyword.toLowerCase()) ||
             String(last?.id) === keyword
           ) {
             setSearchResult({
               id: last.id,
               nama_lengkap: last.nama_lengkap || 'Calon Warga Belajar',
+              email: last.email,
               email_masked: last.email,
               jenjang_daftar: last.jenjang_daftar || 'paket_c',
               status: last.status || 'pending',
@@ -126,11 +157,11 @@ function LoginPage() {
             return;
           }
         }
-      } catch (localErr) {
+      } catch {
         // Abaikan
       }
 
-      const msg = err.response?.data?.message || 'Data pendaftaran tidak ditemukan dengan email atau nomor tersebut.';
+      const msg = err.response?.data?.message || `Data pendaftaran tidak ditemukan untuk "${keyword}".`;
       setSearchError(msg);
     } finally {
       setSearchingSpmb(false);
@@ -185,29 +216,7 @@ function LoginPage() {
         return;
       }
 
-      // 2. Deteksi cepat jika akun baru saja mendaftar di perangkat ini
-      try {
-        const lastStr = localStorage.getItem('pkbm_last_spmb');
-        if (lastStr) {
-          const last = JSON.parse(lastStr);
-          if (last?.email && last.email.toLowerCase() === emailTrim.toLowerCase()) {
-            setSpmbStatusData({
-              status: last.status || 'pending',
-              id: last.id,
-              nama: last.nama_lengkap || 'Calon Siswa Baru',
-              jenjang: last.jenjang_daftar,
-              message: `Pendaftaran Anda (No. #${last.id}) telah tersimpan dan saat ini MASIH DALAM PROSES VERIFIKASI BERKAS oleh Tim Admin TU. Akun Ruang Belajar akan otomatis aktif setelah berkas pendaftaran Anda disetujui.`,
-              catatan: null
-            });
-            setLoading(false);
-            return;
-          }
-        }
-      } catch (storageErr) {
-        // Abaikan
-      }
-
-      // 3. Jika status 401/403, coba periksa apakah email ini ada di SPMB via API
+      // 2. Cek apakah email ini terdaftar di SPMB via API publik untuk status live terbaru
       try {
         const spmbCheck = await SpmbAPI.cekStatusPublik(emailTrim);
         if (spmbCheck.data?.success && spmbCheck.data?.data) {
@@ -218,20 +227,19 @@ function LoginPage() {
             nama: spmb.nama_lengkap,
             jenjang: spmb.jenjang_daftar,
             message: spmb.status === 'pending'
-              ? `Pendaftaran atas nama "${spmb.nama_lengkap}" (No. Pendaftaran #${spmb.id}) saat ini MASIH MENUNGGU VERIFIKASI BERKAS oleh Tim Admin TU PKBM Bina Mandiri. Akun Ruang Belajar akan aktif setelah berkas diverifikasi dan disetujui.`
+              ? `Pendaftaran atas nama "${spmb.nama_lengkap}" (No. #${spmb.id}) saat ini MASIH DALAM PROSES VERIFIKASI BERKAS oleh Tim Admin TU PKBM Bina Mandiri. Akun Ruang Belajar akan otomatis aktif setelah pendaftaran Anda disetujui.`
               : spmb.status === 'ditolak'
                 ? `Pendaftaran atas nama "${spmb.nama_lengkap}" (No. #${spmb.id}) belum dapat disetujui. Silakan hubungi Admin TU.`
-                : `Pendaftaran telah diterima. Akun Ruang Belajar Anda sedang disiapkan. Silakan coba sesaat lagi atau hubungi Admin TU.`,
+                : `Pendaftaran atas nama "${spmb.nama_lengkap}" telah DITERIMA oleh Admin TU! Akun Ruang Belajar Anda sedang disinkronkan. Silakan periksa kembali password yang Anda masukkan atau hubungi Admin TU.`,
             catatan: spmb.catatan_verifikasi
           });
           setLoading(false);
           return;
         }
-      } catch (autoCheckErr) {
-        // Lanjut ke error default
+      } catch {
+        // Lanjutkan ke pesan error standar jika bukan calon SPMB
       }
 
-      // 4. Default error jika benar-benar akun tidak ditemukan atau salah password
       const msg =
         resData?.message ||
         (err.code === 'ERR_NETWORK' || !err.response
@@ -585,7 +593,7 @@ function LoginPage() {
               >
                 <div className="login-form-group">
                   <label className="login-label">
-                    Email atau Nomor Pendaftaran
+                    Nama Lengkap, Email, atau Nomor Pendaftaran
                   </label>
                   <div className="login-input-wrapper">
                     <Search size={18} className="login-input-icon" />
@@ -594,10 +602,50 @@ function LoginPage() {
                       className="login-input"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Contoh: nama@email.com atau 15"
+                      placeholder="Contoh: Asri Hartini, nama@email.com, atau #8"
                       disabled={searchingSpmb}
                     />
                   </div>
+
+                  {/* Suggestion Chip dari Pendaftaran Terakhir */}
+                  {(() => {
+                    try {
+                      const lastStr = localStorage.getItem('pkbm_last_spmb');
+                      if (lastStr) {
+                        const last = JSON.parse(lastStr);
+                        if (last?.nama_lengkap) {
+                          return (
+                            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--spmb-text-sub)' }}>
+                                Pendaftaran tersimpan:
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSearchQuery(last.nama_lengkap);
+                                  lakukanCekStatus(last.nama_lengkap);
+                                }}
+                                style={{
+                                  background: 'rgba(29, 78, 216, 0.1)',
+                                  color: 'var(--spmb-blue-royal)',
+                                  border: '1px solid rgba(29, 78, 216, 0.25)',
+                                  borderRadius: 14,
+                                  padding: '2px 10px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600,
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {last.nama_lengkap} (#{last.id})
+                              </button>
+                            </div>
+                          );
+                        }
+                      }
+                    } catch {
+                      return null;
+                    }
+                  })()}
                 </div>
 
                 <button
@@ -608,7 +656,7 @@ function LoginPage() {
                   {searchingSpmb ? (
                     <>
                       <div className="login-spinner small" />
-                      <span>Memeriksa Database...</span>
+                      <span>Memeriksa Status...</span>
                     </>
                   ) : (
                     <>
@@ -624,7 +672,7 @@ function LoginPage() {
                 <div className="login-alert" style={{ marginTop: 18 }}>
                   <AlertCircle size={20} style={{ flexShrink: 0, marginTop: 2 }} />
                   <div>
-                    <strong>Pencarian Gagal:</strong> {searchError}
+                    <strong>Pencarian:</strong> {searchError}
                   </div>
                 </div>
               )}
@@ -641,7 +689,7 @@ function LoginPage() {
                     <div>
                       <div className="login-spmb-status-badge">
                         {searchResult.status === 'pending' && '⏳ MENUNGGU VERIFIKASI TU'}
-                        {searchResult.status === 'diterima' && '✅ DITERIMA RESMI'}
+                        {searchResult.status === 'diterima' && '✅ RESMI DITERIMA'}
                         {searchResult.status === 'ditolak' && '❌ DITOLAK / PERLU PERBAIKAN'}
                       </div>
                       <h4 className="login-spmb-title">
@@ -657,7 +705,13 @@ function LoginPage() {
                     </div>
                     <div className="login-spmb-detail-row">
                       <span className="label">Tahun Ajaran:</span>
-                      <strong className="val">{searchResult.tahun_ajaran || '2026/2027'}</strong>
+                      <strong className="val">{searchResult.tahun_ajaran || '2025/2026'}</strong>
+                    </div>
+                    <div className="login-spmb-detail-row">
+                      <span className="label">Nomor Induk Siswa:</span>
+                      <strong className="val" style={{ color: searchResult.status === 'diterima' ? 'var(--spmb-blue-royal)' : undefined }}>
+                        {searchResult.nis || (searchResult.status === 'diterima' ? 'Terdaftar Resmi' : 'Menunggu')}
+                      </strong>
                     </div>
                     <div className="login-spmb-detail-row">
                       <span className="label">Tanggal Daftar:</span>
@@ -677,17 +731,17 @@ function LoginPage() {
                   <div className="login-spmb-info-text">
                     {searchResult.status === 'pending' && (
                       <p>
-                        Berkas dan identitas Anda telah tersimpan dengan aman. Petugas Tata Usaha sedang meneliti kelengkapan berkas Anda. Jika ada kekurangan dokumen, staf kami akan segera menghubungi Anda.
+                        Data pendaftaran dan dokumen Anda atas nama <strong>{searchResult.nama_lengkap}</strong> telah tersimpan aman. Staf Tata Usaha sedang meneliti kelengkapan berkas Anda. Jika ada kekurangan dokumen, staf kami akan segera menghubungi Anda.
                       </p>
                     )}
                     {searchResult.status === 'diterima' && (
                       <p>
-                        Selamat! Pendaftaran Anda telah disetujui. Akun Ruang Belajar Anda telah aktif. Anda dapat langsung login menggunakan email dan password yang Anda daftarkan.
+                        🎉 <strong>Selamat {searchResult.nama_lengkap}!</strong> Pendaftaran Anda telah <strong>DISETUJUI</strong> oleh Tim Admin TU PKBM Bina Mandiri. Akun Ruang Belajar Anda sudah aktif dan terdaftar sebagai Warga Belajar resmi. Silakan masuk menggunakan email dan password yang Anda daftarkan.
                       </p>
                     )}
                     {searchResult.status === 'ditolak' && (
                       <p>
-                        Pendaftaran Anda belum dapat kami terima. {searchResult.catatan_verifikasi && `Catatan: "${searchResult.catatan_verifikasi}"`}
+                        Pendaftaran atas nama {searchResult.nama_lengkap} belum dapat kami terima. {searchResult.catatan_verifikasi && `Catatan: "${searchResult.catatan_verifikasi}". `} Silakan hubungi kontak layanan kami untuk info perbaikan berkas.
                       </p>
                     )}
                   </div>
@@ -730,13 +784,13 @@ function LoginPage() {
                         type="button"
                         onClick={() => {
                           setActiveTab('login');
-                          if (searchResult.email_masked && !searchResult.email_masked.includes('*')) {
-                            setEmail(searchResult.email_masked);
+                          if (searchResult.email) {
+                            setEmail(searchResult.email);
                           }
                         }}
                         className="login-btn-primary-small"
                       >
-                        <span>Langsung Login Sekarang →</span>
+                        <span>Masuk ke Ruang Belajar Sekarang →</span>
                       </button>
                     )}
                   </div>

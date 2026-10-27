@@ -3,6 +3,7 @@
 // ============================================================
 
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
 import { SiswaAPI, SpmbAPI, toAssetUrl } from '../../services/api.js';
 
@@ -75,7 +76,7 @@ function SpmbAdmin() {
       const detailData = res.data.data;
       setDetail(detailData);
 
-      if (detailData?.status === 'pending') {
+      if (detailData?.jenjang_daftar) {
         await fetchRombelOptions(detailData.jenjang_daftar);
       }
     } catch {
@@ -489,16 +490,75 @@ function SpmbAdmin() {
                     )}
 
                     {detail.status !== 'pending' && (
-                      <div className={`alert alert-${detail.status === 'diterima' ? 'success' : 'danger'}`}>
-                        <i className={`bi ${detail.status === 'diterima' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}`}></i>
-                        <div>
-                          <strong>Sudah {detail.status === 'diterima' ? 'Diterima' : 'Ditolak'}</strong>
-                          {detail.catatan_verifikasi && (
-                            <p style={{ margin: '4px 0 0', fontSize: 'var(--text-xs)' }}>
-                              Catatan: {detail.catatan_verifikasi}
-                            </p>
-                          )}
+                      <div style={{ marginTop: '0.5rem' }}>
+                        <div className={`alert alert-${detail.status === 'diterima' ? 'success' : 'danger'}`}>
+                          <i className={`bi ${detail.status === 'diterima' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}`}></i>
+                          <div>
+                            <strong>Sudah {detail.status === 'diterima' ? 'Diterima' : 'Ditolak'}</strong>
+                            {detail.catatan_verifikasi && (
+                              <p style={{ margin: '4px 0 0', fontSize: 'var(--text-xs)' }}>
+                                Catatan: {detail.catatan_verifikasi}
+                              </p>
+                            )}
+                          </div>
                         </div>
+
+                        {detail.status === 'diterima' && (
+                          <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
+                            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: 6 }}>
+                              STATUS AKUN WARGA BELAJAR
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                                {detail.warga_belajar_id ? '✅ Terhubung ke Data WB' : '⚠️ Belum Tersinkron'}
+                              </span>
+                              {detail.nis && (
+                                <span className="badge badge-primary" style={{ fontSize: '0.75rem' }}>
+                                  NIS: {detail.nis}
+                                </span>
+                              )}
+                            </div>
+
+                            {!detail.warga_belajar_id ? (
+                              <div>
+                                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: 8 }}>
+                                  Pendaftar ini diterima tetapi profil Warga Belajar belum terbit. Tetapkan rombel dan sinkronkan sekarang:
+                                </p>
+                                <select
+                                  className="form-input"
+                                  value={selectedRombelId}
+                                  onChange={(e) => setSelectedRombelId(e.target.value)}
+                                  style={{ marginBottom: 8, fontSize: 'var(--text-xs)' }}
+                                >
+                                  <option value="">Pilih rombel untuk pendaftar ini...</option>
+                                  {rombelOptions.map((rombel) => (
+                                    <option key={rombel.id} value={rombel.id}>
+                                      {rombel.nama_rombel}
+                                    </option>
+                                  ))}
+                                </select>
+                                <button
+                                  className="btn btn-primary"
+                                  style={{ width: '100%', background: 'var(--color-success)', fontSize: 'var(--text-xs)' }}
+                                  onClick={() => handleKeputusan('diterima')}
+                                  disabled={processing}
+                                >
+                                  {processing ? <span className="spinner-sm"></span> : <i className="bi bi-arrow-repeat"></i>}
+                                  {' '}Sinkronkan Akun Warga Belajar Sekarang
+                                </button>
+                              </div>
+                            ) : (
+                              <Link
+                                to="/admin/siswa"
+                                className="btn btn-secondary"
+                                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 'var(--text-xs)' }}
+                              >
+                                <i className="bi bi-people"></i>
+                                Buka di Halaman Data Warga Belajar
+                              </Link>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </>
