@@ -157,6 +157,90 @@ const SpmbController = {
   },
 
   // -----------------------------------------------------------
+  // GET /api/spmb/cek-status  [PUBLIK — tanpa login]
+  // Mengecek status pendaftaran calon WB berdasarkan email atau ID pendaftar
+  // -----------------------------------------------------------
+  cekStatusPublik: async (req, res) => {
+    try {
+      const q = req.query.q || req.query.email || req.query.id;
+      if (!q || !String(q).trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Harap masukkan alamat email atau nomor pendaftaran Anda.',
+        });
+      }
+
+      const keyword = String(q).trim();
+      const isNum = !isNaN(keyword) && !keyword.includes('@');
+
+      let sql = '';
+      let params = [];
+
+      if (isNum) {
+        sql = `
+          SELECT p.id, p.nama_lengkap, p.email, p.jenjang_daftar, p.status,
+                 p.catatan_verifikasi, p.created_at, ta.nama_tahun_ajaran
+          FROM pendaftar_spmb p
+          LEFT JOIN tahun_ajaran ta ON ta.id = p.tahun_ajaran_id
+          WHERE p.id = ?
+          LIMIT 1
+        `;
+        params = [parseInt(keyword)];
+      } else {
+        sql = `
+          SELECT p.id, p.nama_lengkap, p.email, p.jenjang_daftar, p.status,
+                 p.catatan_verifikasi, p.created_at, ta.nama_tahun_ajaran
+          FROM pendaftar_spmb p
+          LEFT JOIN tahun_ajaran ta ON ta.id = p.tahun_ajaran_id
+          WHERE LOWER(p.email) = LOWER(?)
+          ORDER BY p.id DESC
+          LIMIT 1
+        `;
+        params = [keyword];
+      }
+
+      const [rows] = await pool.execute(sql, params);
+
+      if (!rows.length) {
+        return res.status(404).json({
+          success: false,
+          message: 'Data pendaftaran tidak ditemukan. Pastikan email atau nomor pendaftaran yang Anda ketik sudah sesuai.',
+        });
+      }
+
+      const p = rows[0];
+
+      // Ambil berkas-berkas pendukung
+      const [berkasRows] = await pool.execute(
+        `SELECT id, jenis_berkas, nama_file, status_verifikasi, catatan FROM berkas_spmb WHERE pendaftar_id = ?`,
+        [p.id]
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'Status pendaftaran berhasil ditemukan.',
+        data: {
+          id: p.id,
+          nama_lengkap: p.nama_lengkap,
+          email_masked: p.email ? p.email.replace(/(.{2})(.*)(?=@)/, (_, a, b) => a + '*'.repeat(Math.max(1, b.length))) : '',
+          jenjang_daftar: p.jenjang_daftar,
+          tahun_ajaran: p.nama_tahun_ajaran || '2026/2027',
+          status: p.status, // 'pending', 'diterima', 'ditolak'
+          catatan_verifikasi: p.catatan_verifikasi,
+          created_at: p.created_at,
+          berkas: berkasRows || [],
+        },
+      });
+    } catch (error) {
+      console.error('[SpmbController.cekStatusPublik] Error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal memeriksa status pendaftaran.',
+      });
+    }
+  },
+
+  // -----------------------------------------------------------
   // GET /api/spmb  [Admin, Super Admin]
   // Ambil semua pendaftar untuk antrian verifikasi
   // Query params opsional: ?status=pending&tahun_ajaran_id=1

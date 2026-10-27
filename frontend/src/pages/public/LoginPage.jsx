@@ -1,13 +1,13 @@
 // ============================================================
-// src/pages/public/LoginPage.jsx — Halaman Login Modern
+// src/pages/public/LoginPage.jsx — Halaman Login & Portal SPMB
 // Tema: Biru (Midnight Navy & Royal Blue), Putih, Kuning, Hitam
-// Tampilan diselaraskan presisi dengan Halaman Pendaftaran SPMB
+// Tampilan modern, elegan, responsif dengan logo resmi PKBM
+// dan penanganan status verifikasi calon Warga Belajar (SPMB)
 // ============================================================
 
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
-  GraduationCap,
   ArrowRight,
   ArrowLeft,
   Eye,
@@ -16,28 +16,135 @@ import {
   Mail,
   ShieldCheck,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Search,
+  MessageCircle,
+  FileText,
+  UserCheck,
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react';
-import { AuthAPI } from '../../services/api';
+import { AuthAPI, SpmbAPI } from '../../services/api';
 import './LoginPage.css';
+
+const WA_ADMIN_NUMBER = '6282318383605';
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // State input
-  const [email, setEmail]       = useState('');
+  // Mode: 'login' | 'cek_spmb'
+  const [activeTab, setActiveTab] = useState('login');
+
+  // State Input Login
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
 
-  // State UI
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
+  // State UI Login
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
+  // State Khusus Deteksi Calon Siswa (SPMB)
+  const [spmbStatusData, setSpmbStatusData] = useState(null);
+
+  // State Pencarian Status Mandiri
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchingSpmb, setSearchingSpmb] = useState(false);
+  const [searchResult, setSearchResult] = useState(null);
+  const [searchError, setSearchError] = useState('');
+
+  // Periksa apakah ada parameter URL (misal: ?cek_spmb=12 atau ?email=...)
+  // atau data pendaftaran terakhir di localStorage
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const cekId = params.get('cek_spmb') || params.get('id');
+    const paramEmail = params.get('email');
+
+    if (cekId || paramEmail) {
+      setActiveTab('cek_spmb');
+      const query = cekId || paramEmail;
+      setSearchQuery(query);
+      lakukanCekStatus(query);
+    } else {
+      // Cek apakah baru saja mendaftar di perangkat ini
+      try {
+        const lastSpmbStr = localStorage.getItem('pkbm_last_spmb');
+        if (lastSpmbStr) {
+          const last = JSON.parse(lastSpmbStr);
+          if (last?.email && !email) {
+            setEmail(last.email);
+          }
+        }
+      } catch (e) {
+        // Abaikan
+      }
+    }
+  }, [location.search]);
+
+  // Fungsi helper cek status pendaftaran mandiri
+  const lakukanCekStatus = async (q) => {
+    const keyword = String(q || searchQuery).trim();
+    if (!keyword) {
+      setSearchError('Silakan masukkan alamat email atau nomor pendaftaran Anda.');
+      return;
+    }
+
+    setSearchingSpmb(true);
+    setSearchError('');
+    setSearchResult(null);
+
+    try {
+      const res = await SpmbAPI.cekStatusPublik(keyword);
+      if (res.data?.success && res.data?.data) {
+        setSearchResult(res.data.data);
+      } else {
+        setSearchError(res.data?.message || 'Data pendaftaran tidak ditemukan.');
+      }
+    } catch (err) {
+      // Fallback periksa localStorage jika backend belum ter-update
+      try {
+        const lastStr = localStorage.getItem('pkbm_last_spmb');
+        if (lastStr) {
+          const last = JSON.parse(lastStr);
+          if (
+            last?.email?.toLowerCase() === keyword.toLowerCase() ||
+            String(last?.id) === keyword
+          ) {
+            setSearchResult({
+              id: last.id,
+              nama_lengkap: last.nama_lengkap || 'Calon Warga Belajar',
+              email_masked: last.email,
+              jenjang_daftar: last.jenjang_daftar || 'paket_c',
+              status: last.status || 'pending',
+              created_at: last.registeredAt || new Date().toISOString(),
+              berkas: []
+            });
+            return;
+          }
+        }
+      } catch (localErr) {
+        // Abaikan
+      }
+
+      const msg = err.response?.data?.message || 'Data pendaftaran tidak ditemukan dengan email atau nomor tersebut.';
+      setSearchError(msg);
+    } finally {
+      setSearchingSpmb(false);
+    }
+  };
+
+  // Handler Submit Login
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setSpmbStatusData(null);
 
-    if (!email.trim() || !password.trim()) {
+    const emailTrim = email.trim();
+    if (!emailTrim || !password.trim()) {
       setError('Email dan password akun wajib diisi.');
       return;
     }
@@ -45,7 +152,7 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await AuthAPI.login(email.trim(), password);
+      const response = await AuthAPI.login(emailTrim, password);
 
       if (!response.data?.success) {
         setError(response.data?.message || 'Email atau password yang Anda masukkan salah.');
@@ -54,23 +161,108 @@ function LoginPage() {
 
       const { token, user } = response.data.data;
 
-      // Simpan token dan data user ke localStorage
+      // Simpan sesi ke localStorage
       localStorage.setItem('pkbm_token', token);
       localStorage.setItem('pkbm_user', JSON.stringify(user));
 
-      // Arahkan ke dashboard router
+      // Redirect ke dashboard
       navigate('/dashboard');
 
     } catch (err) {
+      const resData = err.response?.data;
+
+      // 1. Backend merespon secara eksplisit bahwa user adalah calon siswa SPMB
+      if (resData?.is_spmb) {
+        setSpmbStatusData({
+          status: resData.spmb_status || 'pending',
+          id: resData.pendaftar_id,
+          nama: resData.nama_lengkap || 'Calon Warga Belajar',
+          jenjang: resData.jenjang_daftar,
+          message: resData.message,
+          catatan: resData.catatan
+        });
+        setLoading(false);
+        return;
+      }
+
+      // 2. Deteksi cepat jika akun baru saja mendaftar di perangkat ini
+      try {
+        const lastStr = localStorage.getItem('pkbm_last_spmb');
+        if (lastStr) {
+          const last = JSON.parse(lastStr);
+          if (last?.email && last.email.toLowerCase() === emailTrim.toLowerCase()) {
+            setSpmbStatusData({
+              status: last.status || 'pending',
+              id: last.id,
+              nama: last.nama_lengkap || 'Calon Siswa Baru',
+              jenjang: last.jenjang_daftar,
+              message: `Pendaftaran Anda (No. #${last.id}) telah tersimpan dan saat ini MASIH DALAM PROSES VERIFIKASI BERKAS oleh Tim Admin TU. Akun Ruang Belajar akan otomatis aktif setelah berkas pendaftaran Anda disetujui.`,
+              catatan: null
+            });
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (storageErr) {
+        // Abaikan
+      }
+
+      // 3. Jika status 401/403, coba periksa apakah email ini ada di SPMB via API
+      try {
+        const spmbCheck = await SpmbAPI.cekStatusPublik(emailTrim);
+        if (spmbCheck.data?.success && spmbCheck.data?.data) {
+          const spmb = spmbCheck.data.data;
+          setSpmbStatusData({
+            status: spmb.status,
+            id: spmb.id,
+            nama: spmb.nama_lengkap,
+            jenjang: spmb.jenjang_daftar,
+            message: spmb.status === 'pending'
+              ? `Pendaftaran atas nama "${spmb.nama_lengkap}" (No. Pendaftaran #${spmb.id}) saat ini MASIH MENUNGGU VERIFIKASI BERKAS oleh Tim Admin TU PKBM Bina Mandiri. Akun Ruang Belajar akan aktif setelah berkas diverifikasi dan disetujui.`
+              : spmb.status === 'ditolak'
+                ? `Pendaftaran atas nama "${spmb.nama_lengkap}" (No. #${spmb.id}) belum dapat disetujui. Silakan hubungi Admin TU.`
+                : `Pendaftaran telah diterima. Akun Ruang Belajar Anda sedang disiapkan. Silakan coba sesaat lagi atau hubungi Admin TU.`,
+            catatan: spmb.catatan_verifikasi
+          });
+          setLoading(false);
+          return;
+        }
+      } catch (autoCheckErr) {
+        // Lanjut ke error default
+      }
+
+      // 4. Default error jika benar-benar akun tidak ditemukan atau salah password
       const msg =
-        err.response?.data?.message ||
+        resData?.message ||
         (err.code === 'ERR_NETWORK' || !err.response
-          ? 'Tidak dapat terhubung ke server backend. Pastikan koneksi internet stabil.'
-          : 'Login gagal. Periksa kembali email dan password Anda.');
+          ? 'Tidak dapat terhubung ke server. Pastikan koneksi internet Anda aktif dan stabil.'
+          : 'Login gagal. Email atau password tidak sesuai. Jika Anda baru saja mendaftar, akun Anda mungkin masih dalam antrean verifikasi Admin TU.');
       setError(msg);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper jenjang label
+  const getJenjangLabel = (jenjang) => {
+    switch (jenjang) {
+      case 'paket_a': return 'Paket A (Setara SD)';
+      case 'paket_b': return 'Paket B (Setara SMP)';
+      case 'paket_c': return 'Paket C (Setara SMA)';
+      default: return jenjang || 'Pendidikan Kesetaraan';
+    }
+  };
+
+  // Helper URL WhatsApp Konfirmasi
+  const getWaUrl = (id, nama) => {
+    const text = encodeURIComponent(
+      `Halo Tim Admin TU PKBM Bina Mandiri, saya ingin konfirmasi pendaftaran online saya:\n` +
+      `- Nama: ${nama || email}\n` +
+      `- No. Pendaftaran: #${id || 'SPMB'}\n` +
+      `- Email: ${email}\n` +
+      `Mohon bantuan verifikasi berkas agar saya dapat mengakses Ruang Belajar. Terima kasih!`
+    );
+    return `https://wa.me/${WA_ADMIN_NUMBER}?text=${text}`;
   };
 
   return (
@@ -82,6 +274,7 @@ function LoginPage() {
             <ArrowLeft size={16} />
             <span>Kembali ke Beranda</span>
           </Link>
+
           <div className="login-topbar-right">
             <span className="login-topbar-link">
               Belum punya akun? <Link to="/daftar"><strong>Daftar Siswa Baru</strong></Link>
@@ -93,16 +286,19 @@ function LoginPage() {
       {/* ═ HERO BANNER ═ */}
       <section className="login-hero">
         <div className="login-hero-content">
-          <div className="login-hero-pill">
-            <Sparkles size={14} />
-            <span>Portal Akses Digital Terintegrasi</span>
+
+          {/* Logo Resmi PKBM Menggantikan Icon Lama */}
+          <div className="login-hero-logo-box">
+            <img
+              src="/images/logo_pkbm.png"
+              alt="Logo PKBM Bina Mandiri"
+              className="login-brand-logo"
+            />
           </div>
-          <div className="login-hero-icon">
-            <GraduationCap size={38} />
-          </div>
+
           <h1 className="login-hero-title">Masuk ke Ruang Belajar</h1>
           <p className="login-hero-subtitle">
-            Akses sistem pembelajaran online, kelas interaktif, bank materi, tugas mandiri, dan administrasi akademik PKBM Bina Mandiri.
+            Akses sistem pembelajaran interaktif, materi modul, tugas mandiri, absensi kelas, dan administrasi akademik PKBM Bina Mandiri.
           </p>
         </div>
       </section>
@@ -110,119 +306,457 @@ function LoginPage() {
       {/* ═ MAIN CONTAINER ═ */}
       <main className="login-main-container">
         <div className="login-master-card">
-          <div className="login-card-header">
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'var(--login-blue-light)', border: '1px solid var(--login-blue-subtle)', borderRadius: 9999, color: 'var(--login-blue-royal)', fontSize: '0.78rem', fontWeight: 800, marginBottom: 12 }}>
-              <ShieldCheck size={14} />
-              <span>Autentikasi Aman & Terenkripsi</span>
-            </div>
-            <h2 className="login-card-title">Selamat Datang Kembali</h2>
-            <p className="login-card-subtitle">
-              Silakan masukkan alamat email dan password akun Anda untuk melanjutkan.
-            </p>
 
-            <div className="login-roles-bar">
-              <span className="login-role-pill">✦ Warga Belajar</span>
-              <span className="login-role-pill">✦ Tutor Pengajar</span>
-              <span className="login-role-pill">✦ Admin TU</span>
-              <span className="login-role-pill">✦ Pimpinan</span>
-            </div>
+          {/* Tab Navigasi Mode */}
+          <div className="login-tabs">
+            <button
+              type="button"
+              className={`login-tab-btn ${activeTab === 'login' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('login');
+                setError('');
+              }}
+            >
+              <Lock size={16} />
+              <span>Masuk Akun</span>
+            </button>
+            <button
+              type="button"
+              className={`login-tab-btn ${activeTab === 'cek_spmb' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('cek_spmb');
+                setSpmbStatusData(null);
+                if (email && !searchQuery) setSearchQuery(email);
+              }}
+            >
+              <Search size={16} />
+              <span>Cek Status SPMB</span>
+            </button>
           </div>
 
-          {/* Alert Error */}
-          {error && (
-            <div className="login-alert">
-              <AlertCircle size={20} style={{ flexShrink: 0, marginTop: 2 }} />
-              <div>
-                <strong>Gagal Masuk:</strong> {error}
+          {/* ════════════════════════════════════════════════════ */}
+          {/* TAB 1: FORM LOGIN AKUN */}
+          {/* ════════════════════════════════════════════════════ */}
+          {activeTab === 'login' && (
+            <div className="login-tab-content">
+              <div className="login-card-header">
+                <h2 className="login-card-title">Selamat Datang Kembali</h2>
+                <p className="login-card-subtitle">
+                  Silakan masukkan email dan password akun Anda untuk melanjutkan ke dashboard.
+                </p>
+              </div>
+
+              {/* ── KOTAK KHUSUS STATUS SPMB (Jika Pendaftar Mencoba Login Sebelum Disetujui) ── */}
+              {spmbStatusData && (
+                <div className={`login-spmb-status-card status-${spmbStatusData.status}`}>
+                  <div className="login-spmb-status-head">
+                    <div className="login-spmb-icon-wrap">
+                      {spmbStatusData.status === 'pending' && <Clock size={22} className="icon-pulse" />}
+                      {spmbStatusData.status === 'diterima' && <CheckCircle2 size={22} />}
+                      {spmbStatusData.status === 'ditolak' && <XCircle size={22} />}
+                    </div>
+                    <div>
+                      <div className="login-spmb-status-badge">
+                        {spmbStatusData.status === 'pending' && '⏳ MENUNGGU VERIFIKASI ADMIN TU'}
+                        {spmbStatusData.status === 'diterima' && '✅ PENDAFTARAN TELAH DITERIMA'}
+                        {spmbStatusData.status === 'ditolak' && '❌ PENDAFTARAN BELUM DITERIMA'}
+                      </div>
+                      <h4 className="login-spmb-title">
+                        {spmbStatusData.status === 'pending'
+                          ? 'Akun Sedang Dalam Proses Verifikasi'
+                          : spmbStatusData.status === 'diterima'
+                            ? 'Akun Telah Diterima'
+                            : 'Pemberitahuan Pendaftaran'}
+                      </h4>
+                    </div>
+                  </div>
+
+                  <p className="login-spmb-message">
+                    {spmbStatusData.message}
+                  </p>
+
+                  <div className="login-spmb-details-grid">
+                    <div className="login-spmb-detail-row">
+                      <span className="label">Nomor Pendaftaran:</span>
+                      <strong className="val">#{String(spmbStatusData.id || '').padStart(6, '0')}</strong>
+                    </div>
+                    <div className="login-spmb-detail-row">
+                      <span className="label">Nama Calon Siswa:</span>
+                      <strong className="val">{spmbStatusData.nama}</strong>
+                    </div>
+                    {spmbStatusData.jenjang && (
+                      <div className="login-spmb-detail-row">
+                        <span className="label">Jenjang:</span>
+                        <strong className="val">{getJenjangLabel(spmbStatusData.jenjang)}</strong>
+                      </div>
+                    )}
+                  </div>
+
+                  {spmbStatusData.catatan && (
+                    <div className="login-spmb-catatan">
+                      <strong>Catatan Tim Verifikator:</strong> "{spmbStatusData.catatan}"
+                    </div>
+                  )}
+
+                  <div className="login-spmb-actions">
+                    <a
+                      href={getWaUrl(spmbStatusData.id, spmbStatusData.nama)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="login-btn-wa"
+                    >
+                      <MessageCircle size={16} />
+                      <span>Hubungi Admin TU via WhatsApp</span>
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('cek_spmb');
+                        setSearchQuery(emailTrim || String(spmbStatusData.id));
+                        lakukanCekStatus(emailTrim || String(spmbStatusData.id));
+                      }}
+                      className="login-btn-detail-spmb"
+                    >
+                      <FileText size={16} />
+                      <span>Lihat Rincian Berkas</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Alert Error Reguler */}
+              {error && !spmbStatusData && (
+                <div className="login-alert">
+                  <AlertCircle size={20} style={{ flexShrink: 0, marginTop: 2 }} />
+                  <div style={{ flex: 1 }}>
+                    <strong>Gagal Masuk:</strong> {error}
+                    <div style={{ marginTop: 8, fontSize: '0.82rem', opacity: 0.9 }}>
+                      Baru saja mendaftar siswa baru online?{' '}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('cek_spmb');
+                          if (email) {
+                            setSearchQuery(email);
+                            lakukanCekStatus(email);
+                          }
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--login-blue-royal)',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          padding: 0,
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        Cek status pendaftaran Anda di sini →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Form Input Login */}
+              <form onSubmit={handleLogin}>
+                {/* Email Field */}
+                <div className="login-form-group">
+                  <label className="login-label">
+                    Alamat Email Terdaftar <span className="login-req">*</span>
+                  </label>
+                  <div className="login-input-wrapper">
+                    <Mail size={18} className="login-input-icon" />
+                    <input
+                      type="email"
+                      className="login-input"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (error) setError('');
+                      }}
+                      disabled={loading}
+                      required
+                      placeholder="nama@email.com"
+                      autoComplete="email"
+                    />
+                  </div>
+                </div>
+
+                {/* Password Field */}
+                <div className="login-form-group" style={{ marginBottom: 26 }}>
+                  <div className="login-label-row">
+                    <label className="login-label" style={{ marginBottom: 0 }}>
+                      Password Akun <span className="login-req">*</span>
+                    </label>
+                    <span className="login-label-hint">
+                      Min. 8 karakter
+                    </span>
+                  </div>
+                  <div className="login-input-wrapper">
+                    <Lock size={18} className="login-input-icon" />
+                    <input
+                      type={showPass ? 'text' : 'password'}
+                      className="login-input"
+                      style={{ paddingRight: 44 }}
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (error) setError('');
+                      }}
+                      disabled={loading}
+                      required
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(!showPass)}
+                      disabled={loading}
+                      className="login-input-toggle"
+                      aria-label="Toggle password visibility"
+                      tabIndex={-1}
+                    >
+                      {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="login-btn-primary"
+                >
+                  {loading ? (
+                    <>
+                      <div className="login-spinner" />
+                      <span>Memverifikasi Akun...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Masuk ke Ruang Belajar</span>
+                      <ArrowRight size={18} />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Bantuan Pendaftar Baru */}
+              <div className="login-info-box">
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <UserCheck size={18} color="var(--login-blue-royal)" style={{ flexShrink: 0, marginTop: 2 }} />
+                  <div style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5 }}>
+                    <strong>Calon Warga Belajar Baru?</strong> Setelah formulir pendaftaran disimpan, berkas Anda akan diperiksa oleh Admin TU. Akun Ruang Belajar langsung aktif setelah disetujui.
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Footer Link */}
+              <div className="login-card-footer">
+                Belum terdaftar sebagai warga belajar?{' '}
+                <Link to="/daftar">
+                  <strong>Daftar Siswa Baru di Sini →</strong>
+                </Link>
               </div>
             </div>
           )}
 
-          {/* Form Login */}
-          <form onSubmit={handleLogin}>
-            {/* Email Field */}
-            <div className="login-form-group">
-              <label className="login-label">
-                Alamat Email Terdaftar
-              </label>
-              <div className="login-input-wrapper">
-                <Mail size={18} className="login-input-icon" />
-                <input
-                  type="email"
-                  className="login-input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
-                  required
-                  placeholder="nama@email.com"
-                  autoComplete="email"
-                />
+          {/* ════════════════════════════════════════════════════ */}
+          {/* TAB 2: CEK STATUS PENDAFTARAN SPMB */}
+          {/* ════════════════════════════════════════════════════ */}
+          {activeTab === 'cek_spmb' && (
+            <div className="login-tab-content">
+              <div className="login-card-header">
+                <h2 className="login-card-title">Cek Status Pendaftaran</h2>
+                <p className="login-card-subtitle">
+                  Pantau proses verifikasi berkas dan persetujuan akun calon siswa baru PKBM Bina Mandiri.
+                </p>
               </div>
-            </div>
 
-            {/* Password Field */}
-            <div className="login-form-group" style={{ marginBottom: 26 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <label className="login-label" style={{ marginBottom: 0 }}>
-                  Password Akun
-                </label>
-                <span style={{ fontSize: '0.78rem', color: '#64748B' }}>
-                  Min. 8 karakter
-                </span>
-              </div>
-              <div className="login-input-wrapper">
-                <Lock size={18} className="login-input-icon" />
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  className="login-input"
-                  style={{ paddingRight: 44 }}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                  required
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                />
+              {/* Form Search Status */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  lakukanCekStatus();
+                }}
+                className="login-search-form"
+              >
+                <div className="login-form-group">
+                  <label className="login-label">
+                    Email atau Nomor Pendaftaran
+                  </label>
+                  <div className="login-input-wrapper">
+                    <Search size={18} className="login-input-icon" />
+                    <input
+                      type="text"
+                      className="login-input"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Contoh: nama@email.com atau 15"
+                      disabled={searchingSpmb}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={searchingSpmb || !searchQuery.trim()}
+                  className="login-btn-search"
+                >
+                  {searchingSpmb ? (
+                    <>
+                      <div className="login-spinner small" />
+                      <span>Memeriksa Database...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search size={16} />
+                      <span>Periksa Status Pendaftaran</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Search Error */}
+              {searchError && (
+                <div className="login-alert" style={{ marginTop: 18 }}>
+                  <AlertCircle size={20} style={{ flexShrink: 0, marginTop: 2 }} />
+                  <div>
+                    <strong>Pencarian Gagal:</strong> {searchError}
+                  </div>
+                </div>
+              )}
+
+              {/* Search Result Box */}
+              {searchResult && (
+                <div className={`login-spmb-status-card status-${searchResult.status}`} style={{ marginTop: 20 }}>
+                  <div className="login-spmb-status-head">
+                    <div className="login-spmb-icon-wrap">
+                      {searchResult.status === 'pending' && <Clock size={24} className="icon-pulse" />}
+                      {searchResult.status === 'diterima' && <CheckCircle2 size={24} />}
+                      {searchResult.status === 'ditolak' && <XCircle size={24} />}
+                    </div>
+                    <div>
+                      <div className="login-spmb-status-badge">
+                        {searchResult.status === 'pending' && '⏳ MENUNGGU VERIFIKASI TU'}
+                        {searchResult.status === 'diterima' && '✅ DITERIMA RESMI'}
+                        {searchResult.status === 'ditolak' && '❌ DITOLAK / PERLU PERBAIKAN'}
+                      </div>
+                      <h4 className="login-spmb-title">
+                        #{String(searchResult.id).padStart(6, '0')} — {searchResult.nama_lengkap}
+                      </h4>
+                    </div>
+                  </div>
+
+                  <div className="login-spmb-details-grid">
+                    <div className="login-spmb-detail-row">
+                      <span className="label">Jenjang:</span>
+                      <strong className="val">{getJenjangLabel(searchResult.jenjang_daftar)}</strong>
+                    </div>
+                    <div className="login-spmb-detail-row">
+                      <span className="label">Tahun Ajaran:</span>
+                      <strong className="val">{searchResult.tahun_ajaran || '2026/2027'}</strong>
+                    </div>
+                    <div className="login-spmb-detail-row">
+                      <span className="label">Tanggal Daftar:</span>
+                      <strong className="val">
+                        {searchResult.created_at
+                          ? new Date(searchResult.created_at).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })
+                          : '-'}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* Keterangan Berdasarkan Status */}
+                  <div className="login-spmb-info-text">
+                    {searchResult.status === 'pending' && (
+                      <p>
+                        Berkas dan identitas Anda telah tersimpan dengan aman. Petugas Tata Usaha sedang meneliti kelengkapan berkas Anda. Jika ada kekurangan dokumen, staf kami akan segera menghubungi Anda.
+                      </p>
+                    )}
+                    {searchResult.status === 'diterima' && (
+                      <p>
+                        Selamat! Pendaftaran Anda telah disetujui. Akun Ruang Belajar Anda telah aktif. Anda dapat langsung login menggunakan email dan password yang Anda daftarkan.
+                      </p>
+                    )}
+                    {searchResult.status === 'ditolak' && (
+                      <p>
+                        Pendaftaran Anda belum dapat kami terima. {searchResult.catatan_verifikasi && `Catatan: "${searchResult.catatan_verifikasi}"`}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Berkas Upload Status */}
+                  {Array.isArray(searchResult.berkas) && searchResult.berkas.length > 0 && (
+                    <div className="login-spmb-berkas-list">
+                      <div className="login-spmb-berkas-head">Status Berkas Dokumen:</div>
+                      {searchResult.berkas.map((b, idx) => (
+                        <div key={idx} className="login-spmb-berkas-item">
+                          <span className="name">
+                            📄 {b.jenis_berkas?.toUpperCase() || 'Dokumen'}
+                          </span>
+                          <span className={`badge ${b.status_verifikasi || 'pending'}`}>
+                            {b.status_verifikasi === 'valid'
+                              ? '✓ Valid'
+                              : b.status_verifikasi === 'tidak_valid'
+                                ? '✗ Tidak Valid'
+                                : '⏳ Antrean'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Quick Action Buttons */}
+                  <div className="login-spmb-actions">
+                    <a
+                      href={getWaUrl(searchResult.id, searchResult.nama_lengkap)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="login-btn-wa"
+                    >
+                      <MessageCircle size={16} />
+                      <span>Chat WhatsApp Admin TU</span>
+                    </a>
+
+                    {searchResult.status === 'diterima' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('login');
+                          if (searchResult.email_masked && !searchResult.email_masked.includes('*')) {
+                            setEmail(searchResult.email_masked);
+                          }
+                        }}
+                        className="login-btn-primary-small"
+                      >
+                        <span>Langsung Login Sekarang →</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Back to Login Tab Button */}
+              <div style={{ textAlign: 'center', marginTop: 24 }}>
                 <button
                   type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  disabled={loading}
-                  className="login-input-toggle"
-                  aria-label="Toggle password visibility"
-                  tabIndex={-1}
+                  onClick={() => setActiveTab('login')}
+                  className="login-link-btn"
                 >
-                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                  <ArrowLeft size={14} />
+                  <span>Kembali ke Form Login</span>
                 </button>
               </div>
             </div>
+          )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="login-btn-primary"
-            >
-              {loading ? (
-                <>
-                  <div className="login-spinner" />
-                  <span>Memverifikasi Akun...</span>
-                </>
-              ) : (
-                <>
-                  <span>Masuk ke Dashboard</span>
-                  <ArrowRight size={18} />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Card Footer Link */}
-          <div className="login-card-footer">
-            Belum terdaftar sebagai warga belajar?{' '}
-            <Link to="/daftar">
-              <strong>Daftar Siswa Baru di Sini →</strong>
-            </Link>
-          </div>
         </div>
       </main>
     </div>

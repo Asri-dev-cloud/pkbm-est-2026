@@ -7,6 +7,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
+import pool from '../config/db.js';
 import UserModel from '../models/UserModel.js';
 import ProfileModel from '../models/ProfileModel.js';
 
@@ -32,12 +33,78 @@ const AuthController = {
       // Cari user di database berdasarkan email
       const user = await UserModel.findByEmail(email);
 
-      // Jika user tidak ditemukan, jangan beri tahu alasan spesifik
-      // (keamanan: attacker tidak tahu apakah email terdaftar atau tidak)
+      // Jika user belum ditemukan di tabel users, cek apakah email terdaftar di pendaftar_spmb
       if (!user) {
+        try {
+          const [spmbRows] = await pool.execute(
+            `SELECT id, nama_lengkap, email, jenjang_daftar, status, catatan_verifikasi, password_hash, created_at
+             FROM pendaftar_spmb
+             WHERE LOWER(email) = LOWER(?)
+             ORDER BY id DESC LIMIT 1`,
+            [email.trim()]
+          );
+
+          if (spmbRows.length > 0) {
+            const spmb = spmbRows[0];
+            let passwordCocok = true;
+            if (spmb.password_hash) {
+              passwordCocok = await bcrypt.compare(password, spmb.password_hash);
+            }
+
+            if (!passwordCocok) {
+              return res.status(401).json({
+                success: false,
+                is_spmb: true,
+                spmb_status: spmb.status,
+                pendaftar_id: spmb.id,
+                nama_lengkap: spmb.nama_lengkap,
+                message: `Email ini terdaftar dalam Pendaftaran SPMB No. #${spmb.id} atas nama "${spmb.nama_lengkap}", namun password yang Anda masukkan salah. Masukkan password yang dibuat saat mendaftar.`,
+              });
+            }
+
+            if (spmb.status === 'pending') {
+              return res.status(403).json({
+                success: false,
+                is_spmb: true,
+                spmb_status: 'pending',
+                pendaftar_id: spmb.id,
+                nama_lengkap: spmb.nama_lengkap,
+                jenjang_daftar: spmb.jenjang_daftar,
+                created_at: spmb.created_at,
+                message: `Pendaftaran Anda atas nama "${spmb.nama_lengkap}" (No. Pendaftaran #${spmb.id}) saat ini MASIH DALAM PROSES VERIFIKASI BERKAS oleh Tim Admin TU. Akun Ruang Belajar akan otomatis aktif setelah pendaftaran Anda disetujui.`,
+              });
+            }
+
+            if (spmb.status === 'ditolak') {
+              return res.status(403).json({
+                success: false,
+                is_spmb: true,
+                spmb_status: 'ditolak',
+                pendaftar_id: spmb.id,
+                nama_lengkap: spmb.nama_lengkap,
+                catatan: spmb.catatan_verifikasi,
+                message: `Pendaftaran atas nama "${spmb.nama_lengkap}" (No. #${spmb.id}) belum dapat diterima.${spmb.catatan_verifikasi ? ` Catatan verifikasi: "${spmb.catatan_verifikasi}".` : ''} Silakan hubungi kontak layanan PKBM untuk info perbaikan berkas.`,
+              });
+            }
+
+            if (spmb.status === 'diterima') {
+              return res.status(403).json({
+                success: false,
+                is_spmb: true,
+                spmb_status: 'diterima',
+                pendaftar_id: spmb.id,
+                nama_lengkap: spmb.nama_lengkap,
+                message: `Pendaftaran atas nama "${spmb.nama_lengkap}" telah DITERIMA oleh Admin TU! Akun Anda sedang dalam proses penetapan rombel/kelas belajar. Silakan coba login beberapa saat lagi atau hubungi Admin TU.`,
+              });
+            }
+          }
+        } catch (spmbCheckErr) {
+          console.error('[AuthController.login] Cek SPMB Error:', spmbCheckErr);
+        }
+
         return res.status(401).json({
           success: false,
-          message: 'Email atau password salah.',
+          message: 'Email atau password salah. Pastikan akun sudah terdaftar dan data yang diisi benar.',
         });
       }
 

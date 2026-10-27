@@ -167,6 +167,18 @@ function DaftarSpmbPage() {
       if (res.data?.success) {
         const id = res.data.data?.pendaftar_id;
         setPendaftarId(id);
+        // Simpan pendaftaran terakhir ke localStorage agar Login Page bisa langsung mendeteksi status
+        localStorage.setItem(
+          'pkbm_last_spmb',
+          JSON.stringify({
+            id,
+            nama_lengkap: form.nama_lengkap.trim(),
+            email: form.email.trim(),
+            jenjang_daftar: form.jenjang_daftar,
+            status: 'pending',
+            registeredAt: new Date().toISOString()
+          })
+        );
         setStep(2);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
@@ -242,12 +254,8 @@ function DaftarSpmbPage() {
       {/* ═ HERO BANNER ═ */}
       <section className="spmb-hero">
         <div className="spmb-hero-content">
-          <div className="spmb-hero-pill">
-            <Sparkles size={14} />
-            <span>Penerimaan Warga Belajar Baru T.A. 2026/2027</span>
-          </div>
-          <div className="spmb-hero-icon">
-            <GraduationCap size={38} />
+          <div className="spmb-hero-icon logo-brand-container">
+            <img src="/images/logo_pkbm.png" alt="Logo PKBM Bina Mandiri" className="spmb-brand-logo" />
           </div>
           <h1 className="spmb-hero-title">Formulir Pendaftaran Online</h1>
           <p className="spmb-hero-subtitle">
@@ -304,7 +312,7 @@ function DaftarSpmbPage() {
                 Langkah 1: Identitas & Pembuatan Akun
               </h2>
               <p className="spmb-card-subtitle">
-                Isi formulir pendaftaran dengan data valid. Kolom bertanda (<span className="spmb-label-req">*</span>) wajib diisi. Akun login Anda akan langsung aktif setelah disimpan.
+                Isi formulir pendaftaran dengan data valid. Kolom bertanda (<span className="spmb-label-req">*</span>) wajib diisi. Data akun akan disimpan untuk verifikasi berkas oleh Tim Admin TU PKBM sebelum aktivasi Ruang Belajar.
               </p>
             </div>
 
@@ -740,6 +748,12 @@ function DaftarSpmbPage() {
                 Selamat, formulir Anda telah resmi tercatat di database Sistem Informasi Akademik PKBM Bina Mandiri.
               </p>
 
+              {/* Status Pill */}
+              <div className="spmb-status-pill pending">
+                <span className="spmb-pulse-dot" />
+                <span>Status Akun: Menunggu Verifikasi Berkas oleh Tim Admin TU</span>
+              </div>
+
               {/* Number Card */}
               <div className="spmb-number-box">
                 <div style={{ fontSize: '0.85rem', color: '#E2E8F0', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
@@ -772,24 +786,24 @@ function DaftarSpmbPage() {
               {/* Next Steps Guide */}
               <div className="spmb-guide-steps">
                 <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--spmb-black)', marginBottom: 14 }}>
-                  Tahapan Selanjutnya:
+                  Tahapan & Informasi Aktivasi Akun:
                 </h4>
                 <div className="spmb-guide-item">
                   <div className="spmb-guide-bullet">1</div>
                   <div style={{ fontSize: '0.875rem', color: 'var(--spmb-text-main)' }}>
-                    <strong>Verifikasi Berkas:</strong> Tim Tata Usaha akan memverifikasi data dan kelengkapan dokumen Anda dalam 1–3 hari kerja.
+                    <strong>Verifikasi Berkas:</strong> Tim Tata Usaha PKBM Bina Mandiri akan memeriksa kelengkapan identitas dan berkas Anda.
                   </div>
                 </div>
                 <div className="spmb-guide-item">
                   <div className="spmb-guide-bullet">2</div>
                   <div style={{ fontSize: '0.875rem', color: 'var(--spmb-text-main)' }}>
-                    <strong>Penerbitan NIS & Rombel:</strong> Setelah dinyatakan diterima, Anda akan mendapatkan NIS resmi dan dimasukkan ke rombongan belajar.
+                    <strong>Aktivasi Akun & Penerbitan NIS:</strong> Setelah pendaftaran disetujui, akun Ruang Belajar Anda akan otomatis aktif dan Anda mendapatkan Nomor Induk Siswa (NIS).
                   </div>
                 </div>
                 <div className="spmb-guide-item">
                   <div className="spmb-guide-bullet">3</div>
                   <div style={{ fontSize: '0.875rem', color: 'var(--spmb-text-main)' }}>
-                    <strong>Akses Ruang Belajar (LMS):</strong> Anda dapat langsung mencoba masuk ke portal menggunakan email dan password yang baru saja Anda buat.
+                    <strong>Pantau Status di Halaman Login:</strong> Anda dapat memeriksa status berkas kapan saja di halaman Login melalui fitur "Cek Status SPMB" menggunakan email atau nomor pendaftaran Anda.
                   </div>
                 </div>
               </div>
@@ -806,11 +820,11 @@ function DaftarSpmbPage() {
                 </Link>
 
                 <Link
-                  to="/login"
+                  to={`/login?cek_spmb=${pendaftarId || ''}`}
                   className="spmb-btn spmb-btn-primary"
                   style={{ flex: 1.5, minWidth: 200 }}
                 >
-                  <span>Masuk ke Portal Belajar</span>
+                  <span>Lihat Status di Halaman Login</span>
                   <ArrowRight size={18} />
                 </Link>
               </div>

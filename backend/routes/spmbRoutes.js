@@ -19,6 +19,9 @@ const router = Router();
 // POST /api/spmb/daftar — Submit form pendaftaran (tanpa login)
 router.post('/daftar', SpmbController.daftar);
 
+// GET /api/spmb/cek-status — Cek status pendaftaran calon siswa (tanpa login)
+router.get('/cek-status', SpmbController.cekStatusPublik);
+
 // POST /api/spmb/:id/berkas — Upload berkas pendukung (tanpa login)
 // Middleware: set folder upload ke 'spmb', lalu jalankan Multer single file
 router.post(

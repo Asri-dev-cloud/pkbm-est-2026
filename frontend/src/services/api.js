@@ -181,10 +181,14 @@ export const UserAPI = {
 // ÔöÇÔöÇ SPMB (Penerimaan Siswa Baru) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 export const SpmbAPI = {
 
-  // POST /api/spmb/daftar ÔÇö PUBLIK, tidak butuh token
+  // POST /api/spmb/daftar — PUBLIK, tidak butuh token
   // Payload: { nama_lengkap, nik, tanggal_lahir, jenjang_dituju, ... }
   daftar: (payload) =>
     apiClient.post('/spmb/daftar', payload),
+
+  // GET /api/spmb/cek-status?q=keyword — PUBLIK, cek status pendaftaran
+  cekStatusPublik: (keyword) =>
+    apiClient.get('/spmb/cek-status', { params: { q: keyword } }),
 
   // POST /api/spmb/:id/berkas — Upload berkas (FormData)
   // Boundary dibuat otomatis oleh browser & interceptor
