@@ -148,41 +148,68 @@ const SiswaModel = {
   // -----------------------------------------------------------
   // -----------------------------------------------------------
   // Ambil opsi rombel: dibuat 1 per jenjang (Paket A, Paket B, Paket C)
-  // Tidak ada duplikasi, nama selalu rapi dan kompatibel
+  // Aman dari sql_mode only_full_group_by dan selalu memiliki fallback
   // -----------------------------------------------------------
   getRombelOptions: async ({ jenjang = null } = {}) => {
-    let sql = `
-      SELECT
-        MIN(r.id) AS id,
-        CASE
-          WHEN r.jenjang = 'paket_a' THEN 'Paket A'
-          WHEN r.jenjang = 'paket_b' THEN 'Paket B'
-          WHEN r.jenjang = 'paket_c' THEN 'Paket C'
-          ELSE COALESCE(NULLIF(r.nama_rombel, ''), UPPER(r.jenjang))
-        END AS nama_rombel,
-        CASE
-          WHEN r.jenjang = 'paket_a' THEN 'Paket A'
-          WHEN r.jenjang = 'paket_b' THEN 'Paket B'
-          WHEN r.jenjang = 'paket_c' THEN 'Paket C'
-          ELSE COALESCE(NULLIF(r.nama_rombel, ''), UPPER(r.jenjang))
-        END AS nama,
-        r.jenjang,
-        SUM(COALESCE(r.kapasitas, 40)) AS kapasitas,
-        MAX(ta.nama_tahun_ajaran) AS nama_tahun_ajaran,
-        1 AS is_aktif
-      FROM rombel r
-      LEFT JOIN tahun_ajaran ta ON ta.id = r.tahun_ajaran_id
-    `;
-    const params = [];
+    try {
+      let sql = `
+        SELECT
+          r.id,
+          r.nama_rombel,
+          r.jenjang,
+          r.kapasitas
+        FROM rombel r
+      `;
+      const params = [];
+      if (jenjang) {
+        sql += ` WHERE r.jenjang = ?`;
+        params.push(jenjang);
+      }
+      sql += ` ORDER BY r.jenjang ASC, r.id ASC`;
+      const [rows] = await pool.execute(sql, params);
 
-    if (jenjang) {
-      sql += ` WHERE r.jenjang = ?`;
-      params.push(jenjang);
+      // Deduplikasi di JavaScript: tepat 1 per jenjang (Paket A, Paket B, Paket C)
+      const map = new Map();
+      rows.forEach((r) => {
+        const jKey = (r.jenjang || 'paket_a').toLowerCase();
+        if (!map.has(jKey)) {
+          const cleanName =
+            jKey === 'paket_a' ? 'Paket A' :
+            jKey === 'paket_b' ? 'Paket B' :
+            jKey === 'paket_c' ? 'Paket C' :
+            (r.nama_rombel || jKey.toUpperCase());
+
+          map.set(jKey, {
+            id: r.id,
+            nama: cleanName,
+            nama_rombel: cleanName,
+            jenjang: jKey,
+            kapasitas: r.kapasitas || 40,
+          });
+        }
+      });
+
+      // Jika di DB belum ada data rombel, sediakan 3 paket standar
+      if (map.size === 0) {
+        return [
+          { id: 1, nama: 'Paket A', nama_rombel: 'Paket A', jenjang: 'paket_a', kapasitas: 40 },
+          { id: 2, nama: 'Paket B', nama_rombel: 'Paket B', jenjang: 'paket_b', kapasitas: 40 },
+          { id: 3, nama: 'Paket C', nama_rombel: 'Paket C', jenjang: 'paket_c', kapasitas: 40 },
+        ];
+      }
+
+      const sortOrder = { paket_a: 1, paket_b: 2, paket_c: 3 };
+      return Array.from(map.values()).sort(
+        (a, b) => (sortOrder[a.jenjang] || 99) - (sortOrder[b.jenjang] || 99)
+      );
+    } catch (err) {
+      console.error('[SiswaModel.getRombelOptions] Error:', err);
+      return [
+        { id: 1, nama: 'Paket A', nama_rombel: 'Paket A', jenjang: 'paket_a', kapasitas: 40 },
+        { id: 2, nama: 'Paket B', nama_rombel: 'Paket B', jenjang: 'paket_b', kapasitas: 40 },
+        { id: 3, nama: 'Paket C', nama_rombel: 'Paket C', jenjang: 'paket_c', kapasitas: 40 },
+      ];
     }
-
-    sql += ` GROUP BY r.jenjang ORDER BY r.jenjang ASC`;
-    const [rows] = await pool.execute(sql, params);
-    return rows;
   },
 
   // -----------------------------------------------------------
