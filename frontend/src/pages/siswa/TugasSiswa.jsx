@@ -151,22 +151,45 @@ function TugasSiswa() {
 
         if (isStudent) {
           let currentRombelId = user?.rombel_id;
+          let profilData = null;
 
           if (!currentRombelId) {
-            const profilRes = await SiswaAPI.getProfilSaya();
-            const profil = profilRes.data.data;
-            currentRombelId = profil?.rombel_id;
+            try {
+              const profilRes = await SiswaAPI.getProfilSaya();
+              profilData = profilRes.data?.data;
+              currentRombelId = profilData?.rombel_id;
 
-            if (currentRombelId) {
-              const updatedUser = {
-                ...user,
-                rombel_id: currentRombelId,
-                nama_rombel: profil?.nama_rombel || null,
-                nis: profil?.nis || user?.nis || null,
-                jenjang: profil?.jenjang || user?.jenjang || null,
-              };
-              setUser(updatedUser);
-              localStorage.setItem('pkbm_user', JSON.stringify(updatedUser));
+              if (currentRombelId) {
+                const updatedUser = {
+                  ...user,
+                  rombel_id: currentRombelId,
+                  nama_rombel: profilData?.nama_rombel || null,
+                  nis: profilData?.nis || user?.nis || null,
+                  jenjang: profilData?.jenjang || user?.jenjang || null,
+                };
+                setUser(updatedUser);
+                localStorage.setItem('pkbm_user', JSON.stringify(updatedUser));
+              }
+            } catch (pErr) {
+              console.warn('[initData] getProfilSaya error:', pErr);
+            }
+          }
+
+          // Fallback cerdas: Jika rombel_id belum di-assign, cocokkan berdasarkan jenjang siswa
+          if (!currentRombelId) {
+            const studentJenjang = (profilData?.jenjang || user?.jenjang || '').toLowerCase();
+            try {
+              const rOptionsRes = await SiswaAPI.getRombelOptions();
+              const rList = rOptionsRes.data?.data || [];
+              if (studentJenjang) {
+                const matched = rList.find(r => (r.jenjang || '').toLowerCase() === studentJenjang);
+                if (matched) currentRombelId = matched.id;
+              }
+              if (!currentRombelId && rList.length > 0) {
+                currentRombelId = rList[0].id;
+              }
+            } catch (rErr) {
+              console.warn('[initData] Fallback rombel error:', rErr);
             }
           }
 
@@ -176,7 +199,7 @@ function TugasSiswa() {
             return;
           }
 
-          setSelectedRombelId(currentRombelId);
+          setSelectedRombelId(String(currentRombelId));
           await loadTugas(currentRombelId);
         } else {
           // Tutor / Admin preview mode
