@@ -531,8 +531,8 @@ function TugasSiswa() {
     setModalBuatOpen(true);
   };
 
-  const handleCloseBuatModal = () => {
-    if (creatingTugas) return;
+  const handleCloseBuatModal = (force = false) => {
+    if (creatingTugas && !force) return;
     setModalBuatOpen(false);
     setCreateError('');
   };
@@ -630,7 +630,11 @@ function TugasSiswa() {
     setCreateError('');
 
     try {
-      await LmsAPI.createTugas({
+      const targetRombelId = String(formBuat.rombel_id);
+      const chosenMapel = buatMapelList.find(m => String(m.id) === String(formBuat.mapel_id));
+      const namaMapel = chosenMapel?.nama || 'Mata Pelajaran';
+
+      const res = await LmsAPI.createTugas({
         rombel_id: parseInt(formBuat.rombel_id),
         mapel_id: parseInt(formBuat.mapel_id),
         judul: formBuat.judul,
@@ -642,9 +646,63 @@ function TugasSiswa() {
         soal_essay: formBuat.tipe_tugas === 'essay' ? formBuat.soal_essay : []
       });
 
-      showToast('🎉 Berhasil! Tugas mingguan baru telah diterbitkan ke database.');
-      handleCloseBuatModal();
-      await loadTugas(selectedRombelId || formBuat.rombel_id);
+      const newId = res.data?.data?.id || Date.now();
+
+      // Buat payload tugas baru untuk langsung ditampilkan ke layar (0ms instant render)
+      let finalDeskripsi = formBuat.deskripsi || 'Silakan kerjakan tugas sesuai instruksi yang diberikan.';
+      if (formBuat.tipe_tugas || formBuat.soal_pg?.length || formBuat.soal_essay?.length) {
+        const metadata = {
+          tipe: formBuat.tipe_tugas || 'upload',
+          soal_pg: formBuat.tipe_tugas === 'pilihan_ganda' ? formBuat.soal_pg : [],
+          soal_essay: formBuat.tipe_tugas === 'essay' ? formBuat.soal_essay : []
+        };
+        finalDeskripsi = `${finalDeskripsi}\n\n<!-- PKBM_TASK_META:${JSON.stringify(metadata)} -->`;
+      }
+
+      const newTask = {
+        id: newId,
+        rombel_id: parseInt(formBuat.rombel_id),
+        mapel_id: parseInt(formBuat.mapel_id),
+        nama_mapel: namaMapel,
+        nama_tutor: user?.nama_lengkap || 'Tutor / Admin',
+        judul: formBuat.judul,
+        deskripsi: finalDeskripsi,
+        deadline: formBuat.deadline,
+        nilai_maks: parseFloat(formBuat.nilai_maks) || 100,
+        tipe_tugas: formBuat.tipe_tugas,
+        jumlah_terkumpul: 0,
+        pengumpulan_saya: null,
+        created_at: new Date().toISOString()
+      };
+
+      // 1. Tutup modal secara langsung (force = true)
+      handleCloseBuatModal(true);
+
+      // 2. Alihkan rombel terpilih ke rombel tugas yang baru dibuat
+      setSelectedRombelId(targetRombelId);
+
+      // 3. Reset filter pencarian & tab agar tugas baru pasti langsung terlihat
+      setActiveTab('semua');
+      setMapelFilter('semua');
+      setPertemuanFilter('semua');
+      setSearchQuery('');
+
+      // 4. Perbarui state tugasList seketika (optimistic render)
+      setTugasList((prev) => [newTask, ...prev.filter(t => t.id !== newId)]);
+
+      showToast('🎉 Berhasil! Tugas mingguan baru telah diterbitkan dan langsung tampil.');
+
+      // 5. Muat sinkronisasi data dari database secara seamless di background
+      try {
+        const serverRes = await LmsAPI.getTugasByRombel(targetRombelId);
+        if (serverRes.data?.data && Array.isArray(serverRes.data.data)) {
+          if (serverRes.data.data.length > 0) {
+            setTugasList(serverRes.data.data);
+          }
+        }
+      } catch (syncErr) {
+        console.warn('[handleCreateTugas] Background sync warning:', syncErr);
+      }
     } catch (err) {
       console.error('[handleCreateTugas]', err);
       setCreateError(err.response?.data?.message || 'Gagal membuat tugas. Silakan periksa kembali data input.');

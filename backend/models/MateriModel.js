@@ -103,23 +103,27 @@ export const TugasModel = {
 
   findByRombel: async (rombel_id, mapel_id = null, { warga_belajar_id = null } = {}) => {
     let sql = `
-      SELECT t.*, mp.nama AS nama_mapel, u.nama_lengkap AS nama_tutor,
+      SELECT t.*,
+        COALESCE(mp.nama, 'Mata Pelajaran') AS nama_mapel,
+        COALESCE(u.nama_lengkap, 'Tutor / Admin') AS nama_tutor,
         pb.pertemuan_ke, pb.judul AS judul_pertemuan,
         (SELECT COUNT(*) FROM pengumpulan_tugas pt WHERE pt.tugas_id = t.id) AS jumlah_terkumpul
       FROM tugas t
-      JOIN mata_pelajaran mp ON mp.id = t.mapel_id
-      JOIN users u ON u.id = t.tutor_id
+      LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
+      LEFT JOIN users u ON u.id = t.tutor_id
       LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
       WHERE (
         t.rombel_id = ?
         OR t.rombel_id IN (
-          SELECT r2.id FROM rombel r2 WHERE r2.jenjang = (SELECT r1.jenjang FROM rombel r1 WHERE r1.id = ?)
+          SELECT r2.id FROM rombel r2 WHERE r2.jenjang = (
+            SELECT COALESCE(r1.jenjang, '') FROM rombel r1 WHERE r1.id = ? LIMIT 1
+          )
         )
       )
     `;
     const params = [rombel_id, rombel_id];
     if (mapel_id) { sql += ` AND t.mapel_id = ?`; params.push(mapel_id); }
-    sql += ` ORDER BY t.deadline ASC`;
+    sql += ` ORDER BY t.id DESC, t.deadline ASC`;
     const [rows] = await pool.execute(sql, params);
 
     if (!warga_belajar_id || rows.length === 0) {
@@ -163,10 +167,12 @@ export const TugasModel = {
 
   findById: async (id) => {
     const [tugas] = await pool.execute(
-      `SELECT t.*, mp.nama AS nama_mapel, u.nama_lengkap AS nama_tutor
+      `SELECT t.*,
+         COALESCE(mp.nama, 'Mata Pelajaran') AS nama_mapel,
+         COALESCE(u.nama_lengkap, 'Tutor / Admin') AS nama_tutor
        FROM tugas t
-       JOIN mata_pelajaran mp ON mp.id = t.mapel_id
-       JOIN users u ON u.id = t.tutor_id
+       LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
+       LEFT JOIN users u ON u.id = t.tutor_id
        WHERE t.id = ? LIMIT 1`,
       [id]
     );
