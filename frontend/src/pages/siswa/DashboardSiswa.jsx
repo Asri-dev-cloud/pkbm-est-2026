@@ -1,86 +1,101 @@
 // ============================================================
 // src/pages/siswa/DashboardSiswa.jsx — Dashboard Warga Belajar
 // ============================================================
-// Halaman utama yang dilihat oleh Warga Belajar setelah login.
-// Menampilkan:
-//   - Ringkasan profil siswa
-//   - Widget statistik (tagihan, absensi, tugas)
-//   - Daftar materi & tugas terbaru
-//
-// Data diambil dari backend menggunakan:
-//   GET /api/siswa/profil/saya → profil WB yang login
+// Halaman utama Warga Belajar (WB) berestetika modern:
+// - Tanpa kotak biru besar di section metrik
+// - Pill badge berbentuk coretan spidol / highlighter organik
+// - Template kartu pelajar bersih tanpa bayangan kotak hitam
+// - Modal Edit Profil lengkap & stabil tanpa ajep-ajep
+// - 100% bebas emoji, menggunakan vektor Lucide React
 // ============================================================
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  ArrowRight,
+  Calendar,
+  CalendarCheck,
+  CheckCircle2,
+  Clock,
+  GraduationCap,
+  Layers,
+  PencilLine,
+  QrCode,
+  Receipt,
+  ShieldCheck,
+  IdCard,
+  ChevronRight,
+  AlertCircle,
+  Check,
+  Building2
+} from 'lucide-react';
 import { SiswaAPI, AbsensiAPI, TagihanAPI, toAssetUrl } from '../../services/api.js';
 import Sidebar from '../../components/Sidebar.jsx';
 import ProfileEditorCard from '../../components/ProfileEditorCard.jsx';
 import './DashboardSiswa.css';
 
-function DashboardSiswa() {
-  // ── Ambil data user dari localStorage (sudah disimpan saat login) ──
-  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('pkbm_user') || '{}'));
+// SVG Starburst Geometris (Aksen Halus)
+function StarburstGraphic({ size = 32, className = '', color = 'currentColor' }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      fill={color}
+      className={`starburst-svg ${className}`}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="M50 0 L58 25 L80 12 L73 37 L98 42 L82 60 L96 80 L72 81 L70 100 L50 88 L30 100 L28 81 L4 80 L18 60 L2 42 L27 37 L20 12 L42 25 Z" />
+    </svg>
+  );
+}
 
-  // ── State: Data Profil Siswa ─────────────────────────────
+function DashboardSiswa() {
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('pkbm_user') || '{}'));
   const [profil, setProfil] = useState(null);
   const [loadingProfil, setLoadingProfil] = useState(true);
   const [errorProfil, setErrorProfil] = useState('');
 
-  // ── State: Rekap Kehadiran ───────────────────────────────
   const [rekapAbsensi, setRekapAbsensi] = useState(null);
   const [loadingAbsensi, setLoadingAbsensi] = useState(true);
 
-  // ── State: Tagihan Aktif ─────────────────────────────────
   const [tagihan, setTagihan] = useState(null);
   const [loadingTagihan, setLoadingTagihan] = useState(true);
-  // ============================================================
-  // useEffect — Fetch semua data saat komponen pertama kali dimuat
-  // Dependency array [] berarti hanya dijalankan sekali (on mount)
-  // ============================================================
+
+  // Single trigger function untuk membuka modal Edit Profil tanpa duplikasi
+  const [openProfileModalFn, setOpenProfileModalFn] = useState(null);
+
   useEffect(() => {
-    // Ambil profil siswa yang sedang login
     const fetchProfil = async () => {
       try {
         setLoadingProfil(true);
-
-        // Hit endpoint GET /api/siswa/profil/saya
-        // Token JWT otomatis disisipkan oleh interceptor di api.js
         const response = await SiswaAPI.getProfilSaya();
-
-        // response.data mengikuti format backend: { success, data }
         setProfil(response.data.data);
-
       } catch (err) {
-        const pesanError =
-          err.response?.data?.message ||
-          'Gagal memuat data profil. Coba muat ulang halaman.';
-        setErrorProfil(pesanError);
+        const pesan = err.response?.data?.message || 'Gagal memuat profil. Silakan muat ulang halaman.';
+        setErrorProfil(pesan);
       } finally {
-        setLoadingProfil(false); // Selalu matikan loading
+        setLoadingProfil(false);
       }
     };
 
-    // Ambil rekap kehadiran pribadi WB
     const fetchAbsensi = async () => {
       try {
         const response = await AbsensiAPI.getRekapSaya();
         setRekapAbsensi(response.data.data);
       } catch {
-        // Tidak tampilkan error kritis untuk data sekunder
         setRekapAbsensi(null);
       } finally {
         setLoadingAbsensi(false);
       }
     };
 
-    // Ambil tagihan aktif milik WB ini
     const fetchTagihan = async () => {
       try {
-        // Endpoint ini mengambil tagihan berdasarkan token (siswa hanya lihat miliknya)
         const response = await TagihanAPI.getAll();
-        // Ambil tagihan yang belum lunas (jika ada field status)
         const semuaTagihan = response.data.data || [];
-        const belumLunas = semuaTagihan.filter(t => t.status !== 'lunas');
+        const belumLunas = semuaTagihan.filter((t) => t.status !== 'lunas');
         setTagihan({ semua: semuaTagihan, belumLunas });
       } catch {
         setTagihan(null);
@@ -89,46 +104,47 @@ function DashboardSiswa() {
       }
     };
 
-    // Jalankan semua fetch secara paralel (lebih cepat dari serial)
     fetchProfil();
     fetchAbsensi();
     fetchTagihan();
+  }, []);
 
-  }, []); // [] = hanya dijalankan sekali saat komponen mount
-
-  // ── Render: Loading utama ────────────────────────────────
   if (loadingProfil) {
     return (
       <div className="app-layout">
         <Sidebar user={user} />
         <main className="app-main">
-          <div className="loading-container" style={{ minHeight: '100vh' }}>
-            <div className="spinner"></div>
-            <p>Memuat data Anda...</p>
+          <div className="edutech-loading-screen">
+            <div className="edutech-loader-box">
+              <StarburstGraphic size={44} color="#D4FF00" />
+              <div className="edutech-loader-title">MEMUAT PORTAL WARGA BELAJAR</div>
+              <div className="edutech-loader-sub">Menghubungkan basis data akademik...</div>
+            </div>
           </div>
         </main>
       </div>
     );
   }
 
-  // ── Render: Error utama ──────────────────────────────────
   if (errorProfil) {
     return (
       <div className="app-layout">
         <Sidebar user={user} />
         <main className="app-main">
           <div className="app-content">
-            <div className="error-container">
-              <i className="bi bi-wifi-off"></i>
-              <h3>Gagal Memuat Data</h3>
+            <div className="edutech-error-card">
+              <AlertCircle size={44} className="edutech-error-icon" />
+              <h3>Gagal Menghubungkan Data</h3>
               <p>{errorProfil}</p>
               <button
-                className="btn btn-primary"
-                style={{ marginTop: '1rem' }}
+                type="button"
+                className="edutech-pill-btn btn-dark"
                 onClick={() => window.location.reload()}
               >
-                <i className="bi bi-arrow-clockwise"></i>
-                Coba Lagi
+                <span>Muat Ulang Halaman</span>
+                <div className="btn-circle-icon">
+                  <ArrowRight size={15} />
+                </div>
               </button>
             </div>
           </div>
@@ -137,249 +153,257 @@ function DashboardSiswa() {
     );
   }
 
-  // ── Render: Konten Utama Dashboard ──────────────────────
-  return (
-    <div className="app-layout">
+  const namaLengkap = profil?.nama_lengkap || user.nama_lengkap || user.nama || 'Warga Belajar';
+  const jenjangFormat = formatJenjang(profil?.jenjang);
+  const persentaseHadir = rekapAbsensi?.persentase_hadir ?? 100;
+  const tagihanTertunggak = tagihan?.belumLunas?.length ?? 0;
 
-      {/* Navigasi samping — menerima data user untuk tampilkan nama & role */}
+  return (
+    <div className="app-layout edutech-theme-scope">
       <Sidebar user={user} />
 
       <main className="app-main">
-        <div className="app-content">
+        <div className="app-content edutech-content-flow">
 
-          {/* ── Header Sambutan ── */}
-          <div className="dashboard-header">
-            <div>
-              <h1 className="dashboard-greeting">
-                Halo, {profil?.nama_lengkap?.split(' ')[0] || user.nama_lengkap || user.nama}! 👋
-              </h1>
-              <p className="dashboard-subtext">
-                Selamat datang di ruang belajar digital Anda.
+          {/* ── Single Instance ProfileEditorCard Controller (Mencegah Ajep-Ajep) ── */}
+          {profil && (
+            <ProfileEditorCard
+              user={user}
+              onUserUpdate={setUser}
+              onProfileUpdate={(nextProfile) => setProfil(nextProfile)}
+              hideCard
+              triggerRenderer={(openModal) => {
+                // Simpan openModal function untuk dipakai tombol manapun
+                if (!openProfileModalFn) {
+                  setTimeout(() => setOpenProfileModalFn(() => openModal), 0);
+                }
+                return null;
+              }}
+            />
+          )}
+
+          {/* ── Top Bar Header ── */}
+          <div className="edutech-top-bar">
+
+            <div className="edutech-bar-right">
+              <div className="edutech-date-chip">
+                <Calendar size={14} />
+                <span>
+                  {new Date().toLocaleDateString('id-ID', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                className="edutech-pill-btn btn-dark-sm"
+                onClick={() => openProfileModalFn && openProfileModalFn()}
+                title="Lihat & Edit Data Diri"
+              >
+                <PencilLine size={14} />
+                <span>Edit Profil</span>
+              </button>
+            </div>
+          </div>
+
+          {/* ── 1. HERO BANNER: ELECTRIC LIME ── */}
+          <section className="edutech-hero-section">
+            <div className="edutech-hero-watermark">
+              <StarburstGraphic size={120} color="#0D0F12" className="watermark-star-1" />
+              <StarburstGraphic size={60} color="#2F3DF6" className="watermark-star-2" />
+            </div>
+
+            <div className="edutech-hero-content">
+              <div className="edutech-hero-left">
+                <h1 className="edutech-hero-headline">
+                  SUKSES BELAJAR KESETARAAN <span className="scribble-pill scribble-blue headline-scribble">DI SINI!</span>
+                </h1>
+
+                <p className="edutech-hero-sub">
+                  Selamat datang, <strong>{namaLengkap}</strong>. Akses seluruh modul belajar resmi, kirim tugas mingguan, dan pantau kehadiran belajar Anda secara mandiri di satu portal.
+                </p>
+
+                <div className="edutech-hero-actions">
+                  <Link to="/dashboard/siswa/ruang-belajar" className="edutech-pill-btn btn-dark">
+                    <span>Buka Ruang Belajar</span>
+                    <div className="btn-circle-icon">
+                      <ArrowRight size={15} />
+                    </div>
+                  </Link>
+
+                  <Link to="/dashboard/siswa/absensi" className="edutech-pill-btn btn-blue">
+                    <span>Presensi Hari Ini</span>
+                    <div className="btn-circle-icon">
+                      <QrCode size={15} />
+                    </div>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Template Kartu Siswa Digital (Tanpa Bayangan Kotak Hitam) */}
+              <div className="edutech-student-card-template">
+                <div className="card-template-header">
+                  <div className="card-template-brand">
+                    <Building2 size={15} className="brand-icon" />
+                    <span>PKBM BINA MANDIRI</span>
+                  </div>
+                  <span className="card-template-live">
+                    <span className="live-dot"></span> TERVERIFIKASI
+                  </span>
+                </div>
+
+                <div className="card-template-body">
+                  <div className="card-template-avatar">
+                    {profil?.foto_profil ? (
+                      <img
+                        src={toAssetUrl(profil.foto_profil)}
+                        alt={`Foto ${namaLengkap}`}
+                        className="template-avatar-img"
+                      />
+                    ) : (
+                      <span className="template-avatar-initial">
+                        {namaLengkap.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="card-template-info">
+                    <h3 className="template-name">{namaLengkap}</h3>
+                    <div className="template-meta-row">
+                      <IdCard size={13} />
+                      <span>NIS: <strong>{profil?.nis || 'Belum Ditetapkan'}</strong></span>
+                    </div>
+                    <div className="template-meta-row">
+                      <GraduationCap size={13} />
+                      <span>{jenjangFormat}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card-template-footer">
+                  <div className="template-footer-chip">
+                    <span className="chip-caption">ROMBEL</span>
+                    <span className="chip-data">{profil?.nama_rombel || 'Kelas Reguler'}</span>
+                  </div>
+                  <div className="template-footer-chip">
+                    <span className="chip-caption">STATUS</span>
+                    <span className="chip-data chip-status-active">WB AKTIF</span>
+                  </div>
+                </div>
+
+                {/* Tombol Perbarui Data Diri yang Langsung Membuka Modal */}
+                <button
+                  type="button"
+                  className="card-template-edit-link"
+                  onClick={() => openProfileModalFn && openProfileModalFn()}
+                >
+                  <PencilLine size={13} />
+                  <span>Detail & Perbarui Data Diri</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* ── 2. SECTION KONTROL AKADEMIK: BERSIH TANPA KOTAK BIRU ── */}
+          <section className="edutech-academic-section">
+            <div className="academic-section-header">
+              <h2 className="academic-main-title">
+                SELAMAT DATANG DI PLATFORM <span className="scribble-pill scribble-lime title-scribble">DIGITAL PKBM</span>
+              </h2>
+              <p className="academic-main-desc">
+                Pantau rekapitulasi kehadiran, tagihan administrasi, dan data induk akademik Anda secara langsung.
               </p>
             </div>
-            <div className="dashboard-date">
-              {new Date().toLocaleDateString('id-ID', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
-            </div>
-          </div>
 
-          {profil && (
-            <div className="profil-card">
-              <div className="profil-avatar">
-                {profil.foto_profil ? (
-                  <img
-                    src={toAssetUrl(profil.foto_profil)}
-                    alt={`Foto profil ${profil.nama_lengkap}`}
-                    className="profil-avatar-image"
-                  />
-                ) : (
-                  profil.nama_lengkap?.charAt(0)?.toUpperCase()
-                )}
-              </div>
-              <div className="profil-info">
-                <div className="profil-header-top">
-                  <div>
-                    <h2 className="profil-nama">{profil.nama_lengkap}</h2>
-                    <p className="profil-role">{formatRole(user.role)}</p>
+            {/* 3 Metrik Bento Tanpa Kotak Biru & Tanpa Bayangan Hitam Tebal */}
+            <div className="academic-metrics-grid">
+              {/* Metrik 1: Kehadiran (Warna Biru) */}
+              <div className="metric-box metric-blue-clean">
+                <div className="metric-top">
+                  <span className="metric-tag">KEHADIRAN</span>
+                  <div className="metric-icon-circle icon-white-bg">
+                    <CalendarCheck size={18} />
                   </div>
-                  <ProfileEditorCard
-                    user={user}
-                    onUserUpdate={setUser}
-                    onProfileUpdate={(nextProfile) => setProfil(nextProfile)}
-                    hideCard
-                    triggerRenderer={(openModal) => (
-                      <button
-                        type="button"
-                        className="profil-edit-btn"
-                        onClick={openModal}
-                      >
-                        <i className="bi bi-pencil-square"></i>
-                        Edit Profil
-                      </button>
-                    )}
-                  />
                 </div>
-                <div className="profil-meta">
-                  <span className="profil-meta-item">
-                    <i className="bi bi-card-text"></i>
-                    NIS: {profil.nis || 'Belum ditetapkan'}
-                  </span>
-                  <span className="profil-meta-item">
-                    <i className="bi bi-mortarboard"></i>
-                    {formatJenjang(profil.jenjang)}
-                  </span>
-                  {profil.nama_rombel && (
-                    <span className="profil-meta-item">
-                      <i className="bi bi-people"></i>
-                      Rombel: {profil.nama_rombel}
+                <div className="metric-value">
+                  {loadingAbsensi ? '...' : `${persentaseHadir}%`}
+                </div>
+                <div className="metric-progress-line">
+                  <div
+                    className="metric-progress-active"
+                    style={{ width: `${Math.min(100, Math.max(0, persentaseHadir))}%` }}
+                  ></div>
+                </div>
+                <div className="metric-foot">
+                  <span>Presensi Sesi Belajar</span>
+                  <Link to="/dashboard/siswa/absensi" className="metric-arrow-link">
+                    Detail <ChevronRight size={13} />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Metrik 2: Tagihan SPP */}
+              <div className="metric-box metric-dark-clean">
+                <div className="metric-top">
+                  <span className="metric-tag">ADMINISTRASI</span>
+                  <div className="metric-icon-circle icon-lime-bg">
+                    <Receipt size={18} />
+                  </div>
+                </div>
+                <div className="metric-value">
+                  {loadingTagihan ? '...' : tagihanTertunggak}
+                  <span className="metric-unit">Tagihan</span>
+                </div>
+                <div className="metric-status-row">
+                  {tagihanTertunggak === 0 ? (
+                    <span className="status-badge-lime">
+                      <CheckCircle2 size={13} /> Lunas Seluruhnya
+                    </span>
+                  ) : (
+                    <span className="status-badge-warn">
+                      <Clock size={13} /> Menunggu Pembayaran
                     </span>
                   )}
-                  <span className="profil-meta-item">
-                    <i className="bi bi-telephone"></i>
-                    {profil.no_telp || 'No. Telepon belum diisi'}
+                </div>
+                <div className="metric-foot">
+                  <span>Iuran SPP Pendidikan</span>
+                  <Link to="/dashboard/siswa/tagihan" className="metric-arrow-link">
+                    Bayar <ChevronRight size={13} />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Metrik 3: Status Warga Belajar */}
+              <div className="metric-box metric-white-clean">
+                <div className="metric-top">
+                  <span className="metric-tag">STATUS WB</span>
+                  <div className="metric-icon-circle icon-blue-bg">
+                    <ShieldCheck size={18} />
+                  </div>
+                </div>
+                <div className="metric-value-title">
+                  {profil?.is_aktif ? 'AKTIF' : 'TERDAFTAR'}
+                </div>
+                <div className="metric-sub-meta">
+                  <span>Dapodik Kemendikbud</span>
+                  <span className="badge-sync">
+                    <Check size={12} /> Sinkron
                   </span>
-                  <span className={`badge ${profil.is_aktif ? 'badge-success' : 'badge-danger'}`}>
-                    {profil.is_aktif ? 'Aktif' : 'Tidak Aktif'}
-                  </span>
+                </div>
+                <div className="metric-foot">
+                  <span>Tahun Ajaran 2026/2027</span>
+                  <span className="semester-pill">Semester 2</span>
                 </div>
               </div>
             </div>
-          )}
-
-          {/* ── Grid Statistik ── */}
-          <div className="grid-cols-3" style={{ marginBottom: '2rem' }}>
-
-            {/* Widget Kehadiran */}
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#DBEAFE', color: 'var(--color-siswa)' }}>
-                <i className="bi bi-calendar-check"></i>
-              </div>
-              <div className="stat-body">
-                {loadingAbsensi ? (
-                  <div className="stat-value" style={{ fontSize: '1.2rem', color: 'var(--color-text-muted)' }}>Memuat...</div>
-                ) : (
-                  <>
-                    <div className="stat-value" style={{ color: 'var(--color-siswa)' }}>
-                      {rekapAbsensi
-                        ? `${rekapAbsensi.persentase_hadir || 0}%`
-                        : '0%'}
-                    </div>
-                    <div className="stat-label">Tingkat Kehadiran</div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Widget Tagihan */}
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#FEF3C7', color: 'var(--color-accent-dark)' }}>
-                <i className="bi bi-receipt"></i>
-              </div>
-              <div className="stat-body">
-                {loadingTagihan ? (
-                  <div className="stat-value" style={{ fontSize: '1.2rem', color: 'var(--color-text-muted)' }}>Memuat...</div>
-                ) : (
-                  <>
-                    <div className="stat-value" style={{ color: tagihan?.belumLunas?.length > 0 ? 'var(--color-danger)' : 'var(--color-success)' }}>
-                      {tagihan?.belumLunas?.length ?? '—'}
-                    </div>
-                    <div className="stat-label">Tagihan Belum Lunas</div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Widget Status Akun */}
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#D1FAE5', color: 'var(--color-success)' }}>
-                <i className="bi bi-shield-check"></i>
-              </div>
-              <div className="stat-body">
-                <div className="stat-value" style={{ color: 'var(--color-success)', fontSize: '1.4rem' }}>
-                  <i className="bi bi-check-circle-fill"></i>
-                </div>
-                <div className="stat-label">Status Akun Aktif</div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* ── Aksi Cepat ── */}
-          <div className="card" style={{ marginBottom: '2rem' }}>
-            <div className="card-header">
-              <h3 className="card-title">
-                <i className="bi bi-lightning-charge-fill" style={{ color: 'var(--color-accent)' }}></i>{' '}
-                Aksi Cepat
-              </h3>
-            </div>
-            <div className="quick-actions">
-              <a href="/dashboard/siswa/absensi" className="quick-action-item">
-                <div className="quick-action-icon" style={{ background: '#DBEAFE', color: 'var(--color-siswa)' }}>
-                  <i className="bi bi-qr-code"></i>
-                </div>
-                <span>Check-In Absensi</span>
-              </a>
-              <a href="/dashboard/siswa/materi" className="quick-action-item">
-                <div className="quick-action-icon" style={{ background: '#D1FAE5', color: 'var(--color-success)' }}>
-                  <i className="bi bi-book-fill"></i>
-                </div>
-                <span>Buka Materi</span>
-              </a>
-              <a href="/dashboard/siswa/tugas" className="quick-action-item">
-                <div className="quick-action-icon" style={{ background: '#FEF3C7', color: 'var(--color-accent-dark)' }}>
-                  <i className="bi bi-pencil-square"></i>
-                </div>
-                <span>Tugas Mingguan</span>
-              </a>
-              <a href="/dashboard/siswa/ujian" className="quick-action-item">
-                <div className="quick-action-icon" style={{ background: '#EDE9FE', color: '#7C3AED' }}>
-                  <i className="bi bi-patch-question-fill"></i>
-                </div>
-                <span>Ikuti Ujian</span>
-              </a>
-              <a href="/dashboard/siswa/klub" className="quick-action-item">
-                <div className="quick-action-icon" style={{ background: '#FCE7F3', color: '#BE185D' }}>
-                  <i className="bi bi-people-fill"></i>
-                </div>
-                <span>Klub Minat</span>
-              </a>
-              <a href="/dashboard/siswa/tagihan" className="quick-action-item">
-                <div className="quick-action-icon" style={{ background: '#FEE2E2', color: 'var(--color-danger)' }}>
-                  <i className="bi bi-cash-stack"></i>
-                </div>
-                <span>Bayar Tagihan</span>
-              </a>
-            </div>
-          </div>
-
-          {/* ── Detail Profil Lengkap ── */}
-          {profil && (
-            <div className="card">
-              <div className="card-header">
-                <div className="mobile-toolbar" style={{ justifyContent: 'space-between' }}>
-                  <h3 className="card-title">
-                    <i className="bi bi-person-lines-fill" style={{ color: 'var(--color-primary)' }}></i>{' '}
-                    Data Diri
-                  </h3>
-                  <button type="button" className="btn btn-secondary" onClick={() => {
-                    setDataDiriError('');
-                    setDataDiriSuccess('');
-                    setEditDataDiriOpen(true);
-                  }}>
-                    <i className="bi bi-pencil-square"></i> Edit Data Diri
-                  </button>
-                </div>
-              </div>
-              <div className="profil-detail-grid">
-                <DetailItem label="Nama Lengkap" value={profil.nama_lengkap} />
-                <DetailItem label="NIS" value={profil.nis || 'Belum ditetapkan'} />
-                <DetailItem label="NIK" value={profil.nik} />
-                <DetailItem label="Jenjang" value={formatJenjang(profil.jenjang)} />
-                <DetailItem label="Tanggal Lahir" value={formatTanggal(profil.tanggal_lahir)} />
-                <DetailItem label="Jenis Kelamin" value={profil.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
-                <DetailItem label="No. Telepon" value={profil.no_telp || '-'} />
-                <DetailItem label="Nama Wali" value={profil.nama_wali || '-'} />
-                <DetailItem label="Alamat" value={profil.alamat || '-'} colSpan={2} />
-              </div>
-            </div>
-          )}
+          </section>
 
         </div>
       </main>
-    </div>
-  );
-}
-
-// ── Komponen Kecil: Item Detail Profil ───────────────────────
-function DetailItem({ label, value, colSpan = 1 }) {
-  return (
-    <div className="profil-detail-item" style={{ gridColumn: `span ${colSpan}` }}>
-      <span className="profil-detail-label">{label}</span>
-      <span className="profil-detail-value">{value || '—'}</span>
     </div>
   );
 }
@@ -391,28 +415,7 @@ function formatJenjang(jenjang) {
     paket_b: 'Paket B (Setara SMP)',
     paket_c: 'Paket C (Setara SMA)',
   };
-  return map[jenjang] || jenjang || '—';
-}
-
-function formatRole(role) {
-  const map = {
-    warga_belajar: 'Warga Belajar',
-    admin: 'Admin TU & Keuangan',
-    tutor: 'Tutor',
-    pimpinan: 'Pimpinan',
-    super_admin: 'Super Admin',
-  };
-  return map[role] || role || 'Pengguna';
-}
-
-// ── Helper: Format tanggal ke Bahasa Indonesia ───────────────
-function formatTanggal(tanggal) {
-  if (!tanggal) return '—';
-  return new Date(tanggal).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  return map[jenjang] || jenjang || 'Paket Belajar';
 }
 
 export default DashboardSiswa;

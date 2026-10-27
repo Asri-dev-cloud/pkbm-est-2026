@@ -156,7 +156,7 @@ function SiswaAdmin() {
   };
 
   // ── Total WB Aktif (ringkasan cepat) ────────────────────
-  const totalWB    = statJenjang.reduce((sum, s) => sum + (s.jumlah || 0), 0);
+  const totalWB    = statJenjang.reduce((sum, s) => sum + Number(s.jumlah || 0), 0);
   const totalAktif = siswaList.filter(s => s.is_aktif).length;
 
   return (

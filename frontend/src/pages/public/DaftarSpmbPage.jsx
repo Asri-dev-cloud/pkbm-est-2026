@@ -241,12 +241,14 @@ function DaftarSpmbPage() {
         <div className="spmb-topbar-inner">
           <Link to="/" className="spmb-topbar-back">
             <ArrowLeft size={16} />
-            <span>Kembali ke Beranda</span>
+            <span className="spmb-back-text-full">Kembali ke Beranda</span>
+            <span className="spmb-back-text-mobile">Beranda</span>
           </Link>
           <div className="spmb-topbar-right">
-            <span className="spmb-topbar-link">
-              Sudah punya akun? <Link to="/login"><strong>Masuk di sini</strong></Link>
-            </span>
+            <span className="spmb-topbar-prompt">Sudah punya akun?</span>
+            <Link to="/login" className="spmb-topbar-action-btn">
+              Masuk di Sini
+            </Link>
           </div>
         </div>
       </header>
@@ -255,7 +257,7 @@ function DaftarSpmbPage() {
       <section className="spmb-hero">
         <div className="spmb-hero-content">
           <div className="spmb-hero-icon logo-brand-container">
-            <img src="/images/logo_pkbm.png" alt="Logo PKBM Bina Mandiri" className="spmb-brand-logo" />
+            <img src="/images/logo new.png" alt="Logo PKBM Bina Mandiri" className="spmb-brand-logo" />
           </div>
           <h1 className="spmb-hero-title">Formulir Pendaftaran Online</h1>
           <p className="spmb-hero-subtitle">

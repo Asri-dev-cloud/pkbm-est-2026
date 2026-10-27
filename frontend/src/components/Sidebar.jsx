@@ -112,7 +112,7 @@ function Sidebar({ user }) {
 
         <div className="modern-mobile-navbar-center">
           <img
-            src="/images/logo_pkbm.png"
+            src="/images/logo new.png"
             alt="Logo PKBM Bina Mandiri"
             className="modern-mobile-navbar-logo"
           />
@@ -159,7 +159,7 @@ function Sidebar({ user }) {
           >
             <div className="brand-logo-clean-wrap">
               <img
-                src="/images/logo_pkbm.png"
+                src="/images/logo new.png"
                 alt="Logo Resmi PKBM Bina Mandiri"
                 className="brand-logo-clean"
               />

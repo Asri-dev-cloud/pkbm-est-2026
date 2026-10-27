@@ -102,30 +102,47 @@ function MateriSiswa() {
     <div className="app-layout">
       <Sidebar user={user} />
       <main className="app-main">
-        <div className="app-content">
+        <div className="app-content" style={{ padding: '2rem' }}>
 
           {/* Header */}
-          <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--text-2xl)', fontWeight: 800 }}>
+          <div style={{ marginBottom: '2rem', paddingTop: '0.5rem' }}>
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{
+                background: '#5CB8FF',
+                color: '#0F172A',
+                fontFamily: 'var(--font-heading, "Outfit", sans-serif)',
+                fontWeight: 900,
+                fontSize: '0.75rem',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                padding: '4px 14px 5px',
+                borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px',
+                display: 'inline-block',
+                transform: 'rotate(-1.5deg)'
+              }}>
+                MODUL & BUKU DIGITAL
+              </span>
+            </div>
+            <h1 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '2.15rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em' }}>
               Materi Belajar
             </h1>
-            <p style={{ color: 'var(--color-text-muted)', marginTop: 4 }}>
-              Materi yang dipublikasikan Tutor untuk rombel Anda.
+            <p style={{ color: '#64748B', marginTop: 6, fontSize: '0.96rem' }}>
+              Materi dan modul pembelajaran yang dipublikasikan Tutor untuk rombel Anda.
             </p>
           </div>
 
           {/* Loading */}
           {loading && (
-            <div className="loading-container">
-              <div className="spinner"></div>
-              <p>Memuat materi...</p>
+            <div className="loading-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
+              <div className="spinner" style={{ width: 40, height: 40, border: '4px solid rgba(92, 184, 255, 0.2)', borderTopColor: '#5CB8FF', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+              <p style={{ marginTop: '1rem', color: '#64748B', fontWeight: 600 }}>Memuat materi...</p>
             </div>
           )}
 
           {/* Error */}
           {!loading && error && (
-            <div className="alert alert-danger">
-              <i className="bi bi-exclamation-triangle-fill"></i>
+            <div className="alert alert-danger" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: '#FEE2E2', color: '#991B1B', borderRadius: '14px', border: '1px solid #FCA5A5' }}>
+              <i className="bi bi-exclamation-triangle-fill" style={{ fontSize: '1.25rem' }}></i>
               <span>{error}</span>
             </div>
           )}
@@ -135,7 +152,14 @@ function MateriSiswa() {
             <>
               {/* Ringkasan progres */}
               {materi.length > 0 && (
-                <div className="card" style={{ marginBottom: '1.5rem' }}>
+                <div style={{
+                  background: 'white',
+                  borderRadius: '20px',
+                  border: '1px solid #E2E8F0',
+                  padding: '1.25rem 1.6rem',
+                  marginBottom: '1.5rem',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)'
+                }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
                     <ProgresBar
                       selesai={materi.filter(m => m.sudah_selesai).length}
@@ -147,48 +171,76 @@ function MateriSiswa() {
 
               {/* Kondisi kosong */}
               {materi.length === 0 ? (
-                <div className="card">
+                <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '3rem 2rem', textAlign: 'center' }}>
                   <div className="empty-state">
-                    <i className="bi bi-book"></i>
-                    <h3>Belum Ada Materi</h3>
-                    <p>Tutor belum mempublikasikan materi untuk rombel Anda.</p>
+                    <i className="bi bi-book" style={{ fontSize: '3rem', color: '#CBD5E1' }}></i>
+                    <h3 style={{ marginTop: '1rem', fontWeight: 800 }}>Belum Ada Materi</h3>
+                    <p style={{ color: '#64748B' }}>Tutor belum mempublikasikan materi untuk rombel Anda.</p>
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                   {materi.map((item, idx) => (
                     <div
                       key={item.id}
-                      className="card"
-                      style={{ padding: '1rem 1.25rem', cursor: 'pointer' }}
+                      style={{
+                        background: 'white',
+                        borderRadius: '18px',
+                        border: '1px solid #E2E8F0',
+                        padding: '1.2rem 1.5rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)',
+                        transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 10px 22px rgba(92, 184, 255, 0.12)';
+                        e.currentTarget.style.borderColor = 'rgba(92, 184, 255, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.02)';
+                        e.currentTarget.style.borderColor = '#E2E8F0';
+                      }}
                       onClick={() => setDibuka(dibuka === item.id ? null : item.id)}
                     >
                       {/* Baris utama */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1.15rem' }}>
                         {/* Nomor urut */}
                         <div style={{
-                          width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                          background: item.sudah_selesai ? 'var(--color-success)' : 'var(--color-primary-light)',
-                          color: item.sudah_selesai ? 'white' : 'var(--color-primary)',
+                          width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                          background: item.sudah_selesai ? '#D1FAE5' : '#EBF6FF',
+                          color: item.sudah_selesai ? '#059669' : '#0284C7',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 'var(--text-sm)',
+                          fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontWeight: 800, fontSize: '0.9rem',
                         }}>
-                          {item.sudah_selesai ? <i className="bi bi-check-lg"></i> : idx + 1}
+                          {item.sudah_selesai ? <i className="bi bi-check-lg" style={{ strokeWidth: 2 }}></i> : idx + 1}
                         </div>
 
                         {/* Ikon tipe & judul */}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                            <i className={`bi ${ikonTipe(item.tipe)}`} style={{ color: 'var(--color-primary)', fontSize: '0.9rem' }}></i>
-                            <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
+                            <i className={`bi ${ikonTipe(item.tipe)}`} style={{ color: '#0284C7', fontSize: '1rem' }}></i>
+                            <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1E293B' }}>
                               {item.judul}
                             </span>
                             {item.sudah_selesai && (
-                              <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>Selesai</span>
+                              <span style={{
+                                background: '#D1FAE5',
+                                color: '#065F46',
+                                fontSize: '0.68rem',
+                                fontWeight: 800,
+                                padding: '2px 8px',
+                                borderRadius: '9999px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.04em'
+                              }}>
+                                Selesai
+                              </span>
                             )}
                           </div>
                           {item.nama_mapel && (
-                            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600 }}>
                               {item.nama_mapel}
                             </span>
                           )}
@@ -196,53 +248,96 @@ function MateriSiswa() {
 
                         {/* Chevron expand/collapse */}
                         <i className={`bi bi-chevron-${dibuka === item.id ? 'up' : 'down'}`}
-                           style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', flexShrink: 0 }}></i>
+                           style={{ color: '#94A3B8', fontSize: '0.95rem', flexShrink: 0 }}></i>
                       </div>
 
                       {/* Konten ekspanded */}
                       {dibuka === item.id && (
                         <div
-                          style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}
+                          style={{ marginTop: '1.15rem', paddingTop: '1.15rem', borderTop: '1px solid #F1F5F9' }}
                           onClick={e => e.stopPropagation()} // Cegah collapse saat klik konten
                         >
                           {item.deskripsi && (
-                            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: '1rem', lineHeight: 1.7 }}>
+                            <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '1.25rem', lineHeight: 1.7 }}>
                               {item.deskripsi}
                             </p>
                           )}
 
-                          {/* Link/file materi */}
-                          {getKontenUrl(item) && (
-                            <a
-                              href={getKontenUrl(item)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="btn btn-primary"
-                              style={{ marginRight: '0.75rem' }}
-                            >
-                              <i className={`bi ${ikonTipe(item.tipe)}`}></i>
-                              {item.tipe === 'video' || item.tipe === 'video_link'
-                                ? 'Tonton Video'
-                                : item.tipe === 'link' || item.tipe === 'link_eksternal'
-                                  ? 'Buka Link'
-                                  : 'Unduh Materi'}
-                            </a>
-                          )}
+                          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            {/* Link/file materi */}
+                            {getKontenUrl(item) && (
+                              <a
+                                href={getKontenUrl(item)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  background: '#5CB8FF',
+                                  color: '#0F172A',
+                                  fontWeight: 800,
+                                  fontSize: '0.86rem',
+                                  padding: '9px 20px',
+                                  borderRadius: '9999px',
+                                  textDecoration: 'none',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  boxShadow: '0 4px 14px rgba(92, 184, 255, 0.28)',
+                                  transition: 'all 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#3A9BF0';
+                                  e.currentTarget.style.transform = 'translateY(-1px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = '#5CB8FF';
+                                  e.currentTarget.style.transform = 'translateY(0)';
+                                }}
+                              >
+                                <i className={`bi ${ikonTipe(item.tipe)}`}></i>
+                                <span>
+                                  {item.tipe === 'video' || item.tipe === 'video_link'
+                                    ? 'Tonton Video'
+                                    : item.tipe === 'link' || item.tipe === 'link_eksternal'
+                                      ? 'Buka Link'
+                                      : 'Unduh Materi'}
+                                </span>
+                              </a>
+                            )}
 
-                          {/* Tombol tandai selesai — hanya tampil jika belum selesai */}
-                          {!item.sudah_selesai && (
-                            <button
-                              className="btn btn-secondary"
-                              onClick={() => handleTandaiSelesai(item.id)}
-                              disabled={marking === item.id}
-                            >
-                              {marking === item.id ? (
-                                <><span className="spinner-sm" style={{ borderTopColor: 'var(--color-primary)' }}></span> Menyimpan...</>
-                              ) : (
-                                <><i className="bi bi-check-circle"></i> Tandai Selesai Dibaca</>
-                              )}
-                            </button>
-                          )}
+                            {/* Tombol tandai selesai */}
+                            {!item.sudah_selesai && (
+                              <button
+                                onClick={() => handleTandaiSelesai(item.id)}
+                                disabled={marking === item.id}
+                                style={{
+                                  background: '#F1F5F9',
+                                  color: '#1E293B',
+                                  fontWeight: 700,
+                                  fontSize: '0.86rem',
+                                  padding: '9px 18px',
+                                  borderRadius: '9999px',
+                                  border: '1px solid #CBD5E1',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  transition: 'all 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#E2E8F0';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = '#F1F5F9';
+                                }}
+                              >
+                                {marking === item.id ? (
+                                  <><span className="spinner-sm" style={{ width: 14, height: 14, border: '2px solid #94A3B8', borderTopColor: '#0F172A', borderRadius: '50%', display: 'inline-block' }}></span> Menyimpan...</>
+                                ) : (
+                                  <><i className="bi bi-check-circle"></i> Tandai Selesai Dibaca</>
+                                )}
+                              </button>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -263,20 +358,20 @@ function ProgresBar({ selesai, total }) {
   const persen = total > 0 ? Math.round((selesai / total) * 100) : 0;
   return (
     <div style={{ flex: 1 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 'var(--text-sm)' }}>
-        <span style={{ fontWeight: 700 }}>Progres Belajar</span>
-        <span style={{ color: 'var(--color-text-muted)' }}>{selesai} / {total} materi selesai</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.88rem' }}>
+        <span style={{ fontWeight: 800, color: '#0F172A' }}>Progres Pembelajaran</span>
+        <span style={{ color: '#64748B', fontWeight: 600 }}>{selesai} dari {total} materi selesai</span>
       </div>
-      <div style={{ height: 10, background: 'var(--color-border)', borderRadius: 999, overflow: 'hidden' }}>
+      <div style={{ height: 10, background: '#F1F5F9', borderRadius: 999, overflow: 'hidden', border: '1px solid #E2E8F0' }}>
         <div style={{
           height: '100%', width: `${persen}%`,
-          background: 'var(--color-success)',
+          background: '#5CB8FF',
           borderRadius: 999,
-          transition: 'width 0.4s ease',
+          transition: 'width 0.5s ease',
         }} />
       </div>
-      <p style={{ textAlign: 'right', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 4 }}>
-        {persen}% selesai
+      <p style={{ textAlign: 'right', fontSize: '0.78rem', color: '#0284C7', marginTop: 5, fontWeight: 700 }}>
+        {persen}% Selesai
       </p>
     </div>
   );

@@ -697,13 +697,13 @@ function KelasTerpaduSiswa() {
             <>
               {/* BANNER UTAMA (HEADER KELAS) */}
               <div className="kelas-terpadu-hero" style={{
-                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                background: 'linear-gradient(135deg, #5CB8FF 0%, #3A9BF0 50%, #0284C7 100%)',
                 borderRadius: '24px',
                 padding: '2.5rem',
                 color: 'white',
                 position: 'relative',
                 overflow: 'hidden',
-                boxShadow: '0 12px 30px -10px rgba(2, 132, 199, 0.3)',
+                boxShadow: '0 16px 36px rgba(92, 184, 255, 0.28)',
                 marginBottom: '2rem'
               }}>
                 <div className="kelas-terpadu-hero-inner" style={{ position: 'relative', zIndex: 2, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '2rem' }}>

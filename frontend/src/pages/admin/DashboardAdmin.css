@@ -1,16 +1,16 @@
 /* ============================================================
    src/pages/admin/DashboardAdmin.css — Styling Modern & Elegan
-   Tema: Midnight Blue (#0F3C65) & Buttermilk (#FFF2BA)
+   Tema: Sky Blue (#5CB8FF), Warm Orange (#FFaf5c), Yellow (#F9C846), Soft Cream (#FFF8EE), Dark Navy (#243B53)
    ============================================================ */
 
-/* ── Container Layout & Canvas (Langsung Latar Belakang Buttermilk) ── */
+/* ── Container Layout & Canvas (Latar Belakang Soft Cream Sesuai Request) ── */
 .matcha-theme-layout {
-  background-color: #FFFBEA;
+  background-color: #FFF8EE;
   min-height: 100vh;
 }
 
 .matcha-theme-layout .app-main {
-  background-color: #FFFBEA !important;
+  background-color: #FFF8EE !important;
   padding: 0 !important;
 }
 
@@ -49,11 +49,11 @@
   padding: 0;
 }
 
-/* ── 1. Wavy Blue & White Hero Banner (Clean, Without Box) ── */
+/* ── 1. Sky Blue Hero Banner (Vibrant & Clean) ── */
 .matcha-hero-banner {
   position: relative;
-  background-color: #0F6CBD;
-  background-image: url('/images/banner_groovy_waves.svg');
+  background-color: #5CB8FF;
+  background-image: linear-gradient(135deg, #5CB8FF 0%, #3A9BF0 100%), url('/images/banner_groovy_waves.svg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -61,8 +61,8 @@
   padding: 34px 44px 0;
   color: #FFFFFF;
   overflow: hidden;
-  box-shadow: 0 22px 50px rgba(10, 80, 160, 0.35);
-  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 22px 50px rgba(92, 184, 255, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
   margin-top: 20px;
 }
 
@@ -252,29 +252,29 @@
   gap: 12px;
 }
 
-/* Tombol Aksi Utama: Yellow Pill (#FFE500) */
+/* Tombol Aksi Utama: Warm Orange Pill (#FFaf5c) */
 .matcha-pill-btn-lime {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 11px 24px;
   border-radius: 8px;
-  background: #FFE500;
-  color: #000000;
+  background: #FFaf5c;
+  color: #243B53;
   font-size: 0.84rem;
   font-weight: 800;
   text-decoration: none;
   border: none;
-  box-shadow: 0 4px 20px rgba(255, 229, 0, 0.45);
+  box-shadow: 0 4px 20px rgba(255, 175, 92, 0.45);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .matcha-pill-btn-lime:hover {
-  background: #FFF04D;
+  background: #FFA040;
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(255, 229, 0, 0.6);
-  color: #000000;
+  box-shadow: 0 8px 28px rgba(255, 175, 92, 0.6);
+  color: #243B53;
   text-decoration: none;
 }
 
@@ -285,21 +285,21 @@
   gap: 8px;
   padding: 10px 20px;
   border-radius: 8px;
-  background: rgba(10, 75, 155, 0.7);
+  background: rgba(36, 59, 83, 0.4);
   color: #FFFFFF;
   font-size: 0.84rem;
   font-weight: 700;
   text-decoration: none;
-  border: 1.5px solid rgba(255, 229, 0, 0.5);
+  border: 1.5px solid rgba(255, 248, 238, 0.6);
   backdrop-filter: blur(8px);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .matcha-pill-btn-glass:hover {
-  background: #FFE500;
-  color: #0E62B0;
-  border-color: #FFE500;
+  background: #FFF8EE;
+  color: #243B53;
+  border-color: #FFF8EE;
   transform: translateY(-2px);
   text-decoration: none;
 }
@@ -345,7 +345,7 @@
   max-height: 420px;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 20px 32px rgba(8, 44, 96, 0.65)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 20px 32px rgba(36, 59, 83, 0.45)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
   transform: translateY(0);
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -361,36 +361,36 @@
   max-width: 180px;
   z-index: 5;
   text-align: right;
-  background: rgba(10, 75, 155, 0.85);
+  background: rgba(36, 59, 83, 0.85);
   backdrop-filter: blur(8px);
   padding: 6px 12px;
   border-radius: 9px;
-  border: 1px solid rgba(255, 229, 0, 0.4);
+  border: 1px solid rgba(255, 175, 92, 0.4);
 }
 
 .matcha-side-note-text {
   font-size: 0.72rem;
   line-height: 1.35;
-  color: #FFE500;
+  color: #FFF8EE;
   font-weight: 600;
   display: block;
 }
 
-/* ── Ribbon Marquee Bergerak Elegan (Black Ribbon & Vibrant Yellow Text) ── */
+/* ── Ribbon Marquee Bergerak Elegan (Dark Navy Ribbon & Yellow Text) ── */
 .hero-ribbon-marquee {
   position: relative;
   width: calc(100% + 88px);
   margin-left: -44px;
   margin-right: -44px;
   height: 40px;
-  background: #000000;
+  background: #243B53;
   border-top: 1.5px solid rgba(255, 255, 255, 0.2);
-  border-bottom: 2px solid #000000;
+  border-bottom: 2px solid #182838;
   overflow: hidden;
   display: flex;
   align-items: center;
   z-index: 4;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 4px 18px rgba(36, 59, 83, 0.35);
 }
 
 .ribbon-marquee-track {
@@ -411,7 +411,7 @@
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.09em;
-  color: #FFE500;
+  color: #F9C846;
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
@@ -426,18 +426,18 @@
   }
 }
 
-/* ── 2. Yellow Bar (Metrics — Full Kiri Kanan No Space) ── */
+/* ── 2. Yellow & Warm Orange Bar (Metrics — Full Kiri Kanan No Space) ── */
 .matcha-capsule-card {
   position: relative;
   z-index: 7;
-  background: #FFE500;
-  background-image: linear-gradient(135deg, #FFE500 0%, #FFD700 100%);
+  background: #F9C846;
+  background-image: linear-gradient(135deg, #F9C846 0%, #FFaf5c 100%);
   border-radius: 0;
-  border-top: 2px solid rgba(0, 0, 0, 0.16);
-  border-bottom: 2px solid rgba(0, 0, 0, 0.16);
+  border-top: 2px solid rgba(36, 59, 83, 0.12);
+  border-bottom: 2px solid rgba(36, 59, 83, 0.12);
   border-left: none;
   border-right: none;
-  box-shadow: 0 10px 28px rgba(255, 229, 0, 0.35);
+  box-shadow: 0 10px 28px rgba(249, 200, 70, 0.35);
   padding: 18px 32px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -455,7 +455,7 @@
   align-items: center;
   gap: 14px;
   text-decoration: none;
-  color: #000000;
+  color: #243B53;
   padding: 10px 14px;
   border-radius: 10px;
   transition: all 0.25s ease;
@@ -463,7 +463,7 @@
 }
 
 .matcha-capsule-item:hover {
-  background: rgba(0, 0, 0, 0.08);
+  background: rgba(36, 59, 83, 0.08);
   transform: translateY(-2px);
   text-decoration: none;
 }
@@ -472,21 +472,21 @@
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: #000000;
-  border: 1.5px solid #000000;
+  background: #243B53;
+  border: 1.5px solid #243B53;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: #FFE500;
+  color: #FFF8EE;
   transition: all 0.25s ease;
 }
 
 .matcha-capsule-item:hover .matcha-capsule-icon-wrap {
-  background: #1C1917;
-  color: #FFF04D;
+  background: #182838;
+  color: #5CB8FF;
   transform: scale(1.08);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 14px rgba(36, 59, 83, 0.35);
 }
 
 .matcha-capsule-text {
@@ -498,7 +498,7 @@
 .matcha-capsule-title {
   font-size: 0.95rem;
   font-weight: 800;
-  color: #000000;
+  color: #243B53;
   line-height: 1.2;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -508,8 +508,8 @@
 
 .matcha-capsule-sub {
   font-size: 0.76rem;
-  color: #1E293B;
-  font-weight: 600;
+  color: #334E68;
+  font-weight: 700;
   margin-top: 3px;
   white-space: nowrap;
   overflow: hidden;
@@ -534,7 +534,7 @@
 .matcha-editorial-title {
   font-size: 2.15rem;
   font-weight: 800;
-  color: #0F3C65;
+  color: #243B53;
   letter-spacing: -0.03em;
   line-height: 1.15;
   margin: 0 0 6px;
@@ -544,12 +544,12 @@
   font-family: 'Playfair Display', Georgia, serif;
   font-style: italic;
   font-weight: 500;
-  color: #1F578A;
+  color: #5CB8FF;
 }
 
 .matcha-editorial-desc {
   font-size: 0.88rem;
-  color: #4A657D;
+  color: #627D98;
   max-width: 580px;
   line-height: 1.55;
   margin: 0;
@@ -561,38 +561,38 @@
   gap: 8px;
   padding: 11px 24px;
   border-radius: 9999px;
-  background: #0F3C65;
-  color: #FFF2BA;
+  background: #243B53;
+  color: #FFF8EE;
   font-size: 0.82rem;
   font-weight: 800;
   text-decoration: none;
-  border: 1px solid rgba(255, 242, 186, 0.3);
-  box-shadow: 0 4px 14px rgba(15, 60, 101, 0.25);
+  border: 1px solid rgba(255, 248, 238, 0.3);
+  box-shadow: 0 4px 14px rgba(36, 59, 83, 0.25);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   flex-shrink: 0;
 }
 
 .matcha-pill-btn-dark:hover {
-  background: #092540;
+  background: #182838;
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(15, 60, 101, 0.4);
-  color: #FFF2BA;
+  box-shadow: 0 8px 22px rgba(36, 59, 83, 0.4);
+  color: #FFaf5c;
   text-decoration: none;
 }
 
 /* ── Card & Content Harmonization ── */
 .matcha-card {
   background: #FFFFFF !important;
-  border: 1px solid #EAE3C7 !important;
+  border: 1px solid #E5EBF2 !important;
   border-radius: 26px !important;
-  box-shadow: 0 6px 22px rgba(15, 60, 101, 0.05) !important;
+  box-shadow: 0 6px 22px rgba(36, 59, 83, 0.05) !important;
 }
 
 .matcha-count-badge {
-  background: #FFF8D6 !important;
-  color: #0F3C65 !important;
-  border: 1px solid #F2DC7A !important;
+  background: #FEF8E7 !important;
+  color: #243B53 !important;
+  border: 1px solid #F9C846 !important;
   font-weight: 800 !important;
 }
 

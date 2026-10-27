@@ -48,7 +48,7 @@ const PROGRAMS = [
     setara: "Setara SMA / MA",
     badge: "Paling Banyak Diminati",
     topTag: "BESTSELLER",
-    img: "/images/rapat1.jpg",
+    img: "/images/Foto Pengganti 1.jpeg",
     desc: "Program unggulan berijazah resmi negara dengan hak eligibilitas penuh setara SMA formal — sah untuk daftar kuliah PTN/PTS, CPNS, TNI/Polri, dan kerja.",
     features: [
       "Hak eligibilitas penuh setara SMA formal",
@@ -111,7 +111,7 @@ const KEBUTUHAN_CATEGORIES = [
     tag: "Karyawan / Pekerja",
     title: "Pekerja & Buruh",
     desc: "Belajar santai via LMS kapan saja tanpa mengganggu shift kerja.",
-    img: "/images/kelas2.jpg",
+    img: "/images/Foto Pengganti 4.jpeg",
     target: "Paket C / Paket B"
   },
   {
@@ -119,7 +119,7 @@ const KEBUTUHAN_CATEGORIES = [
     tag: "Homeschooling",
     title: "Remaja Putus Sekolah",
     desc: "Lanjutkan pendidikan dengan metode ramah dan bebas perundungan.",
-    img: "/images/kelas1.jpg",
+    img: "/images/Foto Pengganti 5.jpeg",
     target: "Paket A / B / C"
   },
   {
@@ -127,7 +127,7 @@ const KEBUTUHAN_CATEGORIES = [
     tag: "Target Kuliah",
     title: "Persiapan PTN & PTS",
     desc: "Ijazah Paket C resmi berhak ikut SNBP, SNBT UTBK, dan Mandiri.",
-    img: "/images/hero1.png",
+    img: "/images/Foto Pengganti 6.jpeg",
     target: "Paket C Resmi"
   },
   {
@@ -135,7 +135,7 @@ const KEBUTUHAN_CATEGORIES = [
     tag: "Bebas Usia",
     title: "Dewasa & Ibu Rumah Tangga",
     desc: "Wujudkan impian memegang ijazah formal dengan penuh kebanggaan.",
-    img: "/images/rapat2.jpg",
+    img: "/images/Foto Pengganti 7.jpeg",
     target: "Semua Jenjang"
   },
   {
@@ -143,7 +143,7 @@ const KEBUTUHAN_CATEGORIES = [
     tag: "Promosi Jabatan",
     title: "Peningkatan Karier",
     desc: "Penuhi syarat kualifikasi ijazah untuk kenaikan pangkat kerja.",
-    img: "/images/gedung.jpeg",
+    img: "/images/Foto Pengganti 8.jpeg",
     target: "Paket C + Skill"
   }
 ];
@@ -204,18 +204,18 @@ const KEUNGGULAN_GRID = [
     desc: "Skema pembiayaan pendidikan nonformal yang adil dan dapat diangsur.",
     badge: "HEMAT",
     icon: CheckCircle2,
-    img: "/images/brosur.jpg"
+    img: "/images/Foto Pengganti 3.jpeg"
   }
 ];
 
 // ── DOKUMENTASI & GALERI ─────────────────────────────────────
 const GALERI = [
-  { src: "/images/gedung.jpeg", label: "Gedung Pusat Belajar & Pelayanan PKBM Bina Mandiri" },
-  { src: "/images/kelas1.jpg", label: "Aktivitas Belajar Tatap Muka & Diskusi Interaktif" },
-  { src: "/images/kelas2.jpg", label: "Pendampingan Modul & Literasi Warga Belajar" },
-  { src: "/images/rapat1.jpg", label: "Pertemuan Evaluasi Akademik & Ujian Kesetaraan" },
-  { src: "/images/rapat2.jpg", label: "Sinergi Tim Tutor & Pengelola Yayasan" },
-  { src: "/images/rapot.jpg", label: "Penyerahan Rapot & Pembagian Ijazah Resmi" },
+  { src: "/images/gedung.jpeg", label: "Gedung Pusat Belajar & Pelayanan PKBM Bina Mandiri", position: "center" },
+  { src: "/images/kelas1.jpg", label: "Aktivitas Belajar Tatap Muka & Diskusi Interaktif", position: "center" },
+  { src: "/images/kelas2.jpg", label: "Pendampingan Modul & Literasi Warga Belajar", position: "center" },
+  { src: "/images/rapat1.jpg", label: "Pertemuan Evaluasi Akademik & Ujian Kesetaraan", position: "center" },
+  { src: "/images/Foto Pengganti 2.jpeg", label: "Sinergi Tim Tutor & Pengelola Yayasan", position: "top" },
+  { src: "/images/rapot.jpg", label: "Penyerahan Rapot & Pembagian Ijazah Resmi", position: "center" },
 ];
 
 // ── PERTANYAAN UMUM (FAQ) ────────────────────────────────────
@@ -794,7 +794,7 @@ export default function HomePage() {
               }}
             >
               <img
-                src="/images/logo_pkbm.png"
+                src="/images/logo new.png"
                 alt="Logo PKBM"
                 style={{
                   width: 36,
@@ -1666,7 +1666,7 @@ export default function HomePage() {
                   >
                     <div style={{ position: "relative", overflow: "hidden", borderRadius: 6 }}>
                       <img
-                        src="/images/brosur.jpg"
+                        src="/images/Foto Pengganti 3.jpeg"
                         alt="Brosur Resmi PKBM Bina Mandiri"
                         style={{
                           width: "100%",
@@ -1750,8 +1750,8 @@ export default function HomePage() {
                     }}
                   >
                     <img
-                      src="/images/logo_pkbm.png"
-                      alt="Logo Kemendikbud RI"
+                      src="/images/logo new.png"
+                      alt="Logo PKBM Bina Mandiri"
                       style={{ width: "100%", height: "100%", objectFit: "contain" }}
                     />
                   </div>
@@ -1920,7 +1920,7 @@ export default function HomePage() {
             {/* Modal Body: Scrollable Image */}
             <div style={{ overflowY: "auto", padding: 16, textAlign: "center", background: "#121417" }}>
               <img
-                src="/images/brosur.jpg"
+                src="/images/Foto Pengganti 3.jpeg"
                 alt="Brosur PKBM Bina Mandiri Penuh"
                 style={{ maxWidth: "100%", height: "auto", borderRadius: 12, display: "inline-block" }}
               />
@@ -2489,7 +2489,7 @@ export default function HomePage() {
               borderRadius: 28,
               overflow: "hidden",
               marginBottom: 16,
-              height: 420,
+              height: "clamp(420px, 45vw, 520px)",
               position: "relative",
               border: "1px solid #E2E8F0",
               boxShadow: "0 16px 36px rgba(15, 23, 42, 0.08)"
@@ -2498,7 +2498,13 @@ export default function HomePage() {
             <img
               src={GALERI[activeGaleri].src}
               alt={GALERI[activeGaleri].label}
-              style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.4s ease" }}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: GALERI[activeGaleri].position || "center",
+                transition: "opacity 0.4s ease"
+              }}
             />
             <div
               style={{
@@ -2540,7 +2546,16 @@ export default function HomePage() {
                   opacity: i === activeGaleri ? 1 : 0.65
                 }}
               >
-                <img src={g.src} alt={g.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img
+                  src={g.src}
+                  alt={g.label}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: g.position || "center"
+                  }}
+                />
               </div>
             ))}
           </div>
@@ -2862,7 +2877,7 @@ export default function HomePage() {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                 <img
-                  src="/images/logo_pkbm.png"
+                  src="/images/logo new.png"
                   alt="Logo PKBM"
                   style={{
                     width: 48,

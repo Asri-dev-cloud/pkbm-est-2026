@@ -4,34 +4,34 @@
    ============================================================ */
 
 :root {
-  --spmb-blue-dark:      #071527;    /* Deep Midnight Navy */
-  --spmb-blue-primary:   #0F3C65;    /* Brand Navy */
-  --spmb-blue-royal:     #2563EB;    /* Royal Blue Accent */
-  --spmb-blue-hover:     #1D4ED8;    /* Royal Blue Dark */
-  --spmb-blue-light:     #EFF6FF;    /* Ice Blue Tint */
-  --spmb-blue-subtle:    #DBEAFE;    /* Soft Blue Border */
+  --spmb-blue-dark:      #182838;    /* Deep Dark Navy */
+  --spmb-blue-primary:   #5CB8FF;    /* Sky Blue Primary */
+  --spmb-blue-royal:     #5CB8FF;    /* Sky Blue Accent */
+  --spmb-blue-hover:     #3A9BF0;    /* Sky Blue Dark */
+  --spmb-blue-light:     #EBF6FF;    /* Ice Blue Tint */
+  --spmb-blue-subtle:    #D1E9FF;    /* Soft Sky Blue Border */
   
-  --spmb-yellow:         #FACC15;    /* Bright Sun Yellow */
-  --spmb-yellow-dark:    #F59E0B;    /* Amber Gold */
-  --spmb-yellow-light:   #FEFCE8;    /* Pale Yellow Tint */
-  --spmb-yellow-badge:   #FEF08A;    /* Soft Yellow Badge */
+  --spmb-yellow:         #F9C846;    /* Yellow Sekunder */
+  --spmb-yellow-dark:    #FFaf5c;    /* Warm Orange Primer */
+  --spmb-yellow-light:   #FFF8EE;    /* Soft Cream BG */
+  --spmb-yellow-badge:   #FEF8E7;    /* Soft Yellow Badge */
 
-  --spmb-black:          #090D16;    /* Deep Jet Black */
-  --spmb-text-main:      #0F172A;    /* Slate 900 Text */
-  --spmb-text-muted:     #475569;    /* Slate 600 Text */
+  --spmb-black:          #182838;    /* Deep Dark Navy */
+  --spmb-text-main:      #243B53;    /* Dark Navy Text */
+  --spmb-text-muted:     #627D98;    /* Muted Slate Text */
   
   --spmb-white:          #FFFFFF;    /* Pure White */
-  --spmb-bg:             #F8FAFC;    /* Off-white Page Background */
+  --spmb-bg:             #FFF8EE;    /* Soft Cream Page Background */
   --spmb-card-bg:        #FFFFFF;    /* Pure White Card */
-  --spmb-border:         #E2E8F0;    /* Crisp Light Border */
+  --spmb-border:         #E5EBF2;    /* Crisp Light Border */
   
   --spmb-error:          #EF4444;    /* Crimson Red */
   --spmb-error-bg:       #FEF2F2;
-  --spmb-success:        #10B981;    /* Emerald Green */
-  --spmb-success-bg:     #ECFDF5;
+  --spmb-success:        #6BCB77;    /* Fresh Green Sekunder */
+  --spmb-success-bg:     #E6F8EA;
 
-  --spmb-shadow-card:    0 20px 45px -12px rgba(15, 39, 68, 0.12), 0 4px 12px rgba(0, 0, 0, 0.03);
-  --spmb-shadow-btn:     0 8px 20px -4px rgba(37, 99, 235, 0.35);
+  --spmb-shadow-card:    0 20px 45px -12px rgba(36, 59, 83, 0.12), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --spmb-shadow-btn:     0 8px 20px -4px rgba(92, 184, 255, 0.4);
   --spmb-radius-lg:      16px;
   --spmb-radius-xl:      24px;
 }
@@ -54,6 +54,11 @@
   background: var(--spmb-blue-dark);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 12px 24px;
+  padding-top: max(12px, env(safe-area-inset-top, 12px));
+  padding-left: max(16px, env(safe-area-inset-left, 16px));
+  padding-right: max(16px, env(safe-area-inset-right, 16px));
+  position: relative;
+  z-index: 20;
 }
 
 .spmb-topbar-inner {
@@ -62,6 +67,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .spmb-topbar-back {
@@ -70,25 +76,64 @@
   gap: 8px;
   color: #E2E8F0;
   text-decoration: none;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 6px;
+  padding: 7px 16px;
+  border-radius: 9999px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .spmb-topbar-back:hover {
   background: rgba(255, 255, 255, 0.18);
   color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.3);
   transform: translateX(-2px);
+}
+
+.spmb-back-text-mobile {
+  display: none;
 }
 
 .spmb-topbar-right {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
+}
+
+.spmb-topbar-prompt {
+  color: #CBD5E1;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.spmb-topbar-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 16px;
+  background: var(--spmb-yellow);
+  color: #0F172A;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(249, 200, 70, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.spmb-topbar-action-btn:hover {
+  background: #FFE17D;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(249, 200, 70, 0.35);
+  color: #0F172A;
 }
 
 .spmb-topbar-link {
@@ -810,6 +855,30 @@
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 640px) {
+  .spmb-topbar {
+    padding: 10px 14px;
+    padding-top: max(10px, env(safe-area-inset-top, 10px));
+    padding-left: max(12px, env(safe-area-inset-left, 12px));
+    padding-right: max(12px, env(safe-area-inset-right, 12px));
+  }
+  .spmb-topbar-back {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+  .spmb-back-text-full {
+    display: none;
+  }
+  .spmb-back-text-mobile {
+    display: inline;
+  }
+  .spmb-topbar-prompt {
+    display: none;
+  }
+  .spmb-topbar-action-btn {
+    padding: 6px 13px;
+    font-size: 0.78rem;
+  }
   .spmb-hero {
     padding: 40px 16px 52px;
   }

@@ -242,41 +242,22 @@ export default function ProfileEditorCard({
       setError('');
       setSuccess('');
 
-      if (role === 'warga_belajar') {
-        if (showPasswordSection) {
-          await AuthAPI.changeMyPassword({
-            current_password: form.current_password,
-            new_password: form.new_password,
-            confirm_password: form.confirm_password,
-          });
+      // 1. Ganti Password jika diisi
+      if (showPasswordSection && form.current_password) {
+        if (!form.new_password) {
+          throw new Error('Password baru wajib diisi.');
         }
-
-        if (form._pendingFoto) {
-          const fotoData = new FormData();
-          fotoData.append('foto', form._pendingFoto);
-          const fotoRes = await AuthAPI.uploadFotoProfil(fotoData);
-          syncProfile(fotoRes.data.data);
+        if (form.new_password !== form.confirm_password) {
+          throw new Error('Konfirmasi password tidak cocok.');
         }
-
-        setSuccess('Profil berhasil diperbarui.');
-        setModalOpen(false);
-        setForm((prev) => ({
-          ...prev,
-          current_password: '',
-          new_password: '',
-          confirm_password: '',
-          _pendingFoto: null,
-        }));
-        return;
+        await AuthAPI.changeMyPassword({
+          current_password: form.current_password,
+          new_password: form.new_password,
+          confirm_password: form.confirm_password,
+        });
       }
 
-      const payload = {};
-      for (const field of fields) {
-        payload[field.key] = form[field.key] ?? '';
-      }
-      const res = await AuthAPI.updateMe(payload);
-      syncProfile(res.data.data);
-
+      // 2. Upload Foto Profil jika ada
       if (form._pendingFoto) {
         const fotoData = new FormData();
         fotoData.append('foto', form._pendingFoto);
@@ -284,10 +265,25 @@ export default function ProfileEditorCard({
         syncProfile(fotoRes.data.data);
       }
 
+      // 3. Update data profil ke /api/auth/me
+      const payload = {};
+      for (const field of fields) {
+        payload[field.key] = form[field.key] ?? '';
+      }
+      const res = await AuthAPI.updateMe(payload);
+      syncProfile(res.data.data);
+
       setSuccess('Profil berhasil diperbarui.');
       setModalOpen(false);
+      setForm((prev) => ({
+        ...prev,
+        current_password: '',
+        new_password: '',
+        confirm_password: '',
+        _pendingFoto: null,
+      }));
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal menyimpan profil.');
+      setError(err.response?.data?.message || err.message || 'Gagal menyimpan profil.');
     } finally {
       setSaving(false);
     }
@@ -421,52 +417,52 @@ export default function ProfileEditorCard({
             </div>
           </div>
 
-          {role === 'warga_belajar' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
-              <div style={{ padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg)' }}>
-                <div className="mobile-toolbar" style={{ justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontWeight: 700, marginBottom: 4 }}>Ganti Password</div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-                      Kosongkan jika Anda tidak ingin mengganti password.
-                    </div>
+          {/* Form Biodata / Profil (Nama, NIK, Tanggal Lahir, Jenis Kelamin, No. Telp, Alamat, dll.) */}
+          <div className="grid-cols-2" style={{ marginBottom: '1.25rem' }}>
+            {fields.map((field) => (
+              <div key={field.key} className="form-group" style={{ gridColumn: field.type === 'textarea' ? 'span 2' : 'span 1' }}>
+                <label className="form-label">
+                  {field.label} {field.required ? <span className="required">*</span> : null}
+                </label>
+                <ProfileField field={field} value={form[field.key] ?? ''} onChange={handleFieldChange} />
+              </div>
+            ))}
+          </div>
+
+          {/* Opsi Ganti Password */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ padding: '0.85rem 1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg)' }}>
+              <div className="mobile-toolbar" style={{ justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: 2 }}>Ganti Password</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                    Kosongkan jika Anda tidak ingin mengganti password.
                   </div>
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowPasswordSection((prev) => !prev)}>
-                    <i className={`bi ${showPasswordSection ? 'bi-dash-circle' : 'bi-key-fill'}`}></i>
-                    {showPasswordSection ? 'Tutup' : 'Atur Password'}
-                  </button>
+                </div>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowPasswordSection((prev) => !prev)}>
+                  <i className={`bi ${showPasswordSection ? 'bi-dash-circle' : 'bi-key-fill'}`}></i>
+                  {showPasswordSection ? 'Tutup' : 'Atur Password'}
+                </button>
+              </div>
+            </div>
+
+            {showPasswordSection ? (
+              <div className="grid-cols-2" style={{ marginBottom: '0.25rem' }}>
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="form-label">Password Lama <span className="required">*</span></label>
+                  <input type="password" className="form-input" value={form.current_password ?? ''} onChange={(e) => handleFieldChange('current_password', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Password Baru <span className="required">*</span></label>
+                  <input type="password" className="form-input" value={form.new_password ?? ''} onChange={(e) => handleFieldChange('new_password', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Konfirmasi Password Baru <span className="required">*</span></label>
+                  <input type="password" className="form-input" value={form.confirm_password ?? ''} onChange={(e) => handleFieldChange('confirm_password', e.target.value)} />
                 </div>
               </div>
-
-              {showPasswordSection ? (
-                <div className="grid-cols-2" style={{ marginBottom: '0.25rem' }}>
-                  <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                    <label className="form-label">Password Lama <span className="required">*</span></label>
-                    <input type="password" className="form-input" value={form.current_password ?? ''} onChange={(e) => handleFieldChange('current_password', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Password Baru <span className="required">*</span></label>
-                    <input type="password" className="form-input" value={form.new_password ?? ''} onChange={(e) => handleFieldChange('new_password', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Konfirmasi Password Baru <span className="required">*</span></label>
-                    <input type="password" className="form-input" value={form.confirm_password ?? ''} onChange={(e) => handleFieldChange('confirm_password', e.target.value)} />
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <div className="grid-cols-2" style={{ marginBottom: '1rem' }}>
-              {fields.map((field) => (
-                <div key={field.key} className="form-group" style={{ gridColumn: field.type === 'textarea' ? 'span 2' : 'span 1' }}>
-                  <label className="form-label">
-                    {field.label} {field.required ? <span className="required">*</span> : null}
-                  </label>
-                  <ProfileField field={field} value={form[field.key] ?? ''} onChange={handleFieldChange} />
-                </div>
-              ))}
-            </div>
-          )}
+            ) : null}
+          </div>
 
           {error && (
             <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>

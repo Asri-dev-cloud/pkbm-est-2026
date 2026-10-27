@@ -676,18 +676,18 @@ function DashboardAdmin() {
     year: 'numeric'
   }).format(new Date());
 
-  // Ekstrak data siswa per jenjang
-  const countPaketA = statSiswa?.find(s => s.jenjang === 'paket_a')?.jumlah || 10;
-  const countPaketB = statSiswa?.find(s => s.jenjang === 'paket_b')?.jumlah || 8;
-  const countPaketC = statSiswa?.find(s => s.jenjang === 'paket_c')?.jumlah || 20;
-  const countAlumni = 7;
+  // Ekstrak data siswa per jenjang (pastikan selalu di-parse ke Number agar tidak terjadi penggabungan string)
+  const countPaketA = Number(statSiswa?.find(s => s.jenjang === 'paket_a')?.jumlah || 0);
+  const countPaketB = Number(statSiswa?.find(s => s.jenjang === 'paket_b')?.jumlah || 0);
+  const countPaketC = Number(statSiswa?.find(s => s.jenjang === 'paket_c')?.jumlah || 0);
+  const countAlumni = Number(statSiswa?.find(s => s.jenjang === 'alumni')?.jumlah || 0);
   const totalSiswa = countPaketA + countPaketB + countPaketC + countAlumni;
 
-  // Persentase untuk Donut Chart & Progress Bars
-  const pctC = Math.round((countPaketC / totalSiswa) * 100);
-  const pctA = Math.round((countPaketA / totalSiswa) * 100);
-  const pctB = Math.round((countPaketB / totalSiswa) * 100);
-  const pctAlumni = Math.round((countAlumni / totalSiswa) * 100);
+  // Persentase untuk Donut Chart & Progress Bars (aman dari pembagian 0)
+  const pctC = totalSiswa > 0 ? Math.round((countPaketC / totalSiswa) * 100) : 0;
+  const pctA = totalSiswa > 0 ? Math.round((countPaketA / totalSiswa) * 100) : 0;
+  const pctB = totalSiswa > 0 ? Math.round((countPaketB / totalSiswa) * 100) : 0;
+  const pctAlumni = totalSiswa > 0 ? Math.round((countAlumni / totalSiswa) * 100) : 0;
 
   // Perhitungan arc SVG Donut Chart (Radius r = 62, Circumference = 389.56)
   const circumference = 389.56;
@@ -814,7 +814,7 @@ function DashboardAdmin() {
               </div>
               <div className="matcha-capsule-text">
                 <span className="matcha-capsule-title">SPMB Menunggu</span>
-                <span className="matcha-capsule-sub">{statSpmb?.pending ?? 45} Pendaftar Baru</span>
+                <span className="matcha-capsule-sub">{Number(statSpmb?.pending || 0)} Pendaftar Baru</span>
               </div>
             </Link>
 
@@ -905,12 +905,12 @@ function DashboardAdmin() {
                         fill="transparent"
                       />
 
-                      {/* Arc 1: Paket C (Midnight Blue) */}
+                      {/* Arc 1: Paket C (Sky Blue) */}
                       <circle
                         cx="80"
                         cy="80"
                         r="62"
-                        stroke="#0F3C65"
+                        stroke="#5CB8FF"
                         strokeWidth="18"
                         strokeDasharray={`${strokeC} ${circumference}`}
                         strokeDashoffset={offsetC}
@@ -919,12 +919,12 @@ function DashboardAdmin() {
                         className="transition-all duration-700 ease-out"
                       />
 
-                      {/* Arc 2: Paket A (Buttermilk Gold) */}
+                      {/* Arc 2: Paket A (Warm Orange) */}
                       <circle
                         cx="80"
                         cy="80"
                         r="62"
-                        stroke="#E5C34D"
+                        stroke="#FFaf5c"
                         strokeWidth="18"
                         strokeDasharray={`${strokeA} ${circumference}`}
                         strokeDashoffset={offsetA}
@@ -933,12 +933,12 @@ function DashboardAdmin() {
                         className="transition-all duration-700 ease-out"
                       />
 
-                      {/* Arc 3: Paket B (Sky Blue) */}
+                      {/* Arc 3: Paket B (Fresh Green) */}
                       <circle
                         cx="80"
                         cy="80"
                         r="62"
-                        stroke="#38BDF8"
+                        stroke="#6BCB77"
                         strokeWidth="18"
                         strokeDasharray={`${strokeB} ${circumference}`}
                         strokeDashoffset={offsetB}
@@ -947,12 +947,12 @@ function DashboardAdmin() {
                         className="transition-all duration-700 ease-out"
                       />
 
-                      {/* Arc 4: Alumni & Khusus (Navy Slate) */}
+                      {/* Arc 4: Alumni & Khusus (Yellow) */}
                       <circle
                         cx="80"
                         cy="80"
                         r="62"
-                        stroke="#1E293B"
+                        stroke="#F9C846"
                         strokeWidth="18"
                         strokeDasharray={`${strokeAlumni} ${circumference}`}
                         strokeDashoffset={offsetAlumni}
@@ -976,7 +976,7 @@ function DashboardAdmin() {
                     <div className="legend-bar-item">
                       <div className="legend-item-header">
                         <div className="legend-label-wrap">
-                          <span className="legend-color-dot" style={{ backgroundColor: '#0F3C65' }}></span>
+                          <span className="legend-color-dot" style={{ backgroundColor: '#5CB8FF' }}></span>
                           <span className="font-semibold text-slate-800">Paket C (Setara SMA)</span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -987,7 +987,7 @@ function DashboardAdmin() {
                       <div className="legend-progress-track">
                         <div
                           className="legend-progress-fill"
-                          style={{ width: `${pctC}%`, backgroundColor: '#0F3C65' }}
+                          style={{ width: `${pctC}%`, backgroundColor: '#5CB8FF' }}
                         />
                       </div>
                     </div>
@@ -996,7 +996,7 @@ function DashboardAdmin() {
                     <div className="legend-bar-item">
                       <div className="legend-item-header">
                         <div className="legend-label-wrap">
-                          <span className="legend-color-dot" style={{ backgroundColor: '#E5C34D' }}></span>
+                          <span className="legend-color-dot" style={{ backgroundColor: '#FFaf5c' }}></span>
                           <span className="font-semibold text-slate-800">Paket A (Setara SD)</span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -1007,7 +1007,7 @@ function DashboardAdmin() {
                       <div className="legend-progress-track">
                         <div
                           className="legend-progress-fill"
-                          style={{ width: `${pctA}%`, backgroundColor: '#E5C34D' }}
+                          style={{ width: `${pctA}%`, backgroundColor: '#FFaf5c' }}
                         />
                       </div>
                     </div>
@@ -1016,7 +1016,7 @@ function DashboardAdmin() {
                     <div className="legend-bar-item">
                       <div className="legend-item-header">
                         <div className="legend-label-wrap">
-                          <span className="legend-color-dot" style={{ backgroundColor: '#38BDF8' }}></span>
+                          <span className="legend-color-dot" style={{ backgroundColor: '#6BCB77' }}></span>
                           <span className="font-semibold text-slate-800">Paket B (Setara SMP)</span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -1027,7 +1027,7 @@ function DashboardAdmin() {
                       <div className="legend-progress-track">
                         <div
                           className="legend-progress-fill"
-                          style={{ width: `${pctB}%`, backgroundColor: '#38BDF8' }}
+                          style={{ width: `${pctB}%`, backgroundColor: '#6BCB77' }}
                         />
                       </div>
                     </div>
@@ -1036,7 +1036,7 @@ function DashboardAdmin() {
                     <div className="legend-bar-item">
                       <div className="legend-item-header">
                         <div className="legend-label-wrap">
-                          <span className="legend-color-dot" style={{ backgroundColor: '#1E293B' }}></span>
+                          <span className="legend-color-dot" style={{ backgroundColor: '#F9C846' }}></span>
                           <span className="font-semibold text-slate-800">Alumni & Program Khusus</span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -1047,7 +1047,7 @@ function DashboardAdmin() {
                       <div className="legend-progress-track">
                         <div
                           className="legend-progress-fill"
-                          style={{ width: `${pctAlumni}%`, backgroundColor: '#1E293B' }}
+                          style={{ width: `${pctAlumni}%`, backgroundColor: '#F9C846' }}
                         />
                       </div>
                     </div>

@@ -133,48 +133,73 @@ function AbsensiSiswa() {
   };
 
   // ── Helper: warna timer berdasarkan sisa waktu ───────────
-  const warnaTimer = sisaWaktu > 60 ? 'var(--color-success)'
-                   : sisaWaktu > 20 ? 'var(--color-warning)'
-                   : 'var(--color-danger)';
+  const warnaTimer = sisaWaktu > 60 ? '#5CB8FF'
+                   : sisaWaktu > 20 ? '#F59E0B'
+                   : '#EF4444';
 
   return (
     <div className="app-layout">
       <Sidebar user={user} />
       <main className="app-main">
-        <div className="app-content">
+        <div className="app-content" style={{ padding: '2rem' }}>
 
-          <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--text-2xl)', fontWeight: 800 }}>
+          <div style={{ marginBottom: '2rem', paddingTop: '0.5rem' }}>
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{
+                background: '#5CB8FF',
+                color: '#0F172A',
+                fontFamily: 'var(--font-heading, "Outfit", sans-serif)',
+                fontWeight: 900,
+                fontSize: '0.75rem',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                padding: '4px 14px 5px',
+                borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px',
+                display: 'inline-block',
+                transform: 'rotate(-1.5deg)'
+              }}>
+                PRESENSI DIGITAL
+              </span>
+            </div>
+            <h1 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '2.15rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em' }}>
               Absensi Saya
             </h1>
-            <p style={{ color: 'var(--color-text-muted)', marginTop: 4 }}>
-              Check-in kehadiran jika Tutor mengaktifkan sesi absensi mandiri.
+            <p style={{ color: '#64748B', marginTop: 6, fontSize: '0.96rem' }}>
+              Check-in kehadiran mandiri secara realtime jika Tutor membuka sesi presensi pertemuan.
             </p>
           </div>
 
           {/* ── Widget Sesi Absensi (bagian utama) ── */}
-          <div className="card" style={{ marginBottom: '2rem', textAlign: 'center', padding: '2.5rem' }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '22px',
+            border: '1px solid #E2E8F0',
+            padding: '2.5rem',
+            textAlign: 'center',
+            marginBottom: '2rem',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
+          }}>
 
             {/* Kondisi: Tidak ada sesi aktif */}
             {!sesiAktif && (
               <>
                 <div style={{
-                  width: 72, height: 72, borderRadius: '50%',
-                  background: 'var(--color-bg)', border: '2px solid var(--color-border)',
+                  width: 76, height: 76, borderRadius: '50%',
+                  background: '#F8FAFC', border: '1.5px solid #E2E8F0',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  margin: '0 auto 1.25rem', fontSize: '2rem', color: 'var(--color-text-muted)',
+                  margin: '0 auto 1.25rem', fontSize: '2.2rem', color: '#94A3B8',
                 }}>
                   <i className="bi bi-calendar-x"></i>
                 </div>
-                <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 8 }}>
-                  Belum Ada Sesi Absensi
+                <h3 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontWeight: 800, fontSize: '1.3rem', color: '#1E293B', marginBottom: 8 }}>
+                  Belum Ada Sesi Absensi Aktif
                 </h3>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', maxWidth: 360, margin: '0 auto' }}>
-                  Tunggu Tutor mengaktifkan sesi absensi. Halaman ini otomatis memperbarui setiap {POLLING_INTERVAL / 1000} detik.
+                <p style={{ color: '#64748B', fontSize: '0.92rem', maxWidth: 400, margin: '0 auto', lineHeight: 1.6 }}>
+                  Tunggu Tutor mengaktifkan sesi presensi mandiri di kelas. Halaman ini memantau pembaruan secara otomatis setiap {POLLING_INTERVAL / 1000} detik.
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: '1rem', color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>
-                  <div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }}></div>
-                  Memantau sesi aktif...
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: '1.25rem', color: '#0284C7', background: '#EBF6FF', padding: '6px 14px', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700 }}>
+                  <div className="spinner" style={{ width: 14, height: 14, borderWidth: 2, borderTopColor: '#0284C7' }}></div>
+                  <span>Memantau sesi kelas aktif...</span>
                 </div>
               </>
             )}
@@ -183,72 +208,107 @@ function AbsensiSiswa() {
             {sesiAktif && (
               <>
                 {/* Nama rombel */}
-                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 8 }}>
-                  Sesi absensi untuk
+                <p style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 600, marginBottom: 6 }}>
+                  SESI PRESENSI KELAS TERBUKA
                 </p>
-                <h2 style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 'var(--text-xl)', marginBottom: '1.5rem' }}>
+                <h2 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontWeight: 900, fontSize: '1.75rem', color: '#0F172A', marginBottom: '1.5rem' }}>
                   {sesiAktif.nama_rombel || 'Kelas Anda'}
                 </h2>
 
                 {/* Timer countdown — tampilan besar */}
                 <div style={{
-                  width: 140, height: 140, borderRadius: '50%',
-                  border: `6px solid ${sisaWaktu > 0 ? warnaTimer : 'var(--color-border)'}`,
+                  width: 144, height: 144, borderRadius: '50%',
+                  border: `6px solid ${sisaWaktu > 0 ? warnaTimer : '#E2E8F0'}`,
                   display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 1.75rem',
-                  boxShadow: sisaWaktu > 0 ? `0 0 24px ${warnaTimer}40` : 'none',
+                  boxShadow: sisaWaktu > 0 ? `0 0 28px ${warnaTimer}35` : 'none',
                   transition: 'all 0.5s',
+                  background: '#FFFFFF'
                 }}>
-                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: '2.2rem', fontWeight: 900, color: warnaTimer, lineHeight: 1 }}>
+                  <span style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '2.4rem', fontWeight: 900, color: warnaTimer, lineHeight: 1 }}>
                     {formatTimer(sisaWaktu)}
                   </span>
-                  <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 4 }}>sisa waktu</span>
+                  <span style={{ fontSize: '0.75rem', color: '#64748B', marginTop: 4, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>sisa waktu</span>
                 </div>
 
-                {/* Tombol Check-In */}
+                {/* Feedback Toast */}
                 {feedbackCi.msg && (
                   <div
-                    className={`alert ${feedbackCi.type === 'success' ? 'alert-success' : 'alert-danger'}`}
-                    style={{ display: 'inline-flex', margin: '0 auto 1rem' }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 16px',
+                      borderRadius: '12px',
+                      background: feedbackCi.type === 'success' ? '#D1FAE5' : '#FEE2E2',
+                      color: feedbackCi.type === 'success' ? '#065F46' : '#991B1B',
+                      fontSize: '0.86rem',
+                      fontWeight: 700,
+                      margin: '0 auto 1.25rem'
+                    }}
                   >
                     <i className={`bi ${feedbackCi.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}`}></i>
                     <span>{feedbackCi.msg}</span>
                   </div>
                 )}
+
                 {statusCi === 'sudah' ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                     <div style={{
-                      width: 64, height: 64, borderRadius: '50%', background: '#D1FAE5',
+                      width: 68, height: 68, borderRadius: '50%', background: '#D1FAE5',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '2rem', color: 'var(--color-success)',
+                      fontSize: '2rem', color: '#059669',
+                      boxShadow: '0 4px 14px rgba(16, 185, 129, 0.2)'
                     }}>
                       <i className="bi bi-check-circle-fill"></i>
                     </div>
-                    <span style={{ fontWeight: 700, color: 'var(--color-success)' }}>
+                    <span style={{ fontWeight: 800, color: '#065F46', fontSize: '1.1rem' }}>
                       Anda sudah tercatat hadir!
                     </span>
-                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                      Check-in berhasil. Terima kasih!
+                    <span style={{ fontSize: '0.84rem', color: '#64748B' }}>
+                      Presensi berhasil disubmit ke server.
                     </span>
                   </div>
                 ) : sisaWaktu > 0 ? (
                   <button
-                    className="btn btn-primary"
-                    style={{ fontSize: 'var(--text-lg)', padding: '1rem 2.5rem', minHeight: 56 }}
+                    style={{
+                      fontSize: '1rem',
+                      padding: '0.9rem 2.5rem',
+                      borderRadius: '9999px',
+                      background: '#5CB8FF',
+                      color: '#0F172A',
+                      fontWeight: 900,
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      boxShadow: '0 8px 24px rgba(92, 184, 255, 0.35)',
+                      transition: 'all 0.2s ease',
+                      letterSpacing: '0.02em'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#3A9BF0';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#5CB8FF';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
                     onClick={handleCheckIn}
                     disabled={loadingCi}
                   >
                     {loadingCi ? (
-                      <><span className="spinner-sm"></span> Mengirim kehadiran...</>
+                      <><span className="spinner-sm" style={{ width: 16, height: 16, border: '2px solid rgba(15,23,42,0.2)', borderTopColor: '#0F172A', borderRadius: '50%', display: 'inline-block' }}></span> Mengirim kehadiran...</>
                     ) : (
-                      <><i className="bi bi-send-check"></i> SUBMIT KEHADIRAN</>
+                      <><i className="bi bi-send-check" style={{ fontSize: '1.15rem' }}></i> SUBMIT KEHADIRAN</>
                     )}
                   </button>
                 ) : (
-                  <div className="alert alert-danger" style={{ display: 'inline-flex', margin: '0 auto' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: '#FEE2E2', color: '#991B1B', borderRadius: '12px', fontSize: '0.86rem', fontWeight: 700 }}>
                     <i className="bi bi-clock-history"></i>
-                    <span>Waktu check-in sudah habis.</span>
+                    <span>Waktu check-in presensi sudah berakhir.</span>
                   </div>
                 )}
               </>
@@ -256,11 +316,19 @@ function AbsensiSiswa() {
           </div>
 
           {/* ── Rekap Kehadiran Pribadi ── */}
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">
-                <i className="bi bi-bar-chart-fill" style={{ color: 'var(--color-primary)' }}></i>
-                {' '}Rekap Kehadiran Saya
+          <div style={{
+            background: 'white',
+            borderRadius: '22px',
+            border: '1px solid #E2E8F0',
+            padding: '1.75rem 2rem',
+            boxShadow: '0 4px 18px rgba(0, 0, 0, 0.02)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
+              <div style={{ width: 34, height: 34, borderRadius: '10px', background: '#EBF6FF', color: '#0284C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <i className="bi bi-bar-chart-fill" style={{ fontSize: '1.1rem' }}></i>
+              </div>
+              <h3 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontWeight: 800, fontSize: '1.2rem', color: '#0F172A', margin: 0 }}>
+                Rekap Kehadiran Saya
               </h3>
             </div>
 
@@ -269,40 +337,44 @@ function AbsensiSiswa() {
                 <div className="spinner"></div>
               </div>
             ) : !rekap ? (
-              <div className="empty-state" style={{ padding: '2rem' }}>
-                <i className="bi bi-inbox"></i>
-                <p>Belum ada data kehadiran.</p>
+              <div className="empty-state" style={{ padding: '2rem', textAlign: 'center' }}>
+                <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#CBD5E1' }}></i>
+                <p style={{ color: '#64748B', marginTop: 8 }}>Belum ada data kehadiran.</p>
               </div>
             ) : (
-              <div className="grid-cols-4">
-                <RekapItem label="Total Pertemuan" value={rekap.total_pertemuan ?? '—'} color="var(--color-primary)" />
-                <RekapItem label="Hadir"  value={rekap.hadir  ?? '—'} color="var(--color-success)" />
-                <RekapItem label="Izin / Sakit" value={(rekap.izin ?? 0) + (rekap.sakit ?? 0)} color="var(--color-warning)" />
-                <RekapItem label="Alpa"   value={rekap.alpa   ?? '—'} color="var(--color-danger)" />
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                gap: '12px'
+              }}>
+                <RekapItem label="Total Pertemuan" value={rekap.total_pertemuan ?? '—'} color="#0284C7" />
+                <RekapItem label="Hadir"  value={rekap.hadir  ?? '—'} color="#10B981" />
+                <RekapItem label="Izin / Sakit" value={(rekap.izin ?? 0) + (rekap.sakit ?? 0)} color="#F59E0B" />
+                <RekapItem label="Alpa"   value={rekap.alpa   ?? '—'} color="#EF4444" />
               </div>
             )}
 
             {/* Bar persentase kehadiran */}
             {rekap?.persentase_hadir != null && (
-              <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)', marginBottom: 8 }}>
-                  <span style={{ fontWeight: 700 }}>Tingkat Kehadiran</span>
-                  <span style={{ fontWeight: 800, color: rekap.persentase_hadir >= 75 ? 'var(--color-success)' : 'var(--color-danger)' }}>
+              <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', marginBottom: 8 }}>
+                  <span style={{ fontWeight: 800, color: '#0F172A' }}>Tingkat Kehadiran Keseluruhan</span>
+                  <span style={{ fontWeight: 900, color: rekap.persentase_hadir >= 75 ? '#0284C7' : '#EF4444' }}>
                     {rekap.persentase_hadir}%
                   </span>
                 </div>
-                <div style={{ height: 12, background: 'var(--color-border)', borderRadius: 999, overflow: 'hidden' }}>
+                <div style={{ height: 10, background: '#F1F5F9', borderRadius: 999, overflow: 'hidden', border: '1px solid #E2E8F0' }}>
                   <div style={{
                     height: '100%', borderRadius: 999,
                     width: `${rekap.persentase_hadir}%`,
-                    background: rekap.persentase_hadir >= 75 ? 'var(--color-success)' : 'var(--color-danger)',
+                    background: rekap.persentase_hadir >= 75 ? '#5CB8FF' : '#EF4444',
                     transition: 'width 0.5s ease',
                   }} />
                 </div>
                 {rekap.persentase_hadir < 75 && (
-                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-danger)', marginTop: 6, fontWeight: 600 }}>
-                    <i className="bi bi-exclamation-triangle-fill"></i>{' '}
-                    Kehadiran di bawah 75%. Harap tingkatkan kehadiran Anda.
+                  <p style={{ fontSize: '0.78rem', color: '#EF4444', marginTop: 8, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <i className="bi bi-exclamation-triangle-fill"></i>
+                    <span>Kehadiran di bawah 75%. Harap tingkatkan kehadiran Anda untuk memenuhi syarat evaluasi.</span>
                   </p>
                 )}
               </div>
@@ -318,14 +390,14 @@ function AbsensiSiswa() {
 function RekapItem({ label, value, color }) {
   return (
     <div style={{
-      textAlign: 'center', padding: '1rem',
-      background: 'var(--color-bg)', borderRadius: 'var(--radius-md)',
-      border: '1px solid var(--color-border)',
+      textAlign: 'center', padding: '1.1rem 0.75rem',
+      background: '#F8FAFC', borderRadius: '14px',
+      border: '1px solid #E2E8F0',
     }}>
-      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 800, color }}>
+      <div style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '1.75rem', fontWeight: 900, color, lineHeight: 1.1 }}>
         {value}
       </div>
-      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 4, fontWeight: 600 }}>
+      <div style={{ fontSize: '0.76rem', color: '#64748B', marginTop: 5, fontWeight: 700 }}>
         {label}
       </div>
     </div>

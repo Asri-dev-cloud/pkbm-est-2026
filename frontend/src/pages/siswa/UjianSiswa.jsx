@@ -127,22 +127,39 @@ function UjianSiswa() {
       <div className="app-layout">
         <Sidebar user={user} />
         <main className="app-main">
-          <div className="app-content">
-            <div style={{ marginBottom: '2rem' }}>
-              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--text-2xl)', fontWeight: 800 }}>
+          <div className="app-content" style={{ padding: '2rem' }}>
+            <div style={{ marginBottom: '2rem', paddingTop: '0.5rem' }}>
+              <div style={{ marginBottom: '8px' }}>
+                <span style={{
+                  background: '#5CB8FF',
+                  color: '#0F172A',
+                  fontFamily: 'var(--font-heading, "Outfit", sans-serif)',
+                  fontWeight: 900,
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  padding: '4px 14px 5px',
+                  borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px',
+                  display: 'inline-block',
+                  transform: 'rotate(-1.5deg)'
+                }}>
+                  CBT ASESMEN ONLINE
+                </span>
+              </div>
+              <h1 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '2.15rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em' }}>
                 Ujian Online
               </h1>
-              <p style={{ color: 'var(--color-text-muted)', marginTop: 4 }}>
-                Pilih ujian yang ingin Anda kerjakan{profil?.nama_rombel ? ` untuk ${profil.nama_rombel}` : ''}.
+              <p style={{ color: '#64748B', marginTop: 6, fontSize: '0.96rem' }}>
+                Pilih dan kerjakan paket asesmen aktif{profil?.nama_rombel ? ` untuk ${profil.nama_rombel}` : ''}.
               </p>
             </div>
 
             {pesertaUjian && (
-              <div className="card" style={{ marginBottom: '1.5rem', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <div style={{ marginBottom: '1.5rem', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', padding: '1.4rem 1.6rem', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontWeight: 800, marginBottom: 6 }}>Status Administrasi Ujian</div>
-                    <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                    <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0F172A', marginBottom: 4 }}>Status Administrasi Ujian</div>
+                    <div style={{ color: '#64748B', fontSize: '0.86rem' }}>
                       {pesertaUjian.nama_periode} • {String(pesertaUjian.jenis_ujian || '').toUpperCase()} {pesertaUjian.semester}
                     </div>
                   </div>
@@ -155,11 +172,22 @@ function UjianSiswa() {
                     </span>
                     {pesertaUjian.kartu_ujian_url && (
                       <a
-                        className="btn btn-primary"
                         href={pesertaUjian.kartu_ujian_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ padding: '6px 12px', fontSize: '0.82rem' }}
+                        style={{
+                          background: '#5CB8FF',
+                          color: '#0F172A',
+                          padding: '7px 16px',
+                          borderRadius: '9999px',
+                          fontSize: '0.82rem',
+                          fontWeight: 800,
+                          textDecoration: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: '0 4px 12px rgba(92, 184, 255, 0.25)'
+                        }}
                       >
                         <i className="bi bi-file-earmark-pdf"></i> Kartu Ujian
                       </a>
@@ -190,40 +218,69 @@ function UjianSiswa() {
 
             {!loading && !error && (
               paketList.length === 0 ? (
-                <div className="card"><div className="empty-state">
-                  <i className="bi bi-clipboard"></i>
-                  <h3>Belum Ada Ujian</h3>
-                  <p>Tutor belum membuat paket ujian aktif untuk rombel Anda.</p>
-                </div></div>
+                <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '3rem 2rem', textAlign: 'center' }}>
+                  <div className="empty-state">
+                    <i className="bi bi-clipboard" style={{ fontSize: '3rem', color: '#CBD5E1' }}></i>
+                    <h3 style={{ marginTop: '1rem', fontWeight: 800 }}>Belum Ada Ujian</h3>
+                    <p style={{ color: '#64748B' }}>Tutor belum membuat paket ujian aktif untuk rombel Anda.</p>
+                  </div>
+                </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                   {paketList.map((paket) => (
-                    <div key={paket.id} className="card" style={{ padding: '1.25rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div
+                      key={paket.id}
+                      style={{
+                        background: 'white',
+                        borderRadius: '20px',
+                        border: '1px solid #E2E8F0',
+                        padding: '1.4rem 1.6rem',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 10px 24px rgba(92, 184, 255, 0.12)';
+                        e.currentTarget.style.borderColor = 'rgba(92, 184, 255, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.02)';
+                        e.currentTarget.style.borderColor = '#E2E8F0';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1.15rem', flexWrap: 'wrap' }}>
                         <div style={{
-                          width: 44, height: 44, borderRadius: 'var(--radius-md)', flexShrink: 0,
-                          background: paket.sesi_saya ? '#D1FAE5' : 'var(--color-primary-light)',
-                          color: paket.sesi_saya ? 'var(--color-success)' : 'var(--color-primary)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem',
+                          width: 48, height: 48, borderRadius: '16px', flexShrink: 0,
+                          background: paket.sesi_saya ? '#D1FAE5' : '#EBF6FF',
+                          color: paket.sesi_saya ? '#059669' : '#0284C7',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem',
                         }}>
                           <i className={`bi ${paket.sesi_saya ? 'bi-patch-check-fill' : 'bi-file-earmark-text'}`}></i>
                         </div>
 
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: '1 1 300px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                            <span style={{ fontWeight: 700 }}>{paket.judul}</span>
+                            <span style={{ fontWeight: 800, fontSize: '1.02rem', color: '#0F172A' }}>{paket.judul}</span>
                             <span className={`badge ${paket.sumber_ujian === 'google_form' ? 'badge-warning' : 'badge-success'}`}>
                               {paket.sumber_ujian === 'google_form' ? 'Google Form' : 'Internal'}
                             </span>
                             {paket.sesi_saya && (
-                              <span className="badge badge-success">
+                              <span style={{
+                                background: '#D1FAE5',
+                                color: '#065F46',
+                                fontSize: '0.72rem',
+                                fontWeight: 800,
+                                padding: '3px 10px',
+                                borderRadius: '9999px'
+                              }}>
                                 {paket.sesi_saya.nilai_total != null
                                   ? `Nilai: ${paket.sesi_saya.nilai_total}`
                                   : 'Sudah Dikerjakan'}
                               </span>
                             )}
                           </div>
-                          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: '0.8rem', color: '#64748B', fontWeight: 600 }}>
                             <span><i className="bi bi-question-circle"></i> {paket.jumlah_soal} soal</span>
                             <span><i className="bi bi-clock"></i> {paket.durasi_menit} menit</span>
                             {paket.jenis && <span><i className="bi bi-tag"></i> {paket.jenis.toUpperCase()}</span>}
@@ -232,32 +289,68 @@ function UjianSiswa() {
                         </div>
 
                         {paket.sesi_saya ? (
-                          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>✓ Selesai</span>
+                          <span style={{ fontSize: '0.82rem', color: '#059669', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                            <i className="bi bi-check-circle-fill"></i> Selesai
+                          </span>
                         ) : pesertaUjian && pesertaUjian.status_kelayakan !== 'layak' ? (
-                          <button className="btn btn-secondary" style={{ flexShrink: 0 }} disabled title="Selesaikan administrasi ujian terlebih dahulu">
+                          <button className="btn btn-secondary" style={{ flexShrink: 0, borderRadius: '9999px' }} disabled title="Selesaikan administrasi ujian terlebih dahulu">
                             <i className="bi bi-lock-fill"></i> Terkunci
                           </button>
                         ) : paket.sumber_ujian === 'google_form' ? (
                           <a
-                            className="btn btn-primary"
-                            style={{ flexShrink: 0 }}
+                            style={{
+                              flexShrink: 0,
+                              background: '#5CB8FF',
+                              color: '#0F172A',
+                              fontWeight: 800,
+                              fontSize: '0.86rem',
+                              padding: '10px 22px',
+                              borderRadius: '9999px',
+                              textDecoration: 'none',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              boxShadow: '0 4px 14px rgba(92, 184, 255, 0.28)'
+                            }}
                             href={paket.link_google_form}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            <i className="bi bi-box-arrow-up-right"></i> Buka Google Form
+                            <i className="bi bi-box-arrow-up-right"></i> Buka Form
                           </a>
                         ) : (
                           <button
-                            className="btn btn-primary"
-                            style={{ flexShrink: 0 }}
+                            style={{
+                              flexShrink: 0,
+                              background: '#5CB8FF',
+                              color: '#0F172A',
+                              fontWeight: 800,
+                              fontSize: '0.86rem',
+                              padding: '10px 24px',
+                              borderRadius: '9999px',
+                              border: 'none',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              boxShadow: '0 4px 14px rgba(92, 184, 255, 0.28)',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#3A9BF0';
+                              e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#5CB8FF';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }}
                             onClick={() => {
                               if (window.confirm(`Mulai ujian "${paket.judul}"?\nDurasi: ${paket.durasi_menit} menit.\n\nPastikan koneksi internet Anda stabil.`)) {
                                 handleMulaiUjian(paket.id, paket.durasi_menit);
                               }
                             }}
                           >
-                            <i className="bi bi-play-fill"></i> Mulai
+                            <i className="bi bi-play-fill" style={{ fontSize: '1.1rem' }}></i> Mulai Ujian
                           </button>
                         )}
                       </div>
@@ -282,46 +375,49 @@ function UjianSiswa() {
     }).length;
 
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
         <div style={{
           position: 'sticky', top: 0, zIndex: 50,
-          background: 'white', borderBottom: '2px solid var(--color-border)',
-          padding: '0.75rem 1.5rem',
-          display: 'flex', alignItems: 'center', gap: '1rem',
+          background: 'white', borderBottom: '1px solid #E2E8F0',
+          padding: '0.85rem 2rem',
+          display: 'flex', alignItems: 'center', gap: '1.25rem',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)'
         }}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 'var(--text-lg)', flex: 1 }}>
+          <span style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontWeight: 800, fontSize: '1.15rem', color: '#0F172A', flex: 1 }}>
             {sesi.judul || 'Ujian Sedang Berlangsung'}
           </span>
 
-          <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', fontWeight: 600 }}>
-            {sudahJawab} / {totalSoal} dijawab
+          <span style={{ fontSize: '0.84rem', color: '#64748B', fontWeight: 700 }}>
+            <strong style={{ color: '#0F172A' }}>{sudahJawab}</strong> dari {totalSoal} dijawab
           </span>
 
           <div style={{
             display: 'flex', alignItems: 'center', gap: 6,
-            background: sisaWaktu <= 60 ? '#FEE2E2' : 'var(--color-primary-light)',
-            color: warnaTimer,
-            padding: '0.4rem 0.9rem', borderRadius: 'var(--radius-md)',
-            fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 'var(--text-lg)',
+            background: sisaWaktu <= 60 ? '#FEE2E2' : '#EBF6FF',
+            color: sisaWaktu <= 60 ? '#EF4444' : '#0284C7',
+            padding: '0.45rem 1rem', borderRadius: '9999px',
+            fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontWeight: 900, fontSize: '1rem',
+            border: `1.5px solid ${sisaWaktu <= 60 ? '#FCA5A5' : '#5CB8FF'}`
           }}>
             <i className="bi bi-clock-fill"></i>
             {formatTimer(sisaWaktu)}
           </div>
         </div>
 
-        <div style={{ flex: 1, maxWidth: 720, margin: '2rem auto', padding: '0 1.5rem', width: '100%' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: '1.5rem' }}>
+        <div style={{ flex: 1, maxWidth: 760, margin: '2rem auto', padding: '0 1.5rem', width: '100%' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: '1.5rem' }}>
             {soalList.map((item, index) => (
               <button
                 key={item.id}
                 onClick={() => setSoalIndex(index)}
                 style={{
-                  width: 34, height: 34, borderRadius: 'var(--radius-sm)',
-                  border: `2px solid ${index === soalIndex ? 'var(--color-primary)' : jawaban[item.id] ? 'var(--color-success)' : 'var(--color-border)'}`,
-                  background: index === soalIndex ? 'var(--color-primary)' : jawaban[item.id] ? '#D1FAE5' : 'white',
-                  color: index === soalIndex ? 'white' : 'var(--color-text)',
-                  fontWeight: 700, fontSize: 'var(--text-xs)',
+                  width: 36, height: 36, borderRadius: '10px',
+                  border: `2px solid ${index === soalIndex ? '#5CB8FF' : jawaban[item.id] ? '#10B981' : '#E2E8F0'}`,
+                  background: index === soalIndex ? '#5CB8FF' : jawaban[item.id] ? '#D1FAE5' : 'white',
+                  color: index === soalIndex ? '#0F172A' : jawaban[item.id] ? '#065F46' : '#475569',
+                  fontWeight: 800, fontSize: '0.82rem',
                   cursor: 'pointer', transition: 'all 0.15s',
+                  boxShadow: index === soalIndex ? '0 4px 10px rgba(92, 184, 255, 0.35)' : 'none'
                 }}
               >
                 {index + 1}
@@ -330,19 +426,23 @@ function UjianSiswa() {
           </div>
 
           {soalAktif && (
-            <div className="card" style={{ marginBottom: '1.5rem' }}>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span className="badge badge-neutral">Soal {soalIndex + 1} dari {totalSoal}</span>
-                  <span className="badge badge-info">{soalAktif.tipe === 'essay' ? 'Uraian' : 'Pilihan Ganda'}</span>
+            <div style={{ background: 'white', borderRadius: '22px', border: '1px solid #E2E8F0', padding: '2rem', marginBottom: '1.5rem', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)' }}>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <span style={{ background: '#F1F5F9', color: '#475569', padding: '3px 10px', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800 }}>
+                    Soal {soalIndex + 1} dari {totalSoal}
+                  </span>
+                  <span style={{ background: '#EBF6FF', color: '#0284C7', padding: '3px 10px', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800 }}>
+                    {soalAktif.tipe === 'essay' ? 'Uraian' : 'Pilihan Ganda'}
+                  </span>
                 </div>
-                <p style={{ fontWeight: 700, fontSize: 'var(--text-base)', lineHeight: 1.7 }}>
+                <p style={{ fontWeight: 700, fontSize: '1.05rem', color: '#1E293B', lineHeight: 1.7, margin: 0 }}>
                   {soalAktif.pertanyaan}
                 </p>
               </div>
 
               {soalAktif.tipe === 'pilihan_ganda' && soalAktif.pilihan?.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {soalAktif.pilihan.map((opsi, index) => {
                     const huruf = opsi.kunci || 'ABCDE'[index];
                     const dipilih = jawaban[soalAktif.id] === huruf;
@@ -351,24 +451,26 @@ function UjianSiswa() {
                         key={huruf}
                         onClick={() => handleJawab(soalAktif.id, huruf)}
                         style={{
-                          display: 'flex', alignItems: 'center', gap: '0.75rem',
-                          padding: '0.85rem 1rem', borderRadius: 'var(--radius-md)',
-                          border: `2px solid ${dipilih ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                          background: dipilih ? 'var(--color-primary-light)' : 'white',
+                          display: 'flex', alignItems: 'center', gap: '0.85rem',
+                          padding: '0.9rem 1.15rem', borderRadius: '14px',
+                          border: `2px solid ${dipilih ? '#5CB8FF' : '#E2E8F0'}`,
+                          background: dipilih ? '#EBF6FF' : 'white',
                           cursor: 'pointer', textAlign: 'left', width: '100%',
-                          transition: 'all 0.15s', fontSize: 'var(--text-sm)',
+                          transition: 'all 0.15s', fontSize: '0.92rem',
+                          color: dipilih ? '#0F172A' : '#334155',
+                          fontWeight: dipilih ? 700 : 500
                         }}
                       >
                         <span style={{
-                          width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                          width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: dipilih ? 'var(--color-primary)' : 'var(--color-bg)',
-                          color: dipilih ? 'white' : 'var(--color-text)',
-                          fontWeight: 800, fontSize: 'var(--text-xs)',
+                          background: dipilih ? '#5CB8FF' : '#F1F5F9',
+                          color: dipilih ? '#0F172A' : '#64748B',
+                          fontWeight: 900, fontSize: '0.82rem',
                         }}>
                           {huruf}
                         </span>
-                        {opsi.teks || opsi}
+                        <span>{opsi.teks || opsi}</span>
                       </button>
                     );
                   })}
@@ -378,11 +480,11 @@ function UjianSiswa() {
               {soalAktif.tipe === 'essay' && (
                 <textarea
                   className="form-input"
-                  rows={5}
-                  placeholder="Tulis jawaban Anda di sini..."
+                  rows={6}
+                  placeholder="Tulis uraian jawaban Anda di sini secara lengkap..."
                   value={jawaban[soalAktif.id] || ''}
                   onChange={(e) => handleJawab(soalAktif.id, e.target.value)}
-                  style={{ resize: 'vertical' }}
+                  style={{ resize: 'vertical', borderRadius: '14px', padding: '1rem', border: '1.5px solid #CBD5E1', fontSize: '0.92rem' }}
                 />
               )}
             </div>
@@ -390,7 +492,20 @@ function UjianSiswa() {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem' }}>
             <button
-              className="btn btn-secondary"
+              style={{
+                background: '#F1F5F9',
+                color: '#334155',
+                border: '1px solid #CBD5E1',
+                padding: '9px 20px',
+                borderRadius: '9999px',
+                fontWeight: 700,
+                fontSize: '0.86rem',
+                cursor: soalIndex === 0 ? 'not-allowed' : 'pointer',
+                opacity: soalIndex === 0 ? 0.5 : 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6
+              }}
               onClick={() => setSoalIndex((index) => Math.max(0, index - 1))}
               disabled={soalIndex === 0}
             >
@@ -399,15 +514,40 @@ function UjianSiswa() {
 
             {soalIndex < totalSoal - 1 ? (
               <button
-                className="btn btn-primary"
+                style={{
+                  background: '#5CB8FF',
+                  color: '#0F172A',
+                  border: 'none',
+                  padding: '9px 22px',
+                  borderRadius: '9999px',
+                  fontWeight: 800,
+                  fontSize: '0.86rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: '0 4px 12px rgba(92, 184, 255, 0.28)'
+                }}
                 onClick={() => setSoalIndex((index) => Math.min(totalSoal - 1, index + 1))}
               >
                 Berikutnya <i className="bi bi-arrow-right"></i>
               </button>
             ) : (
               <button
-                className="btn btn-primary"
-                style={{ background: 'var(--color-success)' }}
+                style={{
+                  background: '#10B981',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '10px 24px',
+                  borderRadius: '9999px',
+                  fontWeight: 800,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)'
+                }}
                 onClick={() => {
                   const belum = totalSoal - sudahJawab;
                   if (belum > 0 && !window.confirm(`Masih ada ${belum} soal yang belum dijawab. Submit sekarang?`)) {
@@ -435,47 +575,81 @@ function UjianSiswa() {
       <div className="app-layout">
         <Sidebar user={user} />
         <main className="app-main">
-          <div className="app-content" style={{ maxWidth: 560, margin: '0 auto' }}>
-            <div className="card" style={{ textAlign: 'center', padding: '2.5rem' }}>
+          <div className="app-content" style={{ maxWidth: 560, margin: '2rem auto' }}>
+            <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #E2E8F0', padding: '3rem 2.5rem', textAlign: 'center', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)' }}>
               <div style={{
                 width: 80, height: 80, borderRadius: '50%',
                 background: lulus ? '#D1FAE5' : '#FEE2E2',
-                color: lulus ? 'var(--color-success)' : 'var(--color-danger)',
+                color: lulus ? '#059669' : '#EF4444',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '2.5rem', margin: '0 auto 1.5rem',
               }}>
-                <i className={`bi ${lulus ? 'bi-trophy-fill' : 'bi-emoji-neutral-fill'}`}></i>
+                <i className={`bi ${lulus ? 'bi-award-fill' : 'bi-shield-exclamation'}`}></i>
               </div>
 
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, marginBottom: '0.5rem' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontWeight: 900, fontSize: '1.75rem', color: '#0F172A', marginBottom: '0.5rem' }}>
                 Ujian Selesai!
               </h2>
-              <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                Jawaban Anda telah berhasil disimpan.
+              <p style={{ color: '#64748B', marginBottom: '2rem', fontSize: '0.94rem' }}>
+                Jawaban Anda telah berhasil disimpan ke database.
               </p>
 
               {nilai != null && (
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 8 }}>Nilai Akhir Anda</p>
-                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: '4rem', fontWeight: 900, color: lulus ? 'var(--color-success)' : 'var(--color-danger)', lineHeight: 1 }}>
+                <div style={{ marginBottom: '1.75rem' }}>
+                  <p style={{ fontSize: '0.82rem', color: '#64748B', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nilai Akhir Anda</p>
+                  <div style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '4.5rem', fontWeight: 900, color: lulus ? '#059669' : '#EF4444', lineHeight: 1 }}>
                     {nilai}
                   </div>
-                  <div style={{ marginTop: 8 }}>
-                    <span className={`badge ${lulus ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.75rem' }}>
-                      {lulus ? '✓ Lulus KKM' : '✗ Belum mencapai KKM'}
+                  <div style={{ marginTop: 12 }}>
+                    <span style={{
+                      background: lulus ? '#D1FAE5' : '#FEE2E2',
+                      color: lulus ? '#065F46' : '#991B1B',
+                      fontSize: '0.82rem',
+                      fontWeight: 800,
+                      padding: '5px 14px',
+                      borderRadius: '9999px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6
+                    }}>
+                      <i className={`bi ${lulus ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}`}></i>
+                      <span>{lulus ? 'Lulus KKM' : 'Belum mencapai KKM'}</span>
                     </span>
                   </div>
                 </div>
               )}
 
               {nilai == null && (
-                <div className="alert alert-info" style={{ marginBottom: '1.5rem' }}>
+                <div className="alert alert-info" style={{ marginBottom: '1.75rem', borderRadius: '12px' }}>
                   <i className="bi bi-info-circle-fill"></i>
                   <span>Nilai akan muncul setelah Tutor selesai mengoreksi soal uraian.</span>
                 </div>
               )}
 
-              <button className="btn btn-primary" onClick={() => { setMode('daftar'); setHasilAkhir(null); }}>
+              <button
+                style={{
+                  background: '#5CB8FF',
+                  color: '#0F172A',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  padding: '12px 28px',
+                  borderRadius: '9999px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  boxShadow: '0 4px 14px rgba(92, 184, 255, 0.35)',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#3A9BF0';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#5CB8FF';
+                }}
+                onClick={() => { setMode('daftar'); setHasilAkhir(null); }}
+              >
                 <i className="bi bi-arrow-left"></i> Kembali ke Daftar Ujian
               </button>
             </div>

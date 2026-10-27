@@ -139,7 +139,7 @@ const SiswaModel = {
       ORDER BY jenjang
     `;
     const [rows] = await pool.execute(sql);
-    return rows;
+    return rows.map(r => ({ ...r, jumlah: Number(r.jumlah) }));
   },
 
   // -----------------------------------------------------------

@@ -1,284 +1,852 @@
 /* ============================================================
-   src/pages/siswa/DashboardSiswa.css — Styling Dashboard WB
+   src/pages/siswa/DashboardSiswa.css — Clean & Scribble Edition
+   ============================================================
+   - Tanpa kotak biru besar di section metrik
+   - Pill badge bergaya coretan spidol / highlighter organik
+   - Template kartu pelajar bersih tanpa bayangan kotak hitam
+   - 100% bebas emoji, menggunakan vektor Lucide React
    ============================================================ */
 
-/* ── Header Sambutan ──────────────────────────────────────── */
-.dashboard-header {
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.edutech-theme-scope {
+  --edu-lime: #D4FF00;
+  --edu-lime-hover: #C4EE00;
+  --edu-lime-tint: #F4FFBD;
+  --edu-blue: #5CB8FF;
+  --edu-blue-hover: #3A9BF0;
+  --edu-blue-tint: #EBF6FF;
+  --edu-dark: #131418;
+  --edu-dark-card: #1C1D24;
+  --edu-dark-border: #2B2C36;
+  --edu-white: #FFFFFF;
+  --edu-muted: #64748B;
+  --edu-font-display: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --edu-font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+.edutech-content-flow {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 1.75rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 2rem;
+  padding-bottom: 3.5rem;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
 }
 
-.dashboard-greeting {
-  font-size: var(--text-2xl);
-  font-weight: 800;
-  color: var(--color-text);
-  margin-bottom: 4px;
+/* ── Loading Screen & Error State ── */
+.edutech-loading-screen {
+  min-height: 75vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.dashboard-subtext {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+.edutech-loader-box {
+  background: var(--edu-dark);
+  color: var(--edu-white);
+  padding: 3rem 4rem;
+  border-radius: 24px;
+  border: 1px solid var(--edu-lime);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 16px 36px rgba(19, 20, 24, 0.15);
 }
 
-.dashboard-date {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  font-weight: 500;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
+.edutech-loader-title {
+  margin-top: 1.25rem;
+  font-family: var(--edu-font-display);
+  font-weight: 900;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  color: var(--edu-lime);
+}
+
+.edutech-loader-sub {
+  font-size: 0.84rem;
+  color: #94A3B8;
+  margin-top: 0.25rem;
+}
+
+.edutech-error-card {
+  background: #FFFFFF;
+  border: 1px solid #FECACA;
+  border-radius: 20px;
+  padding: 3rem;
+  text-align: center;
+  max-width: 500px;
+  margin: 3rem auto;
+  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.06);
+}
+
+.edutech-error-icon {
+  color: #EF4444;
+  margin-bottom: 1rem;
+}
+
+/* ── BENTUK PILL SEPERTI CORETAN (MARKER STROKE / HIGHLIGHTER DOODLE) ── */
+.scribble-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 16px 5px;
+  font-family: var(--edu-font-display);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   white-space: nowrap;
+  line-height: 1.1;
+  /* Kontur coretan spidol organik asimetris */
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+  transform: rotate(-1.5deg);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* ── Kartu Profil Singkat ─────────────────────────────────── */
-.profil-card {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  border-radius: var(--radius-xl);
-  padding: 1.5rem 2rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 1.25rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 8px 24px rgba(26, 107, 60, 0.25);
-  color: white;
+.scribble-pill:hover {
+  transform: rotate(0deg) scale(1.02);
 }
 
-.profil-avatar {
-  width: 64px;
-  height: 64px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 3px solid rgba(255, 255, 255, 0.4);
+.scribble-blue {
+  background: var(--edu-blue);
+  color: #0F172A;
+  box-shadow: 2px 2px 0px rgba(19, 20, 24, 0.12);
+}
+
+.scribble-lime {
+  background: var(--edu-lime);
+  color: var(--edu-dark);
+  border: 1.5px dashed rgba(19, 20, 24, 0.35);
+  box-shadow: 2px 2px 0px rgba(19, 20, 24, 0.08);
+}
+
+.scribble-lime-subtle {
+  background: var(--edu-lime);
+  color: var(--edu-dark);
+}
+
+.scribble-dark {
+  background: var(--edu-dark);
+  color: var(--edu-lime);
+  border-radius: 18px 225px 20px 255px/225px 18px 255px 20px;
+  transform: rotate(1deg);
+}
+
+/* Coretan Besar Khusus Judul */
+.headline-scribble {
+  font-size: 2.2rem;
+  padding: 4px 22px 6px;
+  border-radius: 255px 18px 225px 18px/18px 225px 18px 255px;
+  transform: rotate(-2deg);
+  margin-left: 8px;
+  box-shadow: 3px 4px 0px rgba(19, 20, 24, 0.18);
+}
+
+.title-scribble {
+  font-size: 1.75rem;
+  padding: 4px 18px 6px;
+  border-radius: 18px 255px 18px 225px/225px 18px 255px 18px;
+  transform: rotate(1.5deg);
+  margin-left: 8px;
+}
+
+/* ── Circular Arrow Buttons ── */
+.edutech-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px 10px 22px;
+  border-radius: 9999px;
+  font-family: var(--edu-font-display);
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+  line-height: 1.2;
+}
+
+.btn-circle-icon {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: white;
   flex-shrink: 0;
+  transition: transform 0.22s ease, background 0.22s ease;
 }
 
-.profil-avatar-image {
+.btn-dark {
+  background: var(--edu-dark);
+  color: var(--edu-white);
+  box-shadow: 0 4px 14px rgba(19, 20, 24, 0.12);
+}
+
+.btn-dark .btn-circle-icon {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--edu-white);
+}
+
+.btn-dark:hover {
+  background: #000000;
+  color: var(--edu-white);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(19, 20, 24, 0.2);
+}
+
+.btn-dark:hover .btn-circle-icon {
+  background: var(--edu-lime);
+  color: var(--edu-dark);
+  transform: translateX(3px);
+}
+
+.btn-blue {
+  background: var(--edu-blue);
+  color: #0F172A;
+  box-shadow: 0 4px 14px rgba(92, 184, 255, 0.28);
+}
+
+.btn-blue .btn-circle-icon {
+  background: rgba(15, 23, 42, 0.12);
+  color: #0F172A;
+}
+
+.btn-blue:hover {
+  background: var(--edu-blue-hover);
+  color: #0F172A;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(92, 184, 255, 0.38);
+}
+
+.btn-blue:hover .btn-circle-icon {
+  background: #0F172A;
+  color: #FFFFFF;
+  transform: translateX(3px);
+}
+
+.btn-dark-sm {
+  background: var(--edu-dark);
+  color: var(--edu-white);
+  padding: 7px 18px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(19, 20, 24, 0.1);
+}
+
+.btn-dark-sm:hover {
+  background: var(--edu-blue);
+  transform: translateY(-1px);
+}
+
+/* ── Top Bar Header ── */
+.edutech-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.5rem 0.25rem 0;
+}
+
+.edutech-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.edutech-school-name {
+  font-family: var(--edu-font-display);
+  font-weight: 900;
+  font-size: 0.88rem;
+  letter-spacing: 0.05em;
+  color: var(--edu-dark);
+  margin-left: 6px;
+}
+
+.edutech-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.edutech-date-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+/* ── 1. HERO BANNER: ELECTRIC LIME ── */
+.edutech-hero-section {
+  position: relative;
+  background: var(--edu-lime);
+  border-radius: 28px;
+  padding: 2.75rem 3rem;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(19, 20, 24, 0.06);
+}
+
+.edutech-hero-watermark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.watermark-star-1 {
+  position: absolute;
+  top: -20px;
+  right: 18%;
+  opacity: 0.1;
+}
+
+.watermark-star-2 {
+  position: absolute;
+  bottom: 15px;
+  left: 45%;
+  opacity: 0.14;
+}
+
+.edutech-hero-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.25fr 0.85fr;
+  align-items: center;
+  gap: 2.75rem;
+}
+
+.edutech-hero-headline {
+  font-family: var(--edu-font-display);
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--edu-dark);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.edutech-hero-sub {
+  font-size: 0.96rem;
+  line-height: 1.6;
+  color: rgba(19, 20, 24, 0.85);
+  font-weight: 600;
+  max-width: 580px;
+  margin-bottom: 2rem;
+}
+
+.edutech-hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ── TEMPLATE KARTU SISWA (Bersih, Realistis, Tanpa Bayangan Kotak Hitam) ── */
+.edutech-student-card-template {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 22px;
+  padding: 1.5rem 1.65rem;
+  box-shadow: 0 12px 30px -4px rgba(19, 20, 24, 0.08), 0 4px 12px -2px rgba(19, 20, 24, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.edutech-student-card-template:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -4px rgba(19, 20, 24, 0.12);
+}
+
+.card-template-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #F1F5F9;
+  padding-bottom: 0.75rem;
+}
+
+.card-template-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--edu-font-display);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--edu-dark);
+}
+
+.brand-icon {
+  color: var(--edu-blue);
+}
+
+.card-template-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--edu-font-display);
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #059669;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  background: #10B981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.card-template-body {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+}
+
+.card-template-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--edu-lime-tint);
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.template-avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.profil-info {
+.template-avatar-initial {
+  font-family: var(--edu-font-display);
+  font-weight: 900;
+  font-size: 1.75rem;
+  color: var(--edu-dark);
+}
+
+.card-template-info {
   flex: 1;
   min-width: 0;
 }
 
-.profil-nama {
-  font-size: var(--text-xl);
+.template-name {
+  font-family: var(--edu-font-display);
+  font-size: 1.15rem;
   font-weight: 800;
-  color: white;
-  margin-bottom: 0.2rem;
+  color: var(--edu-dark);
+  line-height: 1.25;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.profil-role {
-  margin: 0;
-  font-size: 0.98rem;
-  color: rgba(255, 255, 255, 0.88);
-  font-weight: 500;
-}
-
-.profil-header-top {
+.template-meta-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  margin-top: 3px;
+}
+
+.template-meta-row strong {
+  font-weight: 800;
+  color: var(--edu-dark);
+}
+
+.card-template-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  background: #F8FAFC;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+}
+
+.template-footer-chip {
+  display: flex;
+  flex-direction: column;
+}
+
+.chip-caption {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #94A3B8;
+}
+
+.chip-data {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--edu-dark);
+  margin-top: 1px;
+}
+
+.chip-status-active {
+  color: #059669;
+}
+
+.card-template-edit-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #F1F5F9;
+  color: var(--edu-dark);
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.card-template-edit-link:hover {
+  background: var(--edu-dark);
+  color: var(--edu-white);
+  border-color: var(--edu-dark);
+}
+
+/* ── 2. SECTION KONTROL AKADEMIK: BERSIH TANPA KOTAK BIRU ── */
+.edutech-academic-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding-top: 0.5rem;
+}
+
+.academic-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.academic-tags-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0.5rem;
+}
+
+.academic-subtitle-text {
+  font-family: var(--edu-font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #64748B;
+}
+
+.academic-main-title {
+  font-family: var(--edu-font-display);
+  font-size: 2.15rem;
+  font-weight: 900;
+  color: #0F172A;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
   margin-bottom: 0.35rem;
 }
 
-.profil-edit-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.14);
-  color: white;
-  border-radius: 999px;
-  padding: 0.65rem 1rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.2s ease, transform 0.2s ease;
+.academic-main-desc {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #64748B;
+  max-width: 650px;
 }
 
-.profil-edit-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
-  transform: translateY(-1px);
-}
-
-
-.profil-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-
-.profil-meta-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: var(--text-sm);
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
-}
-
-.profil-meta-item i {
-  font-size: 0.85rem;
-  opacity: 0.8;
-}
-
-/* ── Aksi Cepat ───────────────────────────────────────────── */
-.quick-actions {
+/* 3 Metrik Bento Tanpa Kotak Biru & Tanpa Bayangan Hitam Tebal */
+.academic-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
 }
 
-.quick-action-item {
+.metric-box {
+  border-radius: 20px;
+  padding: 1.65rem 1.5rem;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.metric-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.metric-top {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 16px 8px;
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  transition: all var(--transition);
-  text-align: center;
+  justify-content: space-between;
 }
 
-.quick-action-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  text-decoration: none;
-  color: var(--color-text);
-  border-color: transparent;
+.metric-tag {
+  font-family: var(--edu-font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.quick-action-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
+.metric-icon-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
 }
 
-.quick-action-item span {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-text-muted);
+.icon-dark-bg {
+  background: var(--edu-dark);
+  color: var(--edu-lime);
 }
 
-/* ── Detail Profil Lengkap ────────────────────────────────── */
-.profil-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+.icon-lime-bg {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--edu-lime);
 }
 
-.profil-detail-item {
+.icon-blue-bg {
+  background: #EEF2F6;
+  color: var(--edu-blue);
+}
+
+.metric-value {
+  font-family: var(--edu-font-display);
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 16px;
-  background: var(--color-bg);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  align-items: baseline;
+  gap: 6px;
 }
 
-.profil-detail-label {
-  font-size: var(--text-xs);
+.metric-unit {
+  font-size: 0.95rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted);
+  opacity: 0.8;
 }
 
-.profil-detail-value {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-text);
+.metric-value-title {
+  font-family: var(--edu-font-display);
+  font-size: 1.55rem;
+  font-weight: 900;
+  line-height: 1.2;
 }
 
-/* ── Responsive ───────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .dashboard-header {
-    margin-top: 0.5rem;
+.metric-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  font-weight: 700;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 8px;
+}
+
+.metric-arrow-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: inherit;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.metric-arrow-link:hover {
+  text-decoration: underline;
+}
+
+/* Metric 1: Blue Card (Kotak Kehadiran Warna Biru Sky Blue #5CB8FF) */
+.metric-blue-clean {
+  background: var(--edu-blue);
+  color: #0F172A;
+  border: 1px solid rgba(92, 184, 255, 0.45);
+  box-shadow: 0 8px 24px rgba(92, 184, 255, 0.28);
+}
+
+.metric-blue-clean .icon-white-bg {
+  background: rgba(15, 23, 42, 0.12);
+  color: #0F172A;
+}
+
+.metric-blue-clean .metric-progress-line {
+  height: 6px;
+  background: rgba(15, 23, 42, 0.12);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.metric-blue-clean .metric-progress-active {
+  height: 100%;
+  background: #0F172A;
+  border-radius: 9999px;
+  transition: width 0.6s ease;
+}
+
+.metric-blue-clean .metric-foot {
+  border-top-color: rgba(15, 23, 42, 0.1);
+  color: rgba(15, 23, 42, 0.75);
+}
+
+/* Metric 2: Dark Card (Clean) */
+.metric-dark-clean {
+  background: var(--edu-dark);
+  color: var(--edu-white);
+  border: 1px solid var(--edu-dark-border);
+}
+
+.metric-dark-clean .metric-foot {
+  border-top-color: rgba(255, 255, 255, 0.1);
+  color: #94A3B8;
+}
+
+.status-badge-lime {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(212, 255, 0, 0.16);
+  color: var(--edu-lime);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+.status-badge-warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(245, 158, 11, 0.2);
+  color: #FBBF24;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+/* Metric 3: White Card (Clean) */
+.metric-white-clean {
+  background: #FFFFFF;
+  color: var(--edu-dark);
+  border: 1px solid #E2E8F0;
+}
+
+.metric-sub-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: #64748B;
+  font-weight: 700;
+}
+
+.badge-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #DCFCE7;
+  color: #166534;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.semester-pill {
+  background: #F1F5F9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+}
+
+/* ── RESPONSIVE MEDIA QUERIES ── */
+@media (max-width: 992px) {
+  .edutech-hero-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
 
-  .dashboard-greeting {
-    font-size: 1.55rem;
-  }
-
-  .dashboard-date {
-    width: 100%;
-    white-space: normal;
-    text-align: center;
-  }
-
-  .quick-actions {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .profil-card {
-    flex-direction: column;
-    text-align: center;
-    padding: 1.25rem;
-    align-items: center;
-  }
-
-  .profil-header-top {
-    width: 100%;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .profil-nama {
-    font-size: 1.15rem;
-  }
-
-  .profil-meta {
-    justify-content: center;
-  }
-
-  .profil-detail-grid {
+  .academic-metrics-grid {
     grid-template-columns: 1fr;
   }
-
-  .profil-detail-item {
-    padding: 0.9rem 1rem;
-  }
 }
 
-@media (max-width: 480px) {
-  .quick-actions {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 768px) {
+  .edutech-content-flow {
+    gap: 1.5rem;
   }
 
-  .quick-action-item {
-    padding: 14px 6px;
+  .edutech-hero-section {
+    padding: 1.75rem 1.25rem;
+    border-radius: 20px;
   }
 
-  .quick-action-icon {
-    width: 42px;
-    height: 42px;
-    font-size: 1.15rem;
+  .edutech-hero-headline {
+    font-size: 1.95rem;
+  }
+
+  .headline-scribble {
+    font-size: 1.6rem;
+    margin-left: 0;
+    margin-top: 6px;
+  }
+
+  .title-scribble {
+    font-size: 1.45rem;
+    margin-left: 0;
+    margin-top: 6px;
+  }
+
+  .edutech-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .edutech-pill-btn {
+    justify-content: center;
+  }
+
+  .edutech-top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .edutech-bar-right {
+    width: 100%;
+    justify-content: space-between;
   }
 }

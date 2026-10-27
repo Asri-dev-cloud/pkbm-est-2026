@@ -713,7 +713,7 @@ function TugasSiswa() {
       // 4. Perbarui state tugasList seketika (optimistic render)
       setTugasList((prev) => [newTask, ...prev.filter(t => t.id !== newId)]);
 
-      showToast('🎉 Berhasil! Tugas mingguan baru telah diterbitkan dan langsung tampil.');
+      showToast('Berhasil! Tugas mingguan baru telah diterbitkan dan langsung tampil.');
 
       // 5. Muat sinkronisasi data dari database secara seamless di background
       try {
@@ -842,7 +842,7 @@ function TugasSiswa() {
       );
 
       handleCloseUploadModal();
-      showToast('🎉 Berhasil! Tugas Anda telah tersimpan ke database.');
+      showToast('Berhasil! Tugas Anda telah tersimpan ke database.');
     } catch (err) {
       console.error('[TugasSiswa.handleSubmitPengumpulan] Error:', err);
       setUploadError(err.response?.data?.message || 'Gagal mengumpulkan tugas. Silakan coba kembali.');
@@ -935,7 +935,7 @@ function TugasSiswa() {
             : p
         )
       );
-      showToast('🎉 Berhasil! Nilai dan ulasan tugas siswa telah tersimpan.');
+      showToast('Berhasil! Nilai dan ulasan tugas siswa telah tersimpan.');
     } catch (err) {
       console.error('[handleSaveGrade] Error:', err);
       showToast(err.response?.data?.message || 'Gagal menyimpan penilaian.');
@@ -984,21 +984,25 @@ function TugasSiswa() {
                 </div>
 
                 {isStudent ? (
-                  <div className="tugas-hero-stats-box">
-                    <div className="tugas-progress-label">
-                      <span>Kemajuan Belajar</span>
-                      <span style={{ color: 'var(--color-accent)', fontSize: '0.95rem' }}>
-                        {stats.percentSelesai}%
-                      </span>
+                  <div className="tugas-hero-motivation-card">
+                    <div className="motivation-header">
+                      <div className="motivation-sparkle-pill">
+                        <Sparkles size={14} />
+                        <span>Fokus & Semangat Hari Ini</span>
+                      </div>
                     </div>
-                    <div className="tugas-progress-bar-bg">
-                      <div
-                        className="tugas-progress-bar-fill"
-                        style={{ width: `${stats.percentSelesai}%` }}
-                      />
-                    </div>
-                    <div className="tugas-progress-sub">
-                      <strong>{stats.sudahDikumpul}</strong> dari <strong>{stats.total}</strong> tugas telah Anda serahkan
+                    <p className="motivation-quote">
+                      "Belajar bukan tentang seberapa cepat, tapi tentang konsistensi. Selesaikan tugasmu dengan santai dan nikmati setiap prosesnya!"
+                    </p>
+                    <div className="motivation-chips-row">
+                      <div className="motivation-chip">
+                        <BookOpen size={13} />
+                        <span><strong>{stats.total}</strong> Total Tugas</span>
+                      </div>
+                      <div className="motivation-chip highlight">
+                        <Clock size={13} />
+                        <span><strong>{stats.belumDikumpul}</strong> Perlu Dikerjakan</span>
+                      </div>
                     </div>
                   </div>
                 ) : (

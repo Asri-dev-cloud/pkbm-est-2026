@@ -126,19 +126,37 @@ function RuangBelajarSiswa() {
           
           {/* Header Section */}
           <div style={{
-            marginBottom: '2.5rem',
-            paddingTop: '3.75rem'
+            marginBottom: '2rem',
+            paddingTop: '1rem'
           }}>
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{
+                background: '#5CB8FF',
+                color: '#0F172A',
+                fontFamily: 'var(--font-heading, "Outfit", sans-serif)',
+                fontWeight: 900,
+                fontSize: '0.75rem',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                padding: '4px 14px 5px',
+                borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px',
+                display: 'inline-block',
+                transform: 'rotate(-1.5deg)'
+              }}>
+                RUANG KELAS DIGITAL
+              </span>
+            </div>
             <h1 style={{ 
               fontFamily: 'var(--font-heading, "Outfit", sans-serif)', 
               fontSize: '2.25rem', 
-              fontWeight: 800,
-              color: '#1E293B'
+              fontWeight: 900,
+              color: '#0F172A',
+              letterSpacing: '-0.02em'
             }}>
               Ruang Belajar Terpadu
             </h1>
-            <p style={{ color: 'var(--color-text-muted)', marginTop: 6, fontSize: '1rem' }}>
-              Silakan pilih mata pelajaran di bawah untuk memasuki ruang kelas, mengakses materi, absensi, dan mengumpulkan tugas.
+            <p style={{ color: '#64748B', marginTop: 6, fontSize: '0.96rem' }}>
+              Pilih mata pelajaran untuk memasuki kelas terpadu, mengakses materi modul, presensi pertemuan, dan mengumpulkan tugas.
             </p>
           </div>
 
@@ -360,31 +378,33 @@ function RuangBelajarSiswa() {
                           <button
                             style={{
                               width: '100%',
-                              background: '#0284c7',
-                              color: 'white',
+                              background: '#5CB8FF',
+                              color: '#0F172A',
                               border: 'none',
-                              borderRadius: '12px',
+                              borderRadius: '9999px',
                               padding: '12px 16px',
-                              fontSize: '0.85rem',
-                              fontWeight: 700,
+                              fontSize: '0.88rem',
+                              fontWeight: 800,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              gap: '6px',
+                              gap: '8px',
                               cursor: 'pointer',
                               transition: 'all 0.2s',
-                              boxShadow: '0 4px 6px -1px rgba(2, 132, 199, 0.15)'
+                              boxShadow: '0 4px 14px rgba(92, 184, 255, 0.28)'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = '#0369a1';
+                              e.currentTarget.style.background = '#3A9BF0';
+                              e.currentTarget.style.transform = 'translateY(-1px)';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.background = '#0284c7';
+                              e.currentTarget.style.background = '#5CB8FF';
+                              e.currentTarget.style.transform = 'translateY(0)';
                             }}
                           >
                             <i className="bi bi-door-open-fill" style={{ fontSize: '1rem' }}></i>
                             <span>Masuk Kelas</span>
-                            <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.95rem', fontWeight: 'bold' }}></i>
+                            <i className="bi bi-arrow-right" style={{ fontSize: '0.95rem', fontWeight: 'bold' }}></i>
                           </button>
                         </div>
                       </div>

@@ -9,36 +9,58 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#059669', // Emerald 600
-          dark: '#047857',    // Emerald 700
-          light: '#ECFDF5',   // Emerald 50
+          DEFAULT: '#5CB8FF', // Sky Blue
+          dark: '#3A9BF0',
+          light: '#EBF6FF',
+        },
+        orange: {
+          DEFAULT: '#FFaf5c', // Warm Orange
+          dark: '#E59235',
+          light: '#FFF4E8',
+        },
+        green: {
+          DEFAULT: '#6BCB77', // Fresh Green
+          dark: '#4FA85B',
+          light: '#E6F8EA',
+        },
+        yellow: {
+          DEFAULT: '#F9C846', // Yellow
+          dark: '#DDAE2B',
+          light: '#FEF8E7',
+        },
+        cream: {
+          DEFAULT: '#FFF8EE', // Soft Cream
+          dark: '#F5E9D8',
+        },
+        navy: {
+          DEFAULT: '#243B53', // Dark Navy text
+          dark: '#182838',
+          light: '#334E68',
         },
         brand: {
-          green: '#059669',
-          'green-dark': '#047857',
-          'green-deep': '#064E3B',
-          'green-light': '#ECFDF5',
-          'green-border': '#A7F3D0',
-          mint: '#10B981',
-          'mint-light': '#F0FDF4',
-          'mint-border': '#BBF7D0',
-          yellow: '#FBBF24',
-          'yellow-dark': '#F59E0B',
-          'yellow-light': '#FEF9C3',
-          'yellow-border': '#FEF08A',
-          dark: '#021B14',
-          'dark-surface': '#06281E',
-          'dark-card': '#0A3F31',
-          'dark-border': '#114B3B',
+          sky: '#5CB8FF',
+          'sky-dark': '#3A9BF0',
+          'sky-light': '#EBF6FF',
+          orange: '#FFaf5c',
+          'orange-dark': '#E59235',
+          'orange-light': '#FFF4E8',
+          green: '#6BCB77',
+          'green-light': '#E6F8EA',
+          yellow: '#F9C846',
+          'yellow-light': '#FEF8E7',
+          cream: '#FFF8EE',
+          navy: '#243B53',
+          'navy-dark': '#182838',
         },
         accent: {
-          DEFAULT: '#10B981',
-          dark: '#059669',
+          DEFAULT: '#FFaf5c', // Warm Orange
+          dark: '#E59235',
+          light: '#FFF4E8',
         },
-        siswa: '#059669',
-        tutor: '#10B981',
-        admin: '#059669',
-        pimpinan: '#F59E0B',
+        siswa: '#5CB8FF',
+        tutor: '#FFaf5c',
+        admin: '#243B53',
+        pimpinan: '#F9C846',
       },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],

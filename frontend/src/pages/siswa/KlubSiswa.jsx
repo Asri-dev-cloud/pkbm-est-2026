@@ -92,28 +92,46 @@ function KlubSiswa() {
     <div className="app-layout">
       <Sidebar user={user} />
       <main className="app-main">
-        <div className="app-content">
+        <div className="app-content" style={{ padding: '2rem' }}>
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--text-2xl)', fontWeight: 800 }}>
+          <div style={{ marginBottom: '2rem', paddingTop: '0.5rem' }}>
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{
+                background: '#5CB8FF',
+                color: '#0F172A',
+                fontFamily: 'var(--font-heading, "Outfit", sans-serif)',
+                fontWeight: 900,
+                fontSize: '0.75rem',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                padding: '4px 14px 5px',
+                borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px',
+                display: 'inline-block',
+                transform: 'rotate(-1.5deg)'
+              }}>
+                KOMUNITAS MINAT & BAKAT
+              </span>
+            </div>
+            <h1 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '2.15rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em' }}>
               Klub Minat Bakat
             </h1>
-            <p style={{ color: 'var(--color-text-muted)', marginTop: 4 }}>
-              Ikuti klub yang sesuai dengan minat dan bakat Anda — terbuka lintas jenjang!
+            <p style={{ color: '#64748B', marginTop: 6, fontSize: '0.96rem' }}>
+              Ikuti komunitas klub ekstrakurikuler yang sesuai dengan minat dan bakat Anda — terbuka lintas jenjang!
             </p>
           </div>
 
           {/* Tab: Semua Klub / Klub Saya */}
-          <div style={{ display: 'flex', gap: 4, marginBottom: '1.5rem', background: 'var(--color-bg)', padding: 4, borderRadius: 'var(--radius-md)', width: 'fit-content', border: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: '2rem', background: '#F1F5F9', padding: '6px', borderRadius: '9999px', width: 'fit-content', border: '1px solid #E2E8F0' }}>
             {['semua', 'saya'].map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 style={{
-                  padding: '0.5rem 1.25rem', borderRadius: 'var(--radius-sm)', border: 'none',
-                  background: tab === t ? 'var(--color-primary)' : 'transparent',
-                  color: tab === t ? 'white' : 'var(--color-text-muted)',
-                  fontWeight: 700, fontSize: 'var(--text-sm)', cursor: 'pointer', transition: 'all 0.15s',
+                  padding: '8px 20px', borderRadius: '9999px', border: 'none',
+                  background: tab === t ? '#5CB8FF' : 'transparent',
+                  color: tab === t ? '#0F172A' : '#64748B',
+                  fontWeight: tab === t ? 900 : 700, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.15s',
+                  boxShadow: tab === t ? '0 4px 14px rgba(92, 184, 255, 0.35)' : 'none'
                 }}
               >
                 {t === 'semua' ? `Semua Klub (${semuaKlub.length})` : `Klub Saya (${klubSaya.size})`}
@@ -126,73 +144,147 @@ function KlubSiswa() {
 
           {!loading && !error && (
             tampilKlub.length === 0 ? (
-              <div className="card"><div className="empty-state">
-                <i className="bi bi-people"></i>
-                <h3>{tab === 'saya' ? 'Belum Ikuti Klub' : 'Belum Ada Klub'}</h3>
-                <p>{tab === 'saya' ? 'Anda belum mengikuti klub apapun. Jelajahi tab "Semua Klub".' : 'Admin belum membuat klub.'}</p>
-              </div></div>
+              <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '3rem 2rem', textAlign: 'center' }}>
+                <div className="empty-state">
+                  <i className="bi bi-people" style={{ fontSize: '3rem', color: '#CBD5E1' }}></i>
+                  <h3 style={{ marginTop: '1rem', fontWeight: 800 }}>{tab === 'saya' ? 'Belum Ikuti Klub' : 'Belum Ada Klub'}</h3>
+                  <p style={{ color: '#64748B' }}>{tab === 'saya' ? 'Anda belum mengikuti klub apapun. Jelajahi tab "Semua Klub".' : 'Admin belum membuat klub.'}</p>
+                </div>
+              </div>
             ) : (
-              <div className="grid-cols-2">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.25rem' }}>
                 {tampilKlub.map(klub => {
                   const warna   = warnaKlub(klub.jenis);
                   const diikuti = klubSaya.has(klub.id);
                   const isProc  = processing === klub.id;
 
                   return (
-                    <div key={klub.id} className="card" style={{ padding: '1.25rem' }}>
-                      <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                        {/* Ikon klub */}
-                        <div style={{
-                          width: 52, height: 52, borderRadius: 'var(--radius-md)', flexShrink: 0,
-                          background: warna.bg, color: warna.color,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem',
-                        }}>
-                          <i className="bi bi-people-fill"></i>
-                        </div>
-
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                            <span style={{ fontWeight: 800, fontFamily: 'var(--font-heading)' }}>{klub.nama_klub}</span>
-                            {diikuti && <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>✓ Diikuti</span>}
+                    <div
+                      key={klub.id}
+                      style={{
+                        background: 'white',
+                        borderRadius: '20px',
+                        border: '1px solid #E2E8F0',
+                        padding: '1.5rem',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 10px 24px rgba(92, 184, 255, 0.12)';
+                        e.currentTarget.style.borderColor = 'rgba(92, 184, 255, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.02)';
+                        e.currentTarget.style.borderColor = '#E2E8F0';
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                          {/* Ikon klub */}
+                          <div style={{
+                            width: 52, height: 52, borderRadius: '16px', flexShrink: 0,
+                            background: warna.bg, color: warna.color,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem',
+                          }}>
+                            <i className="bi bi-people-fill"></i>
                           </div>
-                          {klub.deskripsi && (
-                            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: 8, lineHeight: 1.6 }}>
-                              {klub.deskripsi}
-                            </p>
-                          )}
-                          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                            {klub.jumlah_anggota != null && (
-                              <span><i className="bi bi-people"></i> {klub.jumlah_anggota} anggota</span>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                              <span style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0F172A', fontFamily: 'var(--font-heading, "Outfit", sans-serif)' }}>{klub.nama_klub}</span>
+                              {diikuti && (
+                                <span style={{
+                                  background: '#D1FAE5',
+                                  color: '#065F46',
+                                  fontSize: '0.7rem',
+                                  fontWeight: 800,
+                                  padding: '2px 8px',
+                                  borderRadius: '9999px',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4
+                                }}>
+                                  <i className="bi bi-check-circle-fill"></i> Diikuti
+                                </span>
+                              )}
+                            </div>
+                            {klub.deskripsi && (
+                              <p style={{ fontSize: '0.84rem', color: '#64748B', marginBottom: 10, lineHeight: 1.6 }}>
+                                {klub.deskripsi}
+                              </p>
                             )}
-                            {klub.jadwal && (
-                              <span><i className="bi bi-calendar-week"></i> {klub.jadwal}</span>
-                            )}
-                            {klub.tutor_nama && (
-                              <span><i className="bi bi-person-badge"></i> {klub.tutor_nama}</span>
-                            )}
+                            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>
+                              {klub.jumlah_anggota != null && (
+                                <span><i className="bi bi-people"></i> {klub.jumlah_anggota} anggota</span>
+                              )}
+                              {klub.jadwal && (
+                                <span><i className="bi bi-calendar-week"></i> {klub.jadwal}</span>
+                              )}
+                              {klub.tutor_nama && (
+                                <span><i className="bi bi-person-badge"></i> {klub.tutor_nama}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
 
                       {/* Tombol aksi */}
-                      <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end' }}>
+                      <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'flex-end' }}>
                         {diikuti ? (
                           <button
-                            className="btn btn-danger"
-                            style={{ padding: '0.5rem 1rem', fontSize: 'var(--text-sm)' }}
+                            style={{
+                              background: '#FEE2E2',
+                              color: '#991B1B',
+                              border: 'none',
+                              padding: '8px 20px',
+                              borderRadius: '9999px',
+                              fontSize: '0.84rem',
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              transition: 'all 0.2s ease'
+                            }}
                             onClick={() => handleKeluar(klub.id)}
                             disabled={isProc}
                           >
-                            {isProc ? <><span className="spinner-sm" style={{ borderTopColor: 'var(--color-danger)' }}></span> Memproses...</> : <><i className="bi bi-box-arrow-right"></i> Keluar</>}
+                            {isProc ? <><span className="spinner-sm" style={{ width: 14, height: 14, border: '2px solid rgba(153,27,27,0.2)', borderTopColor: '#991B1B', borderRadius: '50%', display: 'inline-block' }}></span> Memproses...</> : <><i className="bi bi-box-arrow-right"></i> Keluar Klub</>}
                           </button>
                         ) : (
                           <button
-                            className="btn btn-primary"
-                            style={{ padding: '0.5rem 1rem', fontSize: 'var(--text-sm)' }}
+                            style={{
+                              background: '#5CB8FF',
+                              color: '#0F172A',
+                              border: 'none',
+                              padding: '9px 24px',
+                              borderRadius: '9999px',
+                              fontSize: '0.86rem',
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              boxShadow: '0 4px 14px rgba(92, 184, 255, 0.28)',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#3A9BF0';
+                              e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#5CB8FF';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }}
                             onClick={() => handleDaftar(klub.id)}
                             disabled={isProc}
                           >
-                            {isProc ? <><span className="spinner-sm"></span> Mendaftar...</> : <><i className="bi bi-plus-circle"></i> Daftar</>}
+                            {isProc ? <><span className="spinner-sm" style={{ width: 14, height: 14, border: '2px solid rgba(15,23,42,0.2)', borderTopColor: '#0F172A', borderRadius: '50%', display: 'inline-block' }}></span> Mendaftar...</> : <><i className="bi bi-plus-circle"></i> Gabung Klub</>}
                           </button>
                         )}
                       </div>

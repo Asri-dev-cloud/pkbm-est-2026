@@ -1,13 +1,13 @@
 /* ============================================================
    src/components/Sidebar.css — Styling Navigasi Samping Modern & Kreatif
-   Tema: Vibrant Yellow (#FFE500) & Electric Sky Blue (#1F9BFF / #072242)
+   Tema: Sky Blue (#5CB8FF), Warm Orange (#FFaf5c), Yellow (#F9C846), Dark Navy (#243B53)
    ============================================================ */
 
 /* ── Container Sidebar Modern Kreatif ── */
 .modern-app-sidebar {
   width: 255px;
-  background: linear-gradient(180deg, #072242 0%, #0A3766 52%, #051A33 100%);
-  color: #E2EDF7;
+  background: linear-gradient(180deg, #182838 0%, #243B53 52%, #142230 100%);
+  color: #E6EFF8;
   position: fixed;
   top: 0;
   left: 0;
@@ -15,10 +15,10 @@
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  border-right: 1.5px solid rgba(31, 155, 255, 0.25);
+  border-right: 1.5px solid rgba(92, 184, 255, 0.25);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Plus Jakarta Sans', sans-serif;
-  box-shadow: 6px 0 32px rgba(5, 20, 36, 0.55);
+  box-shadow: 6px 0 32px rgba(24, 40, 56, 0.45);
   overflow: hidden;
 }
 
@@ -30,7 +30,7 @@
   left: 0;
   right: 0;
   height: 220px;
-  background: radial-gradient(circle at 50% 0%, rgba(31, 155, 255, 0.25) 0%, rgba(255, 229, 0, 0.1) 45%, transparent 70%);
+  background: radial-gradient(circle at 50% 0%, rgba(92, 184, 255, 0.25) 0%, rgba(255, 175, 92, 0.12) 45%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -38,16 +38,55 @@
 /* ── Mobile Sidebar Logic ── */
 @media (max-width: 1023px) {
   .modern-app-sidebar {
+    top: 56px;
+    height: calc(100dvh - 56px);
+    height: calc(100vh - 56px);
+    bottom: 0;
     transform: translateX(-100%);
-    width: min(85vw, 285px);
+    width: min(85vw, 290px);
+    box-shadow: 10px 0 36px rgba(10, 20, 30, 0.55);
+    border-top: 1px solid rgba(92, 184, 255, 0.2);
   }
+
   .modern-app-sidebar.open {
     transform: translateX(0);
+  }
+
+  /* Header di sidebar mobile: buat compact agar logo utuh sempurna dan tidak terpotong navbar */
+  .modern-sidebar-header {
+    padding: 16px 14px 12px;
+  }
+
+  .brand-logo-clean-wrap {
+    width: 52px;
+    height: 52px;
+  }
+
+  .brand-name-main {
+    font-size: 0.95rem;
+  }
+
+  .brand-sub-badge {
+    font-size: 0.58rem;
+  }
+
+  /* Navigasi scrollable di mobile */
+  .modern-sidebar-nav {
+    padding: 12px 10px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Safe area padding untuk mobile footer agar tidak terpotong bar bawah HP */
+  .modern-sidebar-footer {
+    padding: 12px 14px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom, 14px));
   }
 }
 
 @media (min-width: 1024px) {
   .modern-app-sidebar {
+    top: 0 !important;
+    height: 100vh !important;
     transform: translateX(0) !important;
   }
 }
@@ -59,9 +98,9 @@
   left: 0;
   right: 0;
   height: 56px;
-  background: linear-gradient(180deg, #072242 0%, #0A3766 100%);
-  border-bottom: 2px solid rgba(255, 229, 0, 0.4);
-  box-shadow: 0 4px 20px rgba(5, 20, 36, 0.45);
+  background: linear-gradient(180deg, #182838 0%, #243B53 100%);
+  border-bottom: 2px solid rgba(255, 175, 92, 0.45);
+  box-shadow: 0 4px 20px rgba(24, 40, 56, 0.35);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -93,9 +132,9 @@
 
 .modern-mobile-toggle-btn:hover,
 .modern-mobile-toggle-btn.open {
-  background: #FFE500;
-  color: #072242;
-  border-color: #FFE500;
+  background: #FFaf5c;
+  color: #243B53;
+  border-color: #FFaf5c;
   transform: scale(1.04);
 }
 
@@ -133,7 +172,7 @@
 .modern-mobile-navbar-brand .brand-role {
   font-size: 0.68rem;
   font-weight: 700;
-  color: #FFE500;
+  color: #F9C846;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   line-height: 1.2;
@@ -150,8 +189,8 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: #FFE500;
-  color: #072242;
+  background: #FFaf5c;
+  color: #243B53;
   font-size: 0.82rem;
   font-weight: 800;
   display: flex;
@@ -162,16 +201,19 @@
 
 .modern-sidebar-backdrop {
   position: fixed;
-  inset: 0;
-  background: rgba(5, 20, 36, 0.82);
-  backdrop-filter: blur(6px);
+  top: 56px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 18, 26, 0.75);
+  backdrop-filter: blur(4px);
   z-index: 999;
 }
 
 /* ── Brand Header Bersih & Profesional (Logo di Tengah Tanpa Latar Belakang) ── */
 .modern-sidebar-header {
   padding: 26px 16px 20px;
-  border-bottom: 1px solid rgba(31, 155, 255, 0.2);
+  border-bottom: 1px solid rgba(92, 184, 255, 0.2);
   flex-shrink: 0;
   position: relative;
   z-index: 1;
@@ -235,7 +277,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #FFE500;
+  color: #F9C846;
   opacity: 0.95;
 }
 
@@ -254,7 +296,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #FFE500;
+  color: #F9C846;
   opacity: 0.85;
   padding: 10px 14px 6px;
 }
@@ -268,7 +310,7 @@
   gap: 5px;
 }
 
-/* ── Menu Link & Active Pill Profesional (Kuning #FFE500 & Biru #072242 / #1F9BFF) ── */
+/* ── Menu Link & Active Pill Profesional (Warm Orange #FFaf5c & Dark Navy #243B53) ── */
 .modern-menu-link {
   display: flex;
   align-items: center;
@@ -286,7 +328,7 @@
 
 .modern-menu-link:hover {
   color: #FFFFFF;
-  background: rgba(31, 155, 255, 0.14);
+  background: rgba(92, 184, 255, 0.16);
   transform: translateX(3px);
   text-decoration: none;
 }
@@ -297,21 +339,21 @@
 }
 
 .modern-menu-link:hover .menu-icon {
-  color: #FFE500;
+  color: #FFaf5c;
   transform: scale(1.1);
 }
 
-/* Active Pill — Vibrant Yellow #FFE500 dengan Teks Biru Deep #072242 */
+/* Active Pill — Warm Orange #FFaf5c & Yellow #F9C846 dengan Teks Dark Navy #243B53 */
 .modern-menu-link.active-pill {
-  background: #FFE500;
-  color: #072242;
+  background: linear-gradient(135deg, #FFaf5c 0%, #F9C846 100%);
+  color: #243B53;
   font-weight: 800;
-  box-shadow: 0 4px 18px rgba(255, 229, 0, 0.42);
+  box-shadow: 0 4px 18px rgba(255, 175, 92, 0.42);
   transform: none;
 }
 
 .modern-menu-link.active-pill .menu-icon {
-  color: #072242;
+  color: #243B53;
 }
 
 .modern-menu-link.active-pill::before {
@@ -342,22 +384,22 @@
 }
 
 .modern-accordion-trigger:hover {
-  background: rgba(31, 155, 255, 0.14);
-  color: #FFE500;
+  background: rgba(92, 184, 255, 0.16);
+  color: #FFaf5c;
 }
 
 .modern-accordion-trigger:hover .menu-icon {
-  color: #FFE500;
+  color: #FFaf5c;
 }
 
 .modern-accordion-trigger.has-active-child {
-  color: #FFE500;
+  color: #FFaf5c;
   font-weight: 700;
-  background: rgba(31, 155, 255, 0.18);
+  background: rgba(92, 184, 255, 0.18);
 }
 
 .modern-accordion-trigger.has-active-child .menu-icon {
-  color: #FFE500;
+  color: #FFaf5c;
 }
 
 .trigger-left {
@@ -367,7 +409,7 @@
 }
 
 .trigger-arrow {
-  color: #FFE500;
+  color: #FFaf5c;
   opacity: 0.9;
   transition: transform 0.22s ease;
 }
@@ -377,7 +419,7 @@
   list-style: none;
   margin: 3px 0 8px 16px;
   padding: 4px 0 4px 12px;
-  border-left: 1.5px solid rgba(255, 229, 0, 0.35);
+  border-left: 1.5px solid rgba(255, 175, 92, 0.45);
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -399,24 +441,24 @@
 
 .modern-sub-link:hover {
   color: #FFFFFF;
-  background: rgba(31, 155, 255, 0.14);
+  background: rgba(92, 184, 255, 0.16);
   transform: translateX(3px);
   text-decoration: none;
 }
 
 .modern-sub-link:hover .sub-menu-icon {
-  color: #FFE500;
+  color: #FFaf5c;
 }
 
 .modern-sub-link.active {
-  color: #072242;
-  background: #FFE500;
+  color: #243B53;
+  background: linear-gradient(135deg, #FFaf5c 0%, #F9C846 100%);
   font-weight: 800;
-  box-shadow: 0 2px 10px rgba(255, 229, 0, 0.35);
+  box-shadow: 0 2px 10px rgba(255, 175, 92, 0.35);
 }
 
 .modern-sub-link.active .sub-menu-icon {
-  color: #072242;
+  color: #243B53;
 }
 
 .sub-menu-icon {
@@ -426,8 +468,8 @@
 /* ── Footer Sidebar ── */
 .modern-sidebar-footer {
   padding: 14px 16px;
-  border-top: 1px solid rgba(31, 155, 255, 0.22);
-  background: rgba(5, 24, 46, 0.92);
+  border-top: 1px solid rgba(92, 184, 255, 0.22);
+  background: rgba(24, 40, 56, 0.95);
   backdrop-filter: blur(10px);
   flex-shrink: 0;
   position: relative;
@@ -441,14 +483,14 @@
   gap: 11px;
   padding: 9px 12px;
   border-radius: 14px;
-  background: rgba(31, 155, 255, 0.08);
-  border: 1px solid rgba(255, 229, 0, 0.32);
+  background: rgba(92, 184, 255, 0.1);
+  border: 1px solid rgba(255, 175, 92, 0.35);
   transition: all 0.2s ease;
 }
 
 .modern-user-card:hover {
-  background: rgba(31, 155, 255, 0.16);
-  border-color: rgba(255, 229, 0, 0.6);
+  background: rgba(92, 184, 255, 0.18);
+  border-color: rgba(255, 175, 92, 0.7);
 }
 
 .user-avatar-wrap {
@@ -463,22 +505,22 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #FFE500;
+  border: 2px solid #FFaf5c;
 }
 
 .user-avatar-placeholder {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FFE500 0%, #FFD000 100%);
-  color: #072242;
-  border: 1.5px solid #1F9BFF;
+  background: linear-gradient(135deg, #FFaf5c 0%, #F9C846 100%);
+  color: #243B53;
+  border: 1.5px solid #5CB8FF;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
   font-size: 0.9rem;
-  box-shadow: 0 2px 8px rgba(255, 229, 0, 0.38);
+  box-shadow: 0 2px 8px rgba(255, 175, 92, 0.38);
 }
 
 .online-indicator-dot {
@@ -488,8 +530,8 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #22C55E;
-  border: 2px solid #072242;
+  background: #6BCB77;
+  border: 2px solid #243B53;
 }
 
 .user-text-wrap {
@@ -515,7 +557,7 @@
   gap: 4px;
   font-size: 0.68rem;
   font-weight: 600;
-  color: #FFE500;
+  color: #F9C846;
   margin-top: 2px;
 }
 
@@ -523,7 +565,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #22C55E;
+  background: #6BCB77;
   display: inline-block;
 }
 
@@ -558,6 +600,6 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 229, 0, 0.35);
+  background: rgba(255, 175, 92, 0.45);
   border-radius: 4px;
 }

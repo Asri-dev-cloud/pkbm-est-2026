@@ -8,35 +8,44 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS VARIABLES (Token Desain: Midnight Blue & Buttermilk) ── */
+/* ── CSS VARIABLES (Token Desain Baru: Sky Blue, Warm Orange, Fresh Green, Yellow, Soft Cream, Dark Navy) ── */
 :root {
-  /* Palet Warna Utama: Midnight Blue & Buttermilk */
-  --color-primary:       #0F3C65;
-  --color-primary-dark:  #071E34;
-  --color-primary-light: #EBF3F9;
-  --color-accent:        #FFF2BA;
-  --color-accent-dark:   #E5C34D;
-  --color-pink:          #EC4899;
-  --color-pink-light:    #FDF2F8;
+  /* Palet Primer Sesuai Request */
+  --color-sky-blue:      #5CB8FF;
+  --color-warm-orange:   #FFaf5c;
+
+  /* Palet Sekunder Sesuai Request */
+  --color-fresh-green:   #6BCB77;
+  --color-yellow:        #F9C846;
+  --color-soft-cream:    #FFF8EE;
+  --color-dark-navy:     #243B53;
+
+  /* Mapping Token Sistem */
+  --color-primary:       #5CB8FF;
+  --color-primary-dark:  #3A9BF0;
+  --color-primary-light: #EBF6FF;
+  --color-accent:        #FFaf5c;
+  --color-accent-dark:   #E59235;
+  --color-accent-light:  #FFF4E8;
 
   /* Warna Role */
-  --color-siswa:    #0F3C65;
-  --color-tutor:    #2563EB;
-  --color-admin:    #0F3C65;
-  --color-pimpinan: #D97706;
+  --color-siswa:    #5CB8FF;
+  --color-tutor:    #FFaf5c;
+  --color-admin:    #243B53;
+  --color-pimpinan: #F9C846;
 
   /* Warna Semantik */
-  --color-success: #10B981;
+  --color-success: #6BCB77;
   --color-danger:  #EF4444;
-  --color-warning: #F59E0B;
-  --color-info:    #0F3C65;
+  --color-warning: #F9C846;
+  --color-info:    #5CB8FF;
 
   /* Warna Netral */
-  --color-bg:         #FFFBEA;
+  --color-bg:         #FFF8EE;  /* Soft Cream */
   --color-surface:    #FFFFFF;
-  --color-border:     #E5EAEF;
-  --color-text:       #0F2038;
-  --color-text-muted: #64748B;
+  --color-border:     #E5EBF2;
+  --color-text:       #243B53;  /* Dark Navy */
+  --color-text-muted: #627D98;
 
   /* Tipografi — Plus Jakarta Sans */
   --font-body:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -84,7 +93,7 @@
 /* Firefox */
 html, body, * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(15, 60, 101, 0.32) transparent;
+  scrollbar-color: rgba(92, 184, 255, 0.45) transparent;
 }
 
 /* Webkit: Chrome, Edge, Safari, Opera */
@@ -98,7 +107,7 @@ html, body, * {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(15, 60, 101, 0.28);
+  background: rgba(92, 184, 255, 0.45);
   border-radius: 9999px;
   border: 1.5px solid transparent;
   background-clip: padding-box;
@@ -106,13 +115,13 @@ html, body, * {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 60, 101, 0.65);
+  background: rgba(255, 175, 92, 0.85);
   border: 1.5px solid transparent;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:active {
-  background: #0F3C65;
+  background: #243B53;
 }
 
 ::-webkit-scrollbar-corner {
@@ -261,7 +270,7 @@ img {
 .card-title {
   font-size: 1.1rem;
   font-weight: 800;
-  color: #0F172A;
+  color: #243B53;
   letter-spacing: -0.02em;
 }
 
@@ -282,28 +291,40 @@ img {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #0F3C65 0%, #174E7E 100%);
+  background: linear-gradient(135deg, #5CB8FF 0%, #3A9BF0 100%);
   color: #FFFFFF;
-  box-shadow: 0 4px 14px rgba(15, 60, 101, 0.25);
+  box-shadow: 0 4px 14px rgba(92, 184, 255, 0.35);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #071E34 0%, #0F3C65 100%);
+  background: linear-gradient(135deg, #3A9BF0 0%, #2284DB 100%);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(15, 60, 101, 0.35);
+  box-shadow: 0 6px 18px rgba(92, 184, 255, 0.45);
   text-decoration: none;
   color: #FFFFFF;
 }
 
 .btn-secondary {
   background: #FFFFFF;
-  color: #0F3C65;
+  color: #243B53;
   border: 1px solid #CBD5E1;
 }
 .btn-secondary:hover {
-  background: #FFF9DB;
-  border-color: #E5C34D;
-  color: #0F3C65;
+  background: #FFF8EE;
+  border-color: #FFaf5c;
+  color: #E59235;
   transform: translateY(-1px);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, #FFaf5c 0%, #E59235 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(255, 175, 92, 0.35);
+}
+.btn-accent:hover {
+  background: linear-gradient(135deg, #E59235 0%, #CC7B23 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 175, 92, 0.45);
+  color: #FFFFFF;
 }
 
 
