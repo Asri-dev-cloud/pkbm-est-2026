@@ -168,6 +168,17 @@ function LoginPage() {
     }
   };
 
+  // Helper fokus ke input password saat calon siswa diterima
+  const focusPasswordInput = () => {
+    setTimeout(() => {
+      const el = document.getElementById('login-password-input');
+      if (el) {
+        el.focus();
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 120);
+  };
+
   // Handler Submit Login
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -359,33 +370,67 @@ function LoginPage() {
                 <div className={`login-spmb-status-card status-${spmbStatusData.status}`}>
                   <div className="login-spmb-status-head">
                     <div className="login-spmb-icon-wrap">
-                      {spmbStatusData.status === 'pending' && <Clock size={22} className="icon-pulse" />}
-                      {spmbStatusData.status === 'diterima' && <CheckCircle2 size={22} />}
-                      {spmbStatusData.status === 'ditolak' && <XCircle size={22} />}
+                      {spmbStatusData.status === 'pending' && <Clock size={20} className="icon-pulse" />}
+                      {spmbStatusData.status === 'diterima' && <CheckCircle2 size={20} />}
+                      {spmbStatusData.status === 'ditolak' && <XCircle size={20} />}
                     </div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div className="login-spmb-status-badge">
-                        {spmbStatusData.status === 'pending' && '⏳ MENUNGGU VERIFIKASI ADMIN TU'}
-                        {spmbStatusData.status === 'diterima' && '✅ PENDAFTARAN TELAH DITERIMA'}
-                        {spmbStatusData.status === 'ditolak' && '❌ PENDAFTARAN BELUM DITERIMA'}
+                        {spmbStatusData.status === 'pending' && 'STATUS: MENUNGGU VERIFIKASI ADMIN TU'}
+                        {spmbStatusData.status === 'diterima' && 'STATUS: RESMI DITERIMA & AKUN AKTIF'}
+                        {spmbStatusData.status === 'ditolak' && 'STATUS: DOKUMEN PERLU PERBAIKAN'}
                       </div>
                       <h4 className="login-spmb-title">
                         {spmbStatusData.status === 'pending'
-                          ? 'Akun Sedang Dalam Proses Verifikasi'
+                          ? 'Pendaftaran Anda Sedang Ditinjau'
                           : spmbStatusData.status === 'diterima'
-                            ? 'Akun Telah Diterima'
-                            : 'Pemberitahuan Pendaftaran'}
+                            ? 'Selamat, Pendaftaran Anda Telah Disetujui!'
+                            : 'Pemberitahuan Status Pendaftaran'}
                       </h4>
                     </div>
                   </div>
 
                   <p className="login-spmb-message">
-                    {spmbStatusData.message}
+                    {spmbStatusData.status === 'diterima'
+                      ? `Pendaftaran atas nama "${spmbStatusData.nama}" telah DISETUJUI oleh Admin TU PKBM Bina Mandiri. Akun Ruang Belajar Anda sudah aktif dan siap digunakan.`
+                      : spmbStatusData.status === 'pending'
+                        ? `Data dan berkas pendaftaran atas nama "${spmbStatusData.nama}" telah berhasil kami terima. Staf Tata Usaha sedang meneliti kelengkapan dokumen persyaratan Anda.`
+                        : spmbStatusData.message}
                   </p>
 
+                  {/* Stepper Progress khusus status MENUNGGU (Tanpa Pill) */}
+                  {spmbStatusData.status === 'pending' && (
+                    <div className="login-spmb-stepper">
+                      <div className="login-spmb-step-item done">
+                        <strong>1. Formulir</strong>
+                        <span>Tersimpan di Sistem</span>
+                      </div>
+                      <div className="login-spmb-step-item active">
+                        <strong>2. Verifikasi TU</strong>
+                        <span>Sedang Ditinjau</span>
+                      </div>
+                      <div className="login-spmb-step-item">
+                        <strong>3. Akses Kelas</strong>
+                        <span>Setelah Disetujui</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Panduan langsung untuk status DITERIMA (Tanpa Pill) */}
+                  {spmbStatusData.status === 'diterima' && (
+                    <div className="login-spmb-instruction">
+                      <Lock size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+                      <div>
+                        <strong>Silakan Masukkan Password Anda:</strong>
+                        <div>Ketik password akun Anda pada form di bawah ini untuk langsung mengakses Dashboard Ruang Belajar.</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tabular Details Grid (Tanpa Pill) */}
                   <div className="login-spmb-details-grid">
                     <div className="login-spmb-detail-row">
-                      <span className="label">Nomor Pendaftaran:</span>
+                      <span className="label">Nomor Registrasi:</span>
                       <strong className="val">#{String(spmbStatusData.id || '').padStart(6, '0')}</strong>
                     </div>
                     <div className="login-spmb-detail-row">
@@ -394,10 +439,16 @@ function LoginPage() {
                     </div>
                     {spmbStatusData.jenjang && (
                       <div className="login-spmb-detail-row">
-                        <span className="label">Jenjang:</span>
+                        <span className="label">Jenjang Pendidikan:</span>
                         <strong className="val">{getJenjangLabel(spmbStatusData.jenjang)}</strong>
                       </div>
                     )}
+                    <div className="login-spmb-detail-row">
+                      <span className="label">Status Akun:</span>
+                      <strong className="val" style={{ color: spmbStatusData.status === 'diterima' ? '#16A34A' : '#D97706' }}>
+                        {spmbStatusData.status === 'diterima' ? 'Aktif (Siap Login)' : 'Menunggu Verifikasi'}
+                      </strong>
+                    </div>
                   </div>
 
                   {spmbStatusData.catatan && (
@@ -406,14 +457,26 @@ function LoginPage() {
                     </div>
                   )}
 
+                  {/* Action Buttons (Tanpa Pill) */}
                   <div className="login-spmb-actions">
+                    {spmbStatusData.status === 'diterima' && (
+                      <button
+                        type="button"
+                        onClick={focusPasswordInput}
+                        className="login-btn-primary-action"
+                      >
+                        <Lock size={15} />
+                        <span>Isi Password & Masuk</span>
+                      </button>
+                    )}
+
                     <a
                       href={getWaUrl(spmbStatusData.id, spmbStatusData.nama)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="login-btn-wa"
                     >
-                      <MessageCircle size={16} />
+                      <MessageCircle size={15} />
                       <span>Hubungi Admin TU via WhatsApp</span>
                     </a>
 
@@ -421,12 +484,13 @@ function LoginPage() {
                       type="button"
                       onClick={() => {
                         setActiveTab('cek_spmb');
-                        setSearchQuery(emailTrim || String(spmbStatusData.id));
-                        lakukanCekStatus(emailTrim || String(spmbStatusData.id));
+                        const queryVal = (email || '').trim() || String(spmbStatusData.id);
+                        setSearchQuery(queryVal);
+                        lakukanCekStatus(queryVal);
                       }}
                       className="login-btn-detail-spmb"
                     >
-                      <FileText size={16} />
+                      <FileText size={15} />
                       <span>Lihat Rincian Berkas</span>
                     </button>
                   </div>
@@ -505,6 +569,7 @@ function LoginPage() {
                   <div className="login-input-wrapper">
                     <Lock size={18} className="login-input-icon" />
                     <input
+                      id="login-password-input"
                       type={showPass ? 'text' : 'password'}
                       className="login-input"
                       style={{ paddingRight: 44 }}
@@ -677,20 +742,20 @@ function LoginPage() {
                 </div>
               )}
 
-              {/* Search Result Box */}
+              {/* Search Result Box (Tanpa Pill) */}
               {searchResult && (
                 <div className={`login-spmb-status-card status-${searchResult.status}`} style={{ marginTop: 20 }}>
                   <div className="login-spmb-status-head">
                     <div className="login-spmb-icon-wrap">
-                      {searchResult.status === 'pending' && <Clock size={24} className="icon-pulse" />}
-                      {searchResult.status === 'diterima' && <CheckCircle2 size={24} />}
-                      {searchResult.status === 'ditolak' && <XCircle size={24} />}
+                      {searchResult.status === 'pending' && <Clock size={20} className="icon-pulse" />}
+                      {searchResult.status === 'diterima' && <CheckCircle2 size={20} />}
+                      {searchResult.status === 'ditolak' && <XCircle size={20} />}
                     </div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div className="login-spmb-status-badge">
-                        {searchResult.status === 'pending' && '⏳ MENUNGGU VERIFIKASI TU'}
-                        {searchResult.status === 'diterima' && '✅ RESMI DITERIMA'}
-                        {searchResult.status === 'ditolak' && '❌ DITOLAK / PERLU PERBAIKAN'}
+                        {searchResult.status === 'pending' && 'STATUS: MENUNGGU VERIFIKASI ADMIN TU'}
+                        {searchResult.status === 'diterima' && 'STATUS: RESMI DITERIMA & AKUN AKTIF'}
+                        {searchResult.status === 'ditolak' && 'STATUS: DITOLAK / PERLU PERBAIKAN'}
                       </div>
                       <h4 className="login-spmb-title">
                         #{String(searchResult.id).padStart(6, '0')} — {searchResult.nama_lengkap}
@@ -698,9 +763,28 @@ function LoginPage() {
                     </div>
                   </div>
 
+                  {/* Stepper khusus status MENUNGGU di Tab Cek Status */}
+                  {searchResult.status === 'pending' && (
+                    <div className="login-spmb-stepper">
+                      <div className="login-spmb-step-item done">
+                        <strong>1. Formulir</strong>
+                        <span>Tersimpan di Sistem</span>
+                      </div>
+                      <div className="login-spmb-step-item active">
+                        <strong>2. Verifikasi TU</strong>
+                        <span>Sedang Ditinjau</span>
+                      </div>
+                      <div className="login-spmb-step-item">
+                        <strong>3. Akses Belajar</strong>
+                        <span>Setelah Disetujui</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Details Grid */}
                   <div className="login-spmb-details-grid">
                     <div className="login-spmb-detail-row">
-                      <span className="label">Jenjang:</span>
+                      <span className="label">Jenjang Pendidikan:</span>
                       <strong className="val">{getJenjangLabel(searchResult.jenjang_daftar)}</strong>
                     </div>
                     <div className="login-spmb-detail-row">
@@ -709,12 +793,12 @@ function LoginPage() {
                     </div>
                     <div className="login-spmb-detail-row">
                       <span className="label">Nomor Induk Siswa:</span>
-                      <strong className="val" style={{ color: searchResult.status === 'diterima' ? 'var(--spmb-blue-royal)' : undefined }}>
+                      <strong className="val" style={{ color: searchResult.status === 'diterima' ? '#16A34A' : undefined }}>
                         {searchResult.nis || (searchResult.status === 'diterima' ? 'Terdaftar Resmi' : 'Menunggu')}
                       </strong>
                     </div>
                     <div className="login-spmb-detail-row">
-                      <span className="label">Tanggal Daftar:</span>
+                      <span className="label">Tanggal Registrasi:</span>
                       <strong className="val">
                         {searchResult.created_at
                           ? new Date(searchResult.created_at).toLocaleDateString('id-ID', {
@@ -767,18 +851,8 @@ function LoginPage() {
                     </div>
                   )}
 
-                  {/* Quick Action Buttons */}
+                  {/* Quick Action Buttons (Tanpa Pill) */}
                   <div className="login-spmb-actions">
-                    <a
-                      href={getWaUrl(searchResult.id, searchResult.nama_lengkap)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="login-btn-wa"
-                    >
-                      <MessageCircle size={16} />
-                      <span>Chat WhatsApp Admin TU</span>
-                    </a>
-
                     {searchResult.status === 'diterima' && (
                       <button
                         type="button"
@@ -787,12 +861,24 @@ function LoginPage() {
                           if (searchResult.email) {
                             setEmail(searchResult.email);
                           }
+                          focusPasswordInput();
                         }}
-                        className="login-btn-primary-small"
+                        className="login-btn-primary-action"
                       >
+                        <Lock size={15} />
                         <span>Masuk ke Ruang Belajar Sekarang →</span>
                       </button>
                     )}
+
+                    <a
+                      href={getWaUrl(searchResult.id, searchResult.nama_lengkap)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="login-btn-wa"
+                    >
+                      <MessageCircle size={15} />
+                      <span>Chat WhatsApp Admin TU</span>
+                    </a>
                   </div>
                 </div>
               )}

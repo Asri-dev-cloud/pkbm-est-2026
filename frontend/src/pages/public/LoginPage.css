@@ -300,10 +300,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
+  padding: 4px 10px;
   background: var(--login-blue-light);
   border: 1px solid var(--login-blue-subtle);
-  border-radius: 9999px;
+  border-radius: 4px;
   color: var(--login-blue-royal);
   font-size: 0.78rem;
   font-weight: 800;
@@ -329,7 +329,7 @@
   line-height: 1.5;
 }
 
-/* Role Pills */
+/* Role Badges (Clean Rectangular, No Pill) */
 .login-roles-bar {
   display: flex;
   align-items: center;
@@ -342,113 +342,165 @@
 .login-role-pill {
   font-size: 0.72rem;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 9999px;
+  padding: 3px 8px;
+  border-radius: 4px;
   background: var(--login-blue-light);
   color: var(--login-blue-royal);
   border: 1px solid var(--login-blue-subtle);
 }
 
 /* ══════════════════════════════════════════════════════════ */
-/* SPMB STATUS CARD (Rich Alert for Pending/Registered Users) */
+/* SPMB STATUS CARD (Modern Enterprise Card — Tanpa Pill)     */
 /* ══════════════════════════════════════════════════════════ */
 
 .login-spmb-status-card {
-  padding: 20px 20px;
-  border-radius: 14px;
+  padding: 18px 20px;
+  border-radius: 8px;
   margin-bottom: 24px;
-  border: 1.5px solid;
+  border: 1px solid #E2E8F0;
+  border-left: 4px solid #3B82F6;
+  background: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
   animation: loginFadeUp 0.3s ease-out;
 }
 
 .login-spmb-status-card.status-pending {
-  background: #FFFBEB;
-  border-color: #FCD34D;
-  color: #92400E;
+  border-left-color: #D97706;
+  background: linear-gradient(180deg, #FFFDF7 0%, #FFFFFF 100%);
 }
 
 .login-spmb-status-card.status-diterima {
-  background: #F0FDF4;
-  border-color: #86EFAC;
-  color: #166534;
+  border-left-color: #16A34A;
+  background: linear-gradient(180deg, #F0FDF4 0%, #FFFFFF 100%);
 }
 
 .login-spmb-status-card.status-ditolak {
-  background: #FEF2F2;
-  border-color: #FCA5A5;
-  color: #991B1B;
+  border-left-color: #DC2626;
+  background: linear-gradient(180deg, #FEF2F2 0%, #FFFFFF 100%);
 }
 
 .login-spmb-status-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   margin-bottom: 12px;
 }
 
 .login-spmb-icon-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  margin-top: 2px;
+}
+
+.status-diterima .login-spmb-icon-wrap {
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+}
+
+.status-pending .login-spmb-icon-wrap {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.status-ditolak .login-spmb-icon-wrap {
+  background: #FEE2E2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
 }
 
 .icon-pulse {
-  animation: loginIconPulse 1.8s infinite;
+  animation: loginIconPulse 2s infinite ease-in-out;
 }
 
 @keyframes loginIconPulse {
   0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 0.85; }
   100% { transform: scale(1); opacity: 1; }
 }
 
 .login-spmb-status-badge {
-  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.05em;
-  margin-bottom: 2px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.status-diterima .login-spmb-status-badge {
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #BBF7D0;
+}
+
+.status-pending .login-spmb-status-badge {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.status-ditolak .login-spmb-status-badge {
+  background: #FEE2E2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
 }
 
 .login-spmb-title {
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   font-weight: 800;
   margin: 0;
-  color: inherit;
+  color: #0F172A;
+  line-height: 1.35;
 }
 
 .login-spmb-message {
-  font-size: 0.9rem;
-  line-height: 1.55;
+  font-size: 0.88rem;
+  line-height: 1.6;
   margin-bottom: 14px;
   color: #334155;
 }
 
+/* Tabular Details Grid (Crisp Corners) */
 .login-spmb-details-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.8);
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  background: #F8FAFC;
   padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
   margin-bottom: 14px;
+}
+
+@media (max-width: 540px) {
+  .login-spmb-details-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
 }
 
 .login-spmb-detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  padding: 3px 0;
 }
 
 .login-spmb-detail-row .label {
   color: #64748B;
+  font-weight: 500;
 }
 
 .login-spmb-detail-row .val {
@@ -456,38 +508,122 @@
   font-weight: 700;
 }
 
-.login-spmb-catatan {
-  font-size: 0.85rem;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
+/* Verification Stepper for Pending Status */
+.login-spmb-stepper {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
   margin-bottom: 14px;
-  border-left: 3px solid #EF4444;
-  color: #7F1D1D;
 }
 
+@media (max-width: 520px) {
+  .login-spmb-stepper {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+.login-spmb-step-item {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: #64748B;
+}
+
+.login-spmb-step-item strong {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.login-spmb-step-item.done {
+  background: #F0FDF4;
+  border-color: #BBF7D0;
+  color: #166534;
+}
+
+.login-spmb-step-item.active {
+  background: #FEF3C7;
+  border-color: #FCD34D;
+  color: #92400E;
+}
+
+/* Prompt Instruction Box */
+.login-spmb-instruction {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 0.82rem;
+  color: #1E40AF;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.login-spmb-catatan {
+  font-size: 0.84rem;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #FEF2F2;
+  margin-bottom: 14px;
+  border-left: 3px solid #EF4444;
+  color: #991B1B;
+  line-height: 1.5;
+}
+
+/* Action Buttons (No Pill) */
 .login-spmb-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: 10px;
+}
+
+.login-btn-primary-action {
+  flex: 1.2;
+  min-width: 170px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: #0F172A;
+  color: #FFFFFF;
+  font-size: 0.84rem;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid #0F172A;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-btn-primary-action:hover {
+  background: #1E293B;
+  transform: translateY(-1px);
 }
 
 .login-btn-wa {
   flex: 1;
-  min-width: 180px;
+  min-width: 160px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px;
+  padding: 10px 14px;
   background: #16A34A;
   color: #FFFFFF;
   text-decoration: none;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+  border-radius: 6px;
+  border: 1px solid #16A34A;
   transition: all 0.2s ease;
 }
 
@@ -503,17 +639,17 @@
   gap: 6px;
   padding: 10px 14px;
   background: #FFFFFF;
-  border: 1.5px solid #CBD5E1;
+  border: 1px solid #CBD5E1;
   color: #334155;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  border-radius: 10px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .login-btn-detail-spmb:hover {
-  background: #F8FAFC;
+  background: #F1F5F9;
   border-color: #94A3B8;
 }
 
@@ -774,8 +910,8 @@
 .login-spmb-berkas-item .badge {
   font-size: 0.72rem;
   font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 9999px;
+  padding: 3px 8px;
+  border-radius: 4px;
 }
 
 .login-spmb-berkas-item .badge.valid {
