@@ -99,15 +99,45 @@ function Sidebar({ user }) {
 
   return (
     <>
-      {/* Tombol Toggle Mobile Modern */}
-      <button
-        type="button"
-        className={`modern-mobile-toggle ${mobileOpen ? 'open' : ''}`}
-        onClick={() => setMobileOpen((prev) => !prev)}
-        aria-label={mobileOpen ? 'Tutup navigasi' : 'Buka navigasi'}
-      >
-        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
+      {/* ── Modern Mobile Navigation Bar (Header Bersih Khusus Mobile) ── */}
+      <header className="modern-mobile-navbar">
+        <button
+          type="button"
+          className={`modern-mobile-toggle-btn ${mobileOpen ? 'open' : ''}`}
+          onClick={() => setMobileOpen((prev) => !prev)}
+          aria-label={mobileOpen ? 'Tutup navigasi' : 'Buka navigasi'}
+        >
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+
+        <div className="modern-mobile-navbar-center">
+          <img
+            src="/images/logo_pkbm.png"
+            alt="Logo PKBM Bina Mandiri"
+            className="modern-mobile-navbar-logo"
+          />
+          <div className="modern-mobile-navbar-brand">
+            <span className="brand-name">PKBM BINA MANDIRI</span>
+            <span className="brand-role">
+              {role === 'super_admin'
+                ? 'Super Admin'
+                : role === 'admin'
+                  ? 'Admin TU'
+                  : role === 'tutor'
+                    ? 'Tutor'
+                    : role === 'pimpinan'
+                      ? 'Pimpinan'
+                      : 'Warga Belajar'}
+            </span>
+          </div>
+        </div>
+
+        <div className="modern-mobile-navbar-right">
+          <div className="modern-mobile-avatar">
+            {(user?.nama_lengkap || user?.nama || 'U').charAt(0).toUpperCase()}
+          </div>
+        </div>
+      </header>
 
       {/* Backdrop Mobile */}
       {mobileOpen && (

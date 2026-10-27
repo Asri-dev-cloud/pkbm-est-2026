@@ -14,6 +14,12 @@
   padding: 0 !important;
 }
 
+@media (max-width: 1023px) {
+  .matcha-theme-layout .app-main {
+    padding-top: 64px !important;
+  }
+}
+
 .matcha-theme-layout .app-content {
   background-color: transparent !important;
   border-radius: 0 !important;
@@ -25,13 +31,13 @@
 
 @media (max-width: 1024px) {
   .matcha-theme-layout .app-content {
-    padding: 0 20px 40px !important;
+    padding: 0 16px 36px !important;
   }
 }
 
 @media (max-width: 768px) {
   .matcha-theme-layout .app-content {
-    padding: 0 12px 32px !important;
+    padding: 0 12px 28px !important;
   }
 }
 
@@ -89,7 +95,9 @@
 
 @media (max-width: 1023px) {
   .matcha-hero-header-row {
-    padding-left: 48px; /* Ruang aman untuk tombol toggle mobile */
+    padding-left: 0;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
   }
 }
 
@@ -2362,78 +2370,130 @@
 
 @media (max-width: 768px) {
   .matcha-hero-banner {
-    padding: 22px 18px 0;
-    border-radius: 22px;
+    padding: 20px 16px 0;
+    border-radius: 20px;
+    margin-top: 10px;
+  }
+  .matcha-hero-header-row {
+    padding-left: 0;
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+  }
+  .matcha-hero-page-title {
+    font-size: 1.65rem;
+    line-height: 1.15;
+  }
+  .matcha-hero-page-subtitle {
+    font-size: 0.8rem;
+    line-height: 1.4;
   }
   .hero-ribbon-marquee {
-    width: calc(100% + 36px);
-    margin-left: -18px;
-    margin-right: -18px;
-    height: 34px;
+    width: calc(100% + 32px);
+    margin-left: -16px;
+    margin-right: -16px;
+    height: 32px;
   }
   .ribbon-text-item {
-    font-size: 0.72rem;
-    gap: 16px;
+    font-size: 0.68rem;
+    gap: 14px;
+    letter-spacing: 0.05em;
   }
   .matcha-hero-body {
-    flex-direction: row;
-    align-items: flex-end;
+    flex-direction: column;
+    align-items: stretch;
     gap: 12px;
   }
   .matcha-hero-left {
-    max-width: 58%;
-    padding-bottom: 20px;
+    max-width: 100%;
+    padding-bottom: 0;
   }
   .matcha-hero-giant-title {
     font-size: 2.2rem;
+    margin-bottom: 4px;
   }
   .matcha-hero-headline {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 8px;
   }
   .matcha-hero-subtext {
-    font-size: 0.74rem;
-    line-height: 1.45;
+    font-size: 0.82rem;
+    line-height: 1.5;
     margin-bottom: 14px;
   }
-  .matcha-pill-btn-lime {
-    padding: 7px 14px;
-    font-size: 0.72rem;
+  .matcha-hero-cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
   }
+  .matcha-pill-btn-lime,
   .matcha-pill-btn-glass {
-    padding: 6px 11px;
-    font-size: 0.7rem;
+    flex: 1 1 120px;
+    justify-content: center;
+    padding: 9px 14px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: 8px;
   }
   .matcha-hero-right {
-    min-width: 160px;
-    height: auto;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    margin-top: 4px;
   }
   .matcha-mascot-img {
-    max-width: 220px;
+    max-width: 260px;
+    max-height: 175px;
     height: auto;
+    object-fit: contain;
   }
   .matcha-hero-side-note {
     display: none;
   }
   .matcha-capsule-card {
-    grid-template-columns: 1fr;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    width: calc(100% + 24px);
-    margin-left: -12px;
-    margin-right: -12px;
-    padding: 14px 16px;
+    grid-template-columns: repeat(2, 1fr) !important;
+    border-radius: 14px;
+    border: 1.5px solid rgba(0, 0, 0, 0.12);
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 12px 10px;
     gap: 8px;
+    margin-top: 14px;
+    margin-bottom: 18px;
   }
   .matcha-capsule-item {
-    padding: 8px 10px;
+    padding: 8px 8px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.05);
+    gap: 8px;
+  }
+  .matcha-capsule-icon-wrap {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+  }
+  .matcha-capsule-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+  .matcha-capsule-sub {
+    font-size: 0.68rem;
+    font-weight: 600;
   }
   .matcha-editorial-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 6px;
+    margin-bottom: 16px;
   }
   .matcha-editorial-title {
-    font-size: 1.6rem;
+    font-size: 1.45rem;
+    line-height: 1.2;
   }
 }

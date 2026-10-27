@@ -52,36 +52,112 @@
   }
 }
 
-/* ── Mobile Toggle Button ── */
-.modern-mobile-toggle {
+/* ── Modern Mobile Navigation Bar (Sleek Header Bar for Mobile) ── */
+.modern-mobile-navbar {
   position: fixed;
-  top: 16px;
-  left: 16px;
-  z-index: 1100;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  border: 1.5px solid #FFE500;
-  background: #0A3766;
-  color: #FFE500;
-  display: inline-flex;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: linear-gradient(180deg, #072242 0%, #0A3766 100%);
+  border-bottom: 2px solid rgba(255, 229, 0, 0.4);
+  box-shadow: 0 4px 20px rgba(5, 20, 36, 0.45);
+  display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 20px rgba(10, 55, 102, 0.45);
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  justify-content: space-between;
+  padding: 0 14px;
+  z-index: 1050;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 @media (min-width: 1024px) {
-  .modern-mobile-toggle {
+  .modern-mobile-navbar {
     display: none !important;
   }
 }
 
-.modern-mobile-toggle:hover {
-  background: #072242;
-  transform: scale(1.05);
-  box-shadow: 0 8px 24px rgba(255, 229, 0, 0.4);
+.modern-mobile-toggle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.modern-mobile-toggle-btn:hover,
+.modern-mobile-toggle-btn.open {
+  background: #FFE500;
+  color: #072242;
+  border-color: #FFE500;
+  transform: scale(1.04);
+}
+
+.modern-mobile-navbar-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.modern-mobile-navbar-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.modern-mobile-navbar-brand {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.modern-mobile-navbar-brand .brand-name {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.15;
+}
+
+.modern-mobile-navbar-brand .brand-role {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #FFE500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.modern-mobile-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.modern-mobile-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #FFE500;
+  color: #072242;
+  font-size: 0.82rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .modern-sidebar-backdrop {
