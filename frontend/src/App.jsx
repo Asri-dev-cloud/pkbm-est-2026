@@ -2,75 +2,51 @@
 // src/App.jsx — Pengatur Rute (Router) Utama Aplikasi
 // ============================================================
 
-import React, { Suspense, lazy, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 
-// ── Smart Dynamic Import Helper dengan Auto-Retry & Hard-Refresh Fallback ──
-// Mencegah masalah umum SPA di mana halaman macet / tidak muncul saat navigasi
-// akibat chunk hash berganti setelah deployment atau cache browser tertinggal.
-function lazyRetry(componentImport) {
-  return lazy(() => {
-    return new Promise((resolve, reject) => {
-      componentImport()
-        .then(resolve)
-        .catch((error) => {
-          console.warn('[Router] Gagal memuat chunk modul dinamis, mencoba 1x lagi...', error);
-          componentImport()
-            .then(resolve)
-            .catch((retryError) => {
-              console.error('[Router] Retry dynamic import gagal, memuat ulang halaman otomatis...', retryError);
-              const key = 'pkbm_chunk_last_reload';
-              const last = Number(sessionStorage.getItem(key) || 0);
-              const now = Date.now();
-              // Batasi reload otomatis maksimal 1 kali per 10 detik agar tidak loop
-              if (now - last > 10000) {
-                sessionStorage.setItem(key, String(now));
-                window.location.reload();
-              } else {
-                reject(retryError);
-              }
-            });
-        });
-    });
-  });
-}
+// ── Direct Import Semua Halaman (Anti-Blank & Navigasi Instan 0ms) ──
+// Menghilangkan React.lazy per-halaman yang menjadi penyebab utama
+// layar blank saat berpindah halaman pada koneksi mobile / setelah deployment.
+// Dengan direct import, semua komponen rute sudah siap di memori,
+// navigasi terjadi seketika tanpa perlu fetch chunk terpisah atau refresh browser.
 
-// ── Halaman Publik (tidak butuh login) ──────────────────────
-const HomePage       = lazyRetry(() => import('./pages/public/HomePage.jsx'));
-const LoginPage      = lazyRetry(() => import('./pages/public/LoginPage.jsx'));
-const DaftarSpmbPage = lazyRetry(() => import('./pages/public/DaftarSpmbPage.jsx'));
-const NotFoundPage   = lazyRetry(() => import('./pages/public/NotFoundPage.jsx'));
+// ── Halaman Publik ───────────────────────────────────────────
+import HomePage from './pages/public/HomePage.jsx';
+import LoginPage from './pages/public/LoginPage.jsx';
+import DaftarSpmbPage from './pages/public/DaftarSpmbPage.jsx';
+import NotFoundPage from './pages/public/NotFoundPage.jsx';
 
 // ── Komponen Pendukung ───────────────────────────────────────
-import ProtectedRoute  from './components/ProtectedRoute.jsx';
-const DashboardRouter = lazyRetry(() => import('./pages/DashboardRouter.jsx'));
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import DashboardRouter from './pages/DashboardRouter.jsx';
 
-// ── Halaman Warga Belajar ────────────────────────────────────
-const DashboardSiswa     = lazyRetry(() => import('./pages/siswa/DashboardSiswa.jsx'));
-const RuangBelajarSiswa  = lazyRetry(() => import('./pages/siswa/RuangBelajarSiswa.jsx'));
-const KelasTerpaduSiswa  = lazyRetry(() => import('./pages/siswa/KelasTerpaduSiswa.jsx'));
-const MateriSiswa        = lazyRetry(() => import('./pages/siswa/MateriSiswa.jsx'));
-const TugasSiswa         = lazyRetry(() => import('./pages/siswa/TugasSiswa.jsx'));
-const AbsensiSiswa       = lazyRetry(() => import('./pages/siswa/AbsensiSiswa.jsx'));
-const UjianSiswa         = lazyRetry(() => import('./pages/siswa/UjianSiswa.jsx'));
-const KlubSiswa          = lazyRetry(() => import('./pages/siswa/KlubSiswa.jsx'));
-const TagihanSiswa       = lazyRetry(() => import('./pages/siswa/TagihanSiswa.jsx'));
-const BeritaSiswa        = lazyRetry(() => import('./pages/siswa/BeritaSiswa.jsx'));
-const ModulBukuSiswa     = lazyRetry(() => import('./pages/siswa/ModulBukuSiswa.jsx'));
+// ── Halaman Warga Belajar (LMS Siswa) ────────────────────────
+import DashboardSiswa from './pages/siswa/DashboardSiswa.jsx';
+import RuangBelajarSiswa from './pages/siswa/RuangBelajarSiswa.jsx';
+import KelasTerpaduSiswa from './pages/siswa/KelasTerpaduSiswa.jsx';
+import MateriSiswa from './pages/siswa/MateriSiswa.jsx';
+import TugasSiswa from './pages/siswa/TugasSiswa.jsx';
+import AbsensiSiswa from './pages/siswa/AbsensiSiswa.jsx';
+import UjianSiswa from './pages/siswa/UjianSiswa.jsx';
+import KlubSiswa from './pages/siswa/KlubSiswa.jsx';
+import TagihanSiswa from './pages/siswa/TagihanSiswa.jsx';
+import BeritaSiswa from './pages/siswa/BeritaSiswa.jsx';
+import ModulBukuSiswa from './pages/siswa/ModulBukuSiswa.jsx';
 
 // ── Halaman Admin TU & Keuangan ──────────────────────────────
-const DashboardAdmin       = lazyRetry(() => import('./pages/admin/DashboardAdmin.jsx'));
-const SpmbAdmin            = lazyRetry(() => import('./pages/admin/SpmbAdmin.jsx'));
-const SiswaAdmin           = lazyRetry(() => import('./pages/admin/SiswaAdmin.jsx'));
-const TagihanAdmin         = lazyRetry(() => import('./pages/admin/TagihanAdmin.jsx'));
-const UserAdmin            = lazyRetry(() => import('./pages/admin/UserAdmin.jsx'));
-const KlubAdmin            = lazyRetry(() => import('./pages/admin/KlubAdmin.jsx'));
-const MasterMapelAdmin     = lazyRetry(() => import('./pages/admin/MasterMapelAdmin.jsx'));
-const MapelPerRombelAdmin  = lazyRetry(() => import('./pages/admin/MapelPerRombelAdmin.jsx'));
-const PeriodeUjianAdmin    = lazyRetry(() => import('./pages/admin/PeriodeUjianAdmin.jsx'));
-const PesertaUjianAdmin    = lazyRetry(() => import('./pages/admin/PesertaUjianAdmin.jsx'));
-const BeritaAdmin          = lazyRetry(() => import('./pages/admin/BeritaAdmin.jsx'));
-const ModulBukuAdmin       = lazyRetry(() => import('./pages/admin/ModulBukuAdmin.jsx'));
+import DashboardAdmin from './pages/admin/DashboardAdmin.jsx';
+import SpmbAdmin from './pages/admin/SpmbAdmin.jsx';
+import SiswaAdmin from './pages/admin/SiswaAdmin.jsx';
+import TagihanAdmin from './pages/admin/TagihanAdmin.jsx';
+import UserAdmin from './pages/admin/UserAdmin.jsx';
+import KlubAdmin from './pages/admin/KlubAdmin.jsx';
+import MasterMapelAdmin from './pages/admin/MasterMapelAdmin.jsx';
+import MapelPerRombelAdmin from './pages/admin/MapelPerRombelAdmin.jsx';
+import PeriodeUjianAdmin from './pages/admin/PeriodeUjianAdmin.jsx';
+import PesertaUjianAdmin from './pages/admin/PesertaUjianAdmin.jsx';
+import BeritaAdmin from './pages/admin/BeritaAdmin.jsx';
+import ModulBukuAdmin from './pages/admin/ModulBukuAdmin.jsx';
 
 // ── Error Boundary untuk Mengisolasi Error Rendering ─────────
 class RouteErrorBoundary extends React.Component {
@@ -124,47 +100,6 @@ class RouteErrorBoundary extends React.Component {
     }
     return this.props.children;
   }
-}
-
-function PageLoader() {
-  const [showSlowHint, setShowSlowHint] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSlowHint(true), 3500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg, #F8FAFC)', padding: '2rem' }}>
-      <div style={{ textAlign: 'center' }}>
-        <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
-        <p style={{ color: 'var(--color-text-muted, #64748B)', margin: 0, fontWeight: 600 }}>Memuat halaman...</p>
-        {showSlowHint && (
-          <div style={{ marginTop: '1.25rem', animation: 'fadeIn 0.3s ease' }}>
-            <p style={{ fontSize: '0.82rem', color: '#94A3B8', marginBottom: '0.65rem' }}>
-              Memuat terasa agak lama?
-            </p>
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              style={{
-                background: '#1D4ED8',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '10px',
-                padding: '7px 16px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              Segarkan Halaman
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }
 
 function ScrollToTop() {
@@ -269,78 +204,76 @@ function SeoMetaManager() {
 function App() {
   return (
     <RouteErrorBoundary>
-      <Suspense fallback={<PageLoader />}>
-        <ScrollToTop />
-        <SeoMetaManager />
-        <Routes>
+      <ScrollToTop />
+      <SeoMetaManager />
+      <Routes>
 
-          {/* ══ RUTE PUBLIK ══════════════════════════════════════ */}
-          {/* Homepage baru — halaman utama */}
-          <Route path="/"       element={<HomePage />} />
-          {/* Login dipindah ke /login */}
-          <Route path="/login"  element={<LoginPage />} />
-          <Route path="/daftar" element={<DaftarSpmbPage />} />
+        {/* ══ RUTE PUBLIK ══════════════════════════════════════ */}
+        {/* Homepage baru — halaman utama */}
+        <Route path="/"       element={<HomePage />} />
+        {/* Login dipindah ke /login */}
+        <Route path="/login"  element={<LoginPage />} />
+        <Route path="/daftar" element={<DaftarSpmbPage />} />
 
-          {/* /dashboard → redirect otomatis sesuai role */}
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
+        {/* /dashboard → redirect otomatis sesuai role */}
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
 
-          {/* ══ RUTE WARGA BELAJAR (LMS SISWA) ═══════════════════ */}
-          <Route path="/dashboard/siswa"
-            element={<ProtectedRoute allowedRoles={['warga_belajar']}><DashboardSiswa /></ProtectedRoute>} />
-          <Route path="/dashboard/siswa/ruang-belajar"
-            element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><RuangBelajarSiswa /></ProtectedRoute>} />
-          <Route path="/dashboard/siswa/kelas/:mapelId"
-            element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><KelasTerpaduSiswa /></ProtectedRoute>} />
-          <Route path="/dashboard/siswa/materi"
-            element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><MateriSiswa /></ProtectedRoute>} />
-          <Route path="/dashboard/siswa/tugas"
-            element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><TugasSiswa /></ProtectedRoute>} />
-          <Route path="/dashboard/siswa/tugas-mingguan"
-            element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><TugasSiswa /></ProtectedRoute>} />
-          <Route path="/dashboard/siswa/absensi"
-            element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><AbsensiSiswa /></ProtectedRoute>} />
-          <Route path="/dashboard/siswa/ujian"
-            element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><UjianSiswa /></ProtectedRoute>} />
-          <Route path="/dashboard/siswa/klub"
-            element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><KlubSiswa /></ProtectedRoute>} />
-          <Route path="/dashboard/siswa/tagihan"
-            element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><TagihanSiswa /></ProtectedRoute>} />
-          <Route path="/dashboard/siswa/berita"
-            element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><BeritaSiswa /></ProtectedRoute>} />
-          <Route path="/dashboard/siswa/modul-buku"
-            element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><ModulBukuSiswa /></ProtectedRoute>} />
+        {/* ══ RUTE WARGA BELAJAR (LMS SISWA) ═══════════════════ */}
+        <Route path="/dashboard/siswa"
+          element={<ProtectedRoute allowedRoles={['warga_belajar']}><DashboardSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/ruang-belajar"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><RuangBelajarSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/kelas/:mapelId"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><KelasTerpaduSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/materi"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><MateriSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/tugas"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><TugasSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/tugas-mingguan"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><TugasSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/absensi"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><AbsensiSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/ujian"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><UjianSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/klub"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><KlubSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/tagihan"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><TagihanSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/berita"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><BeritaSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/modul-buku"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><ModulBukuSiswa /></ProtectedRoute>} />
 
-          {/* ══ RUTE SUPER ADMIN & ADMIN ═════════════════════════ */}
-          <Route path="/dashboard/admin"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><DashboardAdmin /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/modul-buku"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><ModulBukuAdmin /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/berita"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><BeritaAdmin /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/spmb"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><SpmbAdmin /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/siswa"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><SiswaAdmin /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/master-mapel"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><MasterMapelAdmin /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/mapel-rombel"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><MapelPerRombelAdmin /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/periode-ujian"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><PeriodeUjianAdmin /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/peserta-ujian"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><PesertaUjianAdmin /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/tagihan"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><TagihanAdmin /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/users"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><UserAdmin /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/klub"
-            element={<ProtectedRoute allowedRoles={['super_admin','admin']}><KlubAdmin /></ProtectedRoute>} />
+        {/* ══ RUTE SUPER ADMIN & ADMIN ═════════════════════════ */}
+        <Route path="/dashboard/admin"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><DashboardAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/modul-buku"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><ModulBukuAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/berita"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><BeritaAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/spmb"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><SpmbAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/siswa"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><SiswaAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/master-mapel"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><MasterMapelAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/mapel-rombel"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><MapelPerRombelAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/periode-ujian"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><PeriodeUjianAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/peserta-ujian"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><PesertaUjianAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/tagihan"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><TagihanAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/users"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><UserAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/klub"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><KlubAdmin /></ProtectedRoute>} />
 
-          {/* Fallback 404 */}
-          <Route path="*" element={<NotFoundPage />} />
+        {/* Fallback 404 */}
+        <Route path="*" element={<NotFoundPage />} />
 
-        </Routes>
-      </Suspense>
+      </Routes>
     </RouteErrorBoundary>
   );
 }
