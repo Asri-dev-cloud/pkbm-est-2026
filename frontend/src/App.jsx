@@ -25,6 +25,8 @@ const AbsensiSiswa       = lazy(() => import('./pages/siswa/AbsensiSiswa.jsx'));
 const UjianSiswa         = lazy(() => import('./pages/siswa/UjianSiswa.jsx'));
 const KlubSiswa          = lazy(() => import('./pages/siswa/KlubSiswa.jsx'));
 const TagihanSiswa       = lazy(() => import('./pages/siswa/TagihanSiswa.jsx'));
+const BeritaSiswa        = lazy(() => import('./pages/siswa/BeritaSiswa.jsx'));
+const ModulBukuSiswa     = lazy(() => import('./pages/siswa/ModulBukuSiswa.jsx'));
 
 // ── Halaman Admin TU & Keuangan ──────────────────────────────
 const DashboardAdmin       = lazy(() => import('./pages/admin/DashboardAdmin.jsx'));
@@ -37,15 +39,10 @@ const MasterMapelAdmin     = lazy(() => import('./pages/admin/MasterMapelAdmin.j
 const MapelPerRombelAdmin  = lazy(() => import('./pages/admin/MapelPerRombelAdmin.jsx'));
 const PeriodeUjianAdmin    = lazy(() => import('./pages/admin/PeriodeUjianAdmin.jsx'));
 const PesertaUjianAdmin    = lazy(() => import('./pages/admin/PesertaUjianAdmin.jsx'));
+const BeritaAdmin          = lazy(() => import('./pages/admin/BeritaAdmin.jsx'));
+const ModulBukuAdmin       = lazy(() => import('./pages/admin/ModulBukuAdmin.jsx'));
 
-// ── Halaman Tutor ────────────────────────────────────────────
-const DashboardTutor = lazy(() => import('./pages/tutor/DashboardTutor.jsx'));
-const KelasTutor     = lazy(() => import('./pages/tutor/KelasTutor.jsx'));
-const AbsensiTutor   = lazy(() => import('./pages/tutor/AbsensiTutor.jsx'));
-const UjianTutor     = lazy(() => import('./pages/tutor/UjianTutor.jsx'));
-
-// ── Halaman Pimpinan ─────────────────────────────────────────
-const DashboardPimpinan = lazy(() => import('./pages/pimpinan/DashboardPimpinan.jsx'));
+// Tutor dan Pimpinan telah dihapus sesuai instruksi; sistem hanya untuk super_admin dan warga_belajar
 
 function PageLoader() {
   return (
@@ -107,9 +104,9 @@ function SeoMetaManager() {
       description = 'Area dashboard internal PKBM Bina Mandiri.';
       if (path === '/dashboard/siswa')         title = 'Dashboard Siswa | PKBM Bina Mandiri';
       else if (path === '/dashboard/siswa/tugas' || path === '/dashboard/siswa/tugas-mingguan') title = 'Tugas Mingguan Siswa | LMS PKBM Bina Mandiri';
-      else if (path === '/dashboard/tutor')    title = 'Dashboard Tutor | PKBM Bina Mandiri';
-      else if (path === '/dashboard/pimpinan') title = 'Dashboard Pimpinan | PKBM Bina Mandiri';
-      else if (path === '/dashboard/admin')    title = user?.role === 'super_admin' ? 'Dashboard Super Admin | PKBM Bina Mandiri' : 'Dashboard Admin TU | PKBM Bina Mandiri';
+      else if (path === '/dashboard/siswa/modul-buku') title = 'Kumpulan Modul & Buku Digital | PKBM Bina Mandiri';
+      else if (path === '/dashboard/admin/modul-buku') title = 'Kelola Modul & Buku Digital | PKBM Bina Mandiri';
+      else if (path === '/dashboard/admin')    title = 'Dashboard Super Admin | PKBM Bina Mandiri';
       else title = 'Dashboard | PKBM Bina Mandiri';
     }
 
@@ -164,63 +161,57 @@ function App() {
         {/* /dashboard → redirect otomatis sesuai role */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
 
-        {/* ══ RUTE WARGA BELAJAR ═══════════════════════════════ */}
+        {/* ══ RUTE WARGA BELAJAR (LMS SISWA) ═══════════════════ */}
         <Route path="/dashboard/siswa"
           element={<ProtectedRoute allowedRoles={['warga_belajar']}><DashboardSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/ruang-belajar"
-          element={<ProtectedRoute allowedRoles={['warga_belajar','tutor','admin','super_admin']}><RuangBelajarSiswa /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin']}><RuangBelajarSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/kelas/:mapelId"
-          element={<ProtectedRoute allowedRoles={['warga_belajar','tutor','admin','super_admin']}><KelasTerpaduSiswa /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin']}><KelasTerpaduSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/materi"
-          element={<ProtectedRoute allowedRoles={['warga_belajar']}><MateriSiswa /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin']}><MateriSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/tugas"
-          element={<ProtectedRoute allowedRoles={['warga_belajar','tutor','admin','super_admin']}><TugasSiswa /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin']}><TugasSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/tugas-mingguan"
-          element={<ProtectedRoute allowedRoles={['warga_belajar','tutor','admin','super_admin']}><TugasSiswa /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin']}><TugasSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/absensi"
-          element={<ProtectedRoute allowedRoles={['warga_belajar']}><AbsensiSiswa /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin']}><AbsensiSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/ujian"
-          element={<ProtectedRoute allowedRoles={['warga_belajar']}><UjianSiswa /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin']}><UjianSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/klub"
-          element={<ProtectedRoute allowedRoles={['warga_belajar']}><KlubSiswa /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin']}><KlubSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/tagihan"
-          element={<ProtectedRoute allowedRoles={['warga_belajar']}><TagihanSiswa /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin']}><TagihanSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/berita"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin']}><BeritaSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/modul-buku"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin']}><ModulBukuSiswa /></ProtectedRoute>} />
 
-        {/* ══ RUTE ADMIN ═══════════════════════════════════════ */}
+        {/* ══ RUTE SUPER ADMIN ═══════════════════════════════════ */}
         <Route path="/dashboard/admin"
-          element={<ProtectedRoute allowedRoles={['admin','super_admin']}><DashboardAdmin /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['super_admin']}><DashboardAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/modul-buku"
+          element={<ProtectedRoute allowedRoles={['super_admin']}><ModulBukuAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/berita"
+          element={<ProtectedRoute allowedRoles={['super_admin']}><BeritaAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/spmb"
-          element={<ProtectedRoute allowedRoles={['admin','super_admin']}><SpmbAdmin /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['super_admin']}><SpmbAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/siswa"
-          element={<ProtectedRoute allowedRoles={['admin','super_admin']}><SiswaAdmin /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['super_admin']}><SiswaAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/master-mapel"
-          element={<ProtectedRoute allowedRoles={['admin','super_admin']}><MasterMapelAdmin /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['super_admin']}><MasterMapelAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/mapel-rombel"
-          element={<ProtectedRoute allowedRoles={['admin','super_admin']}><MapelPerRombelAdmin /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['super_admin']}><MapelPerRombelAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/periode-ujian"
-          element={<ProtectedRoute allowedRoles={['admin','super_admin']}><PeriodeUjianAdmin /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['super_admin']}><PeriodeUjianAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/peserta-ujian"
-          element={<ProtectedRoute allowedRoles={['admin','super_admin']}><PesertaUjianAdmin /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['super_admin']}><PesertaUjianAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/tagihan"
-          element={<ProtectedRoute allowedRoles={['admin','super_admin']}><TagihanAdmin /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['super_admin']}><TagihanAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/users"
           element={<ProtectedRoute allowedRoles={['super_admin']}><UserAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/klub"
-          element={<ProtectedRoute allowedRoles={['admin','super_admin']}><KlubAdmin /></ProtectedRoute>} />
-
-        {/* ══ RUTE TUTOR ═══════════════════════════════════════ */}
-        <Route path="/dashboard/tutor"
-          element={<ProtectedRoute allowedRoles={['tutor','super_admin']}><DashboardTutor /></ProtectedRoute>} />
-        <Route path="/dashboard/tutor/kelas"
-          element={<ProtectedRoute allowedRoles={['tutor','super_admin']}><KelasTutor /></ProtectedRoute>} />
-        <Route path="/dashboard/tutor/absensi"
-          element={<ProtectedRoute allowedRoles={['tutor','super_admin']}><AbsensiTutor /></ProtectedRoute>} />
-        <Route path="/dashboard/tutor/ujian"
-          element={<ProtectedRoute allowedRoles={['tutor','super_admin']}><UjianTutor /></ProtectedRoute>} />
-
-        {/* ══ RUTE PIMPINAN ════════════════════════════════════ */}
-        <Route path="/dashboard/pimpinan"
-          element={<ProtectedRoute allowedRoles={['pimpinan','super_admin']}><DashboardPimpinan /></ProtectedRoute>} />
+          element={<ProtectedRoute allowedRoles={['super_admin']}><KlubAdmin /></ProtectedRoute>} />
 
         {/* Fallback 404 */}
         <Route path="*" element={<NotFoundPage />} />

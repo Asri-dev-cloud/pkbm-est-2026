@@ -4,10 +4,11 @@
    ============================================================ */
 
 /* ── Container Sidebar Modern Kreatif ── */
+/* ── Container Sidebar Modern Kreatif (HomePage Deep Obsidian Sapphire) ── */
 .modern-app-sidebar {
   width: 255px;
-  background: linear-gradient(180deg, #182838 0%, #243B53 52%, #142230 100%);
-  color: #E6EFF8;
+  background: linear-gradient(180deg, #0F172A 0%, #1E293B 55%, #0B1120 100%);
+  color: #E2E8F0;
   position: fixed;
   top: 0;
   left: 0;
@@ -15,10 +16,10 @@
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  border-right: 1.5px solid rgba(92, 184, 255, 0.25);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Plus Jakarta Sans', sans-serif;
-  box-shadow: 6px 0 32px rgba(24, 40, 56, 0.45);
+  box-shadow: 6px 0 32px rgba(15, 23, 42, 0.45);
   overflow: hidden;
 }
 
@@ -30,7 +31,7 @@
   left: 0;
   right: 0;
   height: 220px;
-  background: radial-gradient(circle at 50% 0%, rgba(92, 184, 255, 0.25) 0%, rgba(255, 175, 92, 0.12) 45%, transparent 70%);
+  background: radial-gradient(circle at 50% 0%, rgba(29, 78, 216, 0.28) 0%, rgba(250, 204, 21, 0.08) 50%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -91,16 +92,16 @@
   }
 }
 
-/* ── Modern Mobile Navigation Bar (Sleek Header Bar for Mobile) ── */
+/* ── Modern Mobile Navigation Bar (HomePage Sapphire Edition) ── */
 .modern-mobile-navbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: 56px;
-  background: linear-gradient(180deg, #182838 0%, #243B53 100%);
-  border-bottom: 2px solid rgba(255, 175, 92, 0.45);
-  box-shadow: 0 4px 20px rgba(24, 40, 56, 0.35);
+  background: #0F172A;
+  border-bottom: 2px solid #1D4ED8;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.4);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -132,9 +133,9 @@
 
 .modern-mobile-toggle-btn:hover,
 .modern-mobile-toggle-btn.open {
-  background: #FFaf5c;
-  color: #243B53;
-  border-color: #FFaf5c;
+  background: #1D4ED8;
+  color: #FFFFFF;
+  border-color: #38BDF8;
   transform: scale(1.04);
 }
 
@@ -339,21 +340,21 @@
 }
 
 .modern-menu-link:hover .menu-icon {
-  color: #FFaf5c;
+  color: #38BDF8;
   transform: scale(1.1);
 }
 
-/* Active Pill — Warm Orange #FFaf5c & Yellow #F9C846 dengan Teks Dark Navy #243B53 */
+/* Active Pill — Royal Sapphire Blue #1D4ED8 & Gold Indicator */
 .modern-menu-link.active-pill {
-  background: linear-gradient(135deg, #FFaf5c 0%, #F9C846 100%);
-  color: #243B53;
-  font-weight: 800;
-  box-shadow: 0 4px 18px rgba(255, 175, 92, 0.42);
+  background: #1D4ED8;
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 4px 18px rgba(29, 78, 216, 0.45);
   transform: none;
 }
 
 .modern-menu-link.active-pill .menu-icon {
-  color: #243B53;
+  color: #FACC15;
 }
 
 .modern-menu-link.active-pill::before {
@@ -384,22 +385,22 @@
 }
 
 .modern-accordion-trigger:hover {
-  background: rgba(92, 184, 255, 0.16);
-  color: #FFaf5c;
+  background: rgba(29, 78, 216, 0.16);
+  color: #38BDF8;
 }
 
 .modern-accordion-trigger:hover .menu-icon {
-  color: #FFaf5c;
+  color: #38BDF8;
 }
 
 .modern-accordion-trigger.has-active-child {
-  color: #FFaf5c;
+  color: #FACC15;
   font-weight: 700;
-  background: rgba(92, 184, 255, 0.18);
+  background: rgba(29, 78, 216, 0.22);
 }
 
 .modern-accordion-trigger.has-active-child .menu-icon {
-  color: #FFaf5c;
+  color: #FACC15;
 }
 
 .trigger-left {
@@ -409,7 +410,7 @@
 }
 
 .trigger-arrow {
-  color: #FFaf5c;
+  color: #94A3B8;
   opacity: 0.9;
   transition: transform 0.22s ease;
 }
@@ -419,7 +420,7 @@
   list-style: none;
   margin: 3px 0 8px 16px;
   padding: 4px 0 4px 12px;
-  border-left: 1.5px solid rgba(255, 175, 92, 0.45);
+  border-left: 2px solid rgba(29, 78, 216, 0.5);
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -441,20 +442,24 @@
 
 .modern-sub-link:hover {
   color: #FFFFFF;
-  background: rgba(92, 184, 255, 0.16);
+  background: rgba(29, 78, 216, 0.18);
   transform: translateX(3px);
   text-decoration: none;
 }
 
 .modern-sub-link:hover .sub-menu-icon {
-  color: #FFaf5c;
+  color: #38BDF8;
 }
 
 .modern-sub-link.active {
-  color: #243B53;
-  background: linear-gradient(135deg, #FFaf5c 0%, #F9C846 100%);
-  font-weight: 800;
-  box-shadow: 0 2px 10px rgba(255, 175, 92, 0.35);
+  color: #FFFFFF;
+  background: #1D4ED8;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(29, 78, 216, 0.35);
+}
+
+.modern-sub-link.active .sub-menu-icon {
+  color: #FACC15;
 }
 
 .modern-sub-link.active .sub-menu-icon {

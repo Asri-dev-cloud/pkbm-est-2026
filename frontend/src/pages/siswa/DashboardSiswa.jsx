@@ -1,12 +1,7 @@
 // ============================================================
 // src/pages/siswa/DashboardSiswa.jsx — Dashboard Warga Belajar
-// ============================================================
-// Halaman utama Warga Belajar (WB) berestetika modern:
-// - Tanpa kotak biru besar di section metrik
-// - Pill badge berbentuk coretan spidol / highlighter organik
-// - Template kartu pelajar bersih tanpa bayangan kotak hitam
-// - Modal Edit Profil lengkap & stabil tanpa ajep-ajep
-// - 100% bebas emoji, menggunakan vektor Lucide React
+// Estetika: Boutique Sapphire & Sunflower Gold (Selaras HomePage)
+// 100% Bebas AI look / doodle / neon lime — Elegan & Modern
 // ============================================================
 
 import React, { useState, useEffect } from 'react';
@@ -18,7 +13,6 @@ import {
   CheckCircle2,
   Clock,
   GraduationCap,
-  Layers,
   PencilLine,
   QrCode,
   Receipt,
@@ -27,29 +21,13 @@ import {
   ChevronRight,
   AlertCircle,
   Check,
-  Building2
+  Building2,
+  Sparkles
 } from 'lucide-react';
 import { SiswaAPI, AbsensiAPI, TagihanAPI, toAssetUrl } from '../../services/api.js';
 import Sidebar from '../../components/Sidebar.jsx';
 import ProfileEditorCard from '../../components/ProfileEditorCard.jsx';
 import './DashboardSiswa.css';
-
-// SVG Starburst Geometris (Aksen Halus)
-function StarburstGraphic({ size = 32, className = '', color = 'currentColor' }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 100 100"
-      fill={color}
-      className={`starburst-svg ${className}`}
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path d="M50 0 L58 25 L80 12 L73 37 L98 42 L82 60 L96 80 L72 81 L70 100 L50 88 L30 100 L28 81 L4 80 L18 60 L2 42 L27 37 L20 12 L42 25 Z" />
-    </svg>
-  );
-}
 
 function DashboardSiswa() {
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('pkbm_user') || '{}'));
@@ -116,9 +94,9 @@ function DashboardSiswa() {
         <main className="app-main">
           <div className="edutech-loading-screen">
             <div className="edutech-loader-box">
-              <StarburstGraphic size={44} color="#D4FF00" />
+              <Sparkles size={40} color="#FACC15" />
               <div className="edutech-loader-title">MEMUAT PORTAL WARGA BELAJAR</div>
-              <div className="edutech-loader-sub">Menghubungkan basis data akademik...</div>
+              <div className="edutech-loader-sub">Menghubungkan basis data akademik PKBM...</div>
             </div>
           </div>
         </main>
@@ -134,17 +112,15 @@ function DashboardSiswa() {
           <div className="app-content">
             <div className="edutech-error-card">
               <AlertCircle size={44} className="edutech-error-icon" />
-              <h3>Gagal Menghubungkan Data</h3>
-              <p>{errorProfil}</p>
+              <h3 style={{ fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem' }}>Gagal Menghubungkan Data</h3>
+              <p style={{ color: '#64748B', marginBottom: '1.5rem' }}>{errorProfil}</p>
               <button
                 type="button"
-                className="edutech-pill-btn btn-dark"
+                className="btn btn-primary"
                 onClick={() => window.location.reload()}
               >
                 <span>Muat Ulang Halaman</span>
-                <div className="btn-circle-icon">
-                  <ArrowRight size={15} />
-                </div>
+                <ArrowRight size={15} />
               </button>
             </div>
           </div>
@@ -165,7 +141,7 @@ function DashboardSiswa() {
       <main className="app-main">
         <div className="app-content edutech-content-flow">
 
-          {/* ── Single Instance ProfileEditorCard Controller (Mencegah Ajep-Ajep) ── */}
+          {/* ── Single Instance ProfileEditorCard Controller ── */}
           {profil && (
             <ProfileEditorCard
               user={user}
@@ -173,7 +149,6 @@ function DashboardSiswa() {
               onProfileUpdate={(nextProfile) => setProfil(nextProfile)}
               hideCard
               triggerRenderer={(openModal) => {
-                // Simpan openModal function untuk dipakai tombol manapun
                 if (!openProfileModalFn) {
                   setTimeout(() => setOpenProfileModalFn(() => openModal), 0);
                 }
@@ -184,10 +159,15 @@ function DashboardSiswa() {
 
           {/* ── Top Bar Header ── */}
           <div className="edutech-top-bar">
+            <div className="edutech-bar-left">
+              <span className="edutech-portal-pill">
+                <Sparkles size={12} /> PORTAL WARGA BELAJAR
+              </span>
+            </div>
 
             <div className="edutech-bar-right">
               <div className="edutech-date-chip">
-                <Calendar size={14} />
+                <Calendar size={14} color="#1D4ED8" />
                 <span>
                   {new Date().toLocaleDateString('id-ID', {
                     weekday: 'long',
@@ -200,55 +180,50 @@ function DashboardSiswa() {
 
               <button
                 type="button"
-                className="edutech-pill-btn btn-dark-sm"
+                className="edutech-pill-btn-sm"
                 onClick={() => openProfileModalFn && openProfileModalFn()}
                 title="Lihat & Edit Data Diri"
               >
-                <PencilLine size={14} />
+                <PencilLine size={13} />
                 <span>Edit Profil</span>
               </button>
             </div>
           </div>
 
-          {/* ── 1. HERO BANNER: ELECTRIC LIME ── */}
+          {/* ── 1. HERO BANNER: BOUTIQUE SAPPHIRE & OBSIDIAN (Selaras HomePage) ── */}
           <section className="edutech-hero-section">
-            <div className="edutech-hero-watermark">
-              <StarburstGraphic size={120} color="#0D0F12" className="watermark-star-1" />
-              <StarburstGraphic size={60} color="#2F3DF6" className="watermark-star-2" />
-            </div>
-
             <div className="edutech-hero-content">
               <div className="edutech-hero-left">
+                <div className="edutech-hero-badge">
+                  <Sparkles size={12} /> PENDIDIKAN KESETARAAN RESMI
+                </div>
+
                 <h1 className="edutech-hero-headline">
-                  SUKSES BELAJAR KESETARAAN <span className="scribble-pill scribble-blue headline-scribble">DI SINI!</span>
+                  Portal Belajar Mandiri <span className="highlight-gold">PKBM Bina Mandiri</span>
                 </h1>
 
                 <p className="edutech-hero-sub">
-                  Selamat datang, <strong>{namaLengkap}</strong>. Akses seluruh modul belajar resmi, kirim tugas mingguan, dan pantau kehadiran belajar Anda secara mandiri di satu portal.
+                  Selamat datang kembali, <strong>{namaLengkap}</strong>. Akses modul belajar interaktif, pantau tugas mingguan, dan kelola presensi pertemuan Anda secara mandiri di sini.
                 </p>
 
                 <div className="edutech-hero-actions">
-                  <Link to="/dashboard/siswa/ruang-belajar" className="edutech-pill-btn btn-dark">
+                  <Link to="/dashboard/siswa/ruang-belajar" className="hero-btn-yellow">
                     <span>Buka Ruang Belajar</span>
-                    <div className="btn-circle-icon">
-                      <ArrowRight size={15} />
-                    </div>
+                    <ArrowRight size={16} />
                   </Link>
 
-                  <Link to="/dashboard/siswa/absensi" className="edutech-pill-btn btn-blue">
+                  <Link to="/dashboard/siswa/absensi" className="hero-btn-glass">
+                    <QrCode size={16} />
                     <span>Presensi Hari Ini</span>
-                    <div className="btn-circle-icon">
-                      <QrCode size={15} />
-                    </div>
                   </Link>
                 </div>
               </div>
 
-              {/* Template Kartu Siswa Digital (Tanpa Bayangan Kotak Hitam) */}
+              {/* Template Kartu Siswa Digital Resmi */}
               <div className="edutech-student-card-template">
                 <div className="card-template-header">
                   <div className="card-template-brand">
-                    <Building2 size={15} className="brand-icon" />
+                    <Building2 size={16} className="brand-icon" />
                     <span>PKBM BINA MANDIRI</span>
                   </div>
                   <span className="card-template-live">
@@ -274,11 +249,11 @@ function DashboardSiswa() {
                   <div className="card-template-info">
                     <h3 className="template-name">{namaLengkap}</h3>
                     <div className="template-meta-row">
-                      <IdCard size={13} />
+                      <IdCard size={13} color="#1D4ED8" />
                       <span>NIS: <strong>{profil?.nis || 'Belum Ditetapkan'}</strong></span>
                     </div>
                     <div className="template-meta-row">
-                      <GraduationCap size={13} />
+                      <GraduationCap size={13} color="#F59E0B" />
                       <span>{jenjangFormat}</span>
                     </div>
                   </div>
@@ -295,38 +270,37 @@ function DashboardSiswa() {
                   </div>
                 </div>
 
-                {/* Tombol Perbarui Data Diri yang Langsung Membuka Modal */}
                 <button
                   type="button"
                   className="card-template-edit-link"
                   onClick={() => openProfileModalFn && openProfileModalFn()}
                 >
                   <PencilLine size={13} />
-                  <span>Detail & Perbarui Data Diri</span>
+                  <span>Detail & Perbarui Profil</span>
                 </button>
               </div>
             </div>
           </section>
 
-          {/* ── 2. SECTION KONTROL AKADEMIK: BERSIH TANPA KOTAK BIRU ── */}
+          {/* ── 2. SECTION KONTROL AKADEMIK: BOUTIQUE BENTO ── */}
           <section className="edutech-academic-section">
             <div className="academic-section-header">
               <h2 className="academic-main-title">
-                SELAMAT DATANG DI PLATFORM <span className="scribble-pill scribble-lime title-scribble">DIGITAL PKBM</span>
+                Ringkasan Akademik & Administrasi
               </h2>
               <p className="academic-main-desc">
-                Pantau rekapitulasi kehadiran, tagihan administrasi, dan data induk akademik Anda secara langsung.
+                Pantau capaian presensi kehadiran, tagihan SPP, dan status data pokok pendidikan Anda.
               </p>
             </div>
 
-            {/* 3 Metrik Bento Tanpa Kotak Biru & Tanpa Bayangan Hitam Tebal */}
+            {/* 3 Metrik Bento Berwarna & Berdesain */}
             <div className="academic-metrics-grid">
-              {/* Metrik 1: Kehadiran (Warna Biru) */}
-              <div className="metric-box metric-blue-clean">
+              {/* Metrik 1: Kehadiran (Biru) */}
+              <div className="metric-box box-blue">
                 <div className="metric-top">
-                  <span className="metric-tag">KEHADIRAN</span>
-                  <div className="metric-icon-circle icon-white-bg">
-                    <CalendarCheck size={18} />
+                  <span className="metric-tag">KEHADIRAN BELAJAR</span>
+                  <div className="metric-icon-circle icon-blue-bg">
+                    <CalendarCheck size={19} />
                   </div>
                 </div>
                 <div className="metric-value">
@@ -341,17 +315,17 @@ function DashboardSiswa() {
                 <div className="metric-foot">
                   <span>Presensi Sesi Belajar</span>
                   <Link to="/dashboard/siswa/absensi" className="metric-arrow-link">
-                    Detail <ChevronRight size={13} />
+                    Lihat Absensi <ChevronRight size={13} />
                   </Link>
                 </div>
               </div>
 
-              {/* Metrik 2: Tagihan SPP */}
-              <div className="metric-box metric-dark-clean">
+              {/* Metrik 2: Tagihan SPP (Hijau jika lunas, Merah jika ada tunggakan) */}
+              <div className={`metric-box ${tagihanTertunggak === 0 ? 'box-green' : 'box-red'}`}>
                 <div className="metric-top">
-                  <span className="metric-tag">ADMINISTRASI</span>
-                  <div className="metric-icon-circle icon-lime-bg">
-                    <Receipt size={18} />
+                  <span className="metric-tag">KEUANGAN & SPP</span>
+                  <div className={`metric-icon-circle ${tagihanTertunggak === 0 ? 'icon-emerald-bg' : 'icon-red-bg'}`}>
+                    <Receipt size={19} />
                   </div>
                 </div>
                 <div className="metric-value">
@@ -364,25 +338,25 @@ function DashboardSiswa() {
                       <CheckCircle2 size={13} /> Lunas Seluruhnya
                     </span>
                   ) : (
-                    <span className="status-badge-warn">
+                    <span className="status-badge-warn-red">
                       <Clock size={13} /> Menunggu Pembayaran
                     </span>
                   )}
                 </div>
                 <div className="metric-foot">
-                  <span>Iuran SPP Pendidikan</span>
+                  <span>Iuran Pendidikan</span>
                   <Link to="/dashboard/siswa/tagihan" className="metric-arrow-link">
-                    Bayar <ChevronRight size={13} />
+                    Bayar SPP <ChevronRight size={13} />
                   </Link>
                 </div>
               </div>
 
-              {/* Metrik 3: Status Warga Belajar */}
-              <div className="metric-box metric-white-clean">
+              {/* Metrik 3: Status Warga Belajar (Hijau / Emas) */}
+              <div className="metric-box box-green">
                 <div className="metric-top">
-                  <span className="metric-tag">STATUS WB</span>
-                  <div className="metric-icon-circle icon-blue-bg">
-                    <ShieldCheck size={18} />
+                  <span className="metric-tag">STATUS DAPODIK</span>
+                  <div className="metric-icon-circle icon-emerald-bg">
+                    <ShieldCheck size={19} />
                   </div>
                 </div>
                 <div className="metric-value-title">
@@ -396,7 +370,7 @@ function DashboardSiswa() {
                 </div>
                 <div className="metric-foot">
                   <span>Tahun Ajaran 2026/2027</span>
-                  <span className="semester-pill">Semester 2</span>
+                  <span className="semester-pill">Semester Genap</span>
                 </div>
               </div>
             </div>

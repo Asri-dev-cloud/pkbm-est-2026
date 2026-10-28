@@ -697,13 +697,14 @@ function KelasTerpaduSiswa() {
             <>
               {/* BANNER UTAMA (HEADER KELAS) */}
               <div className="kelas-terpadu-hero" style={{
-                background: 'linear-gradient(135deg, #5CB8FF 0%, #3A9BF0 50%, #0284C7 100%)',
+                background: 'linear-gradient(135deg, #0F172A 0%, #1E3A8A 55%, #1D4ED8 100%)',
                 borderRadius: '24px',
                 padding: '2.5rem',
                 color: 'white',
                 position: 'relative',
                 overflow: 'hidden',
-                boxShadow: '0 16px 36px rgba(92, 184, 255, 0.28)',
+                boxShadow: '0 16px 36px -4px rgba(15, 23, 42, 0.25), 0 4px 12px -2px rgba(29, 78, 216, 0.15)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
                 marginBottom: '2rem'
               }}>
                 <div className="kelas-terpadu-hero-inner" style={{ position: 'relative', zIndex: 2, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '2rem' }}>
@@ -711,32 +712,37 @@ function KelasTerpaduSiswa() {
                   {/* Left Side: Title & Tutor */}
                   <div className="kelas-terpadu-hero-main" style={{ flex: '1 1 500px' }}>
                     <span style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
+                      fontSize: '0.74rem',
+                      fontWeight: 800,
                       textTransform: 'uppercase',
-                      background: 'rgba(255, 255, 255, 0.2)',
-                      padding: '6px 14px',
-                      borderRadius: '99px',
-                      letterSpacing: '1px',
-                      display: 'inline-block',
+                      background: 'rgba(250, 204, 21, 0.18)',
+                      color: '#FACC15',
+                      border: '1px solid rgba(250, 204, 21, 0.4)',
+                      padding: '4px 14px',
+                      borderRadius: '9999px',
+                      letterSpacing: '0.06em',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
                       marginBottom: '10px'
                     }}>
-                      Kelas Aktif Warga Belajar
+                      <i className="bi bi-mortarboard-fill"></i> KELAS TERPADU DIGITAL
                     </span>
                     
                     <h1 className="kelas-terpadu-title" style={{
-                      fontFamily: 'var(--font-heading, "Outfit", sans-serif)',
+                      fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
                       fontSize: '2.25rem',
                       fontWeight: 800,
                       color: 'white',
                       marginTop: '0.5rem',
                       marginBottom: '0.5rem',
-                      lineHeight: 1.2
+                      lineHeight: 1.2,
+                      letterSpacing: '-0.02em'
                     }}>
-                      {mapel?.nama || 'Mata Pelajaran'} ({mapel?.kode || 'KS2026'})
+                      {mapel?.nama || 'Mata Pelajaran'} <span style={{ color: '#FACC15', fontSize: '1.75rem', fontWeight: 700 }}>({mapel?.kode || 'KS2026'})</span>
                     </h1>
                     
-                    <p className="kelas-terpadu-subtitle" style={{ opacity: 0.9, fontSize: '0.95rem', margin: '0 0 1.5rem 0', maxWidth: '600px' }}>
+                    <p className="kelas-terpadu-subtitle" style={{ color: '#E2E8F0', fontSize: '0.94rem', margin: '0 0 1.5rem 0', maxWidth: '600px', lineHeight: 1.6 }}>
                       Pantau materi pembelajaran, kehadiran, tugas, forum diskusi, dan pengumuman kelas dalam satu halaman.
                     </p>
 
@@ -907,15 +913,15 @@ function KelasTerpaduSiswa() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '0.5rem',
-                        background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+                        background: '#1D4ED8',
                         color: 'white',
-                        border: 'none',
-                        padding: '12px',
-                        borderRadius: '99px',
+                        border: '1px solid #1E40AF',
+                        padding: '11px',
+                        borderRadius: '10px',
                         fontSize: '0.85rem',
                         fontWeight: 700,
                         cursor: 'pointer',
-                        boxShadow: '0 4px 10px rgba(37, 99, 235, 0.15)',
+                        boxShadow: '0 4px 14px rgba(29, 78, 216, 0.25)',
                         transition: 'all 0.2s'
                       }}
                     >

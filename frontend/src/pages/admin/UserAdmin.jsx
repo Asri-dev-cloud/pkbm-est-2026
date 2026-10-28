@@ -18,22 +18,16 @@ import { UserAPI } from '../../services/api.js';
 // ── Konstanta ────────────────────────────────────────────────
 const ROLE_LABEL = {
   super_admin:   'Super Admin',
-  admin:         'Admin TU & Keu',
-  tutor:         'Tutor',
   warga_belajar: 'Warga Belajar',
-  pimpinan:      'Pimpinan',
 };
 
 const ROLE_COLOR = {
-  super_admin:   { bg: '#FEF3C7', color: '#92400E' },
-  admin:         { bg: '#FCE7F3', color: '#9D174D' },
-  tutor:         { bg: '#EDE9FE', color: '#5B21B6' },
-  warga_belajar: { bg: '#DBEAFE', color: '#1E40AF' },
-  pimpinan:      { bg: '#D1FAE5', color: '#065F46' },
+  super_admin:   { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
+  warga_belajar: { bg: '#FEF08A', color: '#854D0E', border: '#FDE047' },
 };
 
-// Role yang bisa dibuat oleh Super Admin di halaman ini
-const ROLE_BUAT = ['admin', 'tutor', 'pimpinan'];
+// Role yang bisa dikelola / dibuat oleh Super Admin
+const ROLE_BUAT = ['super_admin'];
 
 function UserAdmin() {
   const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
@@ -47,7 +41,7 @@ function UserAdmin() {
   // ── State: Modal Buat Akun ───────────────────────────────
   const [showBuat,  setShowBuat]  = useState(false);
   const [formBuat, setFormBuat] = useState({
-    nama_lengkap: '', email: '', password: '', role: 'tutor',
+    nama_lengkap: '', email: '', password: '', role: 'super_admin',
   });
   const [buatLoading,  setBuatLoading]  = useState(false);
   const [buatFeedback, setBuatFeedback] = useState({ type: '', msg: '' });
@@ -182,30 +176,46 @@ function UserAdmin() {
                 Manajemen Akun
               </h1>
               <p style={{ color: 'var(--color-text-muted)', marginTop: 4 }}>
-                Kelola akun Tutor, Admin TU, dan Pimpinan PKBM.
+                Kelola akun Super Administrator dan akses akun PKBM.
               </p>
             </div>
             <button
               className="btn btn-primary"
               onClick={() => { setShowBuat(true); setBuatFeedback({ type: '', msg: '' }); }}
             >
-              <i className="bi bi-person-plus-fill" /> Buat Akun Baru
+              <i className="bi bi-person-plus-fill" /> Buat Super Admin Baru
             </button>
           </div>
 
           {/* ── Statistik ────────────────────────────────── */}
-          <div className="grid-cols-3" style={{ marginBottom: '2rem' }}>
-            {ROLE_BUAT.map(r => (
-              <div key={r} className="stat-card">
-                <div className="stat-icon" style={{ background: ROLE_COLOR[r]?.bg, color: ROLE_COLOR[r]?.color }}>
-                  <i className="bi bi-person-badge-fill" />
-                </div>
-                <div className="stat-body">
-                  <div className="stat-value">{statRole[r] ?? 0}</div>
-                  <div className="stat-label">{ROLE_LABEL[r]}</div>
-                </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>
+                <i className="bi bi-shield-check" />
               </div>
-            ))}
+              <div className="stat-body">
+                <div className="stat-value">{statRole['super_admin'] ?? 0}</div>
+                <div className="stat-label">Super Administrator</div>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: '#FEF08A', color: '#854D0E' }}>
+                <i className="bi bi-people-fill" />
+              </div>
+              <div className="stat-body">
+                <div className="stat-value">{statRole['warga_belajar'] ?? 0}</div>
+                <div className="stat-label">Warga Belajar (Siswa)</div>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: '#DCFCE7', color: '#166534' }}>
+                <i className="bi bi-person-check-fill" />
+              </div>
+              <div className="stat-body">
+                <div className="stat-value">{userList.filter(u => u.is_active).length}</div>
+                <div className="stat-label">Akun Aktif</div>
+              </div>
+            </div>
           </div>
 
           {/* ── Tabel Akun ───────────────────────────────── */}

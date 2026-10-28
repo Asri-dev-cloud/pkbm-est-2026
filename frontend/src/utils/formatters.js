@@ -61,10 +61,8 @@ export function titleCase(str) {
 export function labelRole(role) {
   const map = {
     super_admin:    'Super Admin',
-    admin:          'Admin TU & Keuangan',
-    tutor:          'Tutor',
+    admin:          'Super Admin',
     warga_belajar:  'Warga Belajar',
-    pimpinan:       'Pimpinan PKBM',
   };
-  return map[role] ?? role;
+  return map[role] ?? (role === 'warga_belajar' ? 'Warga Belajar' : 'Super Admin');
 }

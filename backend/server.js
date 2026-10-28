@@ -19,6 +19,8 @@ import pertemuanRoutes from './routes/pertemuanRoutes.js';
 import akademikRoutes from './routes/akademikRoutes.js';
 import periodeUjianRoutes from './routes/periodeUjianRoutes.js';
 import agendaRoutes from './routes/agendaRoutes.js';
+import beritaRoutes from './routes/beritaRoutes.js';
+import modulBukuRoutes from './routes/modulBukuRoutes.js';
 
 dotenv.config();
 
@@ -149,6 +151,8 @@ const registerRoutes = (prefix = '') => {
   app.use(`${prefix}/akademik`, akademikRoutes);
   app.use(`${prefix}/periode-ujian`, periodeUjianRoutes);
   app.use(`${prefix}/agenda`, agendaRoutes);
+  app.use(`${prefix}/berita`, beritaRoutes);
+  app.use(`${prefix}/modul-buku`, modulBukuRoutes);
 };
 
 // Dukung akses standar /api/...

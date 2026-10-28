@@ -31,6 +31,8 @@ import {
   Sparkles,
   FileQuestion,
   Receipt,
+  Newspaper,
+  Library,
   Menu,
   X
 } from 'lucide-react';
@@ -42,12 +44,13 @@ function Sidebar({ user }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const role = user?.role || 'admin';
-  const isAdminRole = role === 'admin' || role === 'super_admin';
+  const role = user?.role || 'super_admin';
+  const isAdminRole = role === 'super_admin' || role === 'admin';
 
   // Submenu LMS untuk Admin
   const adminLmsItems = [
     { path: '/dashboard/siswa/ruang-belajar', icon: BookOpen, label: 'Ruang Belajar' },
+    { path: '/dashboard/admin/modul-buku', icon: Library, label: 'Modul & Buku' },
     { path: '/dashboard/siswa/tugas', icon: ClipboardCheck, label: 'Tugas Mingguan' },
     { path: '/dashboard/admin/periode-ujian', icon: Calendar, label: 'Periode Ujian' },
     { path: '/dashboard/admin/peserta-ujian', icon: ClipboardCheck, label: 'Peserta Ujian' },
@@ -56,17 +59,28 @@ function Sidebar({ user }) {
     { path: '/dashboard/admin/klub', icon: Trophy, label: 'Klub Minat Bakat' },
   ];
 
-  // Submenu Pusat Administrasi untuk Admin
+  // Submenu Pusat Administrasi untuk Super Admin
   const adminAdminItems = [
     { path: '/dashboard/admin/spmb', icon: UserPlus, label: 'Verifikasi SPMB' },
     { path: '/dashboard/admin/siswa', icon: Users, label: 'Data Siswa' },
-    ...(role === 'super_admin' || role === 'admin'
-      ? [{ path: '/dashboard/admin/users', icon: ShieldCheck, label: 'Manajemen User' }]
-      : []),
+    { path: '/dashboard/admin/users', icon: ShieldCheck, label: 'Manajemen Akun' },
+  ];
+
+  const studentLmsPaths = [
+    '/dashboard/siswa/ruang-belajar',
+    '/dashboard/siswa/kelas',
+    '/dashboard/siswa/materi',
+    '/dashboard/siswa/modul-buku',
+    '/dashboard/siswa/tugas',
+    '/dashboard/siswa/tugas-mingguan',
+    '/dashboard/siswa/absensi',
+    '/dashboard/siswa/ujian',
+    '/dashboard/siswa/klub',
   ];
 
   // Cek apakah route aktif berada di LMS atau Pusat Administrasi
-  const isLmsActive = adminLmsItems.some(i => location.pathname === i.path || location.pathname.startsWith(i.path + '/'));
+  const isLmsActive = adminLmsItems.some(i => location.pathname === i.path || location.pathname.startsWith(i.path + '/')) ||
+    studentLmsPaths.some(p => location.pathname === p || location.pathname.startsWith(p + '/'));
   const isAdminActive = adminAdminItems.some(i => location.pathname === i.path || location.pathname.startsWith(i.path + '/'));
 
   // Accordion state: otomatis buka HANYA jika route aktif ada di grup tersebut
@@ -119,15 +133,7 @@ function Sidebar({ user }) {
           <div className="modern-mobile-navbar-brand">
             <span className="brand-name">PKBM BINA MANDIRI</span>
             <span className="brand-role">
-              {role === 'super_admin'
-                ? 'Super Admin'
-                : role === 'admin'
-                  ? 'Admin TU'
-                  : role === 'tutor'
-                    ? 'Tutor'
-                    : role === 'pimpinan'
-                      ? 'Pimpinan'
-                      : 'Warga Belajar'}
+              {isAdminRole ? 'Super Admin' : 'Warga Belajar'}
             </span>
           </div>
         </div>
@@ -154,7 +160,7 @@ function Sidebar({ user }) {
         {/* ── Brand Logo Header: Logo di Tengah Tanpa Latar Belakang ── */}
         <div className="modern-sidebar-header">
           <NavLink
-            to={isAdminRole ? '/dashboard/admin' : role === 'warga_belajar' ? '/dashboard/siswa' : role === 'tutor' ? '/dashboard/tutor' : '/dashboard/pimpinan'}
+            to={isAdminRole ? '/dashboard/admin' : '/dashboard/siswa'}
             className="modern-brand-center"
           >
             <div className="brand-logo-clean-wrap">
@@ -177,10 +183,10 @@ function Sidebar({ user }) {
           
           <ul className="modern-menu-list">
             
-            {/* 1. Beranda (sebelumnya TEKS Dashboard) */}
+            {/* 1. Beranda */}
             <li>
               <NavLink
-                to={isAdminRole ? '/dashboard/admin' : role === 'warga_belajar' ? '/dashboard/siswa' : role === 'tutor' ? '/dashboard/tutor' : '/dashboard/pimpinan'}
+                to={isAdminRole ? '/dashboard/admin' : '/dashboard/siswa'}
                 end
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}
@@ -278,6 +284,18 @@ function Sidebar({ user }) {
                     <span className="menu-label">Keuangan</span>
                   </NavLink>
                 </li>
+
+                {/* 5. Berita & Dokumentasi Kegiatan */}
+                <li>
+                  <NavLink
+                    to="/dashboard/admin/berita"
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}
+                  >
+                    <Newspaper size={18} className="menu-icon" />
+                    <span className="menu-label">Berita Kegiatan</span>
+                  </NavLink>
+                </li>
               </>
             )}
 
@@ -287,7 +305,7 @@ function Sidebar({ user }) {
                 <li className="modern-accordion-item">
                   <button
                     type="button"
-                    className="modern-accordion-trigger"
+                    className={`modern-accordion-trigger ${isLmsActive ? 'has-active-child' : ''}`}
                     onClick={() => setLmsOpen((p) => !p)}
                   >
                     <div className="trigger-left">
@@ -298,12 +316,13 @@ function Sidebar({ user }) {
                   </button>
                   {lmsOpen && (
                     <ul className="modern-submenu-list">
-                      <li><NavLink to="/dashboard/siswa/ruang-belajar" onClick={() => setMobileOpen(false)} className="modern-sub-link"><BookOpen size={15} /><span>Ruang Belajar</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/materi" onClick={() => setMobileOpen(false)} className="modern-sub-link"><BookMarked size={15} /><span>Materi Belajar</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/tugas" onClick={() => setMobileOpen(false)} className="modern-sub-link"><ClipboardCheck size={15} /><span>Tugas Mingguan</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/absensi" onClick={() => setMobileOpen(false)} className="modern-sub-link"><Calendar size={15} /><span>Absensi Saya</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/ujian" onClick={() => setMobileOpen(false)} className="modern-sub-link"><FileQuestion size={15} /><span>Ujian</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/klub" onClick={() => setMobileOpen(false)} className="modern-sub-link"><Trophy size={15} /><span>Klub Minat</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/ruang-belajar" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><BookOpen size={15} /><span>Ruang Belajar</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/materi" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><BookMarked size={15} /><span>Materi Belajar</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/modul-buku" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><Library size={15} /><span>Modul & Buku</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/tugas" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><ClipboardCheck size={15} /><span>Tugas Mingguan</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/absensi" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><Calendar size={15} /><span>Absensi Saya</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/ujian" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><FileQuestion size={15} /><span>Ujian</span></NavLink></li>
+                      <li><NavLink to="/dashboard/siswa/klub" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><Trophy size={15} /><span>Klub Minat</span></NavLink></li>
                     </ul>
                   )}
                 </li>
@@ -313,52 +332,10 @@ function Sidebar({ user }) {
                     <span className="menu-label">Tagihan Saya</span>
                   </NavLink>
                 </li>
-              </>
-            )}
-
-            {/* Menu Tutor */}
-            {role === 'tutor' && (
-              <>
                 <li>
-                  <NavLink to="/dashboard/siswa/ruang-belajar" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
-                    <BookOpen size={18} className="menu-icon" />
-                    <span className="menu-label">Ruang Belajar</span>
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/dashboard/tutor/kelas" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
-                    <GraduationCap size={18} className="menu-icon" />
-                    <span className="menu-label">Kelas Saya</span>
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/dashboard/tutor/absensi" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
-                    <Calendar size={18} className="menu-icon" />
-                    <span className="menu-label">Absensi</span>
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/dashboard/tutor/ujian" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
-                    <ClipboardCheck size={18} className="menu-icon" />
-                    <span className="menu-label">Soal & Ujian</span>
-                  </NavLink>
-                </li>
-              </>
-            )}
-
-            {/* Menu Pimpinan */}
-            {role === 'pimpinan' && (
-              <>
-                <li>
-                  <NavLink to="/dashboard/admin/siswa" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
-                    <Users size={18} className="menu-icon" />
-                    <span className="menu-label">Data Siswa</span>
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/dashboard/admin/tagihan" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
-                    <Wallet size={18} className="menu-icon" />
-                    <span className="menu-label">Laporan Keuangan</span>
+                  <NavLink to="/dashboard/siswa/berita" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
+                    <Newspaper size={18} className="menu-icon" />
+                    <span className="menu-label">Kabar & Kegiatan</span>
                   </NavLink>
                 </li>
               </>

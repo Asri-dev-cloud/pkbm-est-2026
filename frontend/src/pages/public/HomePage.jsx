@@ -823,7 +823,7 @@ export default function HomePage() {
               <span>Tentang</span>
             </a>
             <a href="#kebutuhan" className="pill-nav-link">
-              <span>Kebutuhan</span>
+              <span>Program Pilihan</span>
             </a>
             <a href="#keunggulan" className="pill-nav-link">
               <span>Keunggulan</span>
@@ -1029,7 +1029,7 @@ export default function HomePage() {
           {[
             ["#program", "Program Kesetaraan (Paket A, B, C)"],
             ["#tentang", "Tentang Lembaga (Profil & Brosur)"],
-            ["#kebutuhan", "Pilih Sesuai Kebutuhan Anda"],
+            ["#kebutuhan", "Program Pilihan"],
             ["#keunggulan", "8 Keunggulan Utama Lembaga"],
             ["#galeri", "Galeri Suasana Kegiatan"],
             ["#faq", "Tanya Jawab Lengkap (FAQ)"],
@@ -1268,7 +1268,7 @@ export default function HomePage() {
                   letterSpacing: "-0.02em"
                 }}
               >
-                Program Unggulan Kami.<br />
+                Layanan Unggulan Kami.<br />
                 <span style={{ color: "#1D4ED8" }}>Terbukti Mengantarkan Alumni Sukses</span>
               </h2>
             </div>
@@ -2915,9 +2915,16 @@ export default function HomePage() {
               <h4 style={{ color: "#FACC15", fontWeight: 800, fontSize: "0.92rem", marginBottom: 14 }}>
                 Navigasi Cepat
               </h4>
-              {["Tentang Lembaga", "Pilihan Kebutuhan", "8 Keunggulan", "Galeri Kegiatan", "Tanya Jawab (FAQ)", "Kontak & Alamat"].map((it) => (
+              {[
+                ["Tentang Lembaga", "#tentang"],
+                ["Program Pilihan", "#kebutuhan"],
+                ["8 Keunggulan", "#keunggulan"],
+                ["Galeri Kegiatan", "#galeri"],
+                ["Tanya Jawab (FAQ)", "#faq"],
+                ["Kontak & Alamat", "#kontak"]
+              ].map(([it, href]) => (
                 <div key={it} style={{ marginBottom: 9, fontSize: "0.84rem" }}>
-                  <a href="#kebutuhan" style={{ color: "rgba(255, 255, 255, 0.75)", textDecoration: "none" }}>{it}</a>
+                  <a href={href} style={{ color: "rgba(255, 255, 255, 0.75)", textDecoration: "none" }}>{it}</a>
                 </div>
               ))}
             </div>

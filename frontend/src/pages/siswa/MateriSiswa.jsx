@@ -105,29 +105,18 @@ function MateriSiswa() {
         <div className="app-content" style={{ padding: '2rem' }}>
 
           {/* Header */}
-          <div style={{ marginBottom: '2rem', paddingTop: '0.5rem' }}>
-            <div style={{ marginBottom: '8px' }}>
-              <span style={{
-                background: '#5CB8FF',
-                color: '#0F172A',
-                fontFamily: 'var(--font-heading, "Outfit", sans-serif)',
-                fontWeight: 900,
-                fontSize: '0.75rem',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                padding: '4px 14px 5px',
-                borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px',
-                display: 'inline-block',
-                transform: 'rotate(-1.5deg)'
-              }}>
-                MODUL & BUKU DIGITAL
+          <div style={{ marginBottom: '2rem' }}>
+            <div style={{ marginBottom: '10px' }}>
+              <span className="boutique-pill boutique-badge-blue">
+                <i className="bi bi-journal-bookmark-fill" style={{ fontSize: '0.85rem' }}></i>
+                MODUL & MATERI DIGITAL
               </span>
             </div>
-            <h1 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '2.15rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em' }}>
-              Materi Belajar
+            <h1 style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontSize: '2.1rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              Materi Belajar Warga Belajar
             </h1>
-            <p style={{ color: '#64748B', marginTop: 6, fontSize: '0.96rem' }}>
-              Materi dan modul pembelajaran yang dipublikasikan Tutor untuk rombel Anda.
+            <p style={{ color: '#64748B', marginTop: 8, fontSize: '0.94rem', maxWidth: '680px' }}>
+              Akses modul pembelajaran mandiri resmi dan materi bacaan yang diterbitkan untuk rombongan belajar Anda.
             </p>
           </div>
 

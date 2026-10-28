@@ -287,6 +287,19 @@ export const SesiUjianController = {
       }
 
       const sesi = await SesiUjianModel.mulai({ paket_id: parseInt(req.params.paketId), warga_belajar_id: wb.id });
+      if (sesi && sesi.status === 'selesai') {
+        return res.status(400).json({ success: false, message: 'Anda sudah menyelesaikan paket ujian ini.' });
+      }
+
+      // Hitung sisa waktu yang akurat jika murid me-refresh browser
+      const durasiTotalDetik = Number(paket.durasi_menit || 60) * 60;
+      let sisaDetik = durasiTotalDetik;
+      if (sesi.waktu_mulai) {
+        const waktuMulaiMs = new Date(sesi.waktu_mulai).getTime();
+        const elapsed = Math.floor((Date.now() - waktuMulaiMs) / 1000);
+        sisaDetik = Math.max(0, durasiTotalDetik - elapsed);
+      }
+
       const jawabanTersimpan = await SesiUjianModel.getJawabanBySesi(sesi.id);
       const jawaban = jawabanTersimpan.reduce((acc, item) => {
         acc[item.soal_id] = item.jawaban;
@@ -303,6 +316,7 @@ export const SesiUjianController = {
           paket_id: paket.id,
           judul: paket.judul,
           durasi_menit: paket.durasi_menit,
+          sisa_detik: sisaDetik,
           waktu_mulai: sesi.waktu_mulai,
           status: sesi.status,
           soal,

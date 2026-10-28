@@ -67,12 +67,10 @@ function getFieldsForRole(role) {
 function formatRole(role) {
   const map = {
     warga_belajar: 'Warga Belajar',
-    admin: 'Admin TU & Keuangan',
-    tutor: 'Tutor',
-    pimpinan: 'Pimpinan',
     super_admin: 'Super Admin',
+    admin: 'Super Admin',
   };
-  return map[role] || role;
+  return map[role] || (role === 'warga_belajar' ? 'Warga Belajar' : 'Super Admin');
 }
 
 function summarize(profile) {

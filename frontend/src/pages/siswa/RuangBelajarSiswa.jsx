@@ -125,38 +125,25 @@ function RuangBelajarSiswa() {
         <div className="app-content" style={{ padding: '2rem' }}>
           
           {/* Header Section */}
-          <div style={{
-            marginBottom: '2rem',
-            paddingTop: '1rem'
-          }}>
-            <div style={{ marginBottom: '8px' }}>
-              <span style={{
-                background: '#5CB8FF',
-                color: '#0F172A',
-                fontFamily: 'var(--font-heading, "Outfit", sans-serif)',
-                fontWeight: 900,
-                fontSize: '0.75rem',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                padding: '4px 14px 5px',
-                borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px',
-                display: 'inline-block',
-                transform: 'rotate(-1.5deg)'
-              }}>
-                RUANG KELAS DIGITAL
+          <div style={{ marginBottom: '2rem' }}>
+            <div style={{ marginBottom: '10px' }}>
+              <span className="boutique-pill boutique-badge-blue">
+                <i className="bi bi-mortarboard-fill" style={{ fontSize: '0.85rem' }}></i>
+                RUANG BELAJAR DIGITAL
               </span>
             </div>
             <h1 style={{ 
-              fontFamily: 'var(--font-heading, "Outfit", sans-serif)', 
-              fontSize: '2.25rem', 
-              fontWeight: 900,
+              fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", 
+              fontSize: '2.1rem', 
+              fontWeight: 800,
               color: '#0F172A',
-              letterSpacing: '-0.02em'
+              letterSpacing: '-0.02em',
+              lineHeight: 1.2
             }}>
               Ruang Belajar Terpadu
             </h1>
-            <p style={{ color: '#64748B', marginTop: 6, fontSize: '0.96rem' }}>
-              Pilih mata pelajaran untuk memasuki kelas terpadu, mengakses materi modul, presensi pertemuan, dan mengumpulkan tugas.
+            <p style={{ color: '#64748B', marginTop: 8, fontSize: '0.94rem', maxWidth: '680px' }}>
+              Pilih mata pelajaran aktif untuk memasuki ruang kelas digital, mempelajari modul materi, mengisi presensi pertemuan, dan mengerjakan tugas mingguan.
             </p>
           </div>
 
@@ -266,17 +253,25 @@ function RuangBelajarSiswa() {
                   marginTop: '1rem'
                 }}>
                   {mapels.map((item, index) => {
+                    const CARD_THEMES = [
+                      { bg: 'linear-gradient(145deg, #FFFFFF 0%, #EFF6FF 100%)', border: '#BFDBFE', badgeBg: '#DBEAFE', badgeText: '#1D4ED8', iconBg: '#EFF6FF', iconColor: '#1D4ED8', shadow: 'rgba(29, 78, 216, 0.12)' },
+                      { bg: 'linear-gradient(145deg, #FFFFFF 0%, #FEFCE8 100%)', border: '#FDE047', badgeBg: '#FEF08A', badgeText: '#854D0E', iconBg: '#FEF9C3', iconColor: '#CA8A04', shadow: 'rgba(234, 179, 8, 0.12)' },
+                      { bg: 'linear-gradient(145deg, #FFFFFF 0%, #F0FDF4 100%)', border: '#BBF7D0', badgeBg: '#DCFCE7', badgeText: '#166534', iconBg: '#DCFCE7', iconColor: '#10B981', shadow: 'rgba(16, 185, 129, 0.12)' },
+                      { bg: 'linear-gradient(145deg, #FFFFFF 0%, #FAF5FF 100%)', border: '#E9D5FF', badgeBg: '#F3E8FF', badgeText: '#6B21A8', iconBg: '#EDE9FE', iconColor: '#7C3AED', shadow: 'rgba(124, 58, 237, 0.12)' },
+                    ];
+                    const theme = CARD_THEMES[index % CARD_THEMES.length];
+
                     return (
                       <div
                         key={item.id}
                         onClick={() => handleMasukKelas(item.id)}
                         style={{
-                          background: 'white',
-                          borderRadius: '18px',
-                          border: '1px solid #E2E8F0',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02)',
+                          background: theme.bg,
+                          borderRadius: '20px',
+                          border: `1.5px solid ${theme.border}`,
+                          boxShadow: '0 4px 18px -2px rgba(15, 23, 42, 0.05)',
                           cursor: 'pointer',
-                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          transition: 'all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)',
                           display: 'flex',
                           flexDirection: 'column',
                           height: '380px',
@@ -284,14 +279,14 @@ function RuangBelajarSiswa() {
                           position: 'relative'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-6px)';
-                          e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.03)';
-                          e.currentTarget.style.borderColor = '#CBD5E1';
+                          e.currentTarget.style.transform = 'translateY(-5px)';
+                          e.currentTarget.style.boxShadow = `0 16px 32px -4px ${theme.shadow}`;
+                          e.currentTarget.style.borderColor = theme.iconColor;
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02)';
-                          e.currentTarget.style.borderColor = '#E2E8F0';
+                          e.currentTarget.style.boxShadow = '0 4px 18px -2px rgba(15, 23, 42, 0.05)';
+                          e.currentTarget.style.borderColor = theme.border;
                         }}
                       >
                         {/* Top Header Row */}
@@ -299,33 +294,49 @@ function RuangBelajarSiswa() {
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          padding: '1.5rem 1.5rem 0.5rem 1.5rem',
+                          padding: '1.4rem 1.4rem 0.5rem 1.4rem',
                           flexShrink: 0
                         }}>
-                          <span style={{
-                            fontSize: '0.8rem',
-                            fontWeight: 700,
-                            color: '#64748B',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
-                          }}>
+                          <span
+                            style={{
+                              fontSize: '0.74rem',
+                              fontWeight: 800,
+                              padding: '4px 12px',
+                              borderRadius: '9999px',
+                              background: theme.badgeBg,
+                              color: theme.badgeText,
+                              letterSpacing: '0.04em'
+                            }}
+                          >
                             {item.kode || 'MAPEL'}
                           </span>
-                          <i className="bi bi-book" style={{ fontSize: '1.1rem', color: '#94A3B8' }}></i>
+                          <span style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: '12px',
+                            background: theme.iconBg,
+                            border: `1px solid ${theme.border}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: theme.iconColor
+                          }}>
+                            <i className="bi bi-book-half" style={{ fontSize: '1.05rem' }}></i>
+                          </span>
                         </div>
 
                         {/* Card Subject Name */}
                         <div style={{
-                          padding: '0 1.5rem',
+                          padding: '0 1.4rem',
                           flexShrink: 0
                         }}>
                           <h3 style={{
                             fontWeight: 800,
-                            fontSize: '1.3rem',
-                            color: '#1E293B',
+                            fontSize: '1.25rem',
+                            color: '#0F172A',
                             lineHeight: 1.3,
-                            margin: '0 0 14px 0',
-                            fontFamily: 'var(--font-heading, "Outfit", sans-serif)'
+                            margin: '4px 0 12px 0',
+                            fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
                           }}>
                             {item.nama}
                           </h3>
@@ -333,78 +344,74 @@ function RuangBelajarSiswa() {
 
                         {/* Card Info List */}
                         <div style={{
-                          padding: '0 1.5rem',
+                          padding: '0 1.4rem',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '10px',
+                          gap: '9px',
                           color: '#475569',
-                          fontSize: '0.85rem',
+                          fontSize: '0.84rem',
                           flex: 1
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <i className="bi bi-person" style={{ color: '#94A3B8', fontSize: '1.05rem', width: '18px' }}></i>
-                            <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontWeight: 500 }}>
-                              {item.nama_tutor || 'Tutor Kelas'}
+                            <i className="bi bi-person-badge" style={{ color: '#1D4ED8', fontSize: '1rem', width: '18px' }}></i>
+                            <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                              {item.nama_tutor || 'Pengajar Kelas'}
                             </span>
                           </div>
                           
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <i className="bi bi-calendar-event" style={{ color: '#94A3B8', fontSize: '1rem', width: '18px' }}></i>
-                            <span>Jadwal: Sesuai Sesi Pertemuan</span>
+                            <i className="bi bi-calendar2-week" style={{ color: '#64748B', fontSize: '0.95rem', width: '18px' }}></i>
+                            <span>Jadwal: Sesi Terjadwal</span>
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <i className="bi bi-geo-alt" style={{ color: '#94A3B8', fontSize: '1rem', width: '18px' }}></i>
-                            <span>Metode: Hybrid / Blended Class</span>
+                            <i className="bi bi-laptop" style={{ color: '#64748B', fontSize: '0.95rem', width: '18px' }}></i>
+                            <span>Metode: Hybrid / Blended LMS</span>
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <i className="bi bi-layers" style={{ color: '#94A3B8', fontSize: '1rem', width: '18px' }}></i>
-                            <span>Tingkat: {item.jenjang === 'semua' ? 'Semua Jenjang Paket' : item.jenjang?.replace('_', ' ')?.toUpperCase()}</span>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <i className="bi bi-award" style={{ color: '#94A3B8', fontSize: '1rem', width: '18px' }}></i>
-                            <span>Kurikulum Terintegrasi PKBM</span>
+                            <i className="bi bi-layers" style={{ color: '#64748B', fontSize: '0.95rem', width: '18px' }}></i>
+                            <span>Jenjang: {item.jenjang === 'semua' ? 'Semua Paket' : item.jenjang?.replace('_', ' ')?.toUpperCase()}</span>
                           </div>
                         </div>
 
-                        {/* Footer Button: Colored Uniformly */}
+                        {/* Footer Button: Royal Sapphire Pill */}
                         <div style={{
-                          padding: '0 1.5rem 1.5rem 1.5rem',
+                          padding: '0 1.4rem 1.4rem 1.4rem',
                           marginTop: 'auto',
                           flexShrink: 0
                         }}>
                           <button
+                            type="button"
                             style={{
                               width: '100%',
-                              background: '#5CB8FF',
-                              color: '#0F172A',
-                              border: 'none',
-                              borderRadius: '9999px',
-                              padding: '12px 16px',
+                              background: '#1D4ED8',
+                              color: '#FFFFFF',
+                              border: '1px solid #1E40AF',
+                              borderRadius: '10px',
+                              padding: '10px 16px',
                               fontSize: '0.88rem',
-                              fontWeight: 800,
+                              fontWeight: 700,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '8px',
                               cursor: 'pointer',
                               transition: 'all 0.2s',
-                              boxShadow: '0 4px 14px rgba(92, 184, 255, 0.28)'
+                              boxShadow: '0 4px 14px rgba(29, 78, 216, 0.25)'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = '#3A9BF0';
+                              e.currentTarget.style.background = '#1E40AF';
                               e.currentTarget.style.transform = 'translateY(-1px)';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.background = '#5CB8FF';
+                              e.currentTarget.style.background = '#1D4ED8';
                               e.currentTarget.style.transform = 'translateY(0)';
                             }}
                           >
-                            <i className="bi bi-door-open-fill" style={{ fontSize: '1rem' }}></i>
+                            <i className="bi bi-door-open-fill" style={{ fontSize: '0.95rem', color: '#FACC15' }}></i>
                             <span>Masuk Kelas</span>
-                            <i className="bi bi-arrow-right" style={{ fontSize: '0.95rem', fontWeight: 'bold' }}></i>
+                            <i className="bi bi-arrow-right" style={{ fontSize: '0.9rem' }}></i>
                           </button>
                         </div>
                       </div>

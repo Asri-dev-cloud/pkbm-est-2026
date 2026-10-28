@@ -196,7 +196,7 @@ export const BankSoalModel = {
 
 export const PaketUjianModel = {
   findByRombel: async (rombel_id, { warga_belajar_id = null, onlyActive = false } = {}) => {
-    const params = [rombel_id];
+    const params = [];
     let sesiJoin = '';
 
     if (warga_belajar_id) {
@@ -209,6 +209,8 @@ export const PaketUjianModel = {
       `;
       params.push(warga_belajar_id);
     }
+
+    params.push(rombel_id);
 
     let sql = `
       SELECT

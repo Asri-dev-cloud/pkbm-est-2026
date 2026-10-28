@@ -212,6 +212,7 @@ export const TugasModel = {
         path_file = VALUES(path_file),
         nama_file = VALUES(nama_file),
         catatan_siswa = VALUES(catatan_siswa),
+        status = 'terkumpul',
         submitted_at = NOW()
     `;
     const [result] = await pool.execute(sql, [

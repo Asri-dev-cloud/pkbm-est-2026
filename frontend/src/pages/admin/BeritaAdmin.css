@@ -1,0 +1,795 @@
+/* ============================================================
+   src/pages/admin/BeritaAdmin.css
+   Desain Admin Berita & Dokumentasi Kegiatan PKBM Bina Mandiri
+   Estetika: Sapphire Blue & Sunflower Gold, Modern & Professional
+   ============================================================ */
+
+.berita-admin-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 3.5rem;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Top Header ── */
+.berita-admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  background: #FFFFFF;
+  padding: 1.75rem 2rem;
+  border-radius: 20px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05);
+}
+
+.berita-header-title h1 {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.02em;
+}
+
+.berita-header-title p {
+  color: #64748B;
+  font-size: 0.925rem;
+  margin: 0;
+}
+
+.berita-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.4rem;
+  font-size: 0.925rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.25);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.berita-btn-primary:hover {
+  background: linear-gradient(135deg, #1E40AF 0%, #1D4ED8 100%);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 20px rgba(29, 78, 216, 0.35);
+}
+
+.berita-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #F8FAFC;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+  border-radius: 12px;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.berita-btn-secondary:hover {
+  background: #F1F5F9;
+  border-color: #94A3B8;
+}
+
+/* ── KPI Stat Cards ── */
+.berita-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.berita-stat-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 18px;
+  padding: 1.35rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.berita-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -6px rgba(15, 23, 42, 0.08);
+}
+
+.berita-stat-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.berita-stat-icon-wrap.blue {
+  background: #EFF6FF;
+  color: #1D4ED8;
+}
+
+.berita-stat-icon-wrap.green {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.berita-stat-icon-wrap.amber {
+  background: #FEF9C3;
+  color: #CA8A04;
+}
+
+.berita-stat-icon-wrap.purple {
+  background: #F3E8FF;
+  color: #7E22CE;
+}
+
+.berita-stat-info .stat-value {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.15;
+}
+
+.berita-stat-info .stat-label {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #64748B;
+  margin-top: 0.2rem;
+}
+
+/* ── Filter Bar ── */
+.berita-toolbar {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.berita-filter-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.berita-pill {
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #475569;
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.berita-pill.active {
+  background: #1D4ED8;
+  color: #FFFFFF;
+  border-color: #1D4ED8;
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.25);
+}
+
+.berita-filter-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.berita-search-wrap {
+  position: relative;
+  min-width: 260px;
+}
+
+.berita-search-wrap svg {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94A3B8;
+}
+
+.berita-search-wrap input {
+  width: 100%;
+  padding: 0.55rem 0.85rem 0.55rem 2.4rem;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #0F172A;
+  outline: none;
+  background: #FFFFFF;
+  transition: border-color 0.2s;
+}
+
+.berita-search-wrap input:focus {
+  border-color: #1D4ED8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.berita-category-select {
+  padding: 0.55rem 1rem;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #0F172A;
+  background: #FFFFFF;
+  outline: none;
+  cursor: pointer;
+}
+
+.berita-category-select:focus {
+  border-color: #1D4ED8;
+}
+
+/* ── News Grid / Cards ── */
+.berita-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+.berita-card {
+  background: #FFFFFF;
+  border-radius: 18px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 18px -4px rgba(15, 23, 42, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.berita-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px -6px rgba(15, 23, 42, 0.1);
+}
+
+.berita-card-cover-wrap {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  overflow: hidden;
+}
+
+.berita-card-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.berita-card:hover .berita-card-cover {
+  transform: scale(1.04);
+}
+
+.berita-card-placeholder-cover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1E3A8A 0%, #0F172A 100%);
+  color: #93C5FD;
+  gap: 0.5rem;
+}
+
+.berita-cover-badges {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  right: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+}
+
+.berita-category-badge {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  color: #F8FAFC;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.berita-pinned-badge {
+  background: #FACC15;
+  color: #854D0E;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.berita-media-tags-strip {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.85rem;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.berita-media-tag {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  color: #FFFFFF;
+  padding: 0.25rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.725rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.berita-card-body {
+  padding: 1.35rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.berita-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #64748B;
+  font-size: 0.785rem;
+  margin-bottom: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.berita-card-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.berita-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 0.65rem 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.berita-card-summary {
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.55;
+  margin: 0 0 1.25rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.berita-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 1rem;
+  margin-top: auto;
+  gap: 0.75rem;
+}
+
+.berita-status-pill {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.berita-status-pill.published {
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #BBF7D0;
+}
+
+.berita-status-pill.draft {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.berita-status-pill.archived {
+  background: #F1F5F9;
+  color: #64748B;
+  border: 1px solid #E2E8F0;
+}
+
+.berita-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.berita-action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.berita-action-btn:hover {
+  background: #EFF6FF;
+  border-color: #BFDBFE;
+  color: #1D4ED8;
+}
+
+.berita-action-btn.delete:hover {
+  background: #FEE2E2;
+  border-color: #FECACA;
+  color: #DC2626;
+}
+
+/* ── Modal Form Berita (Create & Edit) ── */
+.berita-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.berita-modal-window {
+  background: #FFFFFF;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 860px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.3);
+  overflow: hidden;
+  animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.berita-modal-header {
+  padding: 1.5rem 1.85rem;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #F8FAFC;
+}
+
+.berita-modal-header h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.berita-modal-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748B;
+  transition: all 0.2s;
+}
+
+.berita-modal-close-btn:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.berita-modal-body {
+  padding: 1.75rem 1.85rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.berita-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .berita-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.berita-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.berita-form-group label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1E293B;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.berita-form-group input[type="text"],
+.berita-form-group input[type="date"],
+.berita-form-group select,
+.berita-form-group textarea {
+  width: 100%;
+  padding: 0.7rem 0.95rem;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  color: #0F172A;
+  font-family: inherit;
+  outline: none;
+  background: #FFFFFF;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.berita-form-group input:focus,
+.berita-form-group select:focus,
+.berita-form-group textarea:focus {
+  border-color: #1D4ED8;
+  box-shadow: 0 0 0 3.5px rgba(29, 78, 216, 0.12);
+}
+
+/* ── Upload Drag & Drop Boxes ── */
+.berita-upload-zone {
+  border: 2px dashed #CBD5E1;
+  border-radius: 14px;
+  padding: 1.5rem;
+  text-align: center;
+  background: #F8FAFC;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.berita-upload-zone:hover {
+  border-color: #1D4ED8;
+  background: #EFF6FF;
+}
+
+.berita-upload-zone svg {
+  color: #1D4ED8;
+  margin-bottom: 0.5rem;
+}
+
+.berita-upload-zone p {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.berita-upload-zone span {
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+/* ── Media Previews in Form ── */
+.berita-preview-cover-box {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 180px;
+  background: #0F172A;
+  border: 1px solid #CBD5E1;
+  margin-top: 0.5rem;
+}
+
+.berita-preview-cover-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.berita-btn-remove-media {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  background: rgba(220, 38, 38, 0.9);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  backdrop-filter: blur(4px);
+}
+
+.berita-gallery-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.berita-gallery-thumb {
+  position: relative;
+  height: 80px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #E2E8F0;
+  background: #0F172A;
+}
+
+.berita-gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.berita-gallery-thumb button {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background: rgba(220, 38, 38, 0.9);
+  color: #FFF;
+  border: none;
+  border-radius: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.berita-video-preview-box {
+  margin-top: 0.65rem;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  position: relative;
+}
+
+.berita-video-preview-box video {
+  width: 100%;
+  max-height: 240px;
+  display: block;
+}
+
+.berita-video-preview-box iframe {
+  width: 100%;
+  height: 220px;
+  border: none;
+  display: block;
+}
+
+/* ── Modal Footer ── */
+.berita-modal-footer {
+  padding: 1.25rem 1.85rem;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: #F8FAFC;
+}
+
+/* ── Empty State ── */
+.berita-empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px dashed #CBD5E1;
+  color: #64748B;
+}
+
+.berita-empty-state svg {
+  color: #94A3B8;
+  margin-bottom: 1rem;
+}
+
+.berita-empty-state h3 {
+  color: #0F172A;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem 0;
+}
+
+.berita-empty-state p {
+  margin: 0 0 1.25rem 0;
+  font-size: 0.9rem;
+}
+
+/* ── Feedback Alert ── */
+.berita-alert {
+  padding: 0.9rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.berita-alert.success {
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #86EFAC;
+}
+
+.berita-alert.error {
+  background: #FEE2E2;
+  color: #B91C1C;
+  border: 1px solid #FCA5A5;
+}
+

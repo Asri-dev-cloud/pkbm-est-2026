@@ -67,10 +67,15 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('pkbm_token');
-      localStorage.removeItem('pkbm_user');
-      // Arahkan ke halaman login
-      window.location.href = '/login';
+      const isLoginRequest = error.config?.url?.includes('/auth/login');
+      const isAlreadyOnLoginPage = typeof window !== 'undefined' && window.location.pathname === '/login';
+
+      if (!isLoginRequest && !isAlreadyOnLoginPage) {
+        localStorage.removeItem('pkbm_token');
+        localStorage.removeItem('pkbm_user');
+        // Arahkan ke halaman login hanya jika sesi expired saat berada di halaman lain
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -584,5 +589,42 @@ export const AgendaAPI = {
 };
 
 // Export instance Axios mentah juga, untuk kebutuhan custom request
+
+// Berita & Dokumentasi Kegiatan PKBM
+export const BeritaAPI = {
+  getPublished: (params) => apiClient.get('/berita', { params }),
+  getAllAdmin: (params) => apiClient.get('/berita/admin', { params }),
+  getStats: () => apiClient.get('/berita/stats'),
+  getDetail: (idOrSlug) => apiClient.get('/berita/' + idOrSlug),
+  create: (formData) => apiClient.post('/berita', formData),
+  update: (id, formData) => apiClient.put('/berita/' + id, formData),
+  delete: (id) => apiClient.delete('/berita/' + id),
+};
+
+// ── MODUL & BUKU DIGITAL (ADMIN & SISWA) ─────────────────────
+export const ModulBukuAPI = {
+  // Siswa & Publik: Ambil daftar modul yang terbit
+  getPublished: (params) => apiClient.get('/modul-buku', { params }),
+  
+  // Ambil detail modul & increment counter baca
+  getDetail: (id, increment = false) =>
+    apiClient.get(`/modul-buku/${id}`, { params: { increment: increment ? 1 : 0 } }),
+  
+  // Admin: Ambil semua data (termasuk draft)
+  getAllAdmin: (params) => apiClient.get('/modul-buku/admin', { params }),
+  
+  // Admin: Ambil statistik modul & buku
+  getStats: () => apiClient.get('/modul-buku/stats'),
+  
+  // Admin: Upload modul baru (FormData)
+  create: (formData) => apiClient.post('/modul-buku', formData),
+  
+  // Admin: Update modul (FormData)
+  update: (id, formData) => apiClient.put(`/modul-buku/${id}`, formData),
+  
+  // Admin: Hapus modul
+  delete: (id) => apiClient.delete(`/modul-buku/${id}`),
+};
+
 export default apiClient;
 

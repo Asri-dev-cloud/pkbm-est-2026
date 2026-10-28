@@ -8,44 +8,43 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS VARIABLES (Token Desain Baru: Sky Blue, Warm Orange, Fresh Green, Yellow, Soft Cream, Dark Navy) ── */
+/* ── CSS VARIABLES (Boutique Sapphire & Sunflower Gold: Selaras dengan HomePage) ── */
 :root {
-  /* Palet Primer Sesuai Request */
-  --color-sky-blue:      #5CB8FF;
-  --color-warm-orange:   #FFaf5c;
+  /* Palet Primer Sesuai HomePage */
+  --color-sky-blue:      #38BDF8;
+  --color-royal-blue:    #1D4ED8;
+  --color-warm-orange:   #F59E0B;
 
-  /* Palet Sekunder Sesuai Request */
-  --color-fresh-green:   #6BCB77;
-  --color-yellow:        #F9C846;
-  --color-soft-cream:    #FFF8EE;
-  --color-dark-navy:     #243B53;
+  /* Palet Sekunder Sesuai HomePage */
+  --color-fresh-green:   #10B981;
+  --color-yellow:        #FACC15;
+  --color-soft-cream:    #F8FAFC;
+  --color-dark-navy:     #0F172A;
 
   /* Mapping Token Sistem */
-  --color-primary:       #5CB8FF;
-  --color-primary-dark:  #3A9BF0;
-  --color-primary-light: #EBF6FF;
-  --color-accent:        #FFaf5c;
-  --color-accent-dark:   #E59235;
-  --color-accent-light:  #FFF4E8;
+  --color-primary:       #1D4ED8;
+  --color-primary-dark:  #1E40AF;
+  --color-primary-light: #EFF6FF;
+  --color-accent:        #FACC15;
+  --color-accent-dark:   #CA8A04;
+  --color-accent-light:  #FEF9C3;
 
-  /* Warna Role */
-  --color-siswa:    #5CB8FF;
-  --color-tutor:    #FFaf5c;
-  --color-admin:    #243B53;
-  --color-pimpinan: #F9C846;
+  /* Warna Role (Hanya Super Admin & Siswa) */
+  --color-siswa:    #1D4ED8;
+  --color-admin:    #0F172A;
 
   /* Warna Semantik */
-  --color-success: #6BCB77;
+  --color-success: #10B981;
   --color-danger:  #EF4444;
-  --color-warning: #F9C846;
-  --color-info:    #5CB8FF;
+  --color-warning: #F59E0B;
+  --color-info:    #38BDF8;
 
   /* Warna Netral */
-  --color-bg:         #FFF8EE;  /* Soft Cream */
+  --color-bg:         #F8FAFC;  /* Crisp Light Slate selaras HomePage */
   --color-surface:    #FFFFFF;
-  --color-border:     #E5EBF2;
-  --color-text:       #243B53;  /* Dark Navy */
-  --color-text-muted: #627D98;
+  --color-border:     #E2E8F0;
+  --color-text:       #0F172A;  /* Deep Slate Obsidian */
+  --color-text-muted: #64748B;
 
   /* Tipografi — Plus Jakarta Sans */
   --font-body:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -291,40 +290,96 @@ img {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #5CB8FF 0%, #3A9BF0 100%);
+  background: #1D4ED8;
   color: #FFFFFF;
-  box-shadow: 0 4px 14px rgba(92, 184, 255, 0.35);
+  border: 1px solid #1E40AF;
+  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.28);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #3A9BF0 0%, #2284DB 100%);
+  background: #1E40AF;
+  border-color: #1E3A8A;
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(92, 184, 255, 0.45);
+  box-shadow: 0 6px 20px rgba(29, 78, 216, 0.38);
   text-decoration: none;
   color: #FFFFFF;
 }
 
 .btn-secondary {
   background: #FFFFFF;
-  color: #243B53;
+  color: #0F172A;
   border: 1px solid #CBD5E1;
 }
 .btn-secondary:hover {
-  background: #FFF8EE;
-  border-color: #FFaf5c;
-  color: #E59235;
+  background: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
   transform: translateY(-1px);
 }
 
-.btn-accent {
-  background: linear-gradient(135deg, #FFaf5c 0%, #E59235 100%);
-  color: #FFFFFF;
-  box-shadow: 0 4px 14px rgba(255, 175, 92, 0.35);
+.btn-accent, .btn-yellow {
+  background: #FACC15;
+  color: #0F172A !important;
+  border: 1px solid #EAB308;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.35);
+  font-weight: 700;
 }
-.btn-accent:hover {
-  background: linear-gradient(135deg, #E59235 0%, #CC7B23 100%);
+.btn-accent:hover, .btn-yellow:hover {
+  background: #FDE047;
+  border-color: #CA8A04;
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(255, 175, 92, 0.45);
-  color: #FFFFFF;
+  box-shadow: 0 8px 22px rgba(234, 179, 8, 0.45);
+  color: #0F172A !important;
+}
+
+/* ── BOUTIQUE BADGES & CARDS (Selaras HomePage) ── */
+.boutique-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.boutique-badge-blue {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+}
+
+.boutique-badge-yellow {
+  background: #FEF08A;
+  color: #854D0E;
+  border: 1px solid #FDE047;
+}
+
+.boutique-badge-green {
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+}
+
+.boutique-badge-slate {
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid #E2E8F0;
+}
+
+.boutique-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.boutique-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px -4px rgba(29, 78, 216, 0.1);
+  border-color: #CBD5E1;
 }
 
 
@@ -425,42 +480,65 @@ img {
   color: var(--color-text-muted);
 }
 
-/* ── TABEL ────────────────────────────────────────────────── */
+/* ── TABEL BOUTIQUE MODERN (Seluruh Halaman LMS) ────────── */
 .table-wrapper {
   overflow-x: auto;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  border: 1.5px solid #E2E8F0;
+  background: #FFFFFF;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
   max-width: 100%;
+  margin-bottom: 1.5rem;
 }
 
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: var(--text-sm);
+  text-align: left;
+}
+
+.table thead {
+  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
 }
 
 .table th {
-  background: #F8FAFC;
-  font-weight: 700;
-  font-size: var(--text-xs);
+  background: transparent;
+  font-weight: 800;
+  font-size: 0.74rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted);
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--color-border);
+  letter-spacing: 0.07em;
+  color: #475569;
+  padding: 16px 20px;
+  border-bottom: 1.5px solid #E2E8F0;
   white-space: nowrap;
 }
 
 .table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text);
+  padding: 16px 20px;
+  border-bottom: 1px solid #F1F5F9;
+  color: #1E293B;
   vertical-align: middle;
+  font-size: 0.88rem;
+  transition: background 0.15s ease;
 }
 
-.table tr:last-child td { border-bottom: none; }
-.table tbody tr:hover { background: #F8FAFC; }
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr {
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.table tbody tr:hover td {
+  color: #0F172A;
+}
 
 /* ── ALERT ────────────────────────────────────────────────── */
 .alert {
@@ -477,46 +555,67 @@ img {
 .alert-warning { background: #FEF3C7; color: #92400E; }
 .alert-info    { background: #DBEAFE; color: #1E40AF; }
 
-/* ── STAT CARD ────────────────────────────────────────────── */
+/* ── STAT CARD (Boutique Graphic Tiles) ─────────────────────── */
 .stat-card {
+  position: relative;
   background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 18px;
-  padding: 18px 22px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 20px 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 18px;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 95px; height: 95px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23CBD5E1' stroke-width='3.5' stroke-opacity='0.3'%3E%3Ccircle cx='100' cy='0' r='85'/%3E%3Ccircle cx='100' cy='0' r='60'/%3E%3Ccircle cx='100' cy='0' r='35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: top right;
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-  border-color: #CBD5E1;
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px -4px rgba(15, 23, 42, 0.09);
+  border-color: #94A3B8;
+}
+.stat-card:hover::before {
+  opacity: 1;
+  transform: scale(1.08);
 }
 
 .stat-icon {
-  width: 48px; height: 48px;
-  border-radius: 14px;
+  width: 52px; height: 52px;
+  border-radius: 16px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem; flex-shrink: 0;
+  font-size: 1.35rem; flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.stat-body { flex: 1; }
+.stat-body { flex: 1; position: relative; z-index: 1; }
 
 .stat-value {
-  font-size: 1.6rem;
+  font-family: var(--pkbm-font);
+  font-size: 1.75rem;
   font-weight: 800;
   line-height: 1.1;
   color: #0F172A;
-  margin-bottom: 2px;
-  letter-spacing: -0.02em;
+  margin-bottom: 3px;
+  letter-spacing: -0.025em;
 }
 
 .stat-label {
   font-size: 0.82rem;
   color: #64748B;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 /* ── GRID ─────────────────────────────────────────────────── */

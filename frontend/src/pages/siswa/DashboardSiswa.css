@@ -1,34 +1,31 @@
 /* ============================================================
-   src/pages/siswa/DashboardSiswa.css — Clean & Scribble Edition
-   ============================================================
-   - Tanpa kotak biru besar di section metrik
-   - Pill badge bergaya coretan spidol / highlighter organik
-   - Template kartu pelajar bersih tanpa bayangan kotak hitam
-   - 100% bebas emoji, menggunakan vektor Lucide React
+   src/pages/siswa/DashboardSiswa.css — Boutique Sapphire & Sunflower Gold
+   Selaras 100% dengan Tone & Estetika HomePage PKBM Bina Mandiri
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
 .edutech-theme-scope {
-  --edu-lime: #D4FF00;
-  --edu-lime-hover: #C4EE00;
-  --edu-lime-tint: #F4FFBD;
-  --edu-blue: #5CB8FF;
-  --edu-blue-hover: #3A9BF0;
-  --edu-blue-tint: #EBF6FF;
-  --edu-dark: #131418;
-  --edu-dark-card: #1C1D24;
-  --edu-dark-border: #2B2C36;
-  --edu-white: #FFFFFF;
-  --edu-muted: #64748B;
-  --edu-font-display: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
-  --edu-font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --pkbm-sapphire: #1D4ED8;
+  --pkbm-sapphire-hover: #1E40AF;
+  --pkbm-sapphire-light: #EFF6FF;
+  --pkbm-sky: #38BDF8;
+  --pkbm-gold: #FACC15;
+  --pkbm-gold-hover: #FDE047;
+  --pkbm-gold-dark: #CA8A04;
+  --pkbm-gold-light: #FEF9C3;
+  --pkbm-emerald: #10B981;
+  --pkbm-emerald-light: #DCFCE7;
+  --pkbm-obsidian: #0F172A;
+  --pkbm-slate-card: #1E293B;
+  --pkbm-border: #E2E8F0;
+  --pkbm-text: #0F172A;
+  --pkbm-muted: #64748B;
+  --pkbm-font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 .edutech-content-flow {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.75rem;
   padding-bottom: 3.5rem;
   width: 100%;
   max-width: 1360px;
@@ -37,38 +34,38 @@
 
 /* ── Loading Screen & Error State ── */
 .edutech-loading-screen {
-  min-height: 75vh;
+  min-height: 70vh;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .edutech-loader-box {
-  background: var(--edu-dark);
-  color: var(--edu-white);
-  padding: 3rem 4rem;
+  background: #0F172A;
+  color: #FFFFFF;
+  padding: 2.75rem 3.5rem;
   border-radius: 24px;
-  border: 1px solid var(--edu-lime);
+  border: 1px solid rgba(250, 204, 21, 0.4);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  box-shadow: 0 16px 36px rgba(19, 20, 24, 0.15);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
 }
 
 .edutech-loader-title {
   margin-top: 1.25rem;
-  font-family: var(--edu-font-display);
-  font-weight: 900;
-  font-size: 1.1rem;
+  font-family: var(--pkbm-font);
+  font-weight: 800;
+  font-size: 1.05rem;
   letter-spacing: 0.08em;
-  color: var(--edu-lime);
+  color: #FACC15;
 }
 
 .edutech-loader-sub {
-  font-size: 0.84rem;
+  font-size: 0.85rem;
   color: #94A3B8;
-  margin-top: 0.25rem;
+  margin-top: 0.35rem;
 }
 
 .edutech-error-card {
@@ -87,163 +84,6 @@
   margin-bottom: 1rem;
 }
 
-/* ── BENTUK PILL SEPERTI CORETAN (MARKER STROKE / HIGHLIGHTER DOODLE) ── */
-.scribble-pill {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3px 16px 5px;
-  font-family: var(--edu-font-display);
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  line-height: 1.1;
-  /* Kontur coretan spidol organik asimetris */
-  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
-  transform: rotate(-1.5deg);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.scribble-pill:hover {
-  transform: rotate(0deg) scale(1.02);
-}
-
-.scribble-blue {
-  background: var(--edu-blue);
-  color: #0F172A;
-  box-shadow: 2px 2px 0px rgba(19, 20, 24, 0.12);
-}
-
-.scribble-lime {
-  background: var(--edu-lime);
-  color: var(--edu-dark);
-  border: 1.5px dashed rgba(19, 20, 24, 0.35);
-  box-shadow: 2px 2px 0px rgba(19, 20, 24, 0.08);
-}
-
-.scribble-lime-subtle {
-  background: var(--edu-lime);
-  color: var(--edu-dark);
-}
-
-.scribble-dark {
-  background: var(--edu-dark);
-  color: var(--edu-lime);
-  border-radius: 18px 225px 20px 255px/225px 18px 255px 20px;
-  transform: rotate(1deg);
-}
-
-/* Coretan Besar Khusus Judul */
-.headline-scribble {
-  font-size: 2.2rem;
-  padding: 4px 22px 6px;
-  border-radius: 255px 18px 225px 18px/18px 225px 18px 255px;
-  transform: rotate(-2deg);
-  margin-left: 8px;
-  box-shadow: 3px 4px 0px rgba(19, 20, 24, 0.18);
-}
-
-.title-scribble {
-  font-size: 1.75rem;
-  padding: 4px 18px 6px;
-  border-radius: 18px 255px 18px 225px/225px 18px 255px 18px;
-  transform: rotate(1.5deg);
-  margin-left: 8px;
-}
-
-/* ── Circular Arrow Buttons ── */
-.edutech-pill-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px 10px 22px;
-  border-radius: 9999px;
-  font-family: var(--edu-font-display);
-  font-size: 0.88rem;
-  font-weight: 800;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  border: none;
-  line-height: 1.2;
-}
-
-.btn-circle-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: transform 0.22s ease, background 0.22s ease;
-}
-
-.btn-dark {
-  background: var(--edu-dark);
-  color: var(--edu-white);
-  box-shadow: 0 4px 14px rgba(19, 20, 24, 0.12);
-}
-
-.btn-dark .btn-circle-icon {
-  background: rgba(255, 255, 255, 0.16);
-  color: var(--edu-white);
-}
-
-.btn-dark:hover {
-  background: #000000;
-  color: var(--edu-white);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(19, 20, 24, 0.2);
-}
-
-.btn-dark:hover .btn-circle-icon {
-  background: var(--edu-lime);
-  color: var(--edu-dark);
-  transform: translateX(3px);
-}
-
-.btn-blue {
-  background: var(--edu-blue);
-  color: #0F172A;
-  box-shadow: 0 4px 14px rgba(92, 184, 255, 0.28);
-}
-
-.btn-blue .btn-circle-icon {
-  background: rgba(15, 23, 42, 0.12);
-  color: #0F172A;
-}
-
-.btn-blue:hover {
-  background: var(--edu-blue-hover);
-  color: #0F172A;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(92, 184, 255, 0.38);
-}
-
-.btn-blue:hover .btn-circle-icon {
-  background: #0F172A;
-  color: #FFFFFF;
-  transform: translateX(3px);
-}
-
-.btn-dark-sm {
-  background: var(--edu-dark);
-  color: var(--edu-white);
-  padding: 7px 18px;
-  font-size: 0.8rem;
-  font-weight: 800;
-  box-shadow: 0 2px 8px rgba(19, 20, 24, 0.1);
-}
-
-.btn-dark-sm:hover {
-  background: var(--edu-blue);
-  transform: translateY(-1px);
-}
-
 /* ── Top Bar Header ── */
 .edutech-top-bar {
   display: flex;
@@ -251,7 +91,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
-  padding: 0.5rem 0.25rem 0;
+  padding: 0.25rem 0.25rem 0;
 }
 
 .edutech-bar-left {
@@ -261,13 +101,19 @@
   flex-wrap: wrap;
 }
 
-.edutech-school-name {
-  font-family: var(--edu-font-display);
-  font-weight: 900;
-  font-size: 0.88rem;
-  letter-spacing: 0.05em;
-  color: var(--edu-dark);
-  margin-left: 6px;
+.edutech-portal-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .edutech-bar-right {
@@ -290,14 +136,37 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
-/* ── 1. HERO BANNER: ELECTRIC LIME ── */
+.edutech-pill-btn-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(29, 78, 216, 0.06);
+}
+
+.edutech-pill-btn-sm:hover {
+  background: #EFF6FF;
+  border-color: #1D4ED8;
+  transform: translateY(-1px);
+}
+
+/* ── 1. HERO BANNER: BOUTIQUE SAPPHIRE & OBSIDIAN (Selaras HomePage) ── */
 .edutech-hero-section {
   position: relative;
-  background: var(--edu-lime);
-  border-radius: 28px;
+  background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 55%, #1D4ED8 100%);
+  border-radius: 24px;
   padding: 2.75rem 3rem;
   overflow: hidden;
-  box-shadow: 0 12px 32px rgba(19, 20, 24, 0.06);
+  box-shadow: 0 14px 36px -4px rgba(15, 23, 42, 0.25), 0 4px 12px -2px rgba(29, 78, 216, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .edutech-hero-watermark {
@@ -311,42 +180,67 @@
   position: absolute;
   top: -20px;
   right: 18%;
-  opacity: 0.1;
+  opacity: 0.12;
 }
 
 .watermark-star-2 {
   position: absolute;
-  bottom: 15px;
+  bottom: -10px;
   left: 45%;
-  opacity: 0.14;
+  opacity: 0.08;
 }
 
 .edutech-hero-content {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 1.25fr 0.85fr;
+  grid-template-columns: 1.2fr 0.8fr;
   align-items: center;
-  gap: 2.75rem;
+  gap: 2.5rem;
+}
+
+.edutech-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(250, 204, 21, 0.18);
+  color: #FACC15;
+  border: 1px solid rgba(250, 204, 21, 0.4);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.85rem;
 }
 
 .edutech-hero-headline {
-  font-family: var(--edu-font-display);
-  font-size: 2.5rem;
-  font-weight: 900;
-  color: var(--edu-dark);
-  line-height: 1.15;
+  font-family: var(--pkbm-font);
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1.2;
   letter-spacing: -0.02em;
-  margin-bottom: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.edutech-hero-headline .highlight-gold {
+  color: #FACC15;
 }
 
 .edutech-hero-sub {
-  font-size: 0.96rem;
+  font-size: 0.94rem;
   line-height: 1.6;
-  color: rgba(19, 20, 24, 0.85);
-  font-weight: 600;
-  max-width: 580px;
-  margin-bottom: 2rem;
+  color: #E2E8F0;
+  font-weight: 500;
+  max-width: 540px;
+  margin-bottom: 1.75rem;
+}
+
+.edutech-hero-sub strong {
+  color: #FFFFFF;
+  font-weight: 700;
 }
 
 .edutech-hero-actions {
@@ -356,22 +250,75 @@
   gap: 12px;
 }
 
-/* ── TEMPLATE KARTU SISWA (Bersih, Realistis, Tanpa Bayangan Kotak Hitam) ── */
+/* Tombol Hero ala HomePage */
+.hero-btn-yellow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #FACC15;
+  color: #0F172A !important;
+  border: 1px solid #EAB308;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.35);
+}
+
+.hero-btn-yellow:hover {
+  background: #FDE047;
+  border-color: #CA8A04;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(234, 179, 8, 0.45);
+  text-decoration: none;
+}
+
+.hero-btn-glass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+}
+
+.hero-btn-glass:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(255, 255, 255, 0.2);
+  text-decoration: none;
+}
+
+/* ── KARTU SISWA DIGITAL (Boutique Official Pass) ── */
 .edutech-student-card-template {
   background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 22px;
-  padding: 1.5rem 1.65rem;
-  box-shadow: 0 12px 30px -4px rgba(19, 20, 24, 0.08), 0 4px 12px -2px rgba(19, 20, 24, 0.03);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 20px;
+  padding: 1.5rem 1.6rem;
+  box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.22);
   display: flex;
   flex-direction: column;
   gap: 1.15rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .edutech-student-card-template:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 36px -4px rgba(19, 20, 24, 0.12);
+  transform: translateY(-3px);
+  box-shadow: 0 20px 42px -4px rgba(15, 23, 42, 0.28);
 }
 
 .card-template-header {
@@ -385,34 +332,37 @@
 .card-template-brand {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-family: var(--edu-font-display);
+  gap: 7px;
   font-size: 0.76rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
-  color: var(--edu-dark);
+  letter-spacing: 0.05em;
+  color: #0F172A;
 }
 
 .brand-icon {
-  color: var(--edu-blue);
+  color: #1D4ED8;
 }
 
 .card-template-live {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-family: var(--edu-font-display);
-  font-size: 0.7rem;
+  gap: 5px;
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.68rem;
   font-weight: 800;
-  color: #059669;
+  letter-spacing: 0.04em;
 }
 
 .live-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   background: #10B981;
   border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
 }
 
 .card-template-body {
@@ -424,15 +374,15 @@
 .card-template-avatar {
   width: 64px;
   height: 64px;
-  border-radius: 18px;
-  background: var(--edu-lime-tint);
-  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  background: #EFF6FF;
+  border: 1.5px solid #BFDBFE;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.08);
 }
 
 .template-avatar-img {
@@ -442,10 +392,10 @@
 }
 
 .template-avatar-initial {
-  font-family: var(--edu-font-display);
-  font-weight: 900;
-  font-size: 1.75rem;
-  color: var(--edu-dark);
+  font-family: var(--pkbm-font);
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: #1D4ED8;
 }
 
 .card-template-info {
@@ -454,10 +404,10 @@
 }
 
 .template-name {
-  font-family: var(--edu-font-display);
-  font-size: 1.15rem;
+  font-family: var(--pkbm-font);
+  font-size: 1.1rem;
   font-weight: 800;
-  color: var(--edu-dark);
+  color: #0F172A;
   line-height: 1.25;
   margin-bottom: 4px;
   white-space: nowrap;
@@ -469,15 +419,15 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: #475569;
+  color: #64748B;
   margin-top: 3px;
 }
 
 .template-meta-row strong {
   font-weight: 800;
-  color: var(--edu-dark);
+  color: #0F172A;
 }
 
 .card-template-footer {
@@ -485,7 +435,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   background: #F8FAFC;
-  padding: 10px 14px;
+  padding: 9px 12px;
   border-radius: 12px;
   border: 1px solid #E2E8F0;
 }
@@ -496,21 +446,22 @@
 }
 
 .chip-caption {
-  font-size: 0.65rem;
+  font-size: 0.64rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   color: #94A3B8;
+  text-transform: uppercase;
 }
 
 .chip-data {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 800;
-  color: var(--edu-dark);
+  color: #0F172A;
   margin-top: 1px;
 }
 
 .chip-status-active {
-  color: #059669;
+  color: #166534;
 }
 
 .card-template-edit-link {
@@ -518,8 +469,8 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: #F1F5F9;
-  color: var(--edu-dark);
+  background: #F8FAFC;
+  color: #1D4ED8;
   border: 1px solid #E2E8F0;
   border-radius: 10px;
   padding: 8px 12px;
@@ -531,58 +482,48 @@
 }
 
 .card-template-edit-link:hover {
-  background: var(--edu-dark);
-  color: var(--edu-white);
-  border-color: var(--edu-dark);
+  background: #EFF6FF;
+  border-color: #BFDBFE;
+  color: #1E40AF;
 }
 
-/* ── 2. SECTION KONTROL AKADEMIK: BERSIH TANPA KOTAK BIRU ── */
+/* ── 2. SECTION KONTROL AKADEMIK: BOUTIQUE BENTO ── */
 .edutech-academic-section {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
-  padding-top: 0.5rem;
+  gap: 1.25rem;
+  padding-top: 0.25rem;
 }
 
 .academic-section-header {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
-.academic-tags-row {
+.academic-badge-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 0.5rem;
-}
-
-.academic-subtitle-text {
-  font-family: var(--edu-font-display);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: #64748B;
+  gap: 8px;
 }
 
 .academic-main-title {
-  font-family: var(--edu-font-display);
-  font-size: 2.15rem;
-  font-weight: 900;
+  font-family: var(--pkbm-font);
+  font-size: 1.75rem;
+  font-weight: 800;
   color: #0F172A;
   line-height: 1.25;
-  letter-spacing: -0.015em;
-  margin-bottom: 0.35rem;
+  letter-spacing: -0.02em;
 }
 
 .academic-main-desc {
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 0.92rem;
+  line-height: 1.5;
   color: #64748B;
-  max-width: 650px;
+  max-width: 680px;
 }
 
-/* 3 Metrik Bento Tanpa Kotak Biru & Tanpa Bayangan Hitam Tebal */
+/* 3 Metrik Bento: Mewah & Presisi */
 .academic-metrics-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -591,18 +532,59 @@
 
 .metric-box {
   border-radius: 20px;
-  padding: 1.65rem 1.5rem;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 14px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.metric-box:hover {
+.metric-box::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+.metric-box.box-blue {
+  background: linear-gradient(145deg, #FFFFFF 0%, #EFF6FF 100%);
+  border: 1.5px solid #BFDBFE;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.07);
+}
+.metric-box.box-blue:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border-color: #60A5FA;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.15);
+}
+
+.metric-box.box-green {
+  background: linear-gradient(145deg, #FFFFFF 0%, #F0FDF4 100%);
+  border: 1.5px solid #BBF7D0;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.07);
+}
+.metric-box.box-green:hover {
+  transform: translateY(-3px);
+  border-color: #4ADE80;
+  box-shadow: 0 14px 30px rgba(16, 185, 129, 0.15);
+}
+
+.metric-box.box-red {
+  background: linear-gradient(145deg, #FFFFFF 0%, #FEF2F2 100%);
+  border: 1.5px solid #FECACA;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.07);
+}
+.metric-box.box-red:hover {
+  transform: translateY(-3px);
+  border-color: #F87171;
+  box-shadow: 0 14px 30px rgba(239, 68, 68, 0.15);
 }
 
 .metric-top {
@@ -612,241 +594,210 @@
 }
 
 .metric-tag {
-  font-family: var(--edu-font-display);
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: #64748B;
 }
 
 .metric-icon-circle {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.icon-dark-bg {
-  background: var(--edu-dark);
-  color: var(--edu-lime);
-}
-
-.icon-lime-bg {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--edu-lime);
-}
-
 .icon-blue-bg {
-  background: #EEF2F6;
-  color: var(--edu-blue);
+  background: #DBEAFE;
+  color: #1D4ED8;
+}
+
+.icon-gold-bg {
+  background: #FEF08A;
+  color: #B45309;
+}
+
+.icon-emerald-bg {
+  background: #DCFCE7;
+  color: #15803D;
+}
+
+.icon-red-bg {
+  background: #FEE2E2;
+  color: #DC2626;
 }
 
 .metric-value {
-  font-family: var(--edu-font-display);
-  font-size: 2.5rem;
-  font-weight: 900;
+  font-family: var(--pkbm-font);
+  font-size: 2.35rem;
+  font-weight: 800;
   line-height: 1;
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
+  color: #0F172A;
+  letter-spacing: -0.02em;
 }
 
 .metric-unit {
   font-size: 0.95rem;
-  font-weight: 700;
-  opacity: 0.8;
+  font-weight: 600;
+  color: #64748B;
+  margin-left: 6px;
 }
 
 .metric-value-title {
-  font-family: var(--edu-font-display);
-  font-size: 1.55rem;
-  font-weight: 900;
-  line-height: 1.2;
-}
-
-.metric-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.74rem;
-  font-weight: 700;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  padding-top: 8px;
-}
-
-.metric-arrow-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  color: inherit;
+  font-family: var(--pkbm-font);
+  font-size: 1.85rem;
   font-weight: 800;
-  text-decoration: none;
-}
-
-.metric-arrow-link:hover {
-  text-decoration: underline;
-}
-
-/* Metric 1: Blue Card (Kotak Kehadiran Warna Biru Sky Blue #5CB8FF) */
-.metric-blue-clean {
-  background: var(--edu-blue);
   color: #0F172A;
-  border: 1px solid rgba(92, 184, 255, 0.45);
-  box-shadow: 0 8px 24px rgba(92, 184, 255, 0.28);
+  letter-spacing: -0.01em;
 }
 
-.metric-blue-clean .icon-white-bg {
-  background: rgba(15, 23, 42, 0.12);
-  color: #0F172A;
-}
-
-.metric-blue-clean .metric-progress-line {
+.metric-progress-line {
+  width: 100%;
   height: 6px;
-  background: rgba(15, 23, 42, 0.12);
+  background: #F1F5F9;
   border-radius: 9999px;
   overflow: hidden;
 }
 
-.metric-blue-clean .metric-progress-active {
+.metric-progress-active {
   height: 100%;
-  background: #0F172A;
+  background: #1D4ED8;
   border-radius: 9999px;
-  transition: width 0.6s ease;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.metric-blue-clean .metric-foot {
-  border-top-color: rgba(15, 23, 42, 0.1);
-  color: rgba(15, 23, 42, 0.75);
-}
-
-/* Metric 2: Dark Card (Clean) */
-.metric-dark-clean {
-  background: var(--edu-dark);
-  color: var(--edu-white);
-  border: 1px solid var(--edu-dark-border);
-}
-
-.metric-dark-clean .metric-foot {
-  border-top-color: rgba(255, 255, 255, 0.1);
-  color: #94A3B8;
+.metric-status-row {
+  display: flex;
+  align-items: center;
 }
 
 .status-badge-lime {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(212, 255, 0, 0.16);
-  color: var(--edu-lime);
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 4px 10px;
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+  padding: 3px 10px;
   border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .status-badge-warn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(245, 158, 11, 0.2);
-  color: #FBBF24;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 4px 10px;
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+  padding: 3px 10px;
   border-radius: 9999px;
-}
-
-/* Metric 3: White Card (Clean) */
-.metric-white-clean {
-  background: #FFFFFF;
-  color: var(--edu-dark);
-  border: 1px solid #E2E8F0;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .metric-sub-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   color: #64748B;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .badge-sync {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  background: #DCFCE7;
-  color: #166534;
-  font-size: 0.68rem;
-  font-weight: 800;
+  gap: 4px;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
   padding: 2px 8px;
   border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.metric-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 10px;
+  font-size: 0.78rem;
+  color: #64748B;
+  font-weight: 600;
+}
+
+.metric-arrow-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #1D4ED8;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.metric-arrow-link:hover {
+  color: #1E40AF;
+  transform: translateX(2px);
+  text-decoration: none;
 }
 
 .semester-pill {
   background: #F1F5F9;
-  color: #475569;
+  color: #334155;
+  border: 1px solid #E2E8F0;
   padding: 2px 8px;
-  border-radius: 9999px;
-  font-size: 0.68rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
-/* ── RESPONSIVE MEDIA QUERIES ── */
-@media (max-width: 992px) {
+.status-badge-warn-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FEE2E2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1023px) {
   .edutech-hero-content {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
-
+  .edutech-hero-section {
+    padding: 2rem 1.5rem;
+  }
+  .edutech-hero-headline {
+    font-size: 1.85rem;
+  }
   .academic-metrics-grid {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 768px) {
-  .edutech-content-flow {
-    gap: 1.5rem;
-  }
-
+@media (max-width: 639px) {
   .edutech-hero-section {
-    padding: 1.75rem 1.25rem;
-    border-radius: 20px;
+    padding: 1.5rem 1.25rem;
+    border-radius: 18px;
   }
-
   .edutech-hero-headline {
-    font-size: 1.95rem;
+    font-size: 1.55rem;
   }
-
-  .headline-scribble {
-    font-size: 1.6rem;
-    margin-left: 0;
-    margin-top: 6px;
-  }
-
-  .title-scribble {
-    font-size: 1.45rem;
-    margin-left: 0;
-    margin-top: 6px;
-  }
-
-  .edutech-hero-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .edutech-pill-btn {
-    justify-content: center;
-  }
-
-  .edutech-top-bar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .edutech-bar-right {
+  .hero-btn-yellow, .hero-btn-glass {
     width: 100%;
-    justify-content: space-between;
   }
 }

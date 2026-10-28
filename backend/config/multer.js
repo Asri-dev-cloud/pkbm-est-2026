@@ -52,25 +52,39 @@ const fileFilter = (req, file, cb) => {
     'image/jpg',
     'image/png',
     'image/webp',
+    'image/gif',
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/zip',
+    'application/x-zip-compressed',
+    'application/x-rar-compressed',
+    'application/octet-stream',
     'video/mp4',
+    'video/webm',
+    'video/quicktime',
+    'video/x-msvideo',
+    'video/x-matroska',
+    'video/ogg',
   ];
 
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true); // Terima file
   } else {
-    cb(new Error('Tipe file tidak diizinkan. Hanya JPG, PNG, WEBP, PDF, DOC, DOCX, MP4.'), false);
+    cb(new Error('Tipe file tidak diizinkan. Hanya JPG, PNG, WEBP, GIF, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, ZIP, MP4, WEBM, MOV.'), false);
   }
 };
 
-// Instance multer internal
+// Instance multer internal (Maks 100MB untuk mendukung video kegiatan)
 const internalMulter = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 15 * 1024 * 1024, // Maksimum 15MB per file
+    fileSize: 100 * 1024 * 1024, // Maksimum 100MB per file
   },
 });
 

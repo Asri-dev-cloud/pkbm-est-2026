@@ -96,7 +96,7 @@ function UjianSiswa() {
       setSesi(data);
       setJawaban(data.jawaban || {});
       setSoalIndex(0);
-      setSisaWaktu(Number(data.durasi_menit || durasiMenit || 0) * 60);
+      setSisaWaktu(data.sisa_detik != null ? Number(data.sisa_detik) : Number(data.durasi_menit || durasiMenit || 0) * 60);
       setMode('kerjakan');
     } catch (err) {
       alert(err.response?.data?.message || 'Gagal memulai ujian.');
@@ -128,29 +128,18 @@ function UjianSiswa() {
         <Sidebar user={user} />
         <main className="app-main">
           <div className="app-content" style={{ padding: '2rem' }}>
-            <div style={{ marginBottom: '2rem', paddingTop: '0.5rem' }}>
-              <div style={{ marginBottom: '8px' }}>
-                <span style={{
-                  background: '#5CB8FF',
-                  color: '#0F172A',
-                  fontFamily: 'var(--font-heading, "Outfit", sans-serif)',
-                  fontWeight: 900,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  padding: '4px 14px 5px',
-                  borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px',
-                  display: 'inline-block',
-                  transform: 'rotate(-1.5deg)'
-                }}>
-                  CBT ASESMEN ONLINE
+            <div style={{ marginBottom: '2rem' }}>
+              <div style={{ marginBottom: '10px' }}>
+                <span className="boutique-pill boutique-badge-blue">
+                  <i className="bi bi-file-earmark-check-fill" style={{ fontSize: '0.85rem' }}></i>
+                  ASESMEN & UJIAN CBT ONLINE
                 </span>
               </div>
-              <h1 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '2.15rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em' }}>
-                Ujian Online
+              <h1 style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontSize: '2.1rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                Ujian Online CBT
               </h1>
-              <p style={{ color: '#64748B', marginTop: 6, fontSize: '0.96rem' }}>
-                Pilih dan kerjakan paket asesmen aktif{profil?.nama_rombel ? ` untuk ${profil.nama_rombel}` : ''}.
+              <p style={{ color: '#64748B', marginTop: 8, fontSize: '0.94rem', maxWidth: '680px' }}>
+                Pilih dan kerjakan paket asesmen resmi{profil?.nama_rombel ? ` untuk ${profil.nama_rombel}` : ''} dengan tertib dan jujur.
               </p>
             </div>
 

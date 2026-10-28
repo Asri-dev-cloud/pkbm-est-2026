@@ -94,29 +94,18 @@ function KlubSiswa() {
       <main className="app-main">
         <div className="app-content" style={{ padding: '2rem' }}>
 
-          <div style={{ marginBottom: '2rem', paddingTop: '0.5rem' }}>
-            <div style={{ marginBottom: '8px' }}>
-              <span style={{
-                background: '#5CB8FF',
-                color: '#0F172A',
-                fontFamily: 'var(--font-heading, "Outfit", sans-serif)',
-                fontWeight: 900,
-                fontSize: '0.75rem',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                padding: '4px 14px 5px',
-                borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px',
-                display: 'inline-block',
-                transform: 'rotate(-1.5deg)'
-              }}>
+          <div style={{ marginBottom: '2rem' }}>
+            <div style={{ marginBottom: '10px' }}>
+              <span className="boutique-pill boutique-badge-blue">
+                <i className="bi bi-trophy-fill" style={{ fontSize: '0.85rem' }}></i>
                 KOMUNITAS MINAT & BAKAT
               </span>
             </div>
-            <h1 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '2.15rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em' }}>
-              Klub Minat Bakat
+            <h1 style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontSize: '2.1rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              Klub Minat Bakat & Ekstrakurikuler
             </h1>
-            <p style={{ color: '#64748B', marginTop: 6, fontSize: '0.96rem' }}>
-              Ikuti komunitas klub ekstrakurikuler yang sesuai dengan minat dan bakat Anda — terbuka lintas jenjang!
+            <p style={{ color: '#64748B', marginTop: 8, fontSize: '0.94rem', maxWidth: '680px' }}>
+              Ikuti komunitas klub ekstrakurikuler yang sesuai dengan minat dan bakat Anda — terbuka lintas jenjang untuk mengasah soft-skills!
             </p>
           </div>
 
@@ -128,10 +117,10 @@ function KlubSiswa() {
                 onClick={() => setTab(t)}
                 style={{
                   padding: '8px 20px', borderRadius: '9999px', border: 'none',
-                  background: tab === t ? '#5CB8FF' : 'transparent',
-                  color: tab === t ? '#0F172A' : '#64748B',
-                  fontWeight: tab === t ? 900 : 700, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.15s',
-                  boxShadow: tab === t ? '0 4px 14px rgba(92, 184, 255, 0.35)' : 'none'
+                  background: tab === t ? '#1D4ED8' : 'transparent',
+                  color: tab === t ? '#FFFFFF' : '#64748B',
+                  fontWeight: tab === t ? 800 : 600, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s',
+                  boxShadow: tab === t ? '0 4px 14px rgba(29, 78, 216, 0.3)' : 'none'
                 }}
               >
                 {t === 'semua' ? `Semua Klub (${semuaKlub.length})` : `Klub Saya (${klubSaya.size})`}

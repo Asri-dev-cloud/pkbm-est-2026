@@ -27,13 +27,11 @@ function DashboardRouter() {
     return <Navigate to="/login" replace />;
   }
 
-  // Peta role → path dashboard tujuan
+  // Peta role → path dashboard tujuan (hanya super_admin dan warga_belajar)
   const roleToDashboard = {
     super_admin:   '/dashboard/admin',
-    admin:         '/dashboard/admin',
-    tutor:         '/dashboard/tutor',
+    admin:         '/dashboard/admin', // Fallback akun admin lama ke panel super admin
     warga_belajar: '/dashboard/siswa',
-    pimpinan:      '/dashboard/pimpinan',
   };
 
   // Ambil path tujuan berdasarkan role

@@ -63,6 +63,66 @@ export const parseTaskDescription = (rawDesc) => {
   return { cleanDesc: rawDesc, meta: { tipe: 'upload', soal_pg: [], soal_essay: [] } };
 };
 
+// Helper untuk merender panduan & instruksi pengerjaan berdesain (Timeline Stepper Modern)
+const renderInstructionSteps = (text, isOpen, onToggle) => {
+  if (!text) return null;
+  const rawLines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+  const isNumbered = rawLines.some((l) => /^\d+[\.\)]/.test(l));
+  const displayedLines = isOpen || rawLines.length <= 4 ? rawLines : rawLines.slice(0, 4);
+
+  return (
+    <div className="tugas-briefing-card">
+      <div className="tugas-briefing-header">
+        <div className="tugas-briefing-title">
+          <BookOpen size={15} />
+          <span>Panduan & Instruksi Pengerjaan</span>
+        </div>
+        <span className="tugas-briefing-badge">
+          {isNumbered ? `${rawLines.length} Langkah Terstruktur` : 'Instruksi Pengerjaan'}
+        </span>
+      </div>
+
+      <div className="tugas-briefing-body">
+        {isNumbered ? (
+          <div className="tugas-steps-timeline">
+            {displayedLines.map((line, idx) => {
+              const match = line.match(/^(\d+)[\.\)]\s*(.*)$/);
+              const stepNum = match ? match[1] : String(idx + 1);
+              const stepContent = match ? match[2] : line;
+              const isLast = idx === displayedLines.length - 1;
+              return (
+                <div key={idx} className={`tugas-timeline-step ${isLast ? 'is-last' : ''}`}>
+                  <div className="timeline-step-indicator">
+                    <span className="timeline-step-num">{stepNum}</span>
+                    {!isLast && <div className="timeline-step-line" />}
+                  </div>
+                  <div className="timeline-step-content">
+                    <p className="timeline-step-text">{stepContent}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="tugas-desc-paragraph">
+            {isOpen || text.length <= 240 ? text : `${text.substring(0, 240)}...`}
+          </p>
+        )}
+      </div>
+
+      {rawLines.length > 4 && (
+        <button type="button" className="btn-toggle-desc" onClick={onToggle}>
+          {isOpen ? (
+            <>Sembunyikan Sebagian <ChevronUp size={13} /></>
+          ) : (
+            <>Lihat Seluruh Langkah ({rawLines.length} Poin) <ChevronDown size={13} /></>
+          )}
+        </button>
+      )}
+    </div>
+  );
+};
+
 function TugasSiswa() {
   const [user, setUser] = useState(() => {
     try {
@@ -91,9 +151,9 @@ function TugasSiswa() {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedDesc, setExpandedDesc] = useState({});
 
-  const canManage = user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'tutor';
+  const canManage = user?.role === 'admin' || user?.role === 'super_admin';
 
-  // State Modal Buat Tugas (Khusus Admin / Tutor / Guru)
+  // State Modal Buat Tugas (Khusus Admin / Super Admin)
   const [modalBuatOpen, setModalBuatOpen] = useState(false);
   const [formBuat, setFormBuat] = useState({
     rombel_id: '',
@@ -957,7 +1017,7 @@ function TugasSiswa() {
                 <div className="tugas-hero-text">
                   <div className="tugas-hero-badge">
                     <BookOpen size={14} />
-                    <span>{isStudent ? 'Portal Tugas Warga Belajar' : 'Panel Manajemen Tugas Tutor & Admin'}</span>
+                    <span>{isStudent ? 'Portal Tugas Warga Belajar' : 'Panel Manajemen Tugas Super Admin'}</span>
                   </div>
                   <h1 className="tugas-hero-title">
                     {isStudent
@@ -1070,13 +1130,16 @@ function TugasSiswa() {
               </div>
             )}
 
-            {/* ══ 2. RINGKASAN METRIK KARTU ════════════════════════ */}
+            {/* ══ 2. RINGKASAN METRIK KARTU GRAPHIC BAUHAUS (Selaras Referensi) ══ */}
             {isStudent ? (
               <div className="tugas-stats-grid">
-                {/* Total Tugas */}
-                <div className="tugas-stat-card">
-                  <div className="tugas-stat-icon" style={{ background: '#EFF6FF', color: '#2563EB' }}>
-                    <BookOpen size={22} />
+                {/* Total Tugas: Biru Graphic */}
+                <div className="tugas-stat-card stat-card-blue">
+                  <div className="tugas-stat-card-top">
+                    <div className="tugas-stat-icon">
+                      <BookOpen size={22} />
+                    </div>
+                    <span className="tugas-stat-pill-tag">AKTIF</span>
                   </div>
                   <div className="tugas-stat-info">
                     <span className="tugas-stat-val">{stats.total}</span>
@@ -1084,47 +1147,57 @@ function TugasSiswa() {
                   </div>
                 </div>
 
-                {/* Perlu Dikerjakan */}
-                <div className="tugas-stat-card">
-                  <div className="tugas-stat-icon" style={{ background: '#FEF3C7', color: '#D97706' }}>
-                    <Clock size={22} />
+                {/* Belum Dikumpulkan: MERAH Graphic */}
+                <div className="tugas-stat-card stat-card-red">
+                  <div className="tugas-stat-card-top">
+                    <div className="tugas-stat-icon">
+                      <Clock size={22} />
+                    </div>
+                    <span className="tugas-stat-pill-tag">PENDING</span>
                   </div>
                   <div className="tugas-stat-info">
                     <span className="tugas-stat-val">{stats.belumDikumpul}</span>
-                    <span className="tugas-stat-label">Perlu Dikerjakan</span>
+                    <span className="tugas-stat-label">Belum Dikumpulkan</span>
                   </div>
                 </div>
 
-                {/* Deadline Mendesak */}
-                <div className="tugas-stat-card">
-                  <div className="tugas-stat-icon" style={{ background: '#FEE2E2', color: '#DC2626' }}>
-                    <AlertTriangle size={22} />
+                {/* Tenggat Mendesak: KUNING Graphic */}
+                <div className="tugas-stat-card stat-card-yellow">
+                  <div className="tugas-stat-card-top">
+                    <div className="tugas-stat-icon">
+                      <AlertTriangle size={22} />
+                    </div>
+                    <span className="tugas-stat-pill-tag">SEGERA</span>
                   </div>
                   <div className="tugas-stat-info">
-                    <span className="tugas-stat-val" style={{ color: stats.mendesak > 0 ? '#DC2626' : 'inherit' }}>
-                      {stats.mendesak}
-                    </span>
+                    <span className="tugas-stat-val">{stats.mendesak}</span>
                     <span className="tugas-stat-label">Tenggat Mendesak</span>
                   </div>
                 </div>
 
-                {/* Rata-Rata Nilai */}
-                <div className="tugas-stat-card">
-                  <div className="tugas-stat-icon" style={{ background: '#D1FAE5', color: '#059669' }}>
-                    <Award size={22} />
+                {/* Selesai Dinilai: HIJAU Graphic */}
+                <div className="tugas-stat-card stat-card-green">
+                  <div className="tugas-stat-card-top">
+                    <div className="tugas-stat-icon">
+                      <Award size={22} />
+                    </div>
+                    <span className="tugas-stat-pill-tag">DINILAI</span>
                   </div>
                   <div className="tugas-stat-info">
                     <span className="tugas-stat-val">{stats.rataNilai}</span>
-                    <span className="tugas-stat-label">Rata-Rata Nilai ({stats.sudahDinilai} dinilai)</span>
+                    <span className="tugas-stat-label">Selesai Dinilai ({stats.sudahDinilai} tugas)</span>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="tugas-stats-grid">
-                {/* Total Tugas Terbit */}
-                <div className="tugas-stat-card">
-                  <div className="tugas-stat-icon" style={{ background: '#EFF6FF', color: '#2563EB' }}>
-                    <BookOpen size={22} />
+                {/* Total Tugas Terbit: Biru Graphic */}
+                <div className="tugas-stat-card stat-card-blue">
+                  <div className="tugas-stat-card-top">
+                    <div className="tugas-stat-icon">
+                      <BookOpen size={22} />
+                    </div>
+                    <span className="tugas-stat-pill-tag">TOTAL</span>
                   </div>
                   <div className="tugas-stat-info">
                     <span className="tugas-stat-val">{stats.total}</span>
@@ -1132,10 +1205,13 @@ function TugasSiswa() {
                   </div>
                 </div>
 
-                {/* Jawaban Siswa Masuk */}
-                <div className="tugas-stat-card">
-                  <div className="tugas-stat-icon" style={{ background: '#ECFDF5', color: '#059669' }}>
-                    <FileCheck size={22} />
+                {/* Jawaban Siswa Masuk: HIJAU Graphic */}
+                <div className="tugas-stat-card stat-card-green">
+                  <div className="tugas-stat-card-top">
+                    <div className="tugas-stat-icon">
+                      <FileCheck size={22} />
+                    </div>
+                    <span className="tugas-stat-pill-tag">MASUK</span>
                   </div>
                   <div className="tugas-stat-info">
                     <span className="tugas-stat-val">{stats.totalPengumpulan}</span>
@@ -1143,10 +1219,13 @@ function TugasSiswa() {
                   </div>
                 </div>
 
-                {/* Tipe Penugasan */}
-                <div className="tugas-stat-card">
-                  <div className="tugas-stat-icon" style={{ background: '#F5F3FF', color: '#7C3AED' }}>
-                    <Layers size={22} />
+                {/* Tipe Penugasan: UNGU Graphic */}
+                <div className="tugas-stat-card stat-card-purple">
+                  <div className="tugas-stat-card-top">
+                    <div className="tugas-stat-icon">
+                      <Layers size={22} />
+                    </div>
+                    <span className="tugas-stat-pill-tag">FORMAT</span>
                   </div>
                   <div className="tugas-stat-info">
                     <span className="tugas-stat-val">3 Format</span>
@@ -1154,13 +1233,16 @@ function TugasSiswa() {
                   </div>
                 </div>
 
-                {/* Target Rombel */}
-                <div className="tugas-stat-card">
-                  <div className="tugas-stat-icon" style={{ background: '#FFFBEB', color: '#D97706' }}>
-                    <GraduationCap size={22} />
+                {/* Target Rombel: KUNING Graphic */}
+                <div className="tugas-stat-card stat-card-yellow">
+                  <div className="tugas-stat-card-top">
+                    <div className="tugas-stat-icon">
+                      <GraduationCap size={22} />
+                    </div>
+                    <span className="tugas-stat-pill-tag">ROMBEL</span>
                   </div>
                   <div className="tugas-stat-info">
-                    <span className="tugas-stat-val" style={{ fontSize: '1.2rem' }}>
+                    <span className="tugas-stat-val" style={{ fontSize: '1.45rem' }}>
                       {selectedRombelObj ? selectedRombelObj.nama : '-'}
                     </span>
                     <span className="tugas-stat-label">
@@ -1173,11 +1255,11 @@ function TugasSiswa() {
 
             {/* ══ 3. KONTROL FILTER & PENCARIAN ════════════════════ */}
             <div className="tugas-filter-card">
-              {/* Tab Navigasi Status */}
+              {/* Tab Navigasi Status Berwarna */}
               <div className="tugas-tab-pills">
                 <button
                   type="button"
-                  className={`tugas-tab-pill ${activeTab === 'semua' ? 'active' : ''}`}
+                  className={`tugas-tab-pill pill-semua ${activeTab === 'semua' ? 'active' : ''}`}
                   onClick={() => setActiveTab('semua')}
                 >
                   <ClipboardCheck size={14} />
@@ -1185,9 +1267,10 @@ function TugasSiswa() {
                   <span className="tugas-tab-count">{stats.total}</span>
                 </button>
 
+                {/* Belum Dikumpulkan: MERAH */}
                 <button
                   type="button"
-                  className={`tugas-tab-pill ${activeTab === 'belum' ? 'active' : ''}`}
+                  className={`tugas-tab-pill pill-belum ${activeTab === 'belum' ? 'active' : ''}`}
                   onClick={() => setActiveTab('belum')}
                 >
                   <Clock size={14} />
@@ -1195,9 +1278,10 @@ function TugasSiswa() {
                   <span className="tugas-tab-count">{stats.belumDikumpul}</span>
                 </button>
 
+                {/* Mendesak: KUNING */}
                 <button
                   type="button"
-                  className={`tugas-tab-pill ${activeTab === 'mendesak' ? 'active' : ''}`}
+                  className={`tugas-tab-pill pill-mendesak ${activeTab === 'mendesak' ? 'active' : ''}`}
                   onClick={() => setActiveTab('mendesak')}
                 >
                   <AlertTriangle size={14} />
@@ -1205,9 +1289,10 @@ function TugasSiswa() {
                   {stats.mendesak > 0 && <span className="tugas-tab-count">{stats.mendesak}</span>}
                 </button>
 
+                {/* Sudah Dikumpul: BIRU */}
                 <button
                   type="button"
-                  className={`tugas-tab-pill ${activeTab === 'dikumpul' ? 'active' : ''}`}
+                  className={`tugas-tab-pill pill-dikumpul ${activeTab === 'dikumpul' ? 'active' : ''}`}
                   onClick={() => setActiveTab('dikumpul')}
                 >
                   <CheckCircle2 size={14} />
@@ -1215,9 +1300,10 @@ function TugasSiswa() {
                   <span className="tugas-tab-count">{stats.sudahDikumpul - stats.sudahDinilai}</span>
                 </button>
 
+                {/* Selesai Dinilai: HIJAU */}
                 <button
                   type="button"
-                  className={`tugas-tab-pill ${activeTab === 'dinilai' ? 'active' : ''}`}
+                  className={`tugas-tab-pill pill-dinilai ${activeTab === 'dinilai' ? 'active' : ''}`}
                   onClick={() => setActiveTab('dinilai')}
                 >
                   <Award size={14} />
@@ -1419,7 +1505,7 @@ function TugasSiswa() {
                           )}
 
                           {/* Bobot Nilai Maksimal */}
-                          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                          <span className="tugas-max-point-chip">
                             Maks: {Math.round(t.nilai_maks || 100)} Poin
                           </span>
                         </div>
@@ -1475,53 +1561,22 @@ function TugasSiswa() {
                         </div>
                       </div>
 
-                      {/* Deskripsi & Instruksi Pengerjaan */}
-                      {cleanDesc && (
-                        <div className="tugas-desc-box">
-                          {isDescOpen || cleanDesc.length <= 220
-                            ? cleanDesc
-                            : `${cleanDesc.substring(0, 220)}...`}
-
-                          {cleanDesc.length > 220 && (
-                            <button
-                              type="button"
-                              onClick={() => toggleDesc(t.id)}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                border: 'none',
-                                background: 'transparent',
-                                color: 'var(--color-primary)',
-                                fontWeight: 700,
-                                fontSize: 'var(--text-xs)',
-                                cursor: 'pointer',
-                                marginLeft: '0.5rem',
-                              }}
-                            >
-                              {isDescOpen ? (
-                                <>Sembunyikan <ChevronUp size={13} /></>
-                              ) : (
-                                <>Baca Selengkapnya <ChevronDown size={13} /></>
-                              )}
-                            </button>
-                          )}
-                        </div>
-                      )}
+                      {/* Deskripsi & Instruksi Pengerjaan Berdesain Langkah Terstruktur */}
+                      {cleanDesc && renderInstructionSteps(cleanDesc, isDescOpen, () => toggleDesc(t.id))}
 
                       {/* Info Pengumpulan Tugas (Khusus Siswa yang Telah Mengumpulkan) */}
                       {isStudent && isSubmitted && (
                         <div className={`tugas-submission-panel ${isGraded ? 'has-grade' : ''}`}>
                           <div className="tugas-submission-header">
                             <div className="tugas-submission-title">
-                              <CheckCircle2 size={16} color={isGraded ? '#059669' : '#2563EB'} />
-                              <span>
-                                {isGraded ? 'Tugas Telah Selesai Dinilai' : 'Tugas Berhasil Diserahkan'}
+                              <span className="submission-verified-badge">
+                                <CheckCircle2 size={16} />
+                                <span>{isGraded ? 'Tugas Telah Selesai Dinilai' : 'Tugas Berhasil Diserahkan'}</span>
                               </span>
                             </div>
-                            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                              Diserahkan:{' '}
-                              {t.pengumpulan_saya.submitted_at
+                            <span className="tugas-submission-timestamp">
+                              <Clock size={13} />
+                              Diserahkan: {t.pengumpulan_saya.submitted_at
                                 ? new Date(t.pengumpulan_saya.submitted_at).toLocaleDateString('id-ID', {
                                   day: 'numeric',
                                   month: 'short',
@@ -1535,27 +1590,34 @@ function TugasSiswa() {
 
                           {/* Lampiran Berkas Siswa */}
                           {t.pengumpulan_saya.path_file && t.pengumpulan_saya.path_file !== 'text_submission' && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <div className="tugas-attachment-card">
+                              <div className="attachment-card-left">
+                                <div className="attachment-icon-pill">
+                                  {renderFileIcon(t.pengumpulan_saya.nama_file)}
+                                </div>
+                                <div className="attachment-meta">
+                                  <span className="attachment-filename">{t.pengumpulan_saya.nama_file || 'Berkas Jawaban Tugas'}</span>
+                                  <span className="attachment-label">Dokumen Digital Terunggah</span>
+                                </div>
+                              </div>
                               <a
                                 href={toAssetUrl(t.pengumpulan_saya.path_file)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="tugas-file-badge"
-                                title="Klik untuk membuka/mengunduh berkas"
+                                className="btn-attachment-download"
+                                title="Unduh Berkas Jawaban"
                               >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                                  {renderFileIcon(t.pengumpulan_saya.nama_file)}
-                                  <span>{t.pengumpulan_saya.nama_file || 'Berkas Tugas Siswa'}</span>
-                                </div>
                                 <Download size={14} />
+                                <span>Unduh Berkas</span>
                               </a>
                             </div>
                           )}
 
                           {/* Catatan Siswa saat Pengumpulan */}
                           {t.pengumpulan_saya.catatan_siswa && (
-                            <div className="tugas-student-note" style={{ whiteSpace: 'pre-line' }}>
-                              {t.pengumpulan_saya.catatan_siswa}
+                            <div className="tugas-student-note">
+                              <span className="student-note-label">Catatan Tambahan Anda:</span>
+                              <div className="student-note-text">{t.pengumpulan_saya.catatan_siswa}</div>
                             </div>
                           )}
 
@@ -1568,7 +1630,7 @@ function TugasSiswa() {
                               </div>
                               <div className="tugas-grade-feedback">
                                 <div className="tugas-grade-tutor-name">
-                                  Ulasan & Catatan Evaluasi Tutor:
+                                  <Award size={15} /> Ulasan & Evaluasi Penilaian:
                                 </div>
                                 <div className="tugas-grade-feedback-text">
                                   {t.pengumpulan_saya.feedback_tutor ||
@@ -1577,9 +1639,9 @@ function TugasSiswa() {
                               </div>
                             </div>
                           ) : (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--text-xs)', color: '#4B5563' }}>
-                              <span className="status-ping-dot" style={{ width: 8, height: 8, borderRadius: '50%', background: '#3B82F6', display: 'inline-block' }} />
-                              <span>Menunggu koreksi & penilaian dari Tutor pengampu.</span>
+                            <div className="tugas-waiting-review-pill">
+                              <span className="pulse-dot-blue" />
+                              <span>Berkas telah diterima sistem — Menunggu koreksi & verifikasi nilai dari Tutor pengampu.</span>
                             </div>
                           )}
                         </div>

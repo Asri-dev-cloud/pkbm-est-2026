@@ -143,29 +143,18 @@ function AbsensiSiswa() {
       <main className="app-main">
         <div className="app-content" style={{ padding: '2rem' }}>
 
-          <div style={{ marginBottom: '2rem', paddingTop: '0.5rem' }}>
-            <div style={{ marginBottom: '8px' }}>
-              <span style={{
-                background: '#5CB8FF',
-                color: '#0F172A',
-                fontFamily: 'var(--font-heading, "Outfit", sans-serif)',
-                fontWeight: 900,
-                fontSize: '0.75rem',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                padding: '4px 14px 5px',
-                borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px',
-                display: 'inline-block',
-                transform: 'rotate(-1.5deg)'
-              }}>
-                PRESENSI DIGITAL
+          <div style={{ marginBottom: '2rem' }}>
+            <div style={{ marginBottom: '10px' }}>
+              <span className="boutique-pill boutique-badge-blue">
+                <i className="bi bi-calendar-check-fill" style={{ fontSize: '0.85rem' }}></i>
+                PRESENSI DIGITAL PERTEMUAN
               </span>
             </div>
-            <h1 style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '2.15rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em' }}>
-              Absensi Saya
+            <h1 style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontSize: '2.1rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              Presensi & Kehadiran Belajar
             </h1>
-            <p style={{ color: '#64748B', marginTop: 6, fontSize: '0.96rem' }}>
-              Check-in kehadiran mandiri secara realtime jika Tutor membuka sesi presensi pertemuan.
+            <p style={{ color: '#64748B', marginTop: 8, fontSize: '0.94rem', maxWidth: '680px' }}>
+              Check-in kehadiran secara realtime saat pengajar membuka sesi presensi kelas, dan tinjau rekapitulasi kehadiran Anda.
             </p>
           </div>
 
@@ -345,12 +334,36 @@ function AbsensiSiswa() {
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-                gap: '12px'
+                gap: '14px'
               }}>
-                <RekapItem label="Total Pertemuan" value={rekap.total_pertemuan ?? '—'} color="#0284C7" />
-                <RekapItem label="Hadir"  value={rekap.hadir  ?? '—'} color="#10B981" />
-                <RekapItem label="Izin / Sakit" value={(rekap.izin ?? 0) + (rekap.sakit ?? 0)} color="#F59E0B" />
-                <RekapItem label="Alpa"   value={rekap.alpa   ?? '—'} color="#EF4444" />
+                <RekapItem
+                  label="Total Pertemuan"
+                  value={rekap.total_pertemuan ?? '—'}
+                  color="#1D4ED8"
+                  bg="linear-gradient(145deg, #FFFFFF 0%, #EFF6FF 100%)"
+                  border="#BFDBFE"
+                />
+                <RekapItem
+                  label="Hadir"
+                  value={rekap.hadir ?? '—'}
+                  color="#15803D"
+                  bg="linear-gradient(145deg, #FFFFFF 0%, #F0FDF4 100%)"
+                  border="#BBF7D0"
+                />
+                <RekapItem
+                  label="Izin / Sakit"
+                  value={(rekap.izin ?? 0) + (rekap.sakit ?? 0)}
+                  color="#B45309"
+                  bg="linear-gradient(145deg, #FFFFFF 0%, #FEFCE8 100%)"
+                  border="#FDE047"
+                />
+                <RekapItem
+                  label="Alpa"
+                  value={rekap.alpa ?? '—'}
+                  color="#DC2626"
+                  bg="linear-gradient(145deg, #FFFFFF 0%, #FEF2F2 100%)"
+                  border="#FECACA"
+                />
               </div>
             )}
 
@@ -359,7 +372,7 @@ function AbsensiSiswa() {
               <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid #F1F5F9' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', marginBottom: 8 }}>
                   <span style={{ fontWeight: 800, color: '#0F172A' }}>Tingkat Kehadiran Keseluruhan</span>
-                  <span style={{ fontWeight: 900, color: rekap.persentase_hadir >= 75 ? '#0284C7' : '#EF4444' }}>
+                  <span style={{ fontWeight: 900, color: rekap.persentase_hadir >= 75 ? '#1D4ED8' : '#DC2626' }}>
                     {rekap.persentase_hadir}%
                   </span>
                 </div>
@@ -367,12 +380,12 @@ function AbsensiSiswa() {
                   <div style={{
                     height: '100%', borderRadius: 999,
                     width: `${rekap.persentase_hadir}%`,
-                    background: rekap.persentase_hadir >= 75 ? '#5CB8FF' : '#EF4444',
+                    background: rekap.persentase_hadir >= 75 ? '#1D4ED8' : '#EF4444',
                     transition: 'width 0.5s ease',
                   }} />
                 </div>
                 {rekap.persentase_hadir < 75 && (
-                  <p style={{ fontSize: '0.78rem', color: '#EF4444', marginTop: 8, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <p style={{ fontSize: '0.78rem', color: '#DC2626', marginTop: 8, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <i className="bi bi-exclamation-triangle-fill"></i>
                     <span>Kehadiran di bawah 75%. Harap tingkatkan kehadiran Anda untuk memenuhi syarat evaluasi.</span>
                   </p>
@@ -387,17 +400,24 @@ function AbsensiSiswa() {
   );
 }
 
-function RekapItem({ label, value, color }) {
+function RekapItem({ label, value, color, bg = '#F8FAFC', border = '#E2E8F0' }) {
   return (
     <div style={{
-      textAlign: 'center', padding: '1.1rem 0.75rem',
-      background: '#F8FAFC', borderRadius: '14px',
-      border: '1px solid #E2E8F0',
-    }}>
-      <div style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '1.75rem', fontWeight: 900, color, lineHeight: 1.1 }}>
+      textAlign: 'center',
+      padding: '1.25rem 0.85rem',
+      background: bg,
+      borderRadius: '16px',
+      border: `1.5px solid ${border}`,
+      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)',
+      transition: 'transform 0.2s ease',
+    }}
+    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+    >
+      <div style={{ fontFamily: 'var(--font-heading, "Outfit", sans-serif)', fontSize: '1.85rem', fontWeight: 900, color, lineHeight: 1.1 }}>
         {value}
       </div>
-      <div style={{ fontSize: '0.76rem', color: '#64748B', marginTop: 5, fontWeight: 700 }}>
+      <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: 6, fontWeight: 700 }}>
         {label}
       </div>
     </div>

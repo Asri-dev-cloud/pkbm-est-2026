@@ -2294,6 +2294,64 @@ ALTER TABLE `warga_belajar`
   ADD CONSTRAINT `warga_belajar_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   ADD CONSTRAINT `warga_belajar_ibfk_2` FOREIGN KEY (`rombel_id`) REFERENCES `rombel` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `warga_belajar_ibfk_3` FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `tahun_ajaran` (`id`) ON DELETE SET NULL;
+--
+-- Table structure for table `berita_kegiatan`
+--
+CREATE TABLE IF NOT EXISTS `berita_kegiatan` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `judul` VARCHAR(255) NOT NULL,
+  `slug` VARCHAR(255) NOT NULL UNIQUE,
+  `ringkasan` TEXT NULL,
+  `konten` LONGTEXT NOT NULL,
+  `kategori` VARCHAR(100) NOT NULL DEFAULT 'Kegiatan PKBM',
+  `tanggal_kegiatan` DATE NULL,
+  `lokasi` VARCHAR(255) NULL DEFAULT '',
+  `gambar_sampul` VARCHAR(255) NULL,
+  `galeri_foto` JSON NULL,
+  `video_url` VARCHAR(500) NULL,
+  `video_file` VARCHAR(255) NULL,
+  `status` ENUM('published', 'draft', 'archived') NOT NULL DEFAULT 'published',
+  `is_pinned` TINYINT(1) NOT NULL DEFAULT 0,
+  `penulis` VARCHAR(100) NOT NULL DEFAULT 'Admin PKBM',
+  `created_by` INT NULL,
+  `views_count` INT NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_status` (`status`),
+  INDEX `idx_kategori` (`kategori`),
+  INDEX `idx_tanggal` (`tanggal_kegiatan`),
+  INDEX `idx_pinned` (`is_pinned`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `modul_buku`
+--
+CREATE TABLE IF NOT EXISTS `modul_buku` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `judul` VARCHAR(255) NOT NULL,
+  `deskripsi` TEXT NULL,
+  `kategori` VARCHAR(50) NOT NULL DEFAULT 'Semua Jenjang',
+  `mapel` VARCHAR(100) NULL,
+  `tipe` ENUM('modul_upload', 'buku_kemendikdasmen') NOT NULL DEFAULT 'modul_upload',
+  `file_path` VARCHAR(255) NULL,
+  `file_nama_asli` VARCHAR(255) NULL,
+  `file_size` INT NULL DEFAULT 0,
+  `file_type` VARCHAR(50) NULL DEFAULT 'pdf',
+  `cover_image` VARCHAR(255) NULL,
+  `url_eksternal` VARCHAR(500) NULL DEFAULT 'https://buku.kemendikdasmen.go.id/',
+  `penulis` VARCHAR(150) NULL DEFAULT 'PKBM Bina Mandiri',
+  `semester` VARCHAR(30) NULL DEFAULT 'Semua Semester',
+  `tahun_ajaran` VARCHAR(30) NULL DEFAULT '2025/2026',
+  `is_published` TINYINT(1) NOT NULL DEFAULT 1,
+  `total_dibaca` INT NOT NULL DEFAULT 0,
+  `created_by` INT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_kategori` (`kategori`),
+  INDEX `idx_tipe` (`tipe`),
+  INDEX `idx_published` (`is_published`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
