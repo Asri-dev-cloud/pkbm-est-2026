@@ -170,70 +170,104 @@ function UserAdmin() {
         <div className="app-content">
 
           {/* ── Header ─────────────────────────────────── */}
-          <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ marginBottom: '1.75rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
-              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--text-2xl)', fontWeight: 800 }}>
-                Manajemen Akun
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                <span className="badge badge-primary" style={{ fontWeight: 700, padding: '4px 10px' }}>
+                  <i className="bi bi-shield-lock-fill"></i> Kontrol Akses & Keamanan
+                </span>
+                <span style={{ fontSize: '0.85rem', color: '#64748B' }}>Otentikasi & Manajemen Pengguna</span>
+              </div>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                Manajemen Akun Pengguna
               </h1>
-              <p style={{ color: 'var(--color-text-muted)', marginTop: 4 }}>
-                Kelola akun Super Administrator dan akses akun PKBM.
+              <p style={{ color: '#475569', marginTop: 4, fontSize: '0.925rem' }}>
+                Kelola hak akses administrator sistem, atur status keaktifan akun pengguna, dan lakukan pemulihan kata sandi.
               </p>
             </div>
             <button
               className="btn btn-primary"
               onClick={() => { setShowBuat(true); setBuatFeedback({ type: '', msg: '' }); }}
+              style={{ height: 42, padding: '0 1.25rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
             >
               <i className="bi bi-person-plus-fill" /> Buat Super Admin Baru
             </button>
           </div>
 
-          {/* ── Statistik ────────────────────────────────── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>
-                <i className="bi bi-shield-check" />
+          {/* ── Statistik Patterned Cards ────────────────── */}
+          <div className="admin-stats-grid" style={{ marginBottom: '1.75rem' }}>
+            <div className="admin-stat-card admin-stat-blue">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-shield-check" />
+                </div>
+                <span className="admin-stat-tag">ADMIN</span>
               </div>
-              <div className="stat-body">
-                <div className="stat-value">{statRole['super_admin'] ?? 0}</div>
-                <div className="stat-label">Super Administrator</div>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#FEF08A', color: '#854D0E' }}>
-                <i className="bi bi-people-fill" />
-              </div>
-              <div className="stat-body">
-                <div className="stat-value">{statRole['warga_belajar'] ?? 0}</div>
-                <div className="stat-label">Warga Belajar (Siswa)</div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{userList.filter(u => u.role === 'super_admin').length}</div>
+                <div className="admin-stat-label">Super Administrator</div>
               </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#DCFCE7', color: '#166534' }}>
-                <i className="bi bi-person-check-fill" />
+
+            <div className="admin-stat-card admin-stat-purple">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-mortarboard-fill" />
+                </div>
+                <span className="admin-stat-tag">SISWA</span>
               </div>
-              <div className="stat-body">
-                <div className="stat-value">{userList.filter(u => u.is_active).length}</div>
-                <div className="stat-label">Akun Aktif</div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{userList.filter(u => u.role === 'warga_belajar').length}</div>
+                <div className="admin-stat-label">Akun Warga Belajar</div>
+              </div>
+            </div>
+
+            <div className="admin-stat-card admin-stat-green">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-person-check-fill" />
+                </div>
+                <span className="admin-stat-tag">AKTIF</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{userList.filter(u => u.is_active).length}</div>
+                <div className="admin-stat-label">Akun Aktif (Dapat Login)</div>
+              </div>
+            </div>
+
+            <div className="admin-stat-card admin-stat-rose">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-person-x-fill" />
+                </div>
+                <span className="admin-stat-tag">NONAKTIF</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{userList.filter(u => !u.is_active).length}</div>
+                <div className="admin-stat-label">Akun Dinonaktifkan</div>
               </div>
             </div>
           </div>
 
-          {/* ── Tabel Akun ───────────────────────────────── */}
-          <div className="card">
-            <div className="card-header" style={{ flexWrap: 'wrap', gap: '1rem' }}>
-              <h3 className="card-title">Daftar Semua Akun</h3>
+          {/* ── Tabel Akun Panel ───────────────────────────── */}
+          <div className="admin-panel">
+            <div className="admin-panel-header">
+              <div className="admin-panel-title">
+                <i className="bi bi-people-fill" style={{ color: '#1D4ED8' }}></i>
+                <span>Daftar Akun Pengguna Terdaftar</span>
+              </div>
               <div style={{ position: 'relative' }}>
                 <i className="bi bi-search" style={{
                   position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
-                  color: 'var(--color-text-muted)', fontSize: '0.85rem',
+                  color: '#94A3B8', fontSize: '0.85rem',
                 }} />
                 <input
                   type="text"
-                  placeholder="Cari nama / email…"
+                  placeholder="Cari nama atau email pengguna…"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   className="form-input"
-                  style={{ paddingLeft: '2.2rem', width: 240, height: 38 }}
+                  style={{ paddingLeft: '2.2rem', width: 260, height: 38, borderRadius: 8, border: '1.5px solid #CBD5E1', fontWeight: 600 }}
                 />
               </div>
             </div>
@@ -241,7 +275,7 @@ function UserAdmin() {
             {loading ? (
               <div className="loading-container" style={{ padding: '3rem' }}>
                 <div className="spinner" />
-                <p style={{ marginTop: 12, color: 'var(--color-text-muted)' }}>Memuat...</p>
+                <p style={{ marginTop: 12, color: 'var(--color-text-muted)' }}>Memuat daftar akun...</p>
               </div>
             ) : error ? (
               <div className="alert alert-danger" style={{ margin: '1.5rem' }}>
@@ -250,19 +284,19 @@ function UserAdmin() {
             ) : filtered.length === 0 ? (
               <div className="empty-state">
                 <i className="bi bi-person-x" />
-                <h3>Tidak Ada Akun</h3>
-                <p>Tidak ada akun yang sesuai pencarian.</p>
+                <h3>Tidak Ada Akun Ditemukan</h3>
+                <p>Tidak ada pengguna yang cocok dengan kriteria pencarian Anda.</p>
               </div>
             ) : (
-              <div className="table-wrapper">
-                <table className="table">
+              <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
+                <table className="table" style={{ margin: 0 }}>
                   <thead>
                     <tr>
-                      <th>Nama Lengkap</th>
-                      <th>Role</th>
-                      <th>Status</th>
-                      <th>Dibuat</th>
-                      <th>Aksi</th>
+                      <th>Nama Lengkap & Email</th>
+                      <th style={{ width: '180px' }}>Role Akun</th>
+                      <th style={{ width: '130px' }}>Status Akun</th>
+                      <th style={{ width: '160px' }}>Tanggal Dibuat</th>
+                      <th style={{ width: '160px', textAlign: 'right' }}>Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -273,53 +307,54 @@ function UserAdmin() {
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                               <div style={{
-                                width: 34, height: 34, borderRadius: '50%',
+                                width: 38, height: 38, borderRadius: 10,
                                 background: rc.bg, color: rc.color,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontWeight: 700, fontSize: '0.85rem', flexShrink: 0,
+                                fontWeight: 800, fontSize: '0.9rem', flexShrink: 0,
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
                               }}>
                                 {u.nama_lengkap?.charAt(0)?.toUpperCase() || 'U'}
                               </div>
                               <div>
-                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{u.nama_lengkap}</div>
-                                <div style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem' }}>{u.email}</div>
+                                <div style={{ fontWeight: 700, fontSize: '0.925rem', color: '#0F172A' }}>{u.nama_lengkap}</div>
+                                <div style={{ color: '#64748B', fontSize: '0.8rem' }}>{u.email}</div>
                               </div>
                             </div>
                           </td>
                           <td>
-                            <span className="badge" style={{ background: rc.bg, color: rc.color }}>
+                            <span className="badge" style={{ background: rc.bg, color: rc.color, border: '1px solid currentColor', fontWeight: 700 }}>
                               {ROLE_LABEL[u.role] || u.role}
                             </span>
                           </td>
                           <td>
-                            <span className={`badge ${u.is_active ? 'badge-success' : 'badge-danger'}`}>
+                            <span className={`badge ${u.is_active ? 'badge-success' : 'badge-danger'}`} style={{ fontWeight: 700 }}>
                               {u.is_active ? 'Aktif' : 'Nonaktif'}
                             </span>
                           </td>
-                          <td style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                          <td style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 600 }}>
                             {formatTanggal(u.created_at)}
                           </td>
                           <td>
                             {/* Proteksi: Super Admin tidak bisa mengedit dirinya sendiri */}
                             {u.id !== user.id && u.role !== 'super_admin' && (
-                              <div style={{ display: 'flex', gap: 6 }}>
+                              <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                                 {/* Toggle Aktif/Nonaktif */}
                                 <button
                                   className={`btn ${u.is_active ? 'btn-danger' : 'btn-secondary'}`}
-                                  style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                                  style={{ padding: '5px 10px', fontSize: '0.8rem', fontWeight: 600 }}
                                   disabled={togglingId === u.id}
                                   onClick={() => handleToggleStatus(u)}
                                   title={u.is_active ? 'Nonaktifkan akun' : 'Aktifkan akun'}
                                 >
                                   {togglingId === u.id
                                     ? <div className="spinner" style={{ width: 14, height: 14 }} />
-                                    : <><i className={`bi ${u.is_active ? 'bi-person-dash' : 'bi-person-check'}`} /></>
+                                    : <><i className={`bi ${u.is_active ? 'bi-person-dash' : 'bi-person-check'}`} /> {u.is_active ? 'Nonaktifkan' : 'Aktifkan'}</>
                                   }
                                 </button>
                                 {/* Reset Password */}
                                 <button
                                   className="btn btn-secondary"
-                                  style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                                  style={{ padding: '5px 10px', fontSize: '0.8rem', fontWeight: 600 }}
                                   onClick={() => {
                                     setResetTarget({ id: u.id, nama: u.nama_lengkap });
                                     setPasswordBaru('');
@@ -327,14 +362,16 @@ function UserAdmin() {
                                   }}
                                   title="Reset password"
                                 >
-                                  <i className="bi bi-key" />
+                                  <i className="bi bi-key" /> Reset
                                 </button>
                               </div>
                             )}
                             {u.id === user.id && (
-                              <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-                                (akun Anda)
-                              </span>
+                              <div style={{ textAlign: 'right' }}>
+                                <span className="badge" style={{ background: '#F1F5F9', color: '#64748B', fontSize: '0.78rem', fontWeight: 700 }}>
+                                  <i className="bi bi-person-badge"></i> Sesi Anda
+                                </span>
+                              </div>
                             )}
                           </td>
                         </tr>
@@ -346,8 +383,8 @@ function UserAdmin() {
             )}
 
             {!loading && !error && (
-              <div style={{ padding: '0.75rem 1.5rem', borderTop: '1px solid var(--color-border)', color: 'var(--color-text-muted)', fontSize: '0.83rem' }}>
-                Menampilkan <strong>{filtered.length}</strong> dari <strong>{userList.length}</strong> akun
+              <div style={{ padding: '0.875rem 1.5rem', borderTop: '1px solid #E2E8F0', background: '#F8FAFC', color: '#64748B', fontSize: '0.85rem', fontWeight: 600 }}>
+                Menampilkan <strong>{filtered.length}</strong> dari <strong>{userList.length}</strong> akun terdaftar
               </div>
             )}
           </div>
@@ -357,136 +394,151 @@ function UserAdmin() {
 
       {/* ── Modal Buat Akun ─────────────────────────────── */}
       {showBuat && (
-        <Modal
-          title={<><i className="bi bi-person-plus-fill" style={{ color: 'var(--color-primary)', marginRight: 8 }} />Buat Akun Baru</>}
-          onClose={() => setShowBuat(false)}
-          maxWidth={480}
-        >
-          <div className="form-group">
-            <label className="form-label">Nama Lengkap <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-            <input type="text" className="form-input" placeholder="Nama lengkap tanpa gelar..." value={formBuat.nama_lengkap} onChange={e => setFormBuat(p => ({ ...p, nama_lengkap: e.target.value }))} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Email <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-            <input type="email" className="form-input" placeholder="email@pkbm-binamandiri.sch.id" value={formBuat.email} onChange={e => setFormBuat(p => ({ ...p, email: e.target.value }))} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Password <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-            <input type="password" className="form-input" placeholder="Minimal 8 karakter" value={formBuat.password} onChange={e => setFormBuat(p => ({ ...p, password: e.target.value }))} />
-            <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
-              Pengguna disarankan mengganti password setelah login pertama.
-            </p>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Role <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-            <select className="form-input" value={formBuat.role} onChange={e => setFormBuat(p => ({ ...p, role: e.target.value }))}>
-              {ROLE_BUAT.map(r => (
-                <option key={r} value={r}>{ROLE_LABEL[r]}</option>
-              ))}
-            </select>
-          </div>
-
-          {buatFeedback.msg && (
-            <div className={`alert ${buatFeedback.type === 'success' ? 'alert-success' : 'alert-danger'}`} style={{ marginBottom: '1rem' }}>
-              <i className={`bi ${buatFeedback.type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}`} />
-              <span>{buatFeedback.msg}</span>
+        <div className="admin-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowBuat(false); }}>
+          <div className="admin-modal-dialog" style={{ maxWidth: 520 }}>
+            <div className="admin-modal-header">
+              <div className="admin-modal-header-icon" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>
+                <i className="bi bi-person-plus-fill" />
+              </div>
+              <div className="admin-modal-title-wrap">
+                <h3 className="admin-modal-title">Buat Super Admin Baru</h3>
+                <p className="admin-modal-subtitle">Daftarkan akun administrator dengan hak akses penuh ke sistem</p>
+              </div>
+              <button type="button" className="admin-modal-close" onClick={() => setShowBuat(false)} aria-label="Tutup">
+                <i className="bi bi-x-lg" />
+              </button>
             </div>
-          )}
 
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-            <button className="btn btn-secondary" onClick={() => setShowBuat(false)}>Batal</button>
-            <button className="btn btn-primary" onClick={handleBuatAkun} disabled={buatLoading}>
-              {buatLoading ? <><div className="spinner" style={{ width: 16, height: 16 }} /> Membuat...</> : <><i className="bi bi-check2" /> Buat Akun</>}
-            </button>
+            <form className="admin-modal-form" onSubmit={e => { e.preventDefault(); handleBuatAkun(); }}>
+              <div className="admin-modal-body">
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>Nama Lengkap <span style={{ color: '#DC2626' }}>*</span></label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Contoh: Budi Santoso, S.Pd"
+                    value={formBuat.nama_lengkap}
+                    onChange={e => setFormBuat(p => ({ ...p, nama_lengkap: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>Alamat Email Resmi <span style={{ color: '#DC2626' }}>*</span></label>
+                  <input
+                    type="email"
+                    className="form-input"
+                    placeholder="nama@pkbm-binamandiri.sch.id"
+                    value={formBuat.email}
+                    onChange={e => setFormBuat(p => ({ ...p, email: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>Kata Sandi Awal <span style={{ color: '#DC2626' }}>*</span></label>
+                  <input
+                    type="password"
+                    className="form-input"
+                    placeholder="Minimal 8 karakter..."
+                    value={formBuat.password}
+                    onChange={e => setFormBuat(p => ({ ...p, password: e.target.value }))}
+                    required
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#64748B', marginTop: 4 }}>
+                    Pengguna disarankan mengganti kata sandi secara berkala setelah login pertama.
+                  </p>
+                </div>
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>Tingkat Hak Akses (Role)</label>
+                  <select className="form-input" value={formBuat.role} onChange={e => setFormBuat(p => ({ ...p, role: e.target.value }))}>
+                    {ROLE_BUAT.map(r => (
+                      <option key={r} value={r}>{ROLE_LABEL[r]}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {buatFeedback.msg && (
+                  <div className={`alert ${buatFeedback.type === 'success' ? 'alert-success' : 'alert-danger'}`} style={{ marginBottom: '0.5rem' }}>
+                    <i className={`bi ${buatFeedback.type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}`} />
+                    <span>{buatFeedback.msg}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="admin-modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowBuat(false)}>Batal</button>
+                <button type="submit" className="btn btn-primary" disabled={buatLoading}>
+                  {buatLoading ? <><div className="spinner" style={{ width: 14, height: 14 }} /> Membuat Akun...</> : <><i className="bi bi-check2" /> Simpan & Buat Akun</>}
+                </button>
+              </div>
+            </form>
           </div>
-        </Modal>
+        </div>
       )}
 
       {/* ── Modal Reset Password ─────────────────────────── */}
       {resetTarget && (
-        <Modal
-          title={<><i className="bi bi-key-fill" style={{ color: 'var(--color-accent-dark)', marginRight: 8 }} />Reset Password</>}
-          onClose={() => setResetTarget(null)}
-          maxWidth={420}
-        >
-          <div className="alert alert-warning" style={{ marginBottom: '1.25rem' }}>
-            <i className="bi bi-exclamation-triangle" />
-            <span>
-              Anda akan mereset password untuk akun <strong>{resetTarget.nama}</strong>.
-              Akun ini harus login ulang dengan password baru.
-            </span>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Password Baru <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showPass ? 'text' : 'password'}
-                className="form-input"
-                placeholder="Minimal 8 karakter"
-                value={passwordBaru}
-                onChange={e => setPasswordBaru(e.target.value)}
-                style={{ paddingRight: '2.5rem' }}
-              />
-              <button type="button" onClick={() => setShowPass(p => !p)} style={{
-                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)',
-              }}>
-                <i className={`bi ${showPass ? 'bi-eye-slash' : 'bi-eye'}`} />
+        <div className="admin-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setResetTarget(null); }}>
+          <div className="admin-modal-dialog" style={{ maxWidth: 460 }}>
+            <div className="admin-modal-header">
+              <div className="admin-modal-header-icon" style={{ background: '#FEF3C7', color: '#D97706' }}>
+                <i className="bi bi-key-fill" />
+              </div>
+              <div className="admin-modal-title-wrap">
+                <h3 className="admin-modal-title">Reset Kata Sandi Akun</h3>
+                <p className="admin-modal-subtitle">Atur kata sandi baru untuk {resetTarget.nama}</p>
+              </div>
+              <button type="button" className="admin-modal-close" onClick={() => setResetTarget(null)} aria-label="Tutup">
+                <i className="bi bi-x-lg" />
               </button>
             </div>
+
+            <form className="admin-modal-form" onSubmit={e => { e.preventDefault(); handleResetPassword(); }}>
+              <div className="admin-modal-body">
+                <div className="alert alert-warning" style={{ marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+                  <i className="bi bi-exclamation-triangle-fill" />
+                  <span>
+                    Anda akan mengatur ulang kata sandi untuk akun <strong>{resetTarget.nama}</strong>. Sesi pengguna akan diperbarui.
+                  </span>
+                </div>
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>Kata Sandi Baru <span style={{ color: '#DC2626' }}>*</span></label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPass ? 'text' : 'password'}
+                      className="form-input"
+                      placeholder="Minimal 8 karakter..."
+                      value={passwordBaru}
+                      onChange={e => setPasswordBaru(e.target.value)}
+                      style={{ paddingRight: '2.5rem' }}
+                      required
+                    />
+                    <button type="button" onClick={() => setShowPass(p => !p)} style={{
+                      position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                      background: 'none', border: 'none', cursor: 'pointer', color: '#64748B',
+                    }}>
+                      <i className={`bi ${showPass ? 'bi-eye-slash' : 'bi-eye'}`} />
+                    </button>
+                  </div>
+                </div>
+
+                {resetFeedback.msg && (
+                  <div className={`alert ${resetFeedback.type === 'success' ? 'alert-success' : 'alert-danger'}`} style={{ marginBottom: '0.5rem' }}>
+                    <i className={`bi ${resetFeedback.type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}`} />
+                    <span>{resetFeedback.msg}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="admin-modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setResetTarget(null)}>Batal</button>
+                <button type="submit" className="btn btn-primary" disabled={resetLoading}>
+                  {resetLoading ? <><div className="spinner" style={{ width: 14, height: 14 }} /> Memproses...</> : <><i className="bi bi-key" /> Reset Password Sekarang</>}
+                </button>
+              </div>
+            </form>
           </div>
-
-          {resetFeedback.msg && (
-            <div className={`alert ${resetFeedback.type === 'success' ? 'alert-success' : 'alert-danger'}`} style={{ marginBottom: '1rem' }}>
-              <i className={`bi ${resetFeedback.type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}`} />
-              <span>{resetFeedback.msg}</span>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-            <button className="btn btn-secondary" onClick={() => setResetTarget(null)}>Batal</button>
-            <button className="btn btn-primary" onClick={handleResetPassword} disabled={resetLoading}>
-              {resetLoading ? <><div className="spinner" style={{ width: 16, height: 16 }} /> Mereset...</> : <><i className="bi bi-key" /> Reset Password</>}
-            </button>
-          </div>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-// ── Komponen Modal Generik ───────────────────────────────────
-function Modal({ title, onClose, children, maxWidth = 560 }) {
-  return (
-    <div style={{
-      position: 'fixed', inset: 0,
-      background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 1000, padding: '1rem',
-    }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{
-        background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)',
-        boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth,
-        maxHeight: '90vh', overflowY: 'auto',
-      }}>
-        {/* Header */}
-        <div style={{
-          padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, margin: 0, fontSize: '1.05rem' }}>
-            {title}
-          </h3>
-          <button onClick={onClose} style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: '1.2rem', color: 'var(--color-text-muted)', display: 'flex',
-          }}>
-            <i className="bi bi-x-lg" />
-          </button>
         </div>
-        {/* Body */}
-        <div style={{ padding: '1.5rem' }}>{children}</div>
-      </div>
+      )}
     </div>
   );
 }

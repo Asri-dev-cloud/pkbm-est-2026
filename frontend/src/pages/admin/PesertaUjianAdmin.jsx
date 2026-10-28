@@ -113,50 +113,126 @@ function PesertaUjianAdmin() {
     }
   };
 
+  const totalPeserta = pesertaList.length;
+  const totalLunas = pesertaList.filter((p) => p.status_pembayaran === 'lunas').length;
+  const totalLayak = pesertaList.filter((p) => p.status_kelayakan === 'layak').length;
+  const totalPending = pesertaList.filter((p) => p.status_pembayaran !== 'lunas').length;
+
   return (
     <div className="app-layout">
       <Sidebar user={user} />
       <main className="app-main">
         <div className="app-content">
-          <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ marginBottom: '1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
-              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--text-2xl)', fontWeight: 800 }}>Verifikasi Peserta Ujian</h1>
-              <p style={{ color: 'var(--color-text-muted)', marginTop: 4 }}>
-                Verifikasi pembayaran ujian, tetapkan kelayakan, dan pantau peserta per periode ujian.
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '12px', background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                <i className="bi bi-shield-check"></i>
+                VERIFIKASI & ASESMEN
+              </div>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', margin: 0 }}>
+                Verifikasi Peserta Ujian
+              </h1>
+              <p style={{ color: '#64748B', marginTop: 4, fontSize: '0.92rem' }}>
+                Verifikasi administrasi pembayaran ujian, tetapkan status kelayakan, dan pantau peserta per periode.
               </p>
             </div>
-            <button className="btn btn-primary" onClick={handleGenerate} disabled={!selectedPeriodeId}>
-              <i className="bi bi-magic"></i> Daftarkan Peserta Ujian
+            <button className="btn btn-primary" onClick={handleGenerate} disabled={!selectedPeriodeId} style={{ boxShadow: '0 4px 14px rgba(29, 78, 216, 0.3)', padding: '10px 18px', fontWeight: 700 }}>
+              <i className="bi bi-magic" style={{ marginRight: '6px' }}></i> Daftarkan Peserta Ujian
             </button>
           </div>
 
-          <div className="card" style={{ marginBottom: '1.5rem' }}>
-            <div className="card-header" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
-              <h3 className="card-title">Filter Peserta Ujian</h3>
-              <select className="form-input" value={selectedPeriodeId} onChange={(e) => setSelectedPeriodeId(e.target.value)} style={{ width: 280, height: 38 }}>
-                <option value="">Pilih Periode</option>
+          {/* ── Metric Cards Berpola & Berwarna ── */}
+          <div className="admin-stats-grid">
+            <div className="admin-stat-card admin-stat-blue">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-people-fill" style={{ fontSize: '1.3rem' }}></i>
+                </div>
+                <span className="admin-stat-tag">TOTAL</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{totalPeserta}</div>
+                <div className="admin-stat-label">Total Peserta Terdaftar</div>
+              </div>
+            </div>
+
+            <div className="admin-stat-card admin-stat-green">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-check2-all" style={{ fontSize: '1.3rem' }}></i>
+                </div>
+                <span className="admin-stat-tag">LUNAS</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{totalLunas}</div>
+                <div className="admin-stat-label">Lunas Pembayaran Ujian</div>
+              </div>
+            </div>
+
+            <div className="admin-stat-card admin-stat-purple">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-patch-check-fill" style={{ fontSize: '1.3rem' }}></i>
+                </div>
+                <span className="admin-stat-tag">LAYAK</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{totalLayak}</div>
+                <div className="admin-stat-label">Dinyatakan Layak Ujian</div>
+              </div>
+            </div>
+
+            <div className="admin-stat-card admin-stat-amber">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-hourglass-split" style={{ fontSize: '1.3rem' }}></i>
+                </div>
+                <span className="admin-stat-tag">PENDING</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{totalPending}</div>
+                <div className="admin-stat-label">Menunggu / Belum Lunas</div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Filter Panel ── */}
+          <div className="admin-panel" style={{ marginBottom: '1.25rem' }}>
+            <div className="admin-panel-body" style={{ padding: '1.25rem 1.6rem', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0F172A', fontWeight: 800, fontSize: '0.9rem', marginRight: '0.5rem' }}>
+                <i className="bi bi-funnel-fill" style={{ color: '#1D4ED8' }}></i>
+                <span>Filter Peserta:</span>
+              </div>
+              <select className="form-input" value={selectedPeriodeId} onChange={(e) => setSelectedPeriodeId(e.target.value)} style={{ width: 260, height: 40, borderRadius: 10, border: '1.5px solid #CBD5E1', fontWeight: 600 }}>
+                <option value="">Pilih Periode Ujian</option>
                 {periodeList.map((item) => (
                   <option key={item.id} value={item.id}>{item.nama_periode}</option>
                 ))}
               </select>
-              <select className="form-input" value={filterPembayaran} onChange={(e) => setFilterPembayaran(e.target.value)} style={{ width: 220, height: 38 }}>
-                <option value="">Semua Pembayaran</option>
+              <select className="form-input" value={filterPembayaran} onChange={(e) => setFilterPembayaran(e.target.value)} style={{ width: 210, height: 40, borderRadius: 10, border: '1.5px solid #CBD5E1', fontWeight: 600 }}>
+                <option value="">Semua Status Pembayaran</option>
                 <option value="belum_bayar">Belum Bayar</option>
                 <option value="menunggu_verifikasi">Menunggu Verifikasi</option>
                 <option value="ditolak">Ditolak</option>
                 <option value="lunas">Lunas</option>
               </select>
-              <select className="form-input" value={filterKelayakan} onChange={(e) => setFilterKelayakan(e.target.value)} style={{ width: 180, height: 38 }}>
-                <option value="">Semua Kelayakan</option>
+              <select className="form-input" value={filterKelayakan} onChange={(e) => setFilterKelayakan(e.target.value)} style={{ width: 190, height: 40, borderRadius: 10, border: '1.5px solid #CBD5E1', fontWeight: 600 }}>
+                <option value="">Semua Status Kelayakan</option>
                 <option value="belum_layak">Belum Layak</option>
-                <option value="layak">Layak</option>
+                <option value="layak">Layak Ikut Ujian</option>
               </select>
             </div>
           </div>
 
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">Daftar Peserta Ujian</h3>
+          <div className="admin-panel">
+            <div className="admin-panel-header">
+              <div className="admin-panel-title">
+                <i className="bi bi-list-check" style={{ color: '#1D4ED8' }}></i>
+                <span>Daftar Peserta Ujian Terdaftar</span>
+              </div>
+              <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600 }}>
+                {pesertaList.length} Peserta Terdata
+              </span>
             </div>
 
             {loading ? (
@@ -248,52 +324,63 @@ function PesertaUjianAdmin() {
       </main>
 
       {detailOpen && detailPeserta && (
-        <SimpleModal title="Detail Peserta Ujian" onClose={() => setDetailOpen(false)} maxWidth={760}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-            <Info label="Nama" value={detailPeserta.nama_lengkap} />
-            <Info label="NIS" value={detailPeserta.nis} />
-            <Info label="Rombel" value={detailPeserta.nama_rombel} />
-            <Info label="Periode" value={detailPeserta.nama_periode} />
-            <Info label="Pembayaran" value={formatStatus(detailPeserta.status_pembayaran)} />
-            <Info label="Kelayakan" value={formatStatus(detailPeserta.status_kelayakan)} />
+        <SimpleModal title="Detail Peserta Ujian" onClose={() => setDetailOpen(false)} maxWidth={780}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.875rem', marginBottom: '1.25rem' }}>
+            <Info label="Nama Siswa" value={detailPeserta.nama_lengkap} icon="bi-person" />
+            <Info label="Nomor Induk Siswa (NIS)" value={detailPeserta.nis} icon="bi-card-text" />
+            <Info label="Rombongan Belajar" value={detailPeserta.nama_rombel} icon="bi-mortarboard" />
+            <Info label="Periode Ujian" value={detailPeserta.nama_periode} icon="bi-calendar-event" />
+            <Info label="Status Pembayaran" value={formatStatus(detailPeserta.status_pembayaran)} icon="bi-cash-coin" />
+            <Info label="Status Kelayakan" value={formatStatus(detailPeserta.status_kelayakan)} icon="bi-shield-check" />
           </div>
+
           {detailPeserta.kartu_ujian_url && (
-            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
-              <a className="btn btn-primary" href={detailPeserta.kartu_ujian_url} target="_blank" rel="noopener noreferrer">
-                <i className="bi bi-file-earmark-pdf"></i> Lihat Kartu Ujian
+            <div style={{ marginBottom: '1.25rem', padding: '0.875rem 1rem', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#166534', fontWeight: 700, fontSize: '0.9rem' }}>
+                <i className="bi bi-file-earmark-check-fill" style={{ fontSize: '1.2rem' }}></i>
+                <span>Kartu Ujian Resmi Sudah Diterbitkan</span>
+              </div>
+              <a className="btn btn-success" style={{ background: '#16A34A', color: 'white' }} href={detailPeserta.kartu_ujian_url} target="_blank" rel="noopener noreferrer">
+                <i className="bi bi-file-earmark-pdf"></i> Unduh / Cetak Kartu
               </a>
             </div>
           )}
-          <div className="card" style={{ boxShadow: 'none', border: '1px solid var(--color-border)' }}>
-            <div className="card-header">
-              <h3 className="card-title">Mapel Ujian Peserta</h3>
+
+          <div style={{ border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{ padding: '0.875rem 1.25rem', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <i className="bi bi-journal-bookmark-fill" style={{ color: '#1D4ED8' }}></i>
+              <h4 style={{ margin: 0, fontSize: '0.925rem', fontWeight: 800, color: '#0F172A' }}>Mata Pelajaran Ujian Terdaftar</h4>
             </div>
             {detailPeserta.mapel?.length ? (
-              <div className="table-wrapper">
-                <table className="table">
-                  <thead>
+              <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
+                <table className="table" style={{ margin: 0 }}>
+                  <thead style={{ background: '#F1F5F9' }}>
                     <tr>
-                      <th>Kode</th>
-                      <th>Mapel</th>
-                      <th>Paket Ujian</th>
+                      <th style={{ width: '120px' }}>Kode Mapel</th>
+                      <th>Mata Pelajaran</th>
+                      <th>Paket Ujian Terpasang</th>
                     </tr>
                   </thead>
                   <tbody>
                     {detailPeserta.mapel.map((item) => (
                       <tr key={item.id}>
-                        <td><code>{item.kode_mapel}</code></td>
-                        <td>{item.nama_mapel}</td>
-                        <td>{item.judul_paket_ujian}</td>
+                        <td><code style={{ background: '#EFF6FF', color: '#1D4ED8', padding: '3px 8px', borderRadius: 6, fontWeight: 700 }}>{item.kode_mapel}</code></td>
+                        <td style={{ fontWeight: 700, color: '#1E293B' }}>{item.nama_mapel}</td>
+                        <td>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 10px', background: '#F1F5F9', borderRadius: 6, fontSize: '0.85rem', fontWeight: 600 }}>
+                            <i className="bi bi-layers text-primary"></i> {item.judul_paket_ujian}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <div className="empty-state">
-                <i className="bi bi-journal-x"></i>
-                <h3>Belum Ada Mapel Ujian</h3>
-                <p>Peserta ini belum memiliki daftar mapel ujian.</p>
+              <div style={{ padding: '2.5rem', textAlign: 'center', color: '#64748B' }}>
+                <i className="bi bi-journal-x" style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem', color: '#94A3B8' }}></i>
+                <div style={{ fontWeight: 700, color: '#334155' }}>Belum Ada Mapel Ujian</div>
+                <div style={{ fontSize: '0.85rem' }}>Peserta ini belum memiliki daftar mapel ujian terkonfigurasi.</div>
               </div>
             )}
           </div>
@@ -317,26 +404,42 @@ function formatStatus(value) {
   return String(value || '-').replaceAll('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function Info({ label, value }) {
+function Info({ label, value, icon }) {
   return (
-    <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--radius-md)', background: 'var(--color-bg)', border: '1px solid var(--color-border)' }}>
-      <div style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontWeight: 700 }}>{value || '-'}</div>
+    <div style={{ padding: '0.875rem 1rem', borderRadius: '10px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+      {icon && <i className={`bi ${icon}`} style={{ color: '#64748B', fontSize: '1.1rem', marginTop: 2 }}></i>}
+      <div>
+        <div style={{ color: '#64748B', fontSize: '0.725rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+        <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.925rem' }}>{value || '-'}</div>
+      </div>
     </div>
   );
 }
 
 function SimpleModal({ title, onClose, children, maxWidth = 640 }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth, maxHeight: '90vh', overflowY: 'auto' }}>
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: '1.05rem' }}>{title}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.15rem', color: 'var(--color-text-muted)' }}>
+    <div className="admin-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="admin-modal-dialog" style={{ maxWidth }}>
+        <div className="admin-modal-header">
+          <div className="admin-modal-header-icon" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>
+            <i className="bi bi-person-bounding-box"></i>
+          </div>
+          <div className="admin-modal-title-wrap">
+            <h3 className="admin-modal-title">{title}</h3>
+            <p className="admin-modal-subtitle">Informasi lengkap peserta, riwayat verifikasi dan berkas kartu ujian</p>
+          </div>
+          <button type="button" className="admin-modal-close" onClick={onClose} aria-label="Tutup">
             <i className="bi bi-x-lg"></i>
           </button>
         </div>
-        <div style={{ padding: '1.5rem' }}>{children}</div>
+        <div className="admin-modal-body">
+          {children}
+        </div>
+        <div className="admin-modal-footer">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>
+            Tutup
+          </button>
+        </div>
       </div>
     </div>
   );

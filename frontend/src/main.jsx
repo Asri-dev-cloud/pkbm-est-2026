@@ -37,6 +37,34 @@ if (typeof window !== 'undefined') {
       });
     }).catch(() => {});
   }
+
+  // ── Penanganan Otomatis Gagal Load Chunk / Versi Baru (Anti Halaman Macet) ──
+  // Menangani event preload error dari Vite saat navigasi client-side
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+    console.warn('[Vite] Preload chunk error terdeteksi, memuat ulang halaman untuk mengambil versi aset terbaru...');
+    window.location.reload();
+  });
+
+  // Tangkap error dynamic module failure secara global
+  window.addEventListener('unhandledrejection', (event) => {
+    const msg = event?.reason?.message || String(event?.reason || '');
+    if (
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('Importing a module script failed') ||
+      msg.includes('error loading dynamically imported module') ||
+      msg.includes('ChunkLoadError')
+    ) {
+      console.warn('[App] Gagal memuat chunk modul dinamis, memuat ulang halaman...');
+      const key = 'pkbm_global_chunk_reload';
+      const last = Number(sessionStorage.getItem(key) || 0);
+      const now = Date.now();
+      if (now - last > 10000) {
+        sessionStorage.setItem(key, String(now));
+        window.location.reload();
+      }
+    }
+  });
 }
 
 // Buat root React dan render aplikasi

@@ -480,15 +480,6 @@ function ModulBukuAdmin() {
               </div>
 
               <div className="modul-header-actions">
-                <NavLink
-                  to="/dashboard/siswa/modul-buku"
-                  className="modul-btn-secondary"
-                  title="Lihat bagaimana warga belajar melihat modul ini"
-                >
-                  <Eye size={17} />
-                  <span>Lihat Tampilan Siswa</span>
-                </NavLink>
-
                 <button
                   type="button"
                   className="modul-btn-primary"
@@ -534,55 +525,70 @@ function ModulBukuAdmin() {
               </a>
             </div>
 
-            {/* ── 4. Metrik Ringkasan (KPI Stats) ──────────────── */}
-            <div className="modul-stats-grid">
-              <div className="modul-stat-card">
-                <div className="modul-stat-icon blue">
-                  <Library size={24} />
+            {/* ── 4. Metrik Ringkasan Berpola & Berwarna ────────── */}
+            <div className="admin-stats-grid">
+              <div className="admin-stat-card admin-stat-blue">
+                <div className="admin-stat-top">
+                  <div className="admin-stat-icon-wrap">
+                    <Library size={22} />
+                  </div>
+                  <span className="admin-stat-tag">TOTAL</span>
                 </div>
-                <div>
-                  <div className="stat-value">{stats.total_semua || modulList.length}</div>
-                  <div className="stat-label">Total Koleksi Modul</div>
-                </div>
-              </div>
-
-              <div className="modul-stat-card">
-                <div className="modul-stat-icon green">
-                  <GraduationCap size={24} />
-                </div>
-                <div>
-                  <div className="stat-value">{stats.total_paket_a || 0}</div>
-                  <div className="stat-label">Modul Paket A (SD)</div>
+                <div className="admin-stat-info">
+                  <div className="admin-stat-value">{stats.total_semua || modulList.length}</div>
+                  <div className="admin-stat-label">Total Koleksi Modul</div>
                 </div>
               </div>
 
-              <div className="modul-stat-card">
-                <div className="modul-stat-icon blue">
-                  <BookOpen size={24} />
+              <div className="admin-stat-card admin-stat-green">
+                <div className="admin-stat-top">
+                  <div className="admin-stat-icon-wrap">
+                    <GraduationCap size={22} />
+                  </div>
+                  <span className="admin-stat-tag">PAKET A</span>
                 </div>
-                <div>
-                  <div className="stat-value">{stats.total_paket_b || 0}</div>
-                  <div className="stat-label">Modul Paket B (SMP)</div>
-                </div>
-              </div>
-
-              <div className="modul-stat-card">
-                <div className="modul-stat-icon purple">
-                  <Layers size={24} />
-                </div>
-                <div>
-                  <div className="stat-value">{stats.total_paket_c || 0}</div>
-                  <div className="stat-label">Modul Paket C (SMA)</div>
+                <div className="admin-stat-info">
+                  <div className="admin-stat-value">{stats.total_paket_a || 0}</div>
+                  <div className="admin-stat-label">Modul Paket A (SD)</div>
                 </div>
               </div>
 
-              <div className="modul-stat-card">
-                <div className="modul-stat-icon amber">
-                  <Eye size={24} />
+              <div className="admin-stat-card admin-stat-sky">
+                <div className="admin-stat-top">
+                  <div className="admin-stat-icon-wrap">
+                    <BookOpen size={22} />
+                  </div>
+                  <span className="admin-stat-tag">PAKET B</span>
                 </div>
-                <div>
-                  <div className="stat-value">{stats.total_dibaca_semua || 0}x</div>
-                  <div className="stat-label">Total Dibaca Siswa</div>
+                <div className="admin-stat-info">
+                  <div className="admin-stat-value">{stats.total_paket_b || 0}</div>
+                  <div className="admin-stat-label">Modul Paket B (SMP)</div>
+                </div>
+              </div>
+
+              <div className="admin-stat-card admin-stat-purple">
+                <div className="admin-stat-top">
+                  <div className="admin-stat-icon-wrap">
+                    <Layers size={22} />
+                  </div>
+                  <span className="admin-stat-tag">PAKET C</span>
+                </div>
+                <div className="admin-stat-info">
+                  <div className="admin-stat-value">{stats.total_paket_c || 0}</div>
+                  <div className="admin-stat-label">Modul Paket C (SMA)</div>
+                </div>
+              </div>
+
+              <div className="admin-stat-card admin-stat-amber">
+                <div className="admin-stat-top">
+                  <div className="admin-stat-icon-wrap">
+                    <Eye size={22} />
+                  </div>
+                  <span className="admin-stat-tag">DIBACA</span>
+                </div>
+                <div className="admin-stat-info">
+                  <div className="admin-stat-value">{stats.total_dibaca_semua || 0}x</div>
+                  <div className="admin-stat-label">Total Dibaca Siswa</div>
                 </div>
               </div>
             </div>
@@ -778,23 +784,29 @@ function ModulBukuAdmin() {
         </div>
       </main>
 
-      {/* ── 7. Modal Form Upload / Edit ────────────────────────── */}
+      {/* ── 7. Modal Form Upload / Edit (Dapat Di-scroll Sempurna & Rapi) ─────── */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{isEditing ? 'Perbarui Modul Pembelajaran' : 'Unggah Modul Pembelajaran Baru'}</h3>
+        <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="admin-modal-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div>
+                <h3>{isEditing ? 'Perbarui Modul Pembelajaran' : 'Unggah Modul Pembelajaran Baru'}</h3>
+                <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748B' }}>
+                  Lengkapi informasi modul dan unggah dokumen PDF / tautan Kemendikdasmen
+                </p>
+              </div>
               <button
                 type="button"
-                className="modal-close-btn"
+                className="admin-modal-close"
                 onClick={() => setShowModal(false)}
+                title="Tutup Form"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="modal-body">
+            <form onSubmit={handleSubmit} className="admin-modal-form">
+              <div className="admin-modal-body">
 
                 {/* Pilihan Tipe Modul */}
                 <div className="form-group">
@@ -980,10 +992,10 @@ function ModulBukuAdmin() {
 
               </div>
 
-              <div className="modal-footer">
+              <div className="admin-modal-footer">
                 <button
                   type="button"
-                  className="modul-btn-secondary"
+                  className="btn btn-secondary"
                   onClick={() => setShowModal(false)}
                   disabled={submitting}
                 >
@@ -992,7 +1004,7 @@ function ModulBukuAdmin() {
 
                 <button
                   type="submit"
-                  className="modul-btn-primary"
+                  className="btn btn-primary"
                   disabled={submitting}
                 >
                   {submitting ? 'Menyimpan...' : isEditing ? 'Simpan Perubahan' : 'Unggah Modul'}
@@ -1005,32 +1017,32 @@ function ModulBukuAdmin() {
 
       {/* ── 8. Modal Hapus Konfirmasi ───────────────────────────── */}
       {deleteTarget && (
-        <div className="modal-overlay" onClick={() => setDeleteTarget(null)}>
-          <div className="modal-dialog" style={{ maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="admin-modal-overlay" onClick={() => setDeleteTarget(null)}>
+          <div className="admin-modal-dialog" style={{ maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
               <h3 style={{ color: '#EF4444', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <AlertCircle size={20} />
                 <span>Hapus Modul Pembelajaran?</span>
               </h3>
               <button
                 type="button"
-                className="modal-close-btn"
+                className="admin-modal-close"
                 onClick={() => setDeleteTarget(null)}
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="modal-body">
+            <div className="admin-modal-body">
               <p style={{ margin: 0, color: '#475569', fontSize: '0.92rem', lineHeight: 1.5 }}>
                 Apakah Anda yakin ingin menghapus modul <strong>"{deleteTarget.judul}"</strong>? Berkas modul fisik yang tersimpan juga akan dihapus.
               </p>
             </div>
 
-            <div className="modal-footer">
+            <div className="admin-modal-footer">
               <button
                 type="button"
-                className="modul-btn-secondary"
+                className="btn btn-secondary"
                 onClick={() => setDeleteTarget(null)}
                 disabled={deleting}
               >
@@ -1039,8 +1051,8 @@ function ModulBukuAdmin() {
 
               <button
                 type="button"
-                className="modul-btn-primary"
-                style={{ background: '#DC2626' }}
+                className="btn btn-primary"
+                style={{ background: '#DC2626', borderColor: '#DC2626' }}
                 onClick={handleDelete}
                 disabled={deleting}
               >

@@ -217,46 +217,113 @@ function TagihanAdmin() {
         <div className="app-content">
 
           {/* ── Header ─────────────────────────────────── */}
-          <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--text-2xl)', fontWeight: 800 }}>
-              Keuangan & Tagihan
-            </h1>
-            <p style={{ color: 'var(--color-text-muted)', marginTop: 4 }}>
-              Kelola tagihan SPP/modul dan catat pembayaran Warga Belajar.
-            </p>
+          <div style={{ marginBottom: '1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                <span className="badge badge-primary" style={{ fontWeight: 700, padding: '4px 10px' }}>
+                  <i className="bi bi-wallet2"></i> Pembukuan & Iuran
+                </span>
+                <span style={{ fontSize: '0.85rem', color: '#64748B' }}>Administrasi Keuangan Lembaga</span>
+              </div>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                Keuangan & Tagihan
+              </h1>
+              <p style={{ color: '#475569', marginTop: 4, fontSize: '0.925rem' }}>
+                Kelola tagihan SPP bulanan, modul pembelajaran, pencatatan bukti bayar, dan pemantauan tunggakan siswa.
+              </p>
+            </div>
+            <button
+              className="btn btn-primary"
+              onClick={() => setTab('buat')}
+              style={{ height: 42, padding: '0 1.25rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+            >
+              <i className="bi bi-plus-lg" /> Terbitkan Tagihan Baru
+            </button>
           </div>
 
-          {/* ── Kartu Ringkasan Bulanan ─────────────────── */}
-          {ringkasan && (
-            <div className="grid-cols-3" style={{ marginBottom: '2rem' }}>
-              <StatCard icon="bi-receipt" label="Total Tagihan Aktif" value={formatRupiah(ringkasan.total_tagihan)} bg="#DBEAFE" color="#1E40AF" />
-              <StatCard icon="bi-check-circle-fill" label="Total Terbayar" value={formatRupiah(ringkasan.total_terbayar)} bg="#D1FAE5" color="#065F46" />
-              <StatCard icon="bi-exclamation-triangle-fill" label="Tunggakan" value={formatRupiah(ringkasan.total_tunggakan)} bg="#FEE2E2" color="#991B1B" />
+          {/* ── Kartu Ringkasan Bulanan Berpola ──────────── */}
+          <div className="admin-stats-grid" style={{ marginBottom: '1.75rem' }}>
+            <div className="admin-stat-card admin-stat-blue">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-receipt" />
+                </div>
+                <span className="admin-stat-tag">TAGIHAN</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{ringkasan ? formatRupiah(ringkasan.total_tagihan) : 'Rp 0'}</div>
+                <div className="admin-stat-label">Total Tagihan Diterbitkan</div>
+              </div>
             </div>
-          )}
 
-          {/* ── Navigasi Tab ─────────────────────────────── */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--color-border)', paddingBottom: '0' }}>
+            <div className="admin-stat-card admin-stat-green">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-check-circle-fill" />
+                </div>
+                <span className="admin-stat-tag">KAS MASUK</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{ringkasan ? formatRupiah(ringkasan.total_terbayar) : 'Rp 0'}</div>
+                <div className="admin-stat-label">Total Penerimaan Kas</div>
+              </div>
+            </div>
+
+            <div className="admin-stat-card admin-stat-rose">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-exclamation-triangle-fill" />
+                </div>
+                <span className="admin-stat-tag">PIUTANG</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{ringkasan ? formatRupiah(ringkasan.total_tunggakan) : 'Rp 0'}</div>
+                <div className="admin-stat-label">Total Piutang / Tunggakan</div>
+              </div>
+            </div>
+
+            <div className="admin-stat-card admin-stat-amber">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-hourglass-split" />
+                </div>
+                <span className="admin-stat-tag">BELUM LUNAS</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{totalBelumBayar} Tagihan</div>
+                <div className="admin-stat-label">Belum Lunas Terbayar</div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Navigasi Tab Modern ──────────────────────── */}
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '1.5rem', background: '#FFFFFF', padding: '6px', borderRadius: 12, border: '1px solid #E2E8F0', width: 'fit-content' }}>
             {[
               { key: 'daftar',    icon: 'bi-list-ul',           label: 'Semua Tagihan' },
-              { key: 'tunggakan', icon: 'bi-exclamation-circle', label: `Tunggakan (${tunggakan.length})` },
-              { key: 'buat',      icon: 'bi-plus-circle',        label: 'Buat Tagihan' },
+              { key: 'tunggakan', icon: 'bi-exclamation-circle', label: `Laporan Tunggakan (${tunggakan.length})` },
+              { key: 'buat',      icon: 'bi-plus-circle',        label: 'Terbitkan Tagihan' },
             ].map(t => (
               <button
                 key={t.key}
+                type="button"
                 onClick={() => setTab(t.key)}
                 style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '0.6rem 1.1rem',
-                  fontWeight: tab === t.key ? 700 : 500,
-                  color: tab === t.key ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  borderBottom: tab === t.key ? '2px solid var(--color-primary)' : '2px solid transparent',
-                  marginBottom: -2,
-                  fontSize: '0.9rem',
-                  display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s',
+                  padding: '7px 16px',
+                  borderRadius: 8,
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: tab === t.key ? '#1D4ED8' : 'transparent',
+                  color: tab === t.key ? '#FFFFFF' : '#64748B',
+                  transition: 'all 0.15s ease-in-out',
                 }}
               >
-                <i className={`bi ${t.icon}`} />{t.label}
+                <i className={`bi ${t.icon}`} />
+                <span>{t.label}</span>
               </button>
             ))}
           </div>
@@ -596,138 +663,121 @@ function TagihanAdmin() {
 
       {/* ── Modal Catat Pembayaran ──────────────────────── */}
       {tagihanBayar && (
-        <div style={{
-          position: 'fixed', inset: 0,
-          background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, padding: '1rem',
-        }}
-          onClick={e => { if (e.target === e.currentTarget) setTagihanBayar(null); }}
-        >
-          <div style={{
-            background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)',
-            boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth: 500,
-          }}>
-            {/* Header Modal */}
-            <div style={{
-              padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
-              <div>
-                <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, margin: 0, fontSize: '1.05rem' }}>
-                  <i className="bi bi-cash-coin" style={{ marginRight: 8, color: 'var(--color-primary)' }} />
-                  Catat Pembayaran
-                </h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-                  {tagihanBayar.nama_wb} · {tagihanBayar.keterangan}
-                </p>
+        <div className="admin-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setTagihanBayar(null); }}>
+          <div className="admin-modal-dialog" style={{ maxWidth: 540 }}>
+            <div className="admin-modal-header">
+              <div className="admin-modal-header-icon" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>
+                <i className="bi bi-cash-coin" />
               </div>
-              <button onClick={() => setTagihanBayar(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--color-text-muted)' }}>
+              <div className="admin-modal-title-wrap">
+                <h3 className="admin-modal-title">Catat Pembayaran Tagihan</h3>
+                <p className="admin-modal-subtitle">{tagihanBayar.nama_wb} • {tagihanBayar.keterangan}</p>
+              </div>
+              <button type="button" className="admin-modal-close" onClick={() => setTagihanBayar(null)} aria-label="Tutup">
                 <i className="bi bi-x-lg" />
               </button>
             </div>
 
-            {/* Info Tagihan */}
-            <div style={{ padding: '1rem 1.5rem', background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
-                <span style={{ color: 'var(--color-text-muted)' }}>Total Tagihan</span>
-                <span style={{ fontWeight: 700 }}>{formatRupiah(tagihanBayar.jumlah)}</span>
-              </div>
-              {Number(tagihanBayar.total_terbayar) > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', marginTop: 4 }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Sudah Dibayar</span>
-                  <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>{formatRupiah(tagihanBayar.total_terbayar)}</span>
+            <form className="admin-modal-form" onSubmit={e => { e.preventDefault(); handleBayar(); }}>
+              <div className="admin-modal-body">
+                {/* Info Tagihan Ringkas */}
+                <div style={{ padding: '0.875rem 1.25rem', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
+                    <span style={{ color: '#64748B' }}>Total Tagihan:</span>
+                    <span style={{ fontWeight: 700, color: '#0F172A' }}>{formatRupiah(tagihanBayar.jumlah)}</span>
+                  </div>
+                  {Number(tagihanBayar.total_terbayar) > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', marginTop: 4 }}>
+                      <span style={{ color: '#64748B' }}>Sudah Terbayar:</span>
+                      <span style={{ color: '#16A34A', fontWeight: 700 }}>{formatRupiah(tagihanBayar.total_terbayar)}</span>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.925rem', marginTop: 6, paddingTop: 6, borderTop: '1px solid #E2E8F0' }}>
+                    <span style={{ fontWeight: 800, color: '#334155' }}>Sisa Piutang:</span>
+                    <span style={{ fontWeight: 800, color: '#DC2626' }}>
+                      {formatRupiah(Number(tagihanBayar.jumlah) - Number(tagihanBayar.total_terbayar || 0))}
+                    </span>
+                  </div>
                 </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--color-border)' }}>
-                <span style={{ fontWeight: 600 }}>Sisa</span>
-                <span style={{ fontWeight: 700, color: 'var(--color-danger)' }}>
-                  {formatRupiah(Number(tagihanBayar.jumlah) - Number(tagihanBayar.total_terbayar || 0))}
-                </span>
-              </div>
-            </div>
 
-            {/* Form Bayar */}
-            <div style={{ padding: '1.5rem' }}>
-              <div className="form-group">
-                <label className="form-label">Jumlah Bayar (Rp) <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-                <input
-                  type="number"
-                  className="form-input"
-                  placeholder="0"
-                  value={formBayar.jumlah_bayar}
-                  onChange={e => setFormBayar(p => ({ ...p, jumlah_bayar: e.target.value }))}
-                  min={0}
-                />
-              </div>
-              <div className="grid-cols-2" style={{ gap: '1rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Tanggal Bayar <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>Nominal Dibayarkan (Rp) <span style={{ color: '#DC2626' }}>*</span></label>
                   <input
-                    type="date"
+                    type="number"
                     className="form-input"
-                    value={formBayar.tanggal_bayar}
-                    onChange={e => setFormBayar(p => ({ ...p, tanggal_bayar: e.target.value }))}
+                    placeholder="0"
+                    value={formBayar.jumlah_bayar}
+                    onChange={e => setFormBayar(p => ({ ...p, jumlah_bayar: e.target.value }))}
+                    min={0}
+                    required
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Metode</label>
-                  <select className="form-input" value={formBayar.metode} onChange={e => setFormBayar(p => ({ ...p, metode: e.target.value }))}>
-                    <option value="tunai">Tunai</option>
-                    <option value="transfer">Transfer Bank</option>
-                    <option value="lain_lain">Lain-lain</option>
-                  </select>
+
+                <div className="grid-cols-2" style={{ gap: '1rem', marginBottom: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 700 }}>Tanggal Pembayaran <span style={{ color: '#DC2626' }}>*</span></label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={formBayar.tanggal_bayar}
+                      onChange={e => setFormBayar(p => ({ ...p, tanggal_bayar: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 700 }}>Metode Transaksi</label>
+                    <select className="form-input" value={formBayar.metode} onChange={e => setFormBayar(p => ({ ...p, metode: e.target.value }))}>
+                      <option value="tunai">Tunai / Kasir TU</option>
+                      <option value="transfer">Transfer Bank / VA</option>
+                      <option value="lain_lain">Lain-lain / QRIS</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Keterangan (opsional)</label>
-                <input type="text" className="form-input" placeholder="Catatan tambahan..." value={formBayar.keterangan} onChange={e => setFormBayar(p => ({ ...p, keterangan: e.target.value }))} />
-              </div>
-              {/* Upload Bukti */}
-              <div className="form-group">
-                <label className="form-label">Bukti Pembayaran (opsional)</label>
-                <input ref={fileRef} type="file" accept="image/*,application/pdf" style={{ display: 'none' }} onChange={e => setBuktiBayar(e.target.files[0])} />
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => fileRef.current?.click()}
-                  style={{ fontSize: '0.85rem', width: '100%' }}
-                >
-                  <i className="bi bi-upload" /> {buktiBayar ? buktiBayar.name : 'Upload Foto/PDF Bukti'}
-                </button>
+
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>Catatan Pembayaran (Opsional)</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Contoh: Titip lewat wali murid, struk transfer ATM..."
+                    value={formBayar.keterangan}
+                    onChange={e => setFormBayar(p => ({ ...p, keterangan: e.target.value }))}
+                  />
+                </div>
+
+                {/* Upload Bukti */}
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>Bukti Pembayaran Struk / Slip (Opsional)</label>
+                  <input ref={fileRef} type="file" accept="image/*,application/pdf" style={{ display: 'none' }} onChange={e => setBuktiBayar(e.target.files[0])} />
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => fileRef.current?.click()}
+                    style={{ fontSize: '0.85rem', width: '100%', padding: '0.65rem', border: '1.5px dashed #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  >
+                    <i className="bi bi-cloud-upload-fill" style={{ color: '#1D4ED8' }} />
+                    <span>{buktiBayar ? buktiBayar.name : 'Pilih Berkas Foto Struk / PDF'}</span>
+                  </button>
+                </div>
+
+                {feedbackBayar.msg && (
+                  <div className={`alert ${feedbackBayar.type === 'success' ? 'alert-success' : 'alert-danger'}`} style={{ marginBottom: '0.5rem' }}>
+                    <i className={`bi ${feedbackBayar.type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}`} />
+                    <span>{feedbackBayar.msg}</span>
+                  </div>
+                )}
               </div>
 
-              {feedbackBayar.msg && (
-                <div className={`alert ${feedbackBayar.type === 'success' ? 'alert-success' : 'alert-danger'}`} style={{ marginBottom: '1rem' }}>
-                  <i className={`bi ${feedbackBayar.type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}`} />
-                  <span>{feedbackBayar.msg}</span>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-                <button className="btn btn-secondary" onClick={() => setTagihanBayar(null)}>Batal</button>
-                <button className="btn btn-primary" onClick={handleBayar} disabled={prosessBayar}>
-                  {prosessBayar ? <><div className="spinner" style={{ width: 16, height: 16 }} /> Menyimpan...</> : <><i className="bi bi-check2" /> Simpan Pembayaran</>}
+              <div className="admin-modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setTagihanBayar(null)}>Batal</button>
+                <button type="submit" className="btn btn-primary" disabled={prosessBayar}>
+                  {prosessBayar ? <><div className="spinner" style={{ width: 14, height: 14 }} /> Menyimpan...</> : <><i className="bi bi-check2" /> Simpan Pembayaran</>}
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function StatCard({ icon, label, value, bg, color }) {
-  return (
-    <div className="stat-card">
-      <div className="stat-icon" style={{ background: bg, color }}>
-        <i className={`bi ${icon}`} />
-      </div>
-      <div className="stat-body">
-        <div className="stat-value" style={{ fontSize: '1.1rem' }}>{value ?? '—'}</div>
-        <div className="stat-label">{label}</div>
-      </div>
     </div>
   );
 }

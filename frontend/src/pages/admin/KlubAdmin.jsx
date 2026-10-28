@@ -148,90 +148,150 @@ function KlubAdmin() {
         <div className="app-content">
 
           {/* Header */}
-          <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ marginBottom: '1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
-              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--text-2xl)', fontWeight: 800 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                <span className="badge badge-primary" style={{ fontWeight: 700, padding: '4px 10px' }}>
+                  <i className="bi bi-stars"></i> Ekstrakurikuler & Talenta
+                </span>
+                <span style={{ fontSize: '0.85rem', color: '#64748B' }}>Pengembangan Diri Warga Belajar</span>
+              </div>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                 Manajemen Klub Minat Bakat
               </h1>
-              <p style={{ color: 'var(--color-text-muted)', marginTop: 4 }}>
-                Kelola klub ekstrakurikuler lintas jenjang PKBM Bina Mandiri.
+              <p style={{ color: '#475569', marginTop: 4, fontSize: '0.925rem' }}>
+                Kelola komunitas bakat minat warga belajar, penugasan guru pembimbing, kuota kelas, serta daftar anggota aktif.
               </p>
             </div>
-            <button className="btn btn-primary" onClick={openTambah}>
-              <i className="bi bi-plus-circle-fill" /> Tambah Klub
+            <button className="btn btn-primary" onClick={openTambah} style={{ height: 42, padding: '0 1.25rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <i className="bi bi-plus-lg" /> Tambah Klub Baru
             </button>
           </div>
 
-          {/* Statistik */}
-          <div className="grid-cols-3" style={{ marginBottom: '2rem' }}>
-            {[
-              { label: 'Klub Aktif',    value: statAktif,   icon: 'bi-check-circle-fill', bg: '#D1FAE5', color: '#065F46' },
-              { label: 'Klub Nonaktif', value: statNonaktif, icon: 'bi-pause-circle-fill', bg: '#FEE2E2', color: '#991B1B' },
-              { label: 'Total Anggota', value: statAnggota,  icon: 'bi-people-fill',       bg: '#DBEAFE', color: '#1D4ED8' },
-            ].map(s => (
-              <div key={s.label} className="stat-card">
-                <div className="stat-icon" style={{ background: s.bg, color: s.color }}>
-                  <i className={`bi ${s.icon}`} />
+          {/* Statistik Patterned Cards */}
+          <div className="admin-stats-grid" style={{ marginBottom: '1.75rem' }}>
+            <div className="admin-stat-card admin-stat-blue">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-collection-play-fill" />
                 </div>
-                <div className="stat-body">
-                  <div className="stat-value">{s.value}</div>
-                  <div className="stat-label">{s.label}</div>
-                </div>
+                <span className="admin-stat-tag">TOTAL</span>
               </div>
-            ))}
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{klubList.length}</div>
+                <div className="admin-stat-label">Total Klub Ekstrakurikuler</div>
+              </div>
+            </div>
+
+            <div className="admin-stat-card admin-stat-green">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-check-circle-fill" />
+                </div>
+                <span className="admin-stat-tag">AKTIF</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{statAktif}</div>
+                <div className="admin-stat-label">Klub Sedang Aktif</div>
+              </div>
+            </div>
+
+            <div className="admin-stat-card admin-stat-purple">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-people-fill" />
+                </div>
+                <span className="admin-stat-tag">ANGGOTA</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{statAnggota}</div>
+                <div className="admin-stat-label">Total Warga Belajar Terdaftar</div>
+              </div>
+            </div>
+
+            <div className="admin-stat-card admin-stat-amber">
+              <div className="admin-stat-top">
+                <div className="admin-stat-icon-wrap">
+                  <i className="bi bi-pause-circle-fill" />
+                </div>
+                <span className="admin-stat-tag">STATUS</span>
+              </div>
+              <div className="admin-stat-info">
+                <div className="admin-stat-value">{statNonaktif}</div>
+                <div className="admin-stat-label">Klub Nonaktif / Ditutup</div>
+              </div>
+            </div>
           </div>
 
-          {/* Tabel */}
-          <div className="card">
-            <div className="card-header klub-admin-toolbar">
-              <h3 className="card-title">Daftar Klub</h3>
-              <div className="klub-admin-toolbar-actions">
-                {/* Filter status */}
-                <div className="klub-admin-filter-group">
+          {/* Tabel Panel */}
+          <div className="admin-panel">
+            <div className="admin-panel-header">
+              <div className="admin-panel-title">
+                <i className="bi bi-trophy-fill" style={{ color: '#1D4ED8' }}></i>
+                <span>Daftar Klub Minat Bakat</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 4, background: '#F1F5F9', padding: '4px', borderRadius: 10, border: '1px solid #E2E8F0' }}>
                   {['semua', 'aktif', 'nonaktif'].map(f => (
-                    <button key={f} onClick={() => setFilterAktif(f)} style={{
-                      padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
-                      background: filterAktif === f ? 'var(--color-primary)' : 'transparent',
-                      color: filterAktif === f ? 'white' : 'var(--color-text-muted)', transition: 'all 0.15s',
-                    }}>
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => setFilterAktif(f)}
+                      style={{
+                        padding: '4px 14px',
+                        borderRadius: 8,
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        fontWeight: 700,
+                        background: filterAktif === f ? '#1D4ED8' : 'transparent',
+                        color: filterAktif === f ? 'white' : '#64748B',
+                        transition: 'all 0.15s ease-in-out',
+                      }}
+                    >
                       {f.charAt(0).toUpperCase() + f.slice(1)}
                     </button>
                   ))}
                 </div>
-                {/* Search */}
-                <div className="klub-admin-search">
-                  <i className="bi bi-search" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', fontSize: '0.85rem' }} />
-                  <input type="text" placeholder="Cari klub…" value={search} onChange={e => setSearch(e.target.value)}
-                    className="form-input" style={{ paddingLeft: '2.2rem', height: 38 }} />
+                <div style={{ position: 'relative', width: 220 }}>
+                  <i className="bi bi-search" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', fontSize: '0.85rem' }} />
+                  <input
+                    type="text"
+                    placeholder="Cari klub..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="form-input"
+                    style={{ paddingLeft: '2.2rem', height: 36, borderRadius: 8, border: '1.5px solid #CBD5E1', fontSize: '0.85rem', fontWeight: 600 }}
+                  />
                 </div>
               </div>
             </div>
 
             {loading ? (
               <div className="loading-container" style={{ padding: '3rem' }}>
-                <div className="spinner" /><p style={{ marginTop: 12, color: 'var(--color-text-muted)' }}>Memuat...</p>
+                <div className="spinner" /><p style={{ marginTop: 12, color: 'var(--color-text-muted)' }}>Memuat klub...</p>
               </div>
             ) : error ? (
               <div className="alert alert-danger" style={{ margin: '1.5rem' }}>
-                <i className="bi bi-exclamation-triangle" /><span>{error}</span>
+                <i className="bi bi-exclamation-triangle-fill" /><span>{error}</span>
               </div>
             ) : filtered.length === 0 ? (
               <div className="empty-state">
-                <i className="bi bi-trophy" /><h3>Belum Ada Klub</h3>
-                <p>{search ? 'Tidak ada klub yang sesuai pencarian.' : 'Klik "Tambah Klub" untuk membuat klub pertama.'}</p>
+                <i className="bi bi-trophy" /><h3>Belum Ada Klub Ditemukan</h3>
+                <p>{search ? 'Tidak ada klub yang sesuai kriteria pencarian.' : 'Klik "Tambah Klub Baru" untuk membuat klub minat bakat pertama.'}</p>
               </div>
             ) : (
-              <div className="table-wrapper klub-admin-table-wrapper">
-                <table className="table klub-admin-table">
+              <div className="table-wrapper klub-admin-table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
+                <table className="table klub-admin-table" style={{ margin: 0 }}>
                   <thead>
                     <tr>
                       <th>Nama Klub</th>
-                      <th>Kategori</th>
-                      <th>Pembimbing</th>
-                      <th>Kapasitas</th>
-                      <th>Anggota</th>
-                      <th>Status</th>
-                      <th>Aksi</th>
+                      <th style={{ width: '130px' }}>Kategori</th>
+                      <th>Guru Pembimbing</th>
+                      <th style={{ width: '100px', textAlign: 'center' }}>Kapasitas</th>
+                      <th style={{ width: '160px' }}>Keterisian Kuota</th>
+                      <th style={{ width: '110px' }}>Status</th>
+                      <th style={{ width: '180px', textAlign: 'right' }}>Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -243,52 +303,63 @@ function KlubAdmin() {
                         <tr key={klub.id}>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-md)', background: style.bg, color: style.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 }}>
+                              <div style={{ width: 38, height: 38, borderRadius: 10, background: style.bg, color: style.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                                 <i className={`bi ${style.icon}`} />
                               </div>
                               <div>
-                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{klub.nama_klub}</div>
-                                {klub.deskripsi && <div className="klub-admin-desc">{klub.deskripsi}</div>}
+                                <div style={{ fontWeight: 700, fontSize: '0.925rem', color: '#0F172A' }}>{klub.nama_klub}</div>
+                                {klub.deskripsi && <div className="klub-admin-desc" style={{ color: '#64748B' }}>{klub.deskripsi}</div>}
                               </div>
                             </div>
                           </td>
                           <td>
-                            <span className="badge" style={{ background: style.bg, color: style.color }}>
+                            <span className="badge" style={{ background: style.bg, color: style.color, border: '1px solid currentColor', fontWeight: 700, textTransform: 'capitalize' }}>
                               {klub.jenis || '—'}
                             </span>
                           </td>
-                          <td style={{ fontSize: '0.85rem' }}>{klub.tutor_nama || <span style={{ color: 'var(--color-text-muted)' }}>—</span>}</td>
-                          <td style={{ fontSize: '0.85rem', textAlign: 'center' }}>{klub.kapasitas}</td>
+                          <td style={{ fontSize: '0.875rem', fontWeight: 600, color: '#334155' }}>
+                            {klub.tutor_nama ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <i className="bi bi-person-check-fill" style={{ color: '#16A34A' }}></i>
+                                <span>{klub.tutor_nama}</span>
+                              </div>
+                            ) : (
+                              <span style={{ color: '#94A3B8', fontStyle: 'italic' }}>Belum ditentukan</span>
+                            )}
+                          </td>
+                          <td style={{ fontSize: '0.875rem', textAlign: 'center', fontWeight: 700, color: '#0F172A' }}>{klub.kapasitas} WB</td>
                           <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 80 }}>
-                              <span style={{ fontSize: '0.85rem', fontWeight: 600, minWidth: 28 }}>{klub.jumlah_anggota}</span>
-                              <div style={{ flex: 1, height: 6, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
-                                <div style={{ height: '100%', width: `${pct}%`, background: pct >= 90 ? 'var(--color-danger)' : pct >= 70 ? 'var(--color-warning)' : 'var(--color-success)', borderRadius: 99, transition: 'width 0.3s' }} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ fontSize: '0.85rem', fontWeight: 700, minWidth: 32, color: '#1E293B' }}>{klub.jumlah_anggota}/{klub.kapasitas}</span>
+                              <div style={{ flex: 1, height: 7, background: '#E2E8F0', borderRadius: 99, overflow: 'hidden' }}>
+                                <div style={{ height: '100%', width: `${pct}%`, background: pct >= 90 ? '#DC2626' : pct >= 70 ? '#D97706' : '#16A34A', borderRadius: 99, transition: 'width 0.3s' }} />
                               </div>
                             </div>
                           </td>
                           <td>
-                            <span className={`badge ${klub.is_aktif ? 'badge-success' : 'badge-danger'}`}>
+                            <span className={`badge ${klub.is_aktif ? 'badge-success' : 'badge-danger'}`} style={{ fontWeight: 700 }}>
                               {klub.is_aktif ? 'Aktif' : 'Nonaktif'}
                             </span>
                           </td>
                           <td>
-                            <div className="klub-admin-action-group">
-                              <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.78rem' }} onClick={() => openDetail(klub.id)} title="Lihat anggota">
-                                <i className="bi bi-people" />
+                            <div className="klub-admin-action-group" style={{ justifyContent: 'flex-end', gap: 6 }}>
+                              <button className="btn btn-secondary" style={{ padding: '5px 10px', fontSize: '0.8rem', fontWeight: 600 }} onClick={() => openDetail(klub.id)} title="Lihat Anggota">
+                                <i className="bi bi-people-fill" /> Anggota
                               </button>
-                              <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.78rem' }} onClick={() => openEdit(klub)} title="Edit klub">
-                                <i className="bi bi-pencil" />
+                              <button className="btn btn-secondary" style={{ padding: '5px 8px', fontSize: '0.8rem' }} onClick={() => openEdit(klub)} title="Edit Klub">
+                                <i className="bi bi-pencil-square" />
                               </button>
                               <button
-                                className={`btn ${klub.is_aktif ? 'btn-danger' : 'btn-secondary'}`}
-                                style={{ padding: '4px 8px', fontSize: '0.78rem' }}
-                                onClick={() => handleToggle(klub)} disabled={isToggling} title={klub.is_aktif ? 'Nonaktifkan' : 'Aktifkan'}
+                                className={`btn ${klub.is_aktif ? 'btn-danger' : 'btn-primary'}`}
+                                style={{ padding: '5px 8px', fontSize: '0.8rem' }}
+                                onClick={() => handleToggle(klub)}
+                                disabled={isToggling}
+                                title={klub.is_aktif ? 'Nonaktifkan' : 'Aktifkan'}
                               >
                                 {isToggling ? <div className="spinner" style={{ width: 12, height: 12 }} /> : <i className={`bi ${klub.is_aktif ? 'bi-pause-circle' : 'bi-play-circle'}`} />}
                               </button>
-                              <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '0.78rem' }} onClick={() => handleHapus(klub)} title="Hapus" disabled={klub.jumlah_anggota > 0}>
-                                <i className="bi bi-trash3" />
+                              <button className="btn btn-danger" style={{ padding: '5px 8px', fontSize: '0.8rem' }} onClick={() => handleHapus(klub)} title="Hapus" disabled={klub.jumlah_anggota > 0}>
+                                <i className="bi bi-trash" />
                               </button>
                             </div>
                           </td>
@@ -301,8 +372,8 @@ function KlubAdmin() {
             )}
 
             {!loading && !error && (
-              <div style={{ padding: '0.75rem 1.5rem', borderTop: '1px solid var(--color-border)', color: 'var(--color-text-muted)', fontSize: '0.83rem' }}>
-                Menampilkan <strong>{filtered.length}</strong> dari <strong>{klubList.length}</strong> klub
+              <div style={{ padding: '0.875rem 1.5rem', borderTop: '1px solid #E2E8F0', background: '#F8FAFC', color: '#64748B', fontSize: '0.85rem', fontWeight: 600 }}>
+                Menampilkan <strong>{filtered.length}</strong> dari <strong>{klubList.length}</strong> klub ekstrakurikuler
               </div>
             )}
           </div>
@@ -312,119 +383,174 @@ function KlubAdmin() {
 
       {/* Modal Tambah / Edit */}
       {(modal === 'tambah' || modal === 'edit') && (
-        <Modal title={modal === 'tambah'
-          ? <><i className="bi bi-plus-circle-fill" style={{ color: 'var(--color-primary)', marginRight: 8 }} />Tambah Klub Baru</>
-          : <><i className="bi bi-pencil-fill" style={{ color: 'var(--color-accent-dark)', marginRight: 8 }} />Edit Klub</>
-        } onClose={() => setModal(null)} maxWidth={520}>
-          <div className="form-group">
-            <label className="form-label">Nama Klub <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-            <input type="text" className="form-input" placeholder="Contoh: Klub Robotika" value={formData.nama_klub} onChange={e => setForm('nama_klub', e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Deskripsi</label>
-            <textarea className="form-input" rows={3} placeholder="Deskripsi singkat tentang klub…" value={formData.deskripsi} onChange={e => setForm('deskripsi', e.target.value)} style={{ resize: 'vertical' }} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div className="form-group">
-              <label className="form-label">Kategori</label>
-              <select className="form-input" value={formData.kategori} onChange={e => setForm('kategori', e.target.value)}>
-                {KATEGORI_LIST.map(k => <option key={k} value={k}>{k.charAt(0).toUpperCase() + k.slice(1)}</option>)}
-              </select>
+        <div className="admin-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setModal(null); }}>
+          <div className="admin-modal-dialog" style={{ maxWidth: 560 }}>
+            <div className="admin-modal-header">
+              <div className="admin-modal-header-icon" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>
+                <i className={modal === 'tambah' ? 'bi-plus-circle-fill' : 'bi-pencil-square'} />
+              </div>
+              <div className="admin-modal-title-wrap">
+                <h3 className="admin-modal-title">{modal === 'tambah' ? 'Tambah Klub Minat Bakat' : 'Edit Data Klub'}</h3>
+                <p className="admin-modal-subtitle">Tentukan nama klub, kategori kegiatan, kapasitas dan guru pembimbing</p>
+              </div>
+              <button type="button" className="admin-modal-close" onClick={() => setModal(null)} aria-label="Tutup">
+                <i className="bi bi-x-lg" />
+              </button>
             </div>
-            <div className="form-group">
-              <label className="form-label">Kapasitas Maks.</label>
-              <input type="number" className="form-input" min={1} max={200} value={formData.kapasitas} onChange={e => setForm('kapasitas', e.target.value)} />
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Guru Pembimbing <span style={{ color: 'var(--color-text-muted)', fontWeight: 400, fontSize: '0.8rem' }}>(opsional — Tutor)</span></label>
-            <select
-              className="form-input"
-              value={formData.pembimbing_id || ''}
-              onChange={e => setForm('pembimbing_id', e.target.value ? Number(e.target.value) : '')}
-            >
-              <option value="">-- Pilih Guru Pembimbing (Opsional) --</option>
-              {tutorList.map(t => (
-                <option key={t.id} value={t.id}>{t.nama_lengkap} ({t.email})</option>
-              ))}
-            </select>
-          </div>
 
-          {feedback.msg && (
-            <div className={`alert ${feedback.type === 'success' ? 'alert-success' : 'alert-danger'}`} style={{ marginBottom: '1rem' }}>
-              <i className={`bi ${feedback.type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}`} />
-              <span>{feedback.msg}</span>
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-            <button className="btn btn-secondary" onClick={() => setModal(null)}>Batal</button>
-            <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-              {saving ? <><div className="spinner" style={{ width: 16, height: 16 }} /> Menyimpan…</> : <><i className="bi bi-check2" /> {modal === 'tambah' ? 'Buat Klub' : 'Simpan Perubahan'}</>}
-            </button>
+            <form className="admin-modal-form" onSubmit={e => { e.preventDefault(); handleSave(); }}>
+              <div className="admin-modal-body">
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>Nama Klub <span style={{ color: '#DC2626' }}>*</span></label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Contoh: Robotika & IoT, Seni Musik Band, Bahasa Jepang"
+                    value={formData.nama_klub}
+                    onChange={e => setForm('nama_klub', e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>Deskripsi Singkat Klub</label>
+                  <textarea
+                    className="form-input"
+                    rows={3}
+                    placeholder="Deskripsi kegiatan, tujuan, atau silabus singkat…"
+                    value={formData.deskripsi}
+                    onChange={e => setForm('deskripsi', e.target.value)}
+                    style={{ resize: 'vertical' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 700 }}>Kategori Kegiatan</label>
+                    <select className="form-input" value={formData.kategori} onChange={e => setForm('kategori', e.target.value)}>
+                      {KATEGORI_LIST.map(k => <option key={k} value={k}>{k.charAt(0).toUpperCase() + k.slice(1)}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 700 }}>Kapasitas Maksimal (WB)</label>
+                    <input type="number" className="form-input" min={1} max={200} value={formData.kapasitas} onChange={e => setForm('kapasitas', e.target.value)} required />
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>Guru Pembimbing / Tutor Penanggung Jawab</label>
+                  <select
+                    className="form-input"
+                    value={formData.pembimbing_id || ''}
+                    onChange={e => setForm('pembimbing_id', e.target.value ? Number(e.target.value) : '')}
+                  >
+                    <option value="">-- Pilih Guru Pembimbing (Opsional) --</option>
+                    {tutorList.map(t => (
+                      <option key={t.id} value={t.id}>{t.nama_lengkap} ({t.email})</option>
+                    ))}
+                  </select>
+                </div>
+
+                {feedback.msg && (
+                  <div className={`alert ${feedback.type === 'success' ? 'alert-success' : 'alert-danger'}`} style={{ marginBottom: '0.5rem' }}>
+                    <i className={`bi ${feedback.type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}`} />
+                    <span>{feedback.msg}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="admin-modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setModal(null)}>Batal</button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                  {saving ? <><div className="spinner" style={{ width: 14, height: 14 }} /> Menyimpan…</> : <><i className="bi bi-check2" /> {modal === 'tambah' ? 'Buat Klub' : 'Simpan Perubahan'}</>}
+                </button>
+              </div>
+            </form>
           </div>
-        </Modal>
+        </div>
       )}
 
       {/* Modal Detail Anggota */}
       {modal === 'detail' && (
-        <Modal title={<><i className="bi bi-people-fill" style={{ color: 'var(--color-primary)', marginRight: 8 }} />Daftar Anggota</>} onClose={() => setModal(null)} maxWidth={600}>
-          {!detailData ? (
-            <div className="loading-container"><div className="spinner" /><p style={{ marginTop: 12 }}>Memuat anggota…</p></div>
-          ) : detailData.error ? (
-            <div className="alert alert-danger"><i className="bi bi-exclamation-triangle" /><span>{detailData.error}</span></div>
-          ) : (
-            <>
-              <div style={{ marginBottom: '1rem', padding: '0.75rem 1rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                <strong>{detailData.nama_klub}</strong>
-                <span style={{ marginLeft: 12, color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-                  {detailData.anggota?.length || 0} anggota aktif
-                </span>
+        <div className="admin-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setModal(null); }}>
+          <div className="admin-modal-dialog" style={{ maxWidth: 680 }}>
+            <div className="admin-modal-header">
+              <div className="admin-modal-header-icon" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>
+                <i className="bi bi-people-fill" />
               </div>
-              {!detailData.anggota?.length ? (
-                <div className="empty-state" style={{ padding: '2rem' }}>
-                  <i className="bi bi-person-x" /><p>Belum ada anggota aktif di klub ini.</p>
-                </div>
-              ) : (
-                <div className="table-wrapper">
-                  <table className="table">
-                    <thead><tr><th>#</th><th>Nama</th><th>NIS</th><th>Jenjang</th><th>Tgl Daftar</th></tr></thead>
-                    <tbody>
-                      {detailData.anggota.map((a, i) => (
-                        <tr key={a.id}>
-                          <td style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>{i + 1}</td>
-                          <td style={{ fontWeight: 600, fontSize: '0.9rem' }}>{a.nama_lengkap}</td>
-                          <td style={{ fontSize: '0.85rem' }}>{a.nis || '—'}</td>
-                          <td><span className="badge" style={{ fontSize: '0.72rem' }}>{a.jenjang || '—'}</span></td>
-                          <td style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-                            {a.tanggal_daftar ? new Date(a.tanggal_daftar).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </>
-          )}
-        </Modal>
-      )}
-    </div>
-  );
-}
+              <div className="admin-modal-title-wrap">
+                <h3 className="admin-modal-title">Daftar Anggota Klub</h3>
+                <p className="admin-modal-subtitle">{detailData?.nama_klub || 'Memuat...'} • Informasi warga belajar terdaftar</p>
+              </div>
+              <button type="button" className="admin-modal-close" onClick={() => setModal(null)} aria-label="Tutup">
+                <i className="bi bi-x-lg" />
+              </button>
+            </div>
 
-function Modal({ title, onClose, children, maxWidth = 560 }) {
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth, maxHeight: '90vh', overflowY: 'auto' }}>
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, margin: 0, fontSize: '1.05rem' }}>{title}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--color-text-muted)' }}>
-            <i className="bi bi-x-lg" />
-          </button>
+            <div className="admin-modal-body">
+              {!detailData ? (
+                <div className="loading-container" style={{ padding: '2rem' }}><div className="spinner" /><p style={{ marginTop: 12 }}>Memuat anggota…</p></div>
+              ) : detailData.error ? (
+                <div className="alert alert-danger"><i className="bi bi-exclamation-triangle" /><span>{detailData.error}</span></div>
+              ) : (
+                <>
+                  <div style={{ marginBottom: '1rem', padding: '0.875rem 1.25rem', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <strong style={{ fontSize: '1rem', color: '#0F172A' }}>{detailData.nama_klub}</strong>
+                      <span className="badge" style={{ marginLeft: 10, background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700 }}>
+                        {detailData.jenis || 'Umum'}
+                      </span>
+                    </div>
+                    <span style={{ color: '#16A34A', fontSize: '0.875rem', fontWeight: 700 }}>
+                      <i className="bi bi-check-circle-fill"></i> {detailData.anggota?.length || 0} Anggota Aktif
+                    </span>
+                  </div>
+
+                  {!detailData.anggota?.length ? (
+                    <div className="empty-state" style={{ padding: '2.5rem' }}>
+                      <i className="bi bi-person-x" style={{ fontSize: '2.5rem', color: '#94A3B8' }} />
+                      <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>Belum ada anggota aktif terdaftar di klub ini.</p>
+                    </div>
+                  ) : (
+                    <div className="table-wrapper" style={{ margin: 0 }}>
+                      <table className="table" style={{ margin: 0 }}>
+                        <thead style={{ background: '#F1F5F9' }}>
+                          <tr>
+                            <th style={{ width: '40px' }}>#</th>
+                            <th>Nama Siswa</th>
+                            <th>NIS</th>
+                            <th>Jenjang</th>
+                            <th>Tgl Terdaftar</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {detailData.anggota.map((a, i) => (
+                            <tr key={a.id}>
+                              <td style={{ color: '#94A3B8', fontSize: '0.85rem', fontWeight: 700 }}>{i + 1}</td>
+                              <td style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>{a.nama_lengkap}</td>
+                              <td style={{ fontSize: '0.85rem' }}><code style={{ background: '#EFF6FF', color: '#1D4ED8', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>{a.nis || '—'}</code></td>
+                              <td><span className="badge" style={{ background: '#F1F5F9', color: '#334155', fontWeight: 700 }}>{a.jenjang || '—'}</span></td>
+                              <td style={{ fontSize: '0.82rem', color: '#64748B' }}>
+                                {a.tanggal_daftar ? new Date(a.tanggal_daftar).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="admin-modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setModal(null)}>
+                Tutup
+              </button>
+            </div>
+          </div>
         </div>
-        <div style={{ padding: '1.5rem' }}>{children}</div>
-      </div>
+      )}
     </div>
   );
 }

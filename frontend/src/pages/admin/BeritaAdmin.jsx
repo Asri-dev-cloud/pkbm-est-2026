@@ -424,47 +424,59 @@ function BeritaAdmin() {
               </div>
             )}
 
-            {/* ── KPI Metrik Bar ────────────────────────────── */}
-            <div className="berita-stats-grid">
-              <div className="berita-stat-card">
-                <div className="berita-stat-icon-wrap blue">
-                  <Newspaper size={24} />
+            {/* ── KPI Metrik Bar Berpola ────────────────────── */}
+            <div className="admin-stats-grid" style={{ marginBottom: '1.75rem' }}>
+              <div className="admin-stat-card admin-stat-blue">
+                <div className="admin-stat-top">
+                  <div className="admin-stat-icon-wrap">
+                    <Newspaper size={22} />
+                  </div>
+                  <span className="admin-stat-tag">TOTAL</span>
                 </div>
-                <div className="berita-stat-info">
-                  <div className="stat-value">{stats.total || beritaList.length}</div>
-                  <div className="stat-label">Total Berita Kegiatan</div>
-                </div>
-              </div>
-
-              <div className="berita-stat-card">
-                <div className="berita-stat-icon-wrap green">
-                  <CheckCircle2 size={24} />
-                </div>
-                <div className="berita-stat-info">
-                  <div className="stat-value">{stats.published || beritaList.filter(b => b.status === 'published').length}</div>
-                  <div className="stat-label">Diterbitkan (Tampil di Siswa)</div>
+                <div className="admin-stat-info">
+                  <div className="admin-stat-value">{stats.total || beritaList.length}</div>
+                  <div className="admin-stat-label">Total Berita Kegiatan</div>
                 </div>
               </div>
 
-              <div className="berita-stat-card">
-                <div className="berita-stat-icon-wrap amber">
-                  <Clock size={24} />
+              <div className="admin-stat-card admin-stat-green">
+                <div className="admin-stat-top">
+                  <div className="admin-stat-icon-wrap">
+                    <CheckCircle2 size={22} />
+                  </div>
+                  <span className="admin-stat-tag">PUBLISHED</span>
                 </div>
-                <div className="berita-stat-info">
-                  <div className="stat-value">{stats.draft || beritaList.filter(b => b.status === 'draft').length}</div>
-                  <div className="stat-label">Konsep (Draft)</div>
+                <div className="admin-stat-info">
+                  <div className="admin-stat-value">{stats.published || beritaList.filter(b => b.status === 'published').length}</div>
+                  <div className="admin-stat-label">Diterbitkan (Tampil di Siswa)</div>
                 </div>
               </div>
 
-              <div className="berita-stat-card">
-                <div className="berita-stat-icon-wrap purple">
-                  <Film size={24} />
+              <div className="admin-stat-card admin-stat-amber">
+                <div className="admin-stat-top">
+                  <div className="admin-stat-icon-wrap">
+                    <Clock size={22} />
+                  </div>
+                  <span className="admin-stat-tag">DRAFT</span>
                 </div>
-                <div className="berita-stat-info">
-                  <div className="stat-value">
+                <div className="admin-stat-info">
+                  <div className="admin-stat-value">{stats.draft || beritaList.filter(b => b.status === 'draft').length}</div>
+                  <div className="admin-stat-label">Konsep (Draft)</div>
+                </div>
+              </div>
+
+              <div className="admin-stat-card admin-stat-purple">
+                <div className="admin-stat-top">
+                  <div className="admin-stat-icon-wrap">
+                    <Film size={22} />
+                  </div>
+                  <span className="admin-stat-tag">MEDIA</span>
+                </div>
+                <div className="admin-stat-info">
+                  <div className="admin-stat-value">
                     {beritaList.filter(b => b.video_file || b.video_url || (b.galeri_foto && b.galeri_foto.length > 0)).length}
                   </div>
-                  <div className="stat-label">Berita dengan Foto & Video</div>
+                  <div className="admin-stat-label">Berita dengan Foto & Video</div>
                 </div>
               </div>
             </div>

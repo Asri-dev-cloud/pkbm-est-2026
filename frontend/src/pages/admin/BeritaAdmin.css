@@ -93,22 +93,70 @@
 }
 
 .berita-stat-card {
-  background: #FFFFFF;
+  background-color: #FFFFFF;
+  background-image: radial-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  background-size: 14px 14px;
   border: 1px solid #E2E8F0;
-  border-radius: 18px;
+  border-radius: 16px;
   padding: 1.35rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 1.15rem;
-  box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   position: relative;
   overflow: hidden;
 }
 
+.berita-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  background: #CBD5E1;
+}
+
+.berita-stat-card:has(.berita-stat-icon-wrap.blue)::before {
+  background: linear-gradient(90deg, #1D4ED8, #60A5FA);
+}
+
+.berita-stat-card:has(.berita-stat-icon-wrap.blue) {
+  background-color: #F8FAFF;
+  border-color: #BFDBFE;
+}
+
+.berita-stat-card:has(.berita-stat-icon-wrap.green)::before {
+  background: linear-gradient(90deg, #16A34A, #4ADE80);
+}
+
+.berita-stat-card:has(.berita-stat-icon-wrap.green) {
+  background-color: #F0FDF4;
+  border-color: #BBF7D0;
+}
+
+.berita-stat-card:has(.berita-stat-icon-wrap.amber)::before {
+  background: linear-gradient(90deg, #D97706, #FBBF24);
+}
+
+.berita-stat-card:has(.berita-stat-icon-wrap.amber) {
+  background-color: #FFFDF0;
+  border-color: #FDE68A;
+}
+
+.berita-stat-card:has(.berita-stat-icon-wrap.purple)::before {
+  background: linear-gradient(90deg, #7E22CE, #C084FC);
+}
+
+.berita-stat-card:has(.berita-stat-icon-wrap.purple) {
+  background-color: #FAF5FF;
+  border-color: #E9D5FF;
+}
+
 .berita-stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px -6px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.08);
 }
 
 .berita-stat-icon-wrap {
@@ -498,6 +546,14 @@
   box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.3);
   overflow: hidden;
   animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.berita-modal-window form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 @keyframes modalScaleIn {

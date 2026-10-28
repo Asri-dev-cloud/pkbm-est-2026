@@ -674,3 +674,412 @@ img {
   .mobile-modal-body { padding: 1rem; }
   .mobile-empty-state { padding: 2rem 1rem; }
 }
+
+/* ============================================================
+   ADMIN SUITE — PROFESSIONAL INSTITUTIONAL DESIGN SYSTEM
+   Patterned Colored Cards, High-End Typography, Rock-Solid Modals
+   ============================================================ */
+
+/* ── Patterned Colored Metric Cards ────────────────────────── */
+/* ── UNIVERSAL ADMIN SUITE TOKENS & GRAPHIC TILES (SESUAI DOKUMENTASI RESMI) ── */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.admin-stat-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.45rem 1.6rem;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 148px;
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  cursor: default;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Halus Radial Sheen di Bagian Atas Kartu */
+.admin-stat-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 65%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Pola Geometris Abstrak Halus & Elegan */
+.admin-stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.38;
+  background-repeat: no-repeat;
+  background-position: right -10px bottom -10px;
+  background-size: 165px 165px;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  z-index: 1;
+}
+
+.admin-stat-card:hover::before {
+  opacity: 0.55;
+  transform: scale(1.05);
+}
+
+.admin-stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 0.95rem;
+  position: relative;
+  z-index: 2;
+}
+
+.admin-stat-icon-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.22) !important;
+  border: 1px solid rgba(255, 255, 255, 0.38) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #FFFFFF !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  margin-bottom: 0.6rem;
+}
+
+.admin-stat-top .admin-stat-icon-wrap {
+  margin-bottom: 0 !important;
+}
+
+.admin-stat-icon-wrap svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+.admin-stat-tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  padding: 4px 11px;
+  border-radius: 9999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 2;
+}
+
+.admin-stat-info {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+}
+
+.admin-stat-value {
+  font-family: var(--font-heading);
+  font-size: 2.25rem !important;
+  font-weight: 900 !important;
+  color: #FFFFFF !important;
+  line-height: 1 !important;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+  font-feature-settings: "tnum";
+}
+
+.admin-stat-label {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  margin-top: 6px;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  position: relative;
+  z-index: 2;
+  text-transform: none !important;
+  line-height: 1.35;
+}
+
+/* 1. BLUE TILE (Cobalt Sapphire Gradient + Radar Circles Pattern) */
+.admin-stat-blue {
+  background: linear-gradient(135deg, #1E40AF 0%, #2563EB 50%, #3B82F6 100%) !important;
+  box-shadow: 0 10px 25px -4px rgba(37, 99, 235, 0.36), 0 4px 10px -2px rgba(37, 99, 235, 0.18);
+}
+.admin-stat-blue:hover {
+  box-shadow: 0 16px 32px -4px rgba(37, 99, 235, 0.46), 0 6px 14px -2px rgba(37, 99, 235, 0.24);
+}
+.admin-stat-blue::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none'%3E%3Ccircle cx='130' cy='130' r='110' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='6 6' opacity='0.35'/%3E%3Ccircle cx='130' cy='130' r='80' stroke='%23ffffff' stroke-width='1.5' opacity='0.55'/%3E%3Ccircle cx='130' cy='130' r='52' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='4 4' opacity='0.7'/%3E%3Ccircle cx='130' cy='130' r='26' stroke='%23ffffff' stroke-width='2' opacity='0.85'/%3E%3Ccircle cx='130' cy='130' r='8' fill='%23ffffff' opacity='0.9'/%3E%3Cline x1='20' y1='130' x2='130' y2='130' stroke='%23ffffff' stroke-width='1' stroke-dasharray='4 4' opacity='0.35'/%3E%3Cline x1='130' y1='20' x2='130' y2='130' stroke='%23ffffff' stroke-width='1' stroke-dasharray='4 4' opacity='0.35'/%3E%3Ccircle cx='45' cy='45' r='2' fill='%23ffffff' opacity='0.6'/%3E%3Ccircle cx='65' cy='45' r='2' fill='%23ffffff' opacity='0.6'/%3E%3Ccircle cx='85' cy='45' r='2' fill='%23ffffff' opacity='0.6'/%3E%3Ccircle cx='45' cy='65' r='2' fill='%23ffffff' opacity='0.6'/%3E%3Ccircle cx='65' cy='65' r='2' fill='%23ffffff' opacity='0.6'/%3E%3Ccircle cx='85' cy='65' r='2' fill='%23ffffff' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+/* 2. GREEN TILE (Fresh Emerald Gradient + Flow Waves Pattern) */
+.admin-stat-green {
+  background: linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%) !important;
+  box-shadow: 0 10px 25px -4px rgba(16, 185, 129, 0.36), 0 4px 10px -2px rgba(16, 185, 129, 0.18);
+}
+.admin-stat-green:hover {
+  box-shadow: 0 16px 32px -4px rgba(16, 185, 129, 0.46), 0 6px 14px -2px rgba(16, 185, 129, 0.24);
+}
+.admin-stat-green::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none'%3E%3Cpath d='M10 115 C 45 115, 65 150, 110 150 S 150 120, 160 120' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' opacity='0.75'/%3E%3Cpath d='M25 85 C 60 85, 80 120, 125 120 S 150 90, 160 90' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='4 3' stroke-linecap='round' opacity='0.55'/%3E%3Ccircle cx='120' cy='55' r='32' stroke='%23ffffff' stroke-width='2' opacity='0.85'/%3E%3Ccircle cx='120' cy='55' r='18' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='3 3' opacity='0.6'/%3E%3Ccircle cx='120' cy='55' r='6' fill='%23ffffff' opacity='0.85'/%3E%3Ccircle cx='40' cy='40' r='2.5' fill='%23ffffff' opacity='0.55'/%3E%3Ccircle cx='60' cy='40' r='2.5' fill='%23ffffff' opacity='0.55'/%3E%3Ccircle cx='40' cy='60' r='2.5' fill='%23ffffff' opacity='0.55'/%3E%3Ccircle cx='60' cy='60' r='2.5' fill='%23ffffff' opacity='0.55'/%3E%3C/svg%3E");
+}
+
+/* 3. PURPLE TILE (Royal Violet Gradient + Diamond Geometric Pattern) */
+.admin-stat-purple {
+  background: linear-gradient(135deg, #6D28D9 0%, #7C3AED 50%, #8B5CF6 100%) !important;
+  box-shadow: 0 10px 25px -4px rgba(124, 58, 237, 0.36), 0 4px 10px -2px rgba(124, 58, 237, 0.18);
+}
+.admin-stat-purple:hover {
+  box-shadow: 0 16px 32px -4px rgba(124, 58, 237, 0.46), 0 6px 14px -2px rgba(124, 58, 237, 0.24);
+}
+.admin-stat-purple::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none'%3E%3Crect x='70' y='70' width='75' height='75' rx='22' transform='rotate(45 107 107)' stroke='%23ffffff' stroke-width='2' opacity='0.75'/%3E%3Crect x='85' y='85' width='45' height='45' rx='14' transform='rotate(45 107 107)' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='4 3' opacity='0.55'/%3E%3Ccircle cx='107' cy='107' r='7' fill='%23ffffff' opacity='0.85'/%3E%3Cline x1='15' y1='145' x2='145' y2='15' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='5 5' opacity='0.4'/%3E%3Ccircle cx='40' cy='55' r='16' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='3 3' opacity='0.5'/%3E%3Ccircle cx='40' cy='55' r='4' fill='%23ffffff' opacity='0.75'/%3E%3C/svg%3E");
+}
+
+/* 4. AMBER / YELLOW TILE (Warm Sunset Gold Gradient + Radial Arcs Pattern) */
+.admin-stat-amber, .admin-stat-yellow {
+  background: linear-gradient(135deg, #D97706 0%, #F59E0B 50%, #FBBF24 100%) !important;
+  box-shadow: 0 10px 25px -4px rgba(245, 158, 11, 0.36), 0 4px 10px -2px rgba(245, 158, 11, 0.18);
+}
+.admin-stat-amber:hover, .admin-stat-yellow:hover {
+  box-shadow: 0 16px 32px -4px rgba(245, 158, 11, 0.46), 0 6px 14px -2px rgba(245, 158, 11, 0.24);
+}
+.admin-stat-amber::before, .admin-stat-yellow::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none'%3E%3Cpath d='M20 160 A 130 130 0 0 1 150 30' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='5 4' opacity='0.45'/%3E%3Cpath d='M50 160 A 100 100 0 0 1 150 60' stroke='%23ffffff' stroke-width='2' opacity='0.75'/%3E%3Cpath d='M80 160 A 70 70 0 0 1 150 90' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='4 3' opacity='0.55'/%3E%3Cpath d='M110 160 A 40 40 0 0 1 150 120' stroke='%23ffffff' stroke-width='2' opacity='0.85'/%3E%3Ccircle cx='140' cy='140' r='12' stroke='%23ffffff' stroke-width='2' opacity='0.7'/%3E%3Ccircle cx='140' cy='140' r='4' fill='%23ffffff' opacity='0.85'/%3E%3Ccircle cx='50' cy='50' r='2.5' fill='%23ffffff' opacity='0.6'/%3E%3Ccircle cx='70' cy='35' r='2' fill='%23ffffff' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* 5. SKY / CYAN TILE (Vivid Sky Blue Gradient + Satellite Orbital Circles Pattern) */
+.admin-stat-sky {
+  background: linear-gradient(135deg, #0284C7 0%, #0EA5E9 50%, #38BDF8 100%) !important;
+  box-shadow: 0 10px 25px -4px rgba(14, 165, 233, 0.36), 0 4px 10px -2px rgba(14, 165, 233, 0.18);
+}
+.admin-stat-sky:hover {
+  box-shadow: 0 16px 32px -4px rgba(14, 165, 233, 0.46), 0 6px 14px -2px rgba(14, 165, 233, 0.24);
+}
+.admin-stat-sky::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none'%3E%3Ccircle cx='130' cy='130' r='110' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='6 6' opacity='0.35'/%3E%3Ccircle cx='130' cy='130' r='75' stroke='%23ffffff' stroke-width='2' opacity='0.6'/%3E%3Ccircle cx='130' cy='130' r='40' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='4 3' opacity='0.75'/%3E%3Ccircle cx='130' cy='130' r='14' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='40' cy='50' r='3' fill='%23ffffff' opacity='0.65'/%3E%3Ccircle cx='60' cy='50' r='3' fill='%23ffffff' opacity='0.65'/%3E%3Ccircle cx='80' cy='50' r='3' fill='%23ffffff' opacity='0.65'/%3E%3Ccircle cx='40' cy='70' r='3' fill='%23ffffff' opacity='0.65'/%3E%3Ccircle cx='60' cy='70' r='3' fill='%23ffffff' opacity='0.65'/%3E%3Ccircle cx='80' cy='70' r='3' fill='%23ffffff' opacity='0.65'/%3E%3C/svg%3E");
+}
+
+/* 6. ROSE / RED TILE (Ruby Crimson Gradient + Target Rings Pattern) */
+.admin-stat-rose, .admin-stat-red {
+  background: linear-gradient(135deg, #E11D48 0%, #F43F5E 50%, #FB7185 100%) !important;
+  box-shadow: 0 10px 25px -4px rgba(225, 29, 72, 0.36), 0 4px 10px -2px rgba(225, 29, 72, 0.18);
+}
+.admin-stat-rose:hover, .admin-stat-red:hover {
+  box-shadow: 0 16px 32px -4px rgba(225, 29, 72, 0.46), 0 6px 14px -2px rgba(225, 29, 72, 0.24);
+}
+.admin-stat-rose::before, .admin-stat-red::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none'%3E%3Ccircle cx='125' cy='125' r='85' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='5 4' opacity='0.45'/%3E%3Ccircle cx='125' cy='125' r='55' stroke='%23ffffff' stroke-width='2' opacity='0.75'/%3E%3Ccircle cx='125' cy='125' r='30' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='4 3' opacity='0.6'/%3E%3Ccircle cx='125' cy='125' r='10' fill='%23ffffff' opacity='0.85'/%3E%3Cline x1='25' y1='150' x2='150' y2='25' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='5 4' opacity='0.4'/%3E%3Cline x1='10' y1='115' x2='115' y2='10' stroke='%23ffffff' stroke-width='1' opacity='0.3'/%3E%3Ccircle cx='45' cy='60' r='2.5' fill='%23ffffff' opacity='0.6'/%3E%3Ccircle cx='65' cy='60' r='2.5' fill='%23ffffff' opacity='0.6'/%3E%3Ccircle cx='45' cy='80' r='2.5' fill='%23ffffff' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+/* 7. SLATE TILE (Dark Slate Titanium Gradient + Hex Radar Pattern) */
+.admin-stat-slate {
+  background: linear-gradient(135deg, #1E293B 0%, #334155 50%, #475569 100%) !important;
+  box-shadow: 0 10px 25px -4px rgba(30, 41, 59, 0.36), 0 4px 10px -2px rgba(30, 41, 59, 0.18);
+}
+.admin-stat-slate:hover {
+  box-shadow: 0 16px 32px -4px rgba(30, 41, 59, 0.46), 0 6px 14px -2px rgba(30, 41, 59, 0.24);
+}
+.admin-stat-slate::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none'%3E%3Ccircle cx='130' cy='130' r='100' stroke='%23ffffff' stroke-width='1.5' opacity='0.35'/%3E%3Ccircle cx='130' cy='130' r='60' stroke='%23ffffff' stroke-width='2' opacity='0.6'/%3E%3Ccircle cx='130' cy='130' r='25' stroke='%23ffffff' stroke-width='1.5' stroke-dasharray='4 3' opacity='0.8'/%3E%3Ccircle cx='50' cy='50' r='2.5' fill='%23ffffff' opacity='0.6'/%3E%3Ccircle cx='70' cy='50' r='2.5' fill='%23ffffff' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+/* ── Professional Admin Panel Card ─────────────────────────── */
+.admin-panel {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.admin-panel-header {
+  padding: 1.25rem 1.6rem;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+  border-bottom: 1.5px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.admin-panel-body {
+  padding: 1.4rem 1.6rem;
+}
+
+/* ── Rock-Solid Universal Modal System ─────────────────────── */
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.68);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.18s ease;
+}
+
+.admin-modal-dialog {
+  background: #FFFFFF;
+  border-radius: 22px;
+  width: 100%;
+  max-width: 680px;
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15);
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  position: relative;
+}
+
+.admin-modal-header {
+  padding: 1.25rem 1.75rem;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.admin-modal-header h3 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.admin-modal-close {
+  background: #F1F5F9;
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748B;
+  transition: all 0.2s ease;
+}
+
+.admin-modal-close:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+  transform: rotate(90deg);
+}
+
+.admin-modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  margin: 0;
+}
+
+.admin-modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.admin-modal-footer {
+  flex-shrink: 0;
+  padding: 1.1rem 1.75rem;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* ── Professional Data Table ───────────────────────────────── */
+.admin-table-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.admin-table th {
+  background: #F8FAFC;
+  color: #475569;
+  font-size: 0.73rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 13px 18px;
+  border-bottom: 1.5px solid #E2E8F0;
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #F1F5F9;
+  color: #1E293B;
+  font-size: 0.88rem;
+  vertical-align: middle;
+}
+
+.admin-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.admin-table tbody tr:hover td {
+  background-color: #F8FAFC;
+}

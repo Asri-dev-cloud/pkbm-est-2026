@@ -40,6 +40,27 @@ import {
   Eye
 } from "lucide-react";
 
+// Komponen Ikon Instagram Resmi (Vector Stroke Seragam Lucide)
+function InstagramIcon({ size = 16, style = {} }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={style}
+    >
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+    </svg>
+  );
+}
+
 // ── DATA PROGRAM KESETARAAN ──────────────────────────────────
 const PROGRAMS = [
   {
@@ -758,10 +779,12 @@ export default function HomePage() {
               <Send size={15} />
             </a>
 
-            {/* Lingkaran 2: Telepon (Desktop / Tablet) */}
+            {/* Lingkaran 2: Instagram (Desktop / Tablet) */}
             <a
-              href="#kontak"
-              title="Layanan Informasi & Telepon"
+              href="https://www.instagram.com/bina_mandiri_pkbm/"
+              target="_blank"
+              rel="noreferrer"
+              title="Kunjungi Instagram @bina_mandiri_pkbm"
               className="hidden md:flex"
               style={{
                 width: 36,
@@ -779,7 +802,7 @@ export default function HomePage() {
               onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.08)")}
               onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
             >
-              <Phone size={15} />
+              <InstagramIcon size={16} />
             </a>
 
             {/* Logo PKBM & Nama Brand */}
@@ -984,7 +1007,9 @@ export default function HomePage() {
               <span>WhatsApp</span>
             </a>
             <a
-              href="#kontak"
+              href="https://www.instagram.com/bina_mandiri_pkbm/"
+              target="_blank"
+              rel="noreferrer"
               onClick={() => setMenuOpen(false)}
               style={{
                 display: "flex",
@@ -1000,8 +1025,8 @@ export default function HomePage() {
                 fontWeight: 700
               }}
             >
-              <Phone size={16} />
-              <span>Telepon</span>
+              <InstagramIcon size={16} />
+              <span>Instagram</span>
             </a>
             <Link
               to="/login"
@@ -2694,46 +2719,57 @@ export default function HomePage() {
                 {[
                   { icon: MapPin, label: "Alamat Lembaga", val: "Dusun Sukahurip RT 03/RW 03, Legok Kaler, Kec. Paseh, Kab. Sumedang" },
                   { icon: ShieldCheck, label: "Naungan Yayasan", val: "Yayasan Amal Bina Insani Darulhuda" },
+                  { icon: InstagramIcon, label: "Instagram Resmi", val: "@bina_mandiri_pkbm", href: "https://www.instagram.com/bina_mandiri_pkbm/" },
                   { icon: Mail, label: "Email Resmi", val: "info@pkbm-binamandiri.id" },
                   { icon: Clock, label: "Jam Pelayanan", val: "Senin – Jumat, 08.00 – 16.00 WIB" },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    style={{
-                      background: "#F8FAFC",
-                      borderRadius: 18,
-                      padding: "14px 18px",
-                      border: "1.5px solid #E2E8F0",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 14
-                    }}
-                  >
-                    <div
+                ].map((item) => {
+                  const Wrapper = item.href ? "a" : "div";
+                  const wrapperProps = item.href ? { href: item.href, target: "_blank", rel: "noreferrer", style: { textDecoration: "none" } } : {};
+                  return (
+                    <Wrapper
+                      key={item.label}
+                      {...wrapperProps}
                       style={{
-                        width: 42,
-                        height: 42,
-                        borderRadius: 12,
-                        background: "#EFF6FF",
-                        color: "#1D4ED8",
+                        background: "#F8FAFC",
+                        borderRadius: 18,
+                        padding: "14px 18px",
+                        border: "1.5px solid #E2E8F0",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0
+                        gap: 14,
+                        textDecoration: "none",
+                        color: "inherit",
+                        transition: "all 0.2s"
                       }}
+                      onMouseOver={(e) => { if (item.href) e.currentTarget.style.borderColor = "#FACC15"; }}
+                      onMouseOut={(e) => { if (item.href) e.currentTarget.style.borderColor = "#E2E8F0"; }}
                     >
-                      <item.icon size={20} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 700, textTransform: "uppercase" }}>
-                        {item.label}
+                      <div
+                        style={{
+                          width: 42,
+                          height: 42,
+                          borderRadius: 12,
+                          background: item.href ? "#FEF9C3" : "#EFF6FF",
+                          color: item.href ? "#854D0E" : "#1D4ED8",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0
+                        }}
+                      >
+                        <item.icon size={20} />
                       </div>
-                      <div style={{ fontSize: "0.9rem", fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
-                        {item.val}
+                      <div>
+                        <div style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 700, textTransform: "uppercase" }}>
+                          {item.label}
+                        </div>
+                        <div style={{ fontSize: "0.9rem", fontWeight: 800, color: item.href ? "#1D4ED8" : "#0F172A", marginTop: 2 }}>
+                          {item.val}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
+                    </Wrapper>
+                  );
+                })}
               </div>
             </div>
 
@@ -2896,6 +2932,58 @@ export default function HomePage() {
               <p style={{ fontSize: "0.84rem", lineHeight: 1.7, color: "rgba(255, 255, 255, 0.7)" }}>
                 Penyelenggara Resmi Pendidikan Kesetaraan Paket A, B, dan C. Terakreditasi dan dibina oleh Dinas Pendidikan Kabupaten Sumedang di bawah naungan Yayasan Amal Bina Insani Darulhuda.
               </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14 }}>
+                <a
+                  href="https://www.instagram.com/bina_mandiri_pkbm/"
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Instagram Resmi PKBM Bina Mandiri"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "6px 12px",
+                    borderRadius: 20,
+                    background: "rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    color: "#FACC15",
+                    fontSize: "0.78rem",
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = "#FACC15"; e.currentTarget.style.color = "#000000"; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#FACC15"; }}
+                >
+                  <InstagramIcon size={14} />
+                  <span>@bina_mandiri_pkbm</span>
+                </a>
+                <a
+                  href="https://wa.me/6282318383605"
+                  target="_blank"
+                  rel="noreferrer"
+                  title="WhatsApp Resmi PKBM Bina Mandiri"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "6px 12px",
+                    borderRadius: 20,
+                    background: "rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    color: "#93C5FD",
+                    fontSize: "0.78rem",
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = "#1D4ED8"; e.currentTarget.style.color = "#FFFFFF"; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#93C5FD"; }}
+                >
+                  <Send size={14} />
+                  <span>WhatsApp</span>
+                </a>
+              </div>
             </div>
 
             {/* Kolom 2: Program */}
