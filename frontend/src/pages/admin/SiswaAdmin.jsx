@@ -168,12 +168,6 @@ function SiswaAdmin() {
           {/* ── Header ─────────────────────────────────── */}
           <div style={{ marginBottom: '1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                <span className="badge badge-primary" style={{ fontWeight: 700, padding: '4px 10px' }}>
-                  <i className="bi bi-people-fill"></i> Data Induk Siswa
-                </span>
-                <span style={{ fontSize: '0.85rem', color: '#64748B' }}>Daftar Resmi Warga Belajar PKBM</span>
-              </div>
               <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                 Data Warga Belajar
               </h1>

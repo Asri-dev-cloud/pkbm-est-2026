@@ -175,12 +175,6 @@ function MapelPerRombelAdmin() {
         <div className="app-content">
           <div style={{ marginBottom: '1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                <span className="badge badge-primary" style={{ fontWeight: 700, padding: '4px 10px' }}>
-                  <i className="bi bi-diagram-3-fill"></i> Distribusi Kurikulum
-                </span>
-                <span style={{ fontSize: '0.85rem', color: '#64748B' }}>Pengaturan Ruang Belajar</span>
-              </div>
               <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                 Mapel per Rombel
               </h1>

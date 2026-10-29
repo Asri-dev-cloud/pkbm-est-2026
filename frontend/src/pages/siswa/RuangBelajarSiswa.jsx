@@ -126,12 +126,6 @@ function RuangBelajarSiswa() {
           
           {/* Header Section */}
           <div style={{ marginBottom: '2rem' }}>
-            <div style={{ marginBottom: '10px' }}>
-              <span className="boutique-pill boutique-badge-blue">
-                <i className="bi bi-mortarboard-fill" style={{ fontSize: '0.85rem' }}></i>
-                RUANG BELAJAR DIGITAL
-              </span>
-            </div>
             <h1 style={{ 
               fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", 
               fontSize: '2.1rem', 

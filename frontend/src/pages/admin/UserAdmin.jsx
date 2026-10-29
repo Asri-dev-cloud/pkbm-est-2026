@@ -172,12 +172,6 @@ function UserAdmin() {
           {/* ── Header ─────────────────────────────────── */}
           <div style={{ marginBottom: '1.75rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                <span className="badge badge-primary" style={{ fontWeight: 700, padding: '4px 10px' }}>
-                  <i className="bi bi-shield-lock-fill"></i> Kontrol Akses & Keamanan
-                </span>
-                <span style={{ fontSize: '0.85rem', color: '#64748B' }}>Otentikasi & Manajemen Pengguna</span>
-              </div>
               <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                 Manajemen Akun Pengguna
               </h1>

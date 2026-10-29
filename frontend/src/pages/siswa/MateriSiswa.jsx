@@ -106,12 +106,6 @@ function MateriSiswa() {
 
           {/* Header */}
           <div style={{ marginBottom: '2rem' }}>
-            <div style={{ marginBottom: '10px' }}>
-              <span className="boutique-pill boutique-badge-blue">
-                <i className="bi bi-journal-bookmark-fill" style={{ fontSize: '0.85rem' }}></i>
-                MODUL & MATERI DIGITAL
-              </span>
-            </div>
             <h1 style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontSize: '2.1rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
               Materi Belajar Warga Belajar
             </h1>

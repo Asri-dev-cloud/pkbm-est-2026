@@ -159,12 +159,6 @@ function DashboardSiswa() {
 
           {/* ── Top Bar Header ── */}
           <div className="edutech-top-bar">
-            <div className="edutech-bar-left">
-              <span className="edutech-portal-pill">
-                <Sparkles size={12} /> PORTAL WARGA BELAJAR
-              </span>
-            </div>
-
             <div className="edutech-bar-right">
               <div className="edutech-date-chip">
                 <Calendar size={14} color="#1D4ED8" />
@@ -194,9 +188,6 @@ function DashboardSiswa() {
           <section className="edutech-hero-section">
             <div className="edutech-hero-content">
               <div className="edutech-hero-left">
-                <div className="edutech-hero-badge">
-                  <Sparkles size={12} /> PENDIDIKAN KESETARAAN RESMI
-                </div>
 
                 <h1 className="edutech-hero-headline">
                   Portal Belajar Mandiri <span className="highlight-gold">PKBM Bina Mandiri</span>

@@ -260,10 +260,6 @@ function ModulBukuSiswa() {
 
             {/* ── 1. Hero Welcome Header ───────────────────────── */}
             <div className="modul-siswa-hero">
-              <div className="modul-hero-badge">
-                <Sparkles size={14} />
-                <span>Pusat Sumber Belajar Digital</span>
-              </div>
               <h1>Kumpulan Modul & Buku Pembelajaran</h1>
               <p>
                 Akses modul pembelajaran mandiri resmi PKBM Bina Mandiri dan katalog buku teks

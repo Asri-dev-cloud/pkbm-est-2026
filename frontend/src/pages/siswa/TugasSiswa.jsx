@@ -1015,10 +1015,6 @@ function TugasSiswa() {
             <div className="tugas-hero">
               <div className="tugas-hero-content">
                 <div className="tugas-hero-text">
-                  <div className="tugas-hero-badge">
-                    <BookOpen size={14} />
-                    <span>{isStudent ? 'Portal Tugas Warga Belajar' : 'Panel Manajemen Tugas Super Admin'}</span>
-                  </div>
                   <h1 className="tugas-hero-title">
                     {isStudent
                       ? `Halo, ${user?.nama_lengkap || 'Warga Belajar'}!`
