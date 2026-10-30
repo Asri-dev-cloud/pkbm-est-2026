@@ -183,7 +183,7 @@ const KEUNGGULAN_GRID = [
     desc: "Modul, rangkuman, kuis, dan tugas online bisa diakses kapan saja dari HP.",
     badge: "TOP",
     icon: BookOpen,
-    img: "/images/kelas2.jpg"
+    img: "/images/LMS.png"
   },
   {
     title: "Bebas Batasan Usia",
@@ -197,7 +197,7 @@ const KEUNGGULAN_GRID = [
     desc: "Dirancang adaptif untuk karyawan shift, wiraswasta, dan ibu rumah tangga.",
     badge: "FAVORIT",
     icon: Clock,
-    img: "/images/rapat1.jpg"
+    img: "/images/Foto Pengganti A.jpg"
   },
   {
     title: "Binaan Dinas Pendidikan",
@@ -211,7 +211,7 @@ const KEUNGGULAN_GRID = [
     desc: "Tenaga pengajar berpengalaman membimbing warga belajar sampai lulus.",
     badge: "TERPERCAYA",
     icon: GraduationCap,
-    img: "/images/rapat2.jpg"
+    img: "/images/Foto Pengganti B.jpg"
   },
   {
     title: "Kelas Bahasa & Komputer",
@@ -234,7 +234,7 @@ const GALERI = [
   { src: "/images/gedung.jpeg", label: "Gedung Pusat Belajar & Pelayanan PKBM Bina Mandiri", position: "center" },
   { src: "/images/kelas1.jpg", label: "Aktivitas Belajar Tatap Muka & Diskusi Interaktif", position: "center" },
   { src: "/images/kelas2.jpg", label: "Pendampingan Modul & Literasi Warga Belajar", position: "center" },
-  { src: "/images/rapat1.jpg", label: "Pertemuan Evaluasi Akademik & Ujian Kesetaraan", position: "center" },
+  { src: "/images/Foto Pengganti C.jpg", label: "Pertemuan Evaluasi Akademik & Ujian Kesetaraan", position: "center" },
   { src: "/images/Foto Pengganti 2.jpeg", label: "Sinergi Tim Tutor & Pengelola Yayasan", position: "top" },
   { src: "/images/rapot.jpg", label: "Penyerahan Rapot & Pembagian Ijazah Resmi", position: "center" },
 ];
@@ -2039,12 +2039,12 @@ export default function HomePage() {
                         background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)"
                       }}
                     />
-                    {/* Category Pill on top - Transparan Glassmorphism */}
+                    {/* Category Pill on top - Transparan Glassmorphism (Kanan Atas) */}
                     <div
                       style={{
                         position: "absolute",
                         top: 10,
-                        left: 10,
+                        right: 10,
                         background: "rgba(15, 23, 42, 0.45)",
                         backdropFilter: "blur(8px)",
                         WebkitBackdropFilter: "blur(8px)",
@@ -2720,7 +2720,7 @@ export default function HomePage() {
                   { icon: MapPin, label: "Alamat Lembaga", val: "Dusun Sukahurip RT 03/RW 03, Legok Kaler, Kec. Paseh, Kab. Sumedang" },
                   { icon: ShieldCheck, label: "Naungan Yayasan", val: "Yayasan Amal Bina Insani Darulhuda" },
                   { icon: InstagramIcon, label: "Instagram Resmi", val: "@bina_mandiri_pkbm", href: "https://www.instagram.com/bina_mandiri_pkbm/" },
-                  { icon: Mail, label: "Email Resmi", val: "info@pkbm-binamandiri.id" },
+                  { icon: Mail, label: "Email Resmi", val: "pkbmbinamandiripaseh@gmail.com" },
                   { icon: Clock, label: "Jam Pelayanan", val: "Senin – Jumat, 08.00 – 16.00 WIB" },
                 ].map((item) => {
                   const Wrapper = item.href ? "a" : "div";
