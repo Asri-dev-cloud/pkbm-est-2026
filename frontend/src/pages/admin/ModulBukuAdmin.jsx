@@ -156,16 +156,19 @@ const KATEGORI_OPTIONS = [
 function ModulBukuAdmin() {
   const [user] = useState(() => JSON.parse(localStorage.getItem('pkbm_user') || '{}'));
 
-  // ── Data & List States ─────────────────────────────────────
-  const [modulList, setModulList] = useState([]);
-  const [stats, setStats] = useState({
-    total_semua: 0,
-    total_paket_a: 0,
-    total_paket_b: 0,
-    total_paket_c: 0,
-    total_dibaca_semua: 0,
+  // ── Data & List States (Optimistic Instant 0ms Render) ──
+  const [modulList, setModulList] = useState(() => getLocalStoredModul());
+  const [stats, setStats] = useState(() => {
+    const list = getLocalStoredModul();
+    return {
+      total_semua: list.length,
+      total_paket_a: list.filter((i) => i.kategori === 'Paket A').length,
+      total_paket_b: list.filter((i) => i.kategori === 'Paket B').length,
+      total_paket_c: list.filter((i) => i.kategori === 'Paket C').length,
+      total_dibaca_semua: list.reduce((acc, curr) => acc + (curr.total_dibaca || 0), 0),
+    };
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', msg: '' });
 
   // ── Filter & Search States ─────────────────────────────────
@@ -204,10 +207,9 @@ function ModulBukuAdmin() {
   const [previewItem, setPreviewItem] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // ── Fetch Data & Stats (Dengan Fallback Cerdas) ─────────────
+  // ── Fetch Data & Stats (Background Revalidation) ───────────
   const fetchData = async () => {
     try {
-      setLoading(true);
       const params = {};
       if (searchQuery.trim()) params.search = searchQuery.trim();
       if (kategoriFilter !== 'Semua') params.kategori = kategoriFilter;
@@ -218,11 +220,11 @@ function ModulBukuAdmin() {
         ModulBukuAPI.getStats(),
       ]);
 
-      if (resList.data?.success) {
-        setModulList(resList.data.data || []);
+      if (resList.data?.success && Array.isArray(resList.data.data) && resList.data.data.length > 0) {
+        setModulList(resList.data.data);
       }
-      if (resStats.data?.success) {
-        setStats(resStats.data.data || {});
+      if (resStats.data?.success && resStats.data.data) {
+        setStats(resStats.data.data);
       }
     } catch (err) {
       // Jika endpoint backend belum dideploy di server (404) atau server offline,

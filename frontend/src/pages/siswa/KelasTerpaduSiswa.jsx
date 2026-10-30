@@ -711,24 +711,6 @@ function KelasTerpaduSiswa() {
                   
                   {/* Left Side: Title & Tutor */}
                   <div className="kelas-terpadu-hero-main" style={{ flex: '1 1 500px' }}>
-                    <span style={{
-                      fontSize: '0.74rem',
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      background: 'rgba(250, 204, 21, 0.18)',
-                      color: '#FACC15',
-                      border: '1px solid rgba(250, 204, 21, 0.4)',
-                      padding: '4px 14px',
-                      borderRadius: '9999px',
-                      letterSpacing: '0.06em',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      marginBottom: '10px'
-                    }}>
-                      <i className="bi bi-mortarboard-fill"></i> KELAS TERPADU DIGITAL
-                    </span>
-                    
                     <h1 className="kelas-terpadu-title" style={{
                       fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
                       fontSize: '2.25rem',

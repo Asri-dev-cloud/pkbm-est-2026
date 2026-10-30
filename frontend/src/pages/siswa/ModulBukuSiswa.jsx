@@ -145,10 +145,10 @@ const formatFileSize = (bytes) => {
 function ModulBukuSiswa() {
   const [user] = useState(() => JSON.parse(localStorage.getItem('pkbm_user') || '{}'));
 
-  // ── States Navigasi & Data ─────────────────────────────────
+  // ── States Navigasi & Data (Optimistic Instant 0ms Render) ──
   const [activeTab, setActiveTab] = useState('modul'); // 'modul' | 'buku'
-  const [modulList, setModulList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [modulList, setModulList] = useState(() => getLocalStoredModul().filter((m) => m.is_published === 1));
+  const [loading, setLoading] = useState(false);
 
   // ── Filter States ──────────────────────────────────────────
   const [selectedJenjang, setSelectedJenjang] = useState('Semua');
@@ -158,17 +158,16 @@ function ModulBukuSiswa() {
   const [activeReader, setActiveReader] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // ── Ambil Data Modul ───────────────────────────────────────
+  // ── Ambil Data Modul (Background Revalidation) ─────────────
   const fetchModul = async () => {
     try {
-      setLoading(true);
       const params = {};
       if (selectedJenjang !== 'Semua') params.kategori = selectedJenjang;
       if (searchQuery.trim()) params.search = searchQuery.trim();
 
       const res = await ModulBukuAPI.getPublished(params);
-      if (res.data?.success) {
-        setModulList(res.data.data || []);
+      if (res.data?.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
+        setModulList(res.data.data);
       }
     } catch (err) {
       // Fallback lokal jika backend belum ter-deploy di server VPS

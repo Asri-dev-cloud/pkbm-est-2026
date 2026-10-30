@@ -39,7 +39,8 @@ import {
   FileText,
   Eye,
   Play,
-  Video
+  Video,
+  ExternalLink
 } from "lucide-react";
 
 // Komponen Ikon Instagram Resmi (Vector Stroke Seragam Lucide)
@@ -284,7 +285,8 @@ const TUTORIAL_VIDEOS = [
       "Unggah berkas KK & KTP via HP",
       "Konfirmasi penerimaan instan"
     ],
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://drive.google.com/file/d/1Ds-iO8p115U5rkarKApnSDxDRKtyucPJ/preview",
+    externalUrl: "https://drive.google.com/file/d/1Ds-iO8p115U5rkarKApnSDxDRKtyucPJ/view?usp=sharing",
     actionTo: "/daftar",
     actionLabel: "Buka Form SPMB"
   },
@@ -305,7 +307,8 @@ const TUTORIAL_VIDEOS = [
       "Pengumpulan tugas mingguan",
       "Simulasi latihan & ujian online"
     ],
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://drive.google.com/file/d/15y1KrURVGksUtpeHV_W7CqTzgxJ3ineO/preview",
+    externalUrl: "https://drive.google.com/file/d/15y1KrURVGksUtpeHV_W7CqTzgxJ3ineO/view?usp=sharing",
     actionTo: "/login",
     actionLabel: "Masuk Portal LMS"
   }
@@ -1446,6 +1449,8 @@ export default function HomePage() {
                       <img
                         src={v.coverImg}
                         alt={v.title}
+                        loading="lazy"
+                        decoding="async"
                         style={{
                           width: "100%",
                           height: "100%",
@@ -1716,6 +1721,8 @@ export default function HomePage() {
                     <img
                       src={p.img}
                       alt={p.title}
+                      loading="lazy"
+                      decoding="async"
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                     <div
@@ -2478,11 +2485,24 @@ export default function HomePage() {
                 justifyContent: "space-between",
                 alignItems: "center",
                 flexWrap: "wrap",
-                gap: 10
+                gap: 12
               }}
             >
-              <span style={{ maxWidth: "70%" }}>{videoModal.desc}</span>
-              <span style={{ color: "#FACC15", fontWeight: 700 }}>PKBM Bina Mandiri Official</span>
+              <span style={{ maxWidth: "62%" }}>{videoModal.desc}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {videoModal.externalUrl && (
+                  <a
+                    href={videoModal.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="cute-pill-btn btn-yellow"
+                    style={{ padding: "6px 14px", fontSize: "0.78rem" }}
+                  >
+                    <span>Buka di Google Drive</span>
+                    <ExternalLink size={13} />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -2563,37 +2583,9 @@ export default function HomePage() {
                     transition: "all 0.3s ease"
                   }}
                 >
-                  {/* Photo with Pill Badge Header */}
+                  {/* Photo Thumbnail */}
                   <div style={{ height: 160, borderRadius: 16, overflow: "hidden", position: "relative" }}>
                     <img src={c.img} alt={c.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    <div
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)"
-                      }}
-                    />
-                    {/* Category Pill on top - Transparan Glassmorphism (Kanan Atas) */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 10,
-                        right: 10,
-                        background: "rgba(15, 23, 42, 0.45)",
-                        backdropFilter: "blur(8px)",
-                        WebkitBackdropFilter: "blur(8px)",
-                        color: "#FFFFFF",
-                        border: "1px solid rgba(255, 255, 255, 0.35)",
-                        padding: "4px 10px",
-                        borderRadius: 9999,
-                        fontSize: "0.68rem",
-                        fontWeight: 800,
-                        letterSpacing: "0.02em",
-                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)"
-                      }}
-                    >
-                      {c.tag}
-                    </div>
                   </div>
 
                   {/* Card Text */}
@@ -2807,36 +2799,9 @@ export default function HomePage() {
                   flexDirection: "column"
                 }}
               >
-                {/* Photo Thumbnail with Top Badge */}
+                {/* Photo Thumbnail */}
                 <div style={{ height: "clamp(130px, 22vw, 155px)", position: "relative", overflow: "hidden", background: "#EFF6FF" }}>
-                  <img src={k.img} alt={k.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background: "linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%)"
-                    }}
-                  />
-                  {/* Badge Transparan Glassmorphism */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      background: "rgba(15, 23, 42, 0.45)",
-                      backdropFilter: "blur(8px)",
-                      WebkitBackdropFilter: "blur(8px)",
-                      color: "#FFFFFF",
-                      padding: "3px 9px",
-                      borderRadius: 9999,
-                      fontSize: "0.68rem",
-                      fontWeight: 800,
-                      border: "1px solid rgba(255, 255, 255, 0.35)",
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)"
-                    }}
-                  >
-                    {k.badge}
-                  </div>
+                  <img src={k.img} alt={k.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
 
                 {/* Content */}
@@ -3187,61 +3152,46 @@ export default function HomePage() {
               <ChevronRight size={22} />
             </button>
 
-            {/* Caption & Counter Strip di Bawah */}
+          </div>
+
+          {/* Caption & Counter Strip di Bawah Foto Utama (100% Utuh & Tidak Menutupi Wajah/Objek Foto) */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 16,
+              padding: "0 6px"
+            }}
+          >
             <div
               style={{
-                position: "absolute",
-                bottom: 18,
-                left: 18,
-                right: 18,
-                zIndex: 4,
+                color: "#1E293B",
+                fontWeight: 800,
+                fontSize: "clamp(0.92rem, 1.8vw, 1.05rem)",
                 display: "flex",
-                justifyContent: "space-between",
                 alignItems: "center",
-                gap: 12,
-                pointerEvents: "none"
+                gap: 8
               }}
             >
-              <div
-                style={{
-                  background: "rgba(15, 23, 42, 0.8)",
-                  backdropFilter: "blur(12px)",
-                  WebkitBackdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255, 255, 255, 0.22)",
-                  borderRadius: 14,
-                  padding: "8px 18px",
-                  color: "#FFFFFF",
-                  fontWeight: 800,
-                  fontSize: "clamp(0.82rem, 1.6vw, 0.98rem)",
-                  boxShadow: "0 6px 20px rgba(0,0,0,0.35)",
-                  pointerEvents: "auto",
-                  maxWidth: "80%",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis"
-                }}
-              >
-                {GALERI[activeGaleri].label}
-              </div>
+              <Sparkles size={16} color="#1D4ED8" />
+              <span>{GALERI[activeGaleri].label}</span>
+            </div>
 
-              <div
-                style={{
-                  background: "rgba(15, 23, 42, 0.8)",
-                  backdropFilter: "blur(12px)",
-                  WebkitBackdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255, 255, 255, 0.22)",
-                  borderRadius: 9999,
-                  padding: "6px 14px",
-                  color: "#FACC15",
-                  fontWeight: 800,
-                  fontSize: "0.8rem",
-                  whiteSpace: "nowrap",
-                  boxShadow: "0 6px 20px rgba(0,0,0,0.35)",
-                  pointerEvents: "auto"
-                }}
-              >
-                {activeGaleri + 1} / {GALERI.length}
-              </div>
+            <div
+              style={{
+                background: "#EFF6FF",
+                border: "1px solid #BFDBFE",
+                borderRadius: 9999,
+                padding: "4px 12px",
+                color: "#1D4ED8",
+                fontWeight: 800,
+                fontSize: "0.78rem",
+                whiteSpace: "nowrap"
+              }}
+            >
+              Foto {activeGaleri + 1} dari {GALERI.length}
             </div>
           </div>
 

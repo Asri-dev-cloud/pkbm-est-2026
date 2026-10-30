@@ -6,10 +6,12 @@
 // ============================================================
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
 import { SiswaAPI } from '../../services/api.js';
 
 function RuangBelajarSiswa() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('pkbm_user') || '{}'));
   const [mapels, setMapels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +107,7 @@ function RuangBelajarSiswa() {
   const handleMasukKelas = (mapelId) => {
     const rombelId = isStudent ? user.rombel_id : selectedRombelId;
     const targetUrl = `/dashboard/siswa/kelas/${mapelId}?rombel_id=${rombelId}`;
-    window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    navigate(targetUrl);
   };
 
   // ── Warna Gradien Estetik per Card ──────────────────────────
