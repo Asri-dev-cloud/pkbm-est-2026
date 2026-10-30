@@ -197,7 +197,7 @@ const KEUNGGULAN_GRID = [
     desc: "Dirancang adaptif untuk karyawan shift, wiraswasta, dan ibu rumah tangga.",
     badge: "FAVORIT",
     icon: Clock,
-    img: "/images/Foto Pengganti A.jpg"
+    img: "/images/Foto Pengganti A.jpeg"
   },
   {
     title: "Binaan Dinas Pendidikan",
@@ -211,7 +211,7 @@ const KEUNGGULAN_GRID = [
     desc: "Tenaga pengajar berpengalaman membimbing warga belajar sampai lulus.",
     badge: "TERPERCAYA",
     icon: GraduationCap,
-    img: "/images/Foto Pengganti B.jpg"
+    img: "/images/Foto Pengganti B.jpeg"
   },
   {
     title: "Kelas Bahasa & Komputer",
@@ -234,8 +234,8 @@ const GALERI = [
   { src: "/images/gedung.jpeg", label: "Gedung Pusat Belajar & Pelayanan PKBM Bina Mandiri", position: "center" },
   { src: "/images/kelas1.jpg", label: "Aktivitas Belajar Tatap Muka & Diskusi Interaktif", position: "center" },
   { src: "/images/kelas2.jpg", label: "Pendampingan Modul & Literasi Warga Belajar", position: "center" },
-  { src: "/images/Foto Pengganti C.jpg", label: "Pertemuan Evaluasi Akademik & Ujian Kesetaraan", position: "center" },
-  { src: "/images/Foto Pengganti 2.jpeg", label: "Sinergi Tim Tutor & Pengelola Yayasan", position: "top" },
+  { src: "/images/Foto Pengganti C.jpeg", label: "Pertemuan Evaluasi Akademik & Ujian Kesetaraan", position: "center" },
+  { src: "/images/Foto Pengganti 2.jpeg", label: "Sinergi Tim Tutor & Pengelola Yayasan", position: "center" },
   { src: "/images/rapot.jpg", label: "Penyerahan Rapot & Pembagian Ijazah Resmi", position: "center" },
 ];
 
@@ -270,6 +270,7 @@ export default function HomePage() {
   const [activeGaleri, setActiveGaleri] = useState(0);
   const [likedPrograms, setLikedPrograms] = useState({});
   const [showBrosurModal, setShowBrosurModal] = useState(false);
+  const [showGaleriModal, setShowGaleriModal] = useState(false);
   const carouselRef = useRef(null);
 
   useEffect(() => {
@@ -1954,6 +1955,95 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* ── MODAL LIGHTBOX FOTO GALERI UKURAN ASLI PENUH ── */}
+      {showGaleriModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(10, 15, 28, 0.94)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px"
+          }}
+          onClick={() => setShowGaleriModal(false)}
+        >
+          {/* Header Bar Lightbox */}
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 1100,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 14,
+              color: "#FFFFFF"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div>
+              <div style={{ fontWeight: 800, fontSize: "1.05rem" }}>{GALERI[activeGaleri].label}</div>
+              <div style={{ fontSize: "0.76rem", color: "#94A3B8" }}>Foto {activeGaleri + 1} dari {GALERI.length} · Ukuran Asli Penuh</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowGaleriModal(false)}
+              style={{
+                background: "rgba(255, 255, 255, 0.15)",
+                border: "1px solid rgba(255, 255, 255, 0.3)",
+                color: "#FFFFFF",
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.2s"
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.8)")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)")}
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Image Container: Full original aspect ratio, 100% uncropped */}
+          <div
+            style={{
+              position: "relative",
+              maxWidth: 1100,
+              maxHeight: "82vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 16,
+              overflow: "hidden",
+              boxShadow: "0 25px 60px rgba(0,0,0,0.6)"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={GALERI[activeGaleri].src}
+              alt={GALERI[activeGaleri].label}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "82vh",
+                width: "auto",
+                height: "auto",
+                objectFit: "contain",
+                borderRadius: 14
+              }}
+            />
+          </div>
+        </div>
+      )}
+
 
       {/* ══════════════════════════════════════════════════════════
           4. SECTION 3: WAVY BANNER CONTAINER ("PILIH SESUAI KEBUTUHAN")
@@ -2508,49 +2598,206 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Main Large Viewer */}
+          {/* Main Large Viewer - 100% Utuh Tanpa Terpotong (Mengikuti Ukuran Asli) */}
           <div
             style={{
               borderRadius: 28,
               overflow: "hidden",
               marginBottom: 16,
-              height: "clamp(420px, 45vw, 520px)",
+              height: "clamp(440px, 52vw, 600px)",
               position: "relative",
               border: "1px solid #E2E8F0",
-              boxShadow: "0 16px 36px rgba(15, 23, 42, 0.08)"
+              boxShadow: "0 16px 36px rgba(15, 23, 42, 0.08)",
+              background: "#0B0F19",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "zoom-in"
             }}
+            onClick={() => setShowGaleriModal(true)}
+            title="Klik untuk melihat foto ukuran penuh"
           >
-            <img
-              src={GALERI[activeGaleri].src}
-              alt={GALERI[activeGaleri].label}
+            {/* Ambient Blurred Backdrop (Mengisi ruang kosong dengan pantulan warna foto secara artistik) */}
+            <div
+              key={`ambient-${GALERI[activeGaleri].src}`}
               style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                objectPosition: GALERI[activeGaleri].position || "center",
-                transition: "opacity 0.4s ease"
+                position: "absolute",
+                inset: -24,
+                backgroundImage: `url("${GALERI[activeGaleri].src}")`,
+                backgroundPosition: "center",
+                backgroundSize: "cover",
+                filter: "blur(32px) brightness(0.38) saturate(1.2)",
+                transform: "scale(1.15)",
+                transition: "background-image 0.4s ease",
+                pointerEvents: "none"
               }}
             />
+
+            {/* Subtle Vignette Gradient */}
             <div
               style={{
                 position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                background: "linear-gradient(transparent, rgba(15,23,42,0.9))",
-                padding: "36px 24px 20px"
+                inset: 0,
+                background: "radial-gradient(circle at center, rgba(0,0,0,0.05) 0%, rgba(11,15,25,0.65) 100%)",
+                pointerEvents: "none",
+                zIndex: 1
+              }}
+            />
+
+            {/* Gambar Utama: 100% Utuh & Tidak Terpotong (objectFit: contain) */}
+            <img
+              key={GALERI[activeGaleri].src}
+              src={GALERI[activeGaleri].src}
+              alt={GALERI[activeGaleri].label}
+              style={{
+                position: "relative",
+                zIndex: 2,
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                display: "block",
+                margin: "0 auto",
+                transition: "opacity 0.3s ease"
+              }}
+            />
+
+            {/* Tombol Panah Kiri (Prev) */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveGaleri((prev) => (prev - 1 + GALERI.length) % GALERI.length);
+              }}
+              style={{
+                position: "absolute",
+                left: 16,
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 4,
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
+                background: "rgba(15, 23, 42, 0.7)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                border: "1px solid rgba(255, 255, 255, 0.3)",
+                color: "#FFFFFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
+                transition: "all 0.2s ease"
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "rgba(29, 78, 216, 0.9)";
+                e.currentTarget.style.transform = "translateY(-50%) scale(1.08)";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "rgba(15, 23, 42, 0.7)";
+                e.currentTarget.style.transform = "translateY(-50%) scale(1)";
+              }}
+              title="Foto Sebelumnya"
+            >
+              <ChevronLeft size={22} />
+            </button>
+
+            {/* Tombol Panah Kanan (Next) */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveGaleri((prev) => (prev + 1) % GALERI.length);
+              }}
+              style={{
+                position: "absolute",
+                right: 16,
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 4,
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
+                background: "rgba(15, 23, 42, 0.7)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                border: "1px solid rgba(255, 255, 255, 0.3)",
+                color: "#FFFFFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
+                transition: "all 0.2s ease"
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "rgba(29, 78, 216, 0.9)";
+                e.currentTarget.style.transform = "translateY(-50%) scale(1.08)";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "rgba(15, 23, 42, 0.7)";
+                e.currentTarget.style.transform = "translateY(-50%) scale(1)";
+              }}
+              title="Foto Selanjutnya"
+            >
+              <ChevronRight size={22} />
+            </button>
+
+            {/* Caption & Counter Strip di Bawah */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: 18,
+                left: 18,
+                right: 18,
+                zIndex: 4,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+                pointerEvents: "none"
               }}
             >
-              <span
+              <div
                 style={{
+                  background: "rgba(15, 23, 42, 0.8)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255, 255, 255, 0.22)",
+                  borderRadius: 14,
+                  padding: "8px 18px",
                   color: "#FFFFFF",
                   fontWeight: 800,
-                  fontSize: "1.1rem",
-                  display: "inline-block"
+                  fontSize: "clamp(0.82rem, 1.6vw, 0.98rem)",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.35)",
+                  pointerEvents: "auto",
+                  maxWidth: "80%",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
                 }}
               >
                 {GALERI[activeGaleri].label}
-              </span>
+              </div>
+
+              <div
+                style={{
+                  background: "rgba(15, 23, 42, 0.8)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255, 255, 255, 0.22)",
+                  borderRadius: 9999,
+                  padding: "6px 14px",
+                  color: "#FACC15",
+                  fontWeight: 800,
+                  fontSize: "0.8rem",
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.35)",
+                  pointerEvents: "auto"
+                }}
+              >
+                {activeGaleri + 1} / {GALERI.length}
+              </div>
             </div>
           </div>
 
