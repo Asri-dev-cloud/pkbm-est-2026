@@ -1331,27 +1331,6 @@ export default function HomePage() {
 
           {/* Section Header */}
           <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 46px" }}>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                background: "#EFF6FF",
-                color: "#1D4ED8",
-                border: "1px solid #BFDBFE",
-                padding: "6px 14px",
-                borderRadius: 9999,
-                fontSize: "0.78rem",
-                fontWeight: 800,
-                letterSpacing: "0.04em",
-                marginBottom: 14,
-                boxShadow: "0 2px 8px rgba(29, 78, 216, 0.08)"
-              }}
-            >
-              <Video size={14} />
-              <span>PANDUAN VIDEO RESMI</span>
-            </div>
-
             <h2
               style={{
                 fontSize: "clamp(1.9rem, 3.6vw, 2.7rem)",
@@ -1507,86 +1486,12 @@ export default function HomePage() {
                       >
                         <Play size={30} fill={v.accentColor} style={{ marginLeft: 4 }} />
                       </div>
-
-                      {/* Badge Durasi Video Mengambang di Kanan Atas */}
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: 16,
-                          right: 20,
-                          background: "rgba(15, 23, 42, 0.8)",
-                          backdropFilter: "blur(10px)",
-                          WebkitBackdropFilter: "blur(10px)",
-                          color: "#FACC15",
-                          border: "1px solid rgba(255, 255, 255, 0.35)",
-                          borderRadius: 9999,
-                          padding: "5px 14px",
-                          fontSize: "0.74rem",
-                          fontWeight: 800,
-                          letterSpacing: "0.02em",
-                          boxShadow: "0 4px 14px rgba(0,0,0,0.3)"
-                        }}
-                      >
-                        ▶ Video {v.duration}
-                      </div>
-
-                      {/* Badge Kategori Mini di Kiri Bawah Blob */}
-                      <div
-                        style={{
-                          position: "absolute",
-                          bottom: 16,
-                          left: 20,
-                          background: "rgba(15, 23, 42, 0.75)",
-                          backdropFilter: "blur(10px)",
-                          WebkitBackdropFilter: "blur(10px)",
-                          color: "#FFFFFF",
-                          border: "1px solid rgba(255, 255, 255, 0.25)",
-                          borderRadius: 9999,
-                          padding: "4px 12px",
-                          fontSize: "0.72rem",
-                          fontWeight: 700,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 6
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 7,
-                            height: 7,
-                            borderRadius: "50%",
-                            background: idx === 0 ? "#FACC15" : "#34D399"
-                          }}
-                        />
-                        <span>{idx === 0 ? "Portal SPMB" : "Portal LMS"}</span>
-                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* ── KONTEN DESKRIPSI DI BAWAH BLOB (BERSIH & TERBUKA TANPA KOTAK) ── */}
                 <div style={{ padding: "0 6px", display: "flex", flexDirection: "column" }}>
-                  {/* Category Pill Strip */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                    <span
-                      style={{
-                        background: v.tagColor.bg,
-                        color: v.tagColor.text,
-                        border: `1px solid ${v.tagColor.border}`,
-                        padding: "4px 12px",
-                        borderRadius: 9999,
-                        fontSize: "0.72rem",
-                        fontWeight: 800,
-                        letterSpacing: "0.03em"
-                      }}
-                    >
-                      {v.tag}
-                    </span>
-                    <span style={{ fontSize: "0.78rem", color: "#64748B", fontWeight: 700 }}>
-                      Panduan Resmi · Warga Belajar
-                    </span>
-                  </div>
-
                   {/* Headline */}
                   <h3
                     style={{
