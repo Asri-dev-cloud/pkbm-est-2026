@@ -2361,89 +2361,117 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ── MODAL PEMUTAR VIDEO TUTORIAL INTERAKTIF ── */}
+      {/* ── MODAL PEMUTAR VIDEO TUTORIAL INTERAKTIF (CLEAN BOUTIQUE & MOBILE OPTIMIZED) ── */}
       {videoModal && (
         <div
           style={{
             position: "fixed",
             inset: 0,
             zIndex: 9999,
-            background: "rgba(10, 15, 28, 0.92)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
+            background: "rgba(15, 23, 42, 0.78)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "20px"
+            padding: "clamp(10px, 3vw, 24px)"
           }}
           onClick={() => setVideoModal(null)}
         >
           <div
             style={{
               position: "relative",
-              maxWidth: 840,
+              maxWidth: 860,
               width: "100%",
-              background: "#181A20",
-              borderRadius: 24,
+              maxHeight: "92vh",
+              background: "#FFFFFF",
+              borderRadius: "clamp(18px, 3vw, 26px)",
               overflow: "hidden",
-              border: "1px solid rgba(255, 255, 255, 0.16)",
-              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.75)",
+              border: "1px solid #E2E8F0",
+              boxShadow: "0 25px 60px -10px rgba(15, 23, 42, 0.4), 0 8px 24px rgba(0, 0, 0, 0.12)",
               display: "flex",
               flexDirection: "column"
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
+            {/* Modal Header — Bersih, Elegan & Kontras Tinggi */}
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                padding: "16px 22px",
-                borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-                background: "#13151A",
-                color: "#FFFFFF"
+                padding: "clamp(12px, 2.5vw, 18px) clamp(16px, 3vw, 24px)",
+                borderBottom: "1px solid #F1F5F9",
+                background: "#FFFFFF",
+                gap: 12
               }}
             >
-              <div>
-                <span
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                  <span
+                    style={{
+                      background: "#EFF6FF",
+                      color: "#1D4ED8",
+                      border: "1px solid #BFDBFE",
+                      fontSize: "0.68rem",
+                      fontWeight: 800,
+                      padding: "3px 10px",
+                      borderRadius: 9999,
+                      letterSpacing: "0.03em",
+                      display: "inline-block"
+                    }}
+                  >
+                    {videoModal.tag || "PANDUAN RESMI"}
+                  </span>
+                  <span style={{ fontSize: "0.75rem", color: "#64748B", fontWeight: 700 }}>
+                    Durasi: {videoModal.duration || "Singkat"}
+                  </span>
+                </div>
+                <h3
                   style={{
-                    background: "#FACC15",
+                    margin: 0,
+                    fontSize: "clamp(0.95rem, 2.2vw, 1.25rem)",
+                    fontWeight: 900,
                     color: "#0F172A",
-                    fontSize: "0.7rem",
-                    fontWeight: 800,
-                    padding: "2px 8px",
-                    borderRadius: 9999,
-                    display: "inline-block",
-                    marginBottom: 4
+                    lineHeight: 1.3,
+                    letterSpacing: "-0.01em"
                   }}
                 >
-                  {videoModal.tag || "TUTORIAL"}
-                </span>
-                <h4 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 800 }}>
                   {videoModal.title}
-                </h4>
+                </h3>
               </div>
+
+              {/* Tombol Tutup Bulat */}
               <button
                 type="button"
                 onClick={() => setVideoModal(null)}
+                aria-label="Tutup video"
                 style={{
-                  background: "rgba(255, 255, 255, 0.1)",
-                  border: "none",
-                  color: "#FFFFFF",
-                  width: 34,
-                  height: 34,
+                  background: "#F1F5F9",
+                  border: "1px solid #E2E8F0",
+                  color: "#475569",
+                  width: 36,
+                  height: 36,
                   borderRadius: "50%",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  transition: "background 0.2s"
+                  flexShrink: 0,
+                  transition: "all 0.2s ease"
                 }}
-                onMouseOver={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.8)")}
-                onMouseOut={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)")}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = "#FEE2E2";
+                  e.currentTarget.style.color = "#DC2626";
+                  e.currentTarget.style.borderColor = "#FECACA";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = "#F1F5F9";
+                  e.currentTarget.style.color = "#475569";
+                  e.currentTarget.style.borderColor = "#E2E8F0";
+                }}
               >
-                <X size={18} />
+                <X size={18} strokeWidth={2.5} />
               </button>
             </div>
 
@@ -2452,8 +2480,8 @@ export default function HomePage() {
               style={{
                 position: "relative",
                 width: "100%",
-                paddingTop: "56.25%", // 16:9 Aspect Ratio
-                background: "#000000"
+                paddingTop: "56.25%", // 16:9 Ratio
+                background: "#0F172A"
               }}
             >
               <iframe
@@ -2472,36 +2500,84 @@ export default function HomePage() {
               />
             </div>
 
-            {/* Modal Description Footer */}
+            {/* Modal Footer — Rapi & Responsif di HP & Desktop */}
             <div
               style={{
-                padding: "14px 22px",
-                background: "#13151A",
-                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-                color: "#94A3B8",
-                fontSize: "0.82rem",
-                lineHeight: 1.5,
+                padding: "clamp(14px, 2.5vw, 18px) clamp(16px, 3vw, 24px)",
+                background: "#F8FAFC",
+                borderTop: "1px solid #E2E8F0",
                 display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 12
+                flexDirection: "column",
+                gap: 12,
+                overflowY: "auto"
               }}
             >
-              <span style={{ maxWidth: "62%" }}>{videoModal.desc}</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {videoModal.externalUrl && (
-                  <a
-                    href={videoModal.externalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="cute-pill-btn btn-yellow"
-                    style={{ padding: "6px 14px", fontSize: "0.78rem" }}
+              {/* Deskripsi Video */}
+              <p
+                style={{
+                  margin: 0,
+                  color: "#334155",
+                  fontSize: "clamp(0.82rem, 1.8vw, 0.9rem)",
+                  lineHeight: 1.6,
+                  fontWeight: 500
+                }}
+              >
+                {videoModal.desc}
+              </p>
+
+              {/* Tombol Aksi — Fleksibel Desktop & Mobile */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 10,
+                  paddingTop: 6,
+                  borderTop: "1px dashed #E2E8F0"
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.76rem", color: "#64748B", fontWeight: 700 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#10B981", display: "inline-block" }} />
+                  <span>Kanal Resmi PKBM Bina Mandiri</span>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", width: "auto" }}>
+                  {videoModal.externalUrl && (
+                    <a
+                      href={videoModal.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="cute-pill-btn btn-yellow"
+                      style={{
+                        padding: "9px 18px",
+                        fontSize: "0.84rem",
+                        boxShadow: "0 4px 12px rgba(234, 179, 8, 0.35)",
+                        textDecoration: "none"
+                      }}
+                    >
+                      <span>Buka di Google Drive</span>
+                      <ExternalLink size={14} />
+                    </a>
+                  )}
+
+                  <Link
+                    to={videoModal.actionTo || "/daftar"}
+                    onClick={() => setVideoModal(null)}
+                    className="cute-pill-btn"
+                    style={{
+                      padding: "9px 16px",
+                      fontSize: "0.84rem",
+                      background: "#FFFFFF",
+                      color: "#1D4ED8",
+                      border: "1.5px solid #BFDBFE",
+                      textDecoration: "none"
+                    }}
                   >
-                    <span>Buka di Google Drive</span>
-                    <ExternalLink size={13} />
-                  </a>
-                )}
+                    <span>{videoModal.actionLabel || "Selengkapnya"}</span>
+                    <ArrowRight size={14} />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -2583,9 +2659,43 @@ export default function HomePage() {
                     transition: "all 0.3s ease"
                   }}
                 >
-                  {/* Photo Thumbnail */}
+                  {/* Photo Thumbnail with Category Badge on Top-Right */}
                   <div style={{ height: 160, borderRadius: 16, overflow: "hidden", position: "relative" }}>
-                    <img src={c.img} alt={c.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img
+                      src={c.img}
+                      alt={c.title}
+                      loading="lazy"
+                      decoding="async"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: "linear-gradient(to top, rgba(15, 23, 42, 0.45) 0%, transparent 60%)"
+                      }}
+                    />
+                    {/* Badge Kategori Transparan Glassmorphism (Kanan Atas) */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 10,
+                        right: 10,
+                        background: "rgba(15, 23, 42, 0.65)",
+                        backdropFilter: "blur(8px)",
+                        WebkitBackdropFilter: "blur(8px)",
+                        color: "#FFFFFF",
+                        border: "1px solid rgba(255, 255, 255, 0.4)",
+                        padding: "4px 10px",
+                        borderRadius: 9999,
+                        fontSize: "0.7rem",
+                        fontWeight: 800,
+                        letterSpacing: "0.02em",
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)"
+                      }}
+                    >
+                      {c.tag}
+                    </div>
                   </div>
 
                   {/* Card Text */}
