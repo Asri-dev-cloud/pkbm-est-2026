@@ -2441,70 +2441,18 @@ export default function HomePage() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header — Bersih, Terang & Rapi di Mobile */}
+            {/* Modal Header — Bersih, Kompak & Rapi */}
             <div
               style={{
                 padding: "14px 18px",
                 borderBottom: "1px solid #F1F5F9",
-                background: "#FFFFFF"
+                background: "#FFFFFF",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12
               }}
             >
-              {/* Baris 1: Tag & Tombol Tutup */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span
-                    style={{
-                      background: "#EFF6FF",
-                      color: "#1D4ED8",
-                      border: "1px solid #BFDBFE",
-                      fontSize: "0.68rem",
-                      fontWeight: 800,
-                      padding: "3px 10px",
-                      borderRadius: 9999,
-                      letterSpacing: "0.03em"
-                    }}
-                  >
-                    {videoModal.tag || "PANDUAN RESMI"}
-                  </span>
-                  <span style={{ fontSize: "0.74rem", color: "#64748B", fontWeight: 700 }}>
-                    Durasi: {videoModal.duration || "Singkat"}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleCloseVideo}
-                  aria-label="Tutup video"
-                  style={{
-                    background: "#F1F5F9",
-                    border: "1px solid #E2E8F0",
-                    color: "#475569",
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    transition: "all 0.2s ease"
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = "#FEE2E2";
-                    e.currentTarget.style.color = "#DC2626";
-                    e.currentTarget.style.borderColor = "#FECACA";
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = "#F1F5F9";
-                    e.currentTarget.style.color = "#475569";
-                    e.currentTarget.style.borderColor = "#E2E8F0";
-                  }}
-                >
-                  <X size={17} strokeWidth={2.5} />
-                </button>
-              </div>
-
-              {/* Baris 2: Judul Video Utuh & Seimbang */}
               <h3
                 style={{
                   margin: 0,
@@ -2513,11 +2461,43 @@ export default function HomePage() {
                   color: "#0F172A",
                   lineHeight: 1.35,
                   letterSpacing: "-0.01em",
-                  textWrap: "balance"
+                  flex: 1
                 }}
               >
                 {videoModal.title}
               </h3>
+
+              <button
+                type="button"
+                onClick={handleCloseVideo}
+                aria-label="Tutup video"
+                style={{
+                  background: "#F1F5F9",
+                  border: "1px solid #E2E8F0",
+                  color: "#475569",
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  transition: "all 0.2s ease"
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = "#FEE2E2";
+                  e.currentTarget.style.color = "#DC2626";
+                  e.currentTarget.style.borderColor = "#FECACA";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = "#F1F5F9";
+                  e.currentTarget.style.color = "#475569";
+                  e.currentTarget.style.borderColor = "#E2E8F0";
+                }}
+              >
+                <X size={17} strokeWidth={2.5} />
+              </button>
             </div>
 
             {/* Video Player Frame — Pemutar Bersih Bebas Layer Hitam & Bebas Toolbar Drive */}
