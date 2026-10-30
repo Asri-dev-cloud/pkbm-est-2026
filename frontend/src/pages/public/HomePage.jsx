@@ -568,6 +568,47 @@ export default function HomePage() {
           scroll-margin-top: 100px;
         }
 
+        /* ── OPTIMASI KELANCARAN & KECEPATAN RENDER MOBILE (CONTENT-VISIBILITY) ── */
+        #program, #kebutuhan, #keunggulan, #galeri, #faq, #kontak {
+          content-visibility: auto;
+          contain-intrinsic-size: 1px 650px;
+        }
+
+        /* Modal Video Tutorial Responsif Tanpa Layer Hitam */
+        .video-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          background: rgba(255, 255, 255, 0.88);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 16px;
+        }
+        @media (max-width: 640px) {
+          .video-modal-overlay {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.96);
+          }
+          .video-modal-card {
+            border-radius: 20px !important;
+            max-height: 96vh !important;
+          }
+          .video-modal-actions {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+            width: 100% !important;
+          }
+          .video-modal-actions .cute-pill-btn {
+            width: 100% !important;
+            padding: 10px 8px !important;
+            font-size: 0.78rem !important;
+          }
+        }
+
         /* Program Cards Slider (Horizontal 100% Utuh Tanpa Terpotong di Mobile, 4 Kolom di Desktop) */
         @media (min-width: 1024px) {
           .program-carousel-grid {
@@ -2011,6 +2052,8 @@ export default function HomePage() {
                       <img
                         src="/images/Foto Pengganti 3.jpeg"
                         alt="Brosur Resmi PKBM Bina Mandiri"
+                        loading="lazy"
+                        decoding="async"
                         style={{
                           width: "100%",
                           height: "auto",
@@ -2095,6 +2138,8 @@ export default function HomePage() {
                     <img
                       src="/images/logo new.png"
                       alt="Logo PKBM Bina Mandiri"
+                      loading="lazy"
+                      decoding="async"
                       style={{ width: "100%", height: "100%", objectFit: "contain" }}
                     />
                   </div>
@@ -2116,6 +2161,8 @@ export default function HomePage() {
                     <img
                       src="/images/logo_yayasan.jpg"
                       alt="Logo Yayasan Amal Bina Insani Darulhuda"
+                      loading="lazy"
+                      decoding="async"
                       style={{ width: "100%", height: "100%", objectFit: "contain" }}
                     />
                   </div>
@@ -2361,53 +2408,40 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ── MODAL PEMUTAR VIDEO TUTORIAL INTERAKTIF (CLEAN BOUTIQUE & MOBILE OPTIMIZED) ── */}
+      {/* ── MODAL PEMUTAR VIDEO TUTORIAL (BERSIH, TANPA LAYER HITAM & MOBILE COMPACT) ── */}
       {videoModal && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            background: "rgba(15, 23, 42, 0.78)",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "clamp(10px, 3vw, 24px)"
-          }}
+          className="video-modal-overlay"
           onClick={() => setVideoModal(null)}
         >
           <div
+            className="video-modal-card"
             style={{
               position: "relative",
-              maxWidth: 860,
+              maxWidth: 780,
               width: "100%",
-              maxHeight: "92vh",
+              maxHeight: "94vh",
               background: "#FFFFFF",
-              borderRadius: "clamp(18px, 3vw, 26px)",
+              borderRadius: 24,
               overflow: "hidden",
-              border: "1px solid #E2E8F0",
-              boxShadow: "0 25px 60px -10px rgba(15, 23, 42, 0.4), 0 8px 24px rgba(0, 0, 0, 0.12)",
+              border: "1.5px solid #E2E8F0",
+              boxShadow: "0 20px 50px -10px rgba(15, 23, 42, 0.25), 0 4px 16px rgba(0, 0, 0, 0.06)",
               display: "flex",
               flexDirection: "column"
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header — Bersih, Elegan & Kontras Tinggi */}
+            {/* Modal Header — Bersih, Terang & Rapi di Mobile */}
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "clamp(12px, 2.5vw, 18px) clamp(16px, 3vw, 24px)",
+                padding: "14px 18px",
                 borderBottom: "1px solid #F1F5F9",
-                background: "#FFFFFF",
-                gap: 12
+                background: "#FFFFFF"
               }}
             >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              {/* Baris 1: Tag & Tombol Tutup */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span
                     style={{
                       background: "#EFF6FF",
@@ -2417,71 +2451,74 @@ export default function HomePage() {
                       fontWeight: 800,
                       padding: "3px 10px",
                       borderRadius: 9999,
-                      letterSpacing: "0.03em",
-                      display: "inline-block"
+                      letterSpacing: "0.03em"
                     }}
                   >
                     {videoModal.tag || "PANDUAN RESMI"}
                   </span>
-                  <span style={{ fontSize: "0.75rem", color: "#64748B", fontWeight: 700 }}>
+                  <span style={{ fontSize: "0.74rem", color: "#64748B", fontWeight: 700 }}>
                     Durasi: {videoModal.duration || "Singkat"}
                   </span>
                 </div>
-                <h3
+
+                <button
+                  type="button"
+                  onClick={() => setVideoModal(null)}
+                  aria-label="Tutup video"
                   style={{
-                    margin: 0,
-                    fontSize: "clamp(0.95rem, 2.2vw, 1.25rem)",
-                    fontWeight: 900,
-                    color: "#0F172A",
-                    lineHeight: 1.3,
-                    letterSpacing: "-0.01em"
+                    background: "#F1F5F9",
+                    border: "1px solid #E2E8F0",
+                    color: "#475569",
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = "#FEE2E2";
+                    e.currentTarget.style.color = "#DC2626";
+                    e.currentTarget.style.borderColor = "#FECACA";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = "#F1F5F9";
+                    e.currentTarget.style.color = "#475569";
+                    e.currentTarget.style.borderColor = "#E2E8F0";
                   }}
                 >
-                  {videoModal.title}
-                </h3>
+                  <X size={17} strokeWidth={2.5} />
+                </button>
               </div>
 
-              {/* Tombol Tutup Bulat */}
-              <button
-                type="button"
-                onClick={() => setVideoModal(null)}
-                aria-label="Tutup video"
+              {/* Baris 2: Judul Video Utuh & Seimbang (Tanpa Potongan Kata Aneh) */}
+              <h3
                 style={{
-                  background: "#F1F5F9",
-                  border: "1px solid #E2E8F0",
-                  color: "#475569",
-                  width: 36,
-                  height: 36,
-                  borderRadius: "50%",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  transition: "all 0.2s ease"
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.background = "#FEE2E2";
-                  e.currentTarget.style.color = "#DC2626";
-                  e.currentTarget.style.borderColor = "#FECACA";
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.background = "#F1F5F9";
-                  e.currentTarget.style.color = "#475569";
-                  e.currentTarget.style.borderColor = "#E2E8F0";
+                  margin: 0,
+                  fontSize: "clamp(0.98rem, 2vw, 1.22rem)",
+                  fontWeight: 900,
+                  color: "#0F172A",
+                  lineHeight: 1.35,
+                  letterSpacing: "-0.01em",
+                  textWrap: "balance"
                 }}
               >
-                <X size={18} strokeWidth={2.5} />
-              </button>
+                {videoModal.title}
+              </h3>
             </div>
 
-            {/* Video Player Frame (16:9 Aspect Ratio) */}
+            {/* Video Player Frame — Responsif & Terang Bebas Kotak Hitam Kosong */}
             <div
               style={{
                 position: "relative",
                 width: "100%",
-                paddingTop: "56.25%", // 16:9 Ratio
-                background: "#0F172A"
+                height: "clamp(220px, 54vw, 440px)",
+                background: "#F8FAFC",
+                borderTop: "1px solid #F1F5F9",
+                borderBottom: "1px solid #F1F5F9"
               }}
             >
               <iframe
@@ -2500,84 +2537,99 @@ export default function HomePage() {
               />
             </div>
 
-            {/* Modal Footer — Rapi & Responsif di HP & Desktop */}
+            {/* Modal Body & Tombol Aksi — Ringkas, Terbaca Jelas & Rapi di Mobile */}
             <div
               style={{
-                padding: "clamp(14px, 2.5vw, 18px) clamp(16px, 3vw, 24px)",
-                background: "#F8FAFC",
-                borderTop: "1px solid #E2E8F0",
+                padding: "14px 18px",
+                background: "#FFFFFF",
                 display: "flex",
                 flexDirection: "column",
-                gap: 12,
+                gap: 10,
                 overflowY: "auto"
               }}
             >
-              {/* Deskripsi Video */}
+              {/* Highlight Poin Praktis */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {videoModal.highlights?.map((h) => (
+                  <span
+                    key={h}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      background: "#F1F5F9",
+                      color: "#334155",
+                      padding: "4px 9px",
+                      borderRadius: 8,
+                      fontSize: "0.74rem",
+                      fontWeight: 700
+                    }}
+                  >
+                    <Check size={12} color="#1D4ED8" strokeWidth={3} />
+                    <span>{h}</span>
+                  </span>
+                ))}
+              </div>
+
+              {/* Deskripsi Singkat */}
               <p
                 style={{
                   margin: 0,
-                  color: "#334155",
-                  fontSize: "clamp(0.82rem, 1.8vw, 0.9rem)",
-                  lineHeight: 1.6,
+                  color: "#475569",
+                  fontSize: "0.84rem",
+                  lineHeight: 1.55,
                   fontWeight: 500
                 }}
               >
                 {videoModal.desc}
               </p>
 
-              {/* Tombol Aksi — Fleksibel Desktop & Mobile */}
+              {/* Tombol Aksi (Di Mobile Berdampingan 2 Kolom Rapi) */}
               <div
+                className="video-modal-actions"
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
+                  justifyContent: "flex-end",
                   gap: 10,
-                  paddingTop: 6,
-                  borderTop: "1px dashed #E2E8F0"
+                  paddingTop: 8,
+                  borderTop: "1px solid #F1F5F9"
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.76rem", color: "#64748B", fontWeight: 700 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#10B981", display: "inline-block" }} />
-                  <span>Kanal Resmi PKBM Bina Mandiri</span>
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", width: "auto" }}>
-                  {videoModal.externalUrl && (
-                    <a
-                      href={videoModal.externalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="cute-pill-btn btn-yellow"
-                      style={{
-                        padding: "9px 18px",
-                        fontSize: "0.84rem",
-                        boxShadow: "0 4px 12px rgba(234, 179, 8, 0.35)",
-                        textDecoration: "none"
-                      }}
-                    >
-                      <span>Buka di Google Drive</span>
-                      <ExternalLink size={14} />
-                    </a>
-                  )}
-
-                  <Link
-                    to={videoModal.actionTo || "/daftar"}
-                    onClick={() => setVideoModal(null)}
-                    className="cute-pill-btn"
+                {videoModal.externalUrl && (
+                  <a
+                    href={videoModal.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="cute-pill-btn btn-yellow"
                     style={{
-                      padding: "9px 16px",
-                      fontSize: "0.84rem",
-                      background: "#FFFFFF",
-                      color: "#1D4ED8",
-                      border: "1.5px solid #BFDBFE",
+                      padding: "9px 18px",
+                      fontSize: "0.82rem",
+                      boxShadow: "0 3px 10px rgba(234, 179, 8, 0.3)",
                       textDecoration: "none"
                     }}
                   >
-                    <span>{videoModal.actionLabel || "Selengkapnya"}</span>
-                    <ArrowRight size={14} />
-                  </Link>
-                </div>
+                    <span>Buka di Google Drive</span>
+                    <ExternalLink size={14} />
+                  </a>
+                )}
+
+                <Link
+                  to={videoModal.actionTo || "/daftar"}
+                  onClick={() => setVideoModal(null)}
+                  className="cute-pill-btn"
+                  style={{
+                    padding: "9px 16px",
+                    fontSize: "0.82rem",
+                    background: "#FFFFFF",
+                    color: "#1D4ED8",
+                    border: "1.5px solid #BFDBFE",
+                    textDecoration: "none"
+                  }}
+                >
+                  <span>{videoModal.actionLabel || "Selengkapnya"}</span>
+                  <ArrowRight size={14} />
+                </Link>
               </div>
             </div>
           </div>
@@ -2990,6 +3042,8 @@ export default function HomePage() {
                 <img
                   src="/images/gedung.jpeg"
                   alt="Gedung PKBM Bina Mandiri"
+                  loading="lazy"
+                  decoding="async"
                   style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.88 }}
                 />
                 <div
@@ -3168,6 +3222,8 @@ export default function HomePage() {
               key={GALERI[activeGaleri].src}
               src={GALERI[activeGaleri].src}
               alt={GALERI[activeGaleri].label}
+              loading="lazy"
+              decoding="async"
               style={{
                 position: "relative",
                 zIndex: 2,
@@ -3325,6 +3381,8 @@ export default function HomePage() {
                 <img
                   src={g.src}
                   alt={g.label}
+                  loading="lazy"
+                  decoding="async"
                   style={{
                     width: "100%",
                     height: "100%",
