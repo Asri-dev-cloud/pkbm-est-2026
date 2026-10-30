@@ -40,7 +40,6 @@ import {
   Eye,
   Play,
   Video,
-  RotateCcw,
   ExternalLink
 } from "lucide-react";
 
@@ -324,16 +323,13 @@ export default function HomePage() {
   const [showBrosurModal, setShowBrosurModal] = useState(false);
   const [showGaleriModal, setShowGaleriModal] = useState(false);
   const [videoModal, setVideoModal] = useState(null);
-  const [isPlayingModal, setIsPlayingModal] = useState(false);
 
   const handleOpenVideo = (v) => {
     setVideoModal(v);
-    setIsPlayingModal(false);
   };
 
   const handleCloseVideo = () => {
     setVideoModal(null);
-    setIsPlayingModal(false);
   };
   const carouselRef = useRef(null);
 
@@ -2522,173 +2518,32 @@ export default function HomePage() {
               </h3>
             </div>
 
-            {/* Video Player Frame — Sampul Interaktif Resmi & Pemutar Bersih Bebas Toolbar Drive */}
+            {/* Video Player Frame — Pemutar Bersih Bebas Toolbar Drive */}
             <div
               style={{
                 position: "relative",
                 width: "100%",
                 height: "clamp(220px, 54vw, 440px)",
-                background: "#0F172A",
+                background: "#000000",
                 borderTop: "1px solid #F1F5F9",
                 borderBottom: "1px solid #F1F5F9",
                 overflow: "hidden"
               }}
             >
-              {!isPlayingModal ? (
-                /* ── TAMPILAN SAMPUL RESMI ELEGAN & BERKUALITAS (Daftar.png / LMS.png) ── */
-                <div
-                  onClick={() => setIsPlayingModal(true)}
-                  style={{
-                    position: "relative",
-                    width: "100%",
-                    height: "100%",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center"
-                  }}
-                  title="Klik untuk memutar video panduan"
-                >
-                  {/* Foto Sampul Resmi HD */}
-                  <img
-                    src={videoModal.coverImg}
-                    alt={videoModal.title}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      objectPosition: "center top",
-                      display: "block"
-                    }}
-                  />
-
-                  {/* Gradient Vignette Gelap untuk Kontras Maksimal */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background: "linear-gradient(180deg, rgba(15, 23, 42, 0.35) 0%, rgba(15, 23, 42, 0.45) 50%, rgba(15, 23, 42, 0.8) 100%)"
-                    }}
-                  />
-
-                  {/* Badge HD 1080p di Kiri Atas */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 12,
-                      left: 12,
-                      background: "rgba(15, 23, 42, 0.72)",
-                      backdropFilter: "blur(8px)",
-                      WebkitBackdropFilter: "blur(8px)",
-                      color: "#FFFFFF",
-                      border: "1px solid rgba(255, 255, 255, 0.3)",
-                      padding: "4px 10px",
-                      borderRadius: 9999,
-                      fontSize: "0.7rem",
-                      fontWeight: 800,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 5
-                    }}
-                  >
-                    <Video size={13} color="#FACC15" />
-                    <span>Panduan Resmi • HD 1080p</span>
-                  </div>
-
-                  {/* Tombol Play Besar di Tengah dengan Efek Glow & Ajakan Putar */}
-                  <div
-                    style={{
-                      position: "relative",
-                      zIndex: 2,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 10
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 76,
-                        height: 76,
-                        borderRadius: "50%",
-                        background: "linear-gradient(135deg, #FACC15 0%, #EAB308 100%)",
-                        boxShadow: "0 0 0 8px rgba(250, 204, 21, 0.35), 0 16px 36px rgba(0, 0, 0, 0.4)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        transition: "transform 0.2s ease"
-                      }}
-                    >
-                      <Play size={34} fill="#0F172A" color="#0F172A" style={{ marginLeft: 4 }} />
-                    </div>
-
-                    <span
-                      style={{
-                        background: "rgba(15, 23, 42, 0.85)",
-                        backdropFilter: "blur(8px)",
-                        WebkitBackdropFilter: "blur(8px)",
-                        color: "#FFFFFF",
-                        padding: "6px 16px",
-                        borderRadius: 9999,
-                        fontSize: "0.82rem",
-                        fontWeight: 800,
-                        letterSpacing: "0.02em",
-                        border: "1px solid rgba(255, 255, 255, 0.25)",
-                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)"
-                      }}
-                    >
-                      Klik untuk Putar Video ▶
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                /* ── PEMUTAR AKTIF (GOOGLE DRIVE TOOLBAR TERCROP RAPI DI LUAR LAYAR) ── */
-                <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                  <iframe
-                    src={`${videoModal.videoUrl}${videoModal.videoUrl.includes("?") ? "&" : "?"}autoplay=1`}
-                    title={videoModal.title}
-                    style={{
-                      position: "absolute",
-                      top: -46,
-                      left: 0,
-                      width: "100%",
-                      height: "calc(100% + 46px)",
-                      border: 0
-                    }}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-
-                  {/* Tombol Kembali ke Sampul di Pojok Kanan Atas */}
-                  <button
-                    type="button"
-                    onClick={() => setIsPlayingModal(false)}
-                    style={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      zIndex: 10,
-                      background: "rgba(15, 23, 42, 0.8)",
-                      backdropFilter: "blur(6px)",
-                      border: "1px solid rgba(255, 255, 255, 0.3)",
-                      color: "#FFFFFF",
-                      padding: "5px 11px",
-                      borderRadius: 8,
-                      fontSize: "0.72rem",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 5,
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
-                    }}
-                    title="Tutup pemutar dan tampilkan sampul resmi"
-                  >
-                    <RotateCcw size={12} />
-                    <span>Tampilkan Sampul</span>
-                  </button>
-                </div>
-              )}
+              <iframe
+                src={`${videoModal.videoUrl}${videoModal.videoUrl.includes("?") ? "&" : "?"}autoplay=1`}
+                title={videoModal.title}
+                style={{
+                  position: "absolute",
+                  top: -46,
+                  left: 0,
+                  width: "100%",
+                  height: "calc(100% + 46px)",
+                  border: 0
+                }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
 
             {/* Modal Body & Tombol Aksi — Ringkas, Terbaca Jelas & Rapi di Mobile */}
