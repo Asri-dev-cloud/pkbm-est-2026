@@ -37,7 +37,9 @@ import {
   User,
   ShoppingBag,
   FileText,
-  Eye
+  Eye,
+  Play,
+  Video
 } from "lucide-react";
 
 // Komponen Ikon Instagram Resmi (Vector Stroke Seragam Lucide)
@@ -263,6 +265,36 @@ const FAQS = [
   }
 ];
 
+// ── VIDEO TUTORIAL RESMI (SPMB & LMS) ────────────────────────
+const TUTORIAL_VIDEOS = [
+  {
+    id: "spmb",
+    title: "Tutorial Pendaftaran Siswa Baru (SPMB Online)",
+    desc: "Panduan praktis langkah demi langkah cara pendaftaran siswa baru secara online. Mulai dari registrasi akun, pengisian biodata, pemilihan program paket, hingga unggah berkas persyaratan lewat HP.",
+    tag: "SPMB ONLINE 2026",
+    tagColor: { bg: "#FEF3C7", text: "#B45309" },
+    blobRadius: "42% 58% 70% 30% / 45% 45% 55% 55%",
+    coverImg: "/images/Daftar.png",
+    duration: "3 Menit",
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Masukkan URL YouTube Embed / MP4 di sini
+    actionTo: "/daftar",
+    actionLabel: "Buka Form SPMB"
+  },
+  {
+    id: "lms",
+    title: "Tutorial Cara Penggunaan Ruang Belajar LMS",
+    desc: "Panduan lengkap cara mengakses portal belajar LMS PKBM Bina Mandiri. Cara membaca modul pelajaran mandiri, mengumpulkan tugas harian, dan melihat jadwal ujian langsung dari HP atau laptop.",
+    tag: "PORTAL LMS 24/7",
+    tagColor: { bg: "#DCFCE7", text: "#166534" },
+    blobRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
+    coverImg: "/images/LMS.png",
+    duration: "5 Menit",
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Masukkan URL YouTube Embed / MP4 di sini
+    actionTo: "/login",
+    actionLabel: "Masuk Portal LMS"
+  }
+];
+
 export default function HomePage() {
   const [scrollY, setScrollY] = useState(0);
   const [openFaq, setOpenFaq] = useState(0);
@@ -271,6 +303,7 @@ export default function HomePage() {
   const [likedPrograms, setLikedPrograms] = useState({});
   const [showBrosurModal, setShowBrosurModal] = useState(false);
   const [showGaleriModal, setShowGaleriModal] = useState(false);
+  const [videoModal, setVideoModal] = useState(null);
   const carouselRef = useRef(null);
 
   useEffect(() => {
@@ -840,6 +873,9 @@ export default function HomePage() {
 
           {/* Tengah: Navigation Links (Hanya Desktop) */}
           <nav className="hidden lg:flex items-center gap-1">
+            <a href="#tutorial" className="pill-nav-link">
+              <span>Tutorial</span>
+            </a>
             <a href="#program" className="pill-nav-link">
               <span>Program</span>
             </a>
@@ -1053,6 +1089,7 @@ export default function HomePage() {
           </div>
 
           {[
+            ["#tutorial", "Video Tutorial (SPMB & LMS)"],
             ["#program", "Program Kesetaraan (Paket A, B, C)"],
             ["#tentang", "Tentang Lembaga (Profil & Brosur)"],
             ["#kebutuhan", "Program Pilihan"],
@@ -1257,6 +1294,281 @@ export default function HomePage() {
               fill="#FFFFFF"
             />
           </svg>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          2.5 SECTION TUTORIAL VIDEO (DI BAWAH HERO)
+          Sampul: Daftar.png (SPMB) & LMS.png (LMS) dalam Bentuk Blob
+          ══════════════════════════════════════════════════════════ */}
+      <section
+        id="tutorial"
+        style={{
+          padding: "60px clamp(16px, 4vw, 48px) 65px",
+          background: "linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 55%, #FFFFFF 100%)",
+          position: "relative",
+          zIndex: 2,
+          borderBottom: "1px solid #E2E8F0"
+        }}
+      >
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+
+          {/* Section Header */}
+          <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 46px" }}>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                background: "#EFF6FF",
+                color: "#1D4ED8",
+                border: "1px solid #BFDBFE",
+                padding: "6px 14px",
+                borderRadius: 9999,
+                fontSize: "0.78rem",
+                fontWeight: 800,
+                letterSpacing: "0.04em",
+                marginBottom: 14,
+                boxShadow: "0 2px 8px rgba(29, 78, 216, 0.08)"
+              }}
+            >
+              <Video size={14} />
+              <span>PANDUAN VIDEO RESMI</span>
+            </div>
+
+            <h2
+              style={{
+                fontSize: "clamp(1.9rem, 3.6vw, 2.7rem)",
+                fontWeight: 900,
+                color: "#0F172A",
+                lineHeight: 1.18,
+                letterSpacing: "-0.02em",
+                marginBottom: 14
+              }}
+            >
+              Video Panduan Mendaftar & Belajar di LMS
+            </h2>
+
+            <p style={{ color: "#64748B", fontSize: "0.93rem", lineHeight: 1.65, margin: 0 }}>
+              Simak video tutorial singkat berikut untuk panduan pendaftaran siswa baru secara online serta kemudahan mengakses ruang belajar dan tugas harian.
+            </p>
+          </div>
+
+          {/* 2 Video Cards Grid (Responsif 2 Kolom di Desktop, 1 Kolom di Mobile) */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 500px), 1fr))",
+              gap: 28,
+              alignItems: "stretch"
+            }}
+          >
+            {TUTORIAL_VIDEOS.map((v, idx) => (
+              <div
+                key={v.id}
+                className="boutique-card"
+                style={{
+                  background: "#FFFFFF",
+                  borderRadius: 28,
+                  border: "2px solid #E2E8F0",
+                  boxShadow: "0 10px 30px rgba(15, 23, 42, 0.05)",
+                  padding: "clamp(20px, 3vw, 28px)",
+                  display: "flex",
+                  flexDirection: "column",
+                  position: "relative",
+                  overflow: "hidden"
+                }}
+              >
+                {/* Blob Thumbnail Container */}
+                <div
+                  style={{
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "8px 0 20px"
+                  }}
+                >
+                  {/* Glowing Ambient Behind Blob */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      width: "80%",
+                      height: "80%",
+                      background: idx === 0
+                        ? "radial-gradient(circle, rgba(234, 179, 8, 0.35) 0%, rgba(29, 78, 216, 0.2) 100%)"
+                        : "radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, rgba(29, 78, 216, 0.2) 100%)",
+                      filter: "blur(26px)",
+                      borderRadius: "50%",
+                      zIndex: 0,
+                      pointerEvents: "none"
+                    }}
+                  />
+
+                  {/* The Organic Blob Frame (Bentuk Blob) */}
+                  <div
+                    onClick={() => setVideoModal(v)}
+                    style={{
+                      position: "relative",
+                      zIndex: 1,
+                      width: "100%",
+                      maxWidth: 450,
+                      height: "clamp(200px, 28vw, 250px)",
+                      borderRadius: v.blobRadius,
+                      overflow: "hidden",
+                      cursor: "pointer",
+                      boxShadow: "0 14px 34px rgba(15, 23, 42, 0.18)",
+                      border: "4px solid #FFFFFF",
+                      background: idx === 0
+                        ? "linear-gradient(135deg, #1E40AF 0%, #1D4ED8 100%)"
+                        : "linear-gradient(135deg, #059669 0%, #1D4ED8 100%)",
+                      transition: "transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease"
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.transform = "scale(1.03) rotate(0.6deg)";
+                      e.currentTarget.style.boxShadow = "0 20px 42px rgba(15, 23, 42, 0.26)";
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.transform = "scale(1) rotate(0deg)";
+                      e.currentTarget.style.boxShadow = "0 14px 34px rgba(15, 23, 42, 0.18)";
+                    }}
+                    title={`Klik untuk memutar ${v.title}`}
+                  >
+                    {/* Gambar Sampul (Daftar.png atau LMS.png) */}
+                    <img
+                      src={v.coverImg}
+                      alt={v.title}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                        display: "block"
+                      }}
+                    />
+
+                    {/* Dark Translucent Gradient Overlay */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: "linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(15, 23, 42, 0.6) 100%)"
+                      }}
+                    />
+
+                    {/* Floating Play Button di Tengah Blob */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: 64,
+                        height: 64,
+                        borderRadius: "50%",
+                        background: "#FFFFFF",
+                        color: idx === 0 ? "#1D4ED8" : "#059669",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 8px 24px rgba(0, 0, 0, 0.35)",
+                        transition: "transform 0.25s ease"
+                      }}
+                    >
+                      <Play size={26} fill={idx === 0 ? "#1D4ED8" : "#059669"} style={{ marginLeft: 3 }} />
+                    </div>
+
+                    {/* Badge Durasi Video di Kanan Atas */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 14,
+                        right: 18,
+                        background: "rgba(15, 23, 42, 0.75)",
+                        backdropFilter: "blur(8px)",
+                        WebkitBackdropFilter: "blur(8px)",
+                        color: "#FACC15",
+                        border: "1px solid rgba(255, 255, 255, 0.3)",
+                        borderRadius: 9999,
+                        padding: "4px 12px",
+                        fontSize: "0.72rem",
+                        fontWeight: 800,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+                      }}
+                    >
+                      Video {v.duration}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Content Info */}
+                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    <span
+                      style={{
+                        background: v.tagColor.bg,
+                        color: v.tagColor.text,
+                        padding: "3px 10px",
+                        borderRadius: 9999,
+                        fontSize: "0.72rem",
+                        fontWeight: 800
+                      }}
+                    >
+                      {v.tag}
+                    </span>
+                    <span style={{ fontSize: "0.76rem", color: "#64748B", fontWeight: 700 }}>
+                      Panduan Interaktif
+                    </span>
+                  </div>
+
+                  <h3
+                    style={{
+                      fontSize: "1.2rem",
+                      fontWeight: 900,
+                      color: "#0F172A",
+                      marginBottom: 8,
+                      lineHeight: 1.3
+                    }}
+                  >
+                    {v.title}
+                  </h3>
+
+                  <p style={{ color: "#64748B", fontSize: "0.86rem", lineHeight: 1.6, marginBottom: 20, flex: 1 }}>
+                    {v.desc}
+                  </p>
+
+                  {/* Action Buttons */}
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                    <button
+                      type="button"
+                      onClick={() => setVideoModal(v)}
+                      className="cute-pill-btn btn-yellow"
+                      style={{ flex: 1, padding: "10px 16px", fontSize: "0.85rem" }}
+                    >
+                      <Play size={15} fill="#0F172A" />
+                      <span>Tonton Video</span>
+                    </button>
+
+                    <Link
+                      to={v.actionTo}
+                      className="cute-pill-btn"
+                      style={{
+                        padding: "10px 16px",
+                        fontSize: "0.85rem",
+                        background: "#EFF6FF",
+                        color: "#1D4ED8",
+                        border: "1.5px solid #BFDBFE"
+                      }}
+                    >
+                      <span>{v.actionLabel}</span>
+                      <ArrowRight size={14} />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
       </section>
 
@@ -2040,6 +2352,140 @@ export default function HomePage() {
                 borderRadius: 14
               }}
             />
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL PEMUTAR VIDEO TUTORIAL INTERAKTIF ── */}
+      {videoModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(10, 15, 28, 0.92)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px"
+          }}
+          onClick={() => setVideoModal(null)}
+        >
+          <div
+            style={{
+              position: "relative",
+              maxWidth: 840,
+              width: "100%",
+              background: "#181A20",
+              borderRadius: 24,
+              overflow: "hidden",
+              border: "1px solid rgba(255, 255, 255, 0.16)",
+              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.75)",
+              display: "flex",
+              flexDirection: "column"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "16px 22px",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                background: "#13151A",
+                color: "#FFFFFF"
+              }}
+            >
+              <div>
+                <span
+                  style={{
+                    background: "#FACC15",
+                    color: "#0F172A",
+                    fontSize: "0.7rem",
+                    fontWeight: 800,
+                    padding: "2px 8px",
+                    borderRadius: 9999,
+                    display: "inline-block",
+                    marginBottom: 4
+                  }}
+                >
+                  {videoModal.tag || "TUTORIAL"}
+                </span>
+                <h4 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 800 }}>
+                  {videoModal.title}
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setVideoModal(null)}
+                style={{
+                  background: "rgba(255, 255, 255, 0.1)",
+                  border: "none",
+                  color: "#FFFFFF",
+                  width: 34,
+                  height: 34,
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "background 0.2s"
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.8)")}
+                onMouseOut={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)")}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Video Player Frame (16:9 Aspect Ratio) */}
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                paddingTop: "56.25%", // 16:9 Aspect Ratio
+                background: "#000000"
+              }}
+            >
+              <iframe
+                src={videoModal.videoUrl}
+                title={videoModal.title}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  border: 0
+                }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+
+            {/* Modal Description Footer */}
+            <div
+              style={{
+                padding: "14px 22px",
+                background: "#13151A",
+                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                color: "#94A3B8",
+                fontSize: "0.82rem",
+                lineHeight: 1.5,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 10
+              }}
+            >
+              <span style={{ maxWidth: "70%" }}>{videoModal.desc}</span>
+              <span style={{ color: "#FACC15", fontWeight: 700 }}>PKBM Bina Mandiri Official</span>
+            </div>
           </div>
         </div>
       )}
