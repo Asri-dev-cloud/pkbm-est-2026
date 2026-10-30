@@ -285,6 +285,7 @@ const TUTORIAL_VIDEOS = [
       "Unggah berkas KK & KTP via HP",
       "Konfirmasi penerimaan instan"
     ],
+    localVideoUrl: "/videos/tutorial-spmb.mp4",
     videoUrl: "https://drive.google.com/file/d/1Ds-iO8p115U5rkarKApnSDxDRKtyucPJ/preview",
     externalUrl: "https://drive.google.com/file/d/1Ds-iO8p115U5rkarKApnSDxDRKtyucPJ/view?usp=sharing",
     actionTo: "/daftar",
@@ -307,6 +308,7 @@ const TUTORIAL_VIDEOS = [
       "Pengumpulan tugas mingguan",
       "Simulasi latihan & ujian online"
     ],
+    localVideoUrl: "/videos/tutorial-lms.mp4",
     videoUrl: "https://drive.google.com/file/d/15y1KrURVGksUtpeHV_W7CqTzgxJ3ineO/preview",
     externalUrl: "https://drive.google.com/file/d/15y1KrURVGksUtpeHV_W7CqTzgxJ3ineO/view?usp=sharing",
     actionTo: "/login",
@@ -2518,32 +2520,38 @@ export default function HomePage() {
               </h3>
             </div>
 
-            {/* Video Player Frame — Pemutar Bersih Bebas Toolbar Drive */}
+            {/* Video Player Frame — Pemutar Bersih Bebas Layer Hitam & Bebas Toolbar Drive */}
             <div
               style={{
                 position: "relative",
                 width: "100%",
-                height: "clamp(220px, 54vw, 440px)",
-                background: "#000000",
+                background: "#FFFFFF",
                 borderTop: "1px solid #F1F5F9",
                 borderBottom: "1px solid #F1F5F9",
-                overflow: "hidden"
+                overflow: "hidden",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
               }}
             >
-              <iframe
-                src={`${videoModal.videoUrl}${videoModal.videoUrl.includes("?") ? "&" : "?"}autoplay=1`}
-                title={videoModal.title}
+              <video
+                key={videoModal.id}
+                src={videoModal.localVideoUrl}
+                poster={videoModal.coverImg}
+                controls
+                autoPlay
+                playsInline
+                controlsList="nodownload"
                 style={{
-                  position: "absolute",
-                  top: -46,
-                  left: 0,
                   width: "100%",
-                  height: "calc(100% + 46px)",
-                  border: 0
+                  maxHeight: "clamp(220px, 54vw, 440px)",
+                  objectFit: "contain",
+                  background: "#FFFFFF",
+                  display: "block"
                 }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              >
+                Browser Anda tidak mendukung pemutar video HTML5. Silakan tonton lewat Google Drive.
+              </video>
             </div>
 
             {/* Modal Body & Tombol Aksi — Ringkas, Terbaca Jelas & Rapi di Mobile */}
