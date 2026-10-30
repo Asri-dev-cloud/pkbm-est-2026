@@ -286,8 +286,8 @@ const TUTORIAL_VIDEOS = [
       "Konfirmasi penerimaan instan"
     ],
     localVideoUrl: "/videos/tutorial-spmb.mp4",
-    videoUrl: "https://drive.google.com/file/d/1Ds-iO8p115U5rkarKApnSDxDRKtyucPJ/preview",
-    externalUrl: "https://drive.google.com/file/d/1Ds-iO8p115U5rkarKApnSDxDRKtyucPJ/view?usp=sharing",
+    videoUrl: "https://drive.google.com/file/d/1a5NP9u13-jw_VCA4FU72olx7X9Fkx26b/preview",
+    externalUrl: "https://drive.google.com/file/d/1a5NP9u13-jw_VCA4FU72olx7X9Fkx26b/view?usp=sharing",
     actionTo: "/daftar",
     actionLabel: "Buka Form SPMB"
   },
