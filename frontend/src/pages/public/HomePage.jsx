@@ -270,26 +270,42 @@ const TUTORIAL_VIDEOS = [
   {
     id: "spmb",
     title: "Tutorial Pendaftaran Siswa Baru (SPMB Online)",
-    desc: "Panduan praktis langkah demi langkah cara pendaftaran siswa baru secara online. Mulai dari registrasi akun, pengisian biodata, pemilihan program paket, hingga unggah berkas persyaratan lewat HP.",
+    desc: "Panduan praktis langkah demi langkah cara mendaftar secara mandiri melalui HP atau laptop. Meliputi pengisian biodata diri, pemilihan jenjang kesetaraan (Paket A, B, atau C), hingga unggah dokumen persyaratan KK/KTP.",
     tag: "SPMB ONLINE 2026",
-    tagColor: { bg: "#FEF3C7", text: "#B45309" },
-    blobRadius: "42% 58% 70% 30% / 45% 45% 55% 55%",
+    tagColor: { bg: "#FEF3C7", text: "#B45309", border: "#FDE68A" },
+    accentColor: "#1D4ED8",
+    blobRadiusOuter: "48% 52% 65% 35% / 44% 48% 52% 56%",
+    blobRadiusInner: "47% 53% 64% 36% / 43% 47% 53% 57%",
+    auraRadius: "52% 48% 40% 60% / 55% 45% 55% 45%",
     coverImg: "/images/Daftar.png",
     duration: "3 Menit",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Masukkan URL YouTube Embed / MP4 di sini
+    highlights: [
+      "Registrasi akun mandiri 24 jam",
+      "Unggah berkas KK & KTP via HP",
+      "Konfirmasi penerimaan instan"
+    ],
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     actionTo: "/daftar",
     actionLabel: "Buka Form SPMB"
   },
   {
     id: "lms",
     title: "Tutorial Cara Penggunaan Ruang Belajar LMS",
-    desc: "Panduan lengkap cara mengakses portal belajar LMS PKBM Bina Mandiri. Cara membaca modul pelajaran mandiri, mengumpulkan tugas harian, dan melihat jadwal ujian langsung dari HP atau laptop.",
+    desc: "Panduan lengkap penggunaan sistem portal akademik LMS PKBM Bina Mandiri. Cara membaca e-modul materi pelajaran mandiri, mengumpulkan tugas harian, dan melihat jadwal ujian langsung dari HP Anda.",
     tag: "PORTAL LMS 24/7",
-    tagColor: { bg: "#DCFCE7", text: "#166534" },
-    blobRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
+    tagColor: { bg: "#DCFCE7", text: "#166534", border: "#BBF7D0" },
+    accentColor: "#059669",
+    blobRadiusOuter: "62% 38% 42% 58% / 55% 60% 40% 45%",
+    blobRadiusInner: "61% 39% 43% 57% / 54% 59% 41% 46%",
+    auraRadius: "38% 62% 63% 37% / 41% 44% 56% 59%",
     coverImg: "/images/LMS.png",
     duration: "5 Menit",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Masukkan URL YouTube Embed / MP4 di sini
+    highlights: [
+      "Akses e-modul resmi kapan saja",
+      "Pengumpulan tugas mingguan",
+      "Simulasi latihan & ujian online"
+    ],
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     actionTo: "/login",
     actionLabel: "Masuk Portal LMS"
   }
@@ -1354,210 +1370,287 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* 2 Video Cards Grid (Responsif 2 Kolom di Desktop, 1 Kolom di Mobile) */}
+          {/* 2 Video Showcases Grid (TANPA KOTAK — Desain Terbuka, Elegan & Fluid dengan Blob Artistik) */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 500px), 1fr))",
-              gap: 28,
-              alignItems: "stretch"
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 520px), 1fr))",
+              gap: "clamp(36px, 5vw, 64px)",
+              alignItems: "flex-start"
             }}
           >
             {TUTORIAL_VIDEOS.map((v, idx) => (
               <div
                 key={v.id}
-                className="boutique-card"
                 style={{
-                  background: "#FFFFFF",
-                  borderRadius: 28,
-                  border: "2px solid #E2E8F0",
-                  boxShadow: "0 10px 30px rgba(15, 23, 42, 0.05)",
-                  padding: "clamp(20px, 3vw, 28px)",
                   display: "flex",
                   flexDirection: "column",
                   position: "relative",
-                  overflow: "hidden"
+                  background: "transparent",
+                  border: "none",
+                  boxShadow: "none",
+                  padding: 0
                 }}
               >
-                {/* Blob Thumbnail Container */}
+                {/* ── BINGKAI BLOB ARTISTIK BERLAPIS (ORGANIK, LUAS & MEWAH TANPA TERTEKAN KOTAK) ── */}
                 <div
                   style={{
                     position: "relative",
+                    width: "100%",
+                    height: "clamp(290px, 34vw, 380px)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "8px 0 20px"
+                    marginBottom: 24
                   }}
                 >
-                  {/* Glowing Ambient Behind Blob */}
+                  {/* Lapisan 1: Ambient Glowing Aura Blob di Belakang */}
                   <div
                     style={{
                       position: "absolute",
-                      width: "80%",
-                      height: "80%",
+                      inset: -16,
+                      borderRadius: v.auraRadius,
                       background: idx === 0
-                        ? "radial-gradient(circle, rgba(234, 179, 8, 0.35) 0%, rgba(29, 78, 216, 0.2) 100%)"
-                        : "radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, rgba(29, 78, 216, 0.2) 100%)",
-                      filter: "blur(26px)",
-                      borderRadius: "50%",
+                        ? "radial-gradient(circle at 35% 35%, rgba(250, 204, 21, 0.45) 0%, rgba(29, 78, 216, 0.28) 70%, transparent 100%)"
+                        : "radial-gradient(circle at 35% 35%, rgba(52, 211, 153, 0.45) 0%, rgba(29, 78, 216, 0.28) 70%, transparent 100%)",
+                      filter: "blur(32px)",
+                      transform: idx === 0 ? "scale(1.06) rotate(-3deg)" : "scale(1.06) rotate(3deg)",
                       zIndex: 0,
                       pointerEvents: "none"
                     }}
                   />
 
-                  {/* The Organic Blob Frame (Bentuk Blob) */}
+                  {/* Lapisan 2: Frame Luar Blob Bergradasi Halus (Rim Ring) */}
                   <div
                     onClick={() => setVideoModal(v)}
                     style={{
                       position: "relative",
                       zIndex: 1,
                       width: "100%",
-                      maxWidth: 450,
-                      height: "clamp(200px, 28vw, 250px)",
-                      borderRadius: v.blobRadius,
-                      overflow: "hidden",
-                      cursor: "pointer",
-                      boxShadow: "0 14px 34px rgba(15, 23, 42, 0.18)",
-                      border: "4px solid #FFFFFF",
+                      height: "100%",
+                      borderRadius: v.blobRadiusOuter,
+                      padding: 6,
                       background: idx === 0
-                        ? "linear-gradient(135deg, #1E40AF 0%, #1D4ED8 100%)"
-                        : "linear-gradient(135deg, #059669 0%, #1D4ED8 100%)",
-                      transition: "transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease"
+                        ? "linear-gradient(135deg, #FACC15 0%, #60A5FA 50%, #1D4ED8 100%)"
+                        : "linear-gradient(135deg, #34D399 0%, #10B981 50%, #1D4ED8 100%)",
+                      boxShadow: idx === 0
+                        ? "0 22px 50px -10px rgba(29, 78, 216, 0.28), 0 10px 22px -5px rgba(250, 204, 21, 0.25)"
+                        : "0 22px 50px -10px rgba(5, 150, 105, 0.28), 0 10px 22px -5px rgba(29, 78, 216, 0.2)",
+                      cursor: "pointer",
+                      transition: "all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)"
                     }}
                     onMouseOver={(e) => {
-                      e.currentTarget.style.transform = "scale(1.03) rotate(0.6deg)";
-                      e.currentTarget.style.boxShadow = "0 20px 42px rgba(15, 23, 42, 0.26)";
+                      e.currentTarget.style.transform = "scale(1.025) translateY(-4px)";
+                      e.currentTarget.style.boxShadow = idx === 0
+                        ? "0 30px 60px -10px rgba(29, 78, 216, 0.38), 0 14px 28px -5px rgba(250, 204, 21, 0.35)"
+                        : "0 30px 60px -10px rgba(5, 150, 105, 0.38), 0 14px 28px -5px rgba(29, 78, 216, 0.3)";
                     }}
                     onMouseOut={(e) => {
-                      e.currentTarget.style.transform = "scale(1) rotate(0deg)";
-                      e.currentTarget.style.boxShadow = "0 14px 34px rgba(15, 23, 42, 0.18)";
+                      e.currentTarget.style.transform = "scale(1) translateY(0)";
+                      e.currentTarget.style.boxShadow = idx === 0
+                        ? "0 22px 50px -10px rgba(29, 78, 216, 0.28), 0 10px 22px -5px rgba(250, 204, 21, 0.25)"
+                        : "0 22px 50px -10px rgba(5, 150, 105, 0.28), 0 10px 22px -5px rgba(29, 78, 216, 0.2)";
                     }}
                     title={`Klik untuk memutar ${v.title}`}
                   >
-                    {/* Gambar Sampul (Daftar.png atau LMS.png) */}
-                    <img
-                      src={v.coverImg}
-                      alt={v.title}
+                    {/* Lapisan 3: Wadah Gambar Foto di Dalam Blob */}
+                    <div
                       style={{
                         width: "100%",
                         height: "100%",
-                        objectFit: "cover",
-                        objectPosition: "center",
-                        display: "block"
-                      }}
-                    />
-
-                    {/* Dark Translucent Gradient Overlay */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        background: "linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(15, 23, 42, 0.6) 100%)"
-                      }}
-                    />
-
-                    {/* Floating Play Button di Tengah Blob */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: 64,
-                        height: 64,
-                        borderRadius: "50%",
-                        background: "#FFFFFF",
-                        color: idx === 0 ? "#1D4ED8" : "#059669",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 8px 24px rgba(0, 0, 0, 0.35)",
-                        transition: "transform 0.25s ease"
+                        borderRadius: v.blobRadiusInner,
+                        overflow: "hidden",
+                        position: "relative",
+                        background: "#0F172A"
                       }}
                     >
-                      <Play size={26} fill={idx === 0 ? "#1D4ED8" : "#059669"} style={{ marginLeft: 3 }} />
-                    </div>
+                      <img
+                        src={v.coverImg}
+                        alt={v.title}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          objectPosition: "center top",
+                          display: "block",
+                          transition: "transform 0.5s ease"
+                        }}
+                      />
 
-                    {/* Badge Durasi Video di Kanan Atas */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 14,
-                        right: 18,
-                        background: "rgba(15, 23, 42, 0.75)",
-                        backdropFilter: "blur(8px)",
-                        WebkitBackdropFilter: "blur(8px)",
-                        color: "#FACC15",
-                        border: "1px solid rgba(255, 255, 255, 0.3)",
-                        borderRadius: 9999,
-                        padding: "4px 12px",
-                        fontSize: "0.72rem",
-                        fontWeight: 800,
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
-                      }}
-                    >
-                      Video {v.duration}
+                      {/* Gradasi Lembut untuk Kontras Play Button & Teks */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.55) 100%)"
+                        }}
+                      />
+
+                      {/* Tombol Play Mengambang dengan Efek Ripple Lingkaran */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          left: "50%",
+                          transform: "translate(-50%, -50%)",
+                          width: 74,
+                          height: 74,
+                          borderRadius: "50%",
+                          background: "#FFFFFF",
+                          color: v.accentColor,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 12px 32px rgba(0, 0, 0, 0.38), 0 0 0 7px rgba(255, 255, 255, 0.35)",
+                          transition: "transform 0.25s ease"
+                        }}
+                      >
+                        <Play size={30} fill={v.accentColor} style={{ marginLeft: 4 }} />
+                      </div>
+
+                      {/* Badge Durasi Video Mengambang di Kanan Atas */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 16,
+                          right: 20,
+                          background: "rgba(15, 23, 42, 0.8)",
+                          backdropFilter: "blur(10px)",
+                          WebkitBackdropFilter: "blur(10px)",
+                          color: "#FACC15",
+                          border: "1px solid rgba(255, 255, 255, 0.35)",
+                          borderRadius: 9999,
+                          padding: "5px 14px",
+                          fontSize: "0.74rem",
+                          fontWeight: 800,
+                          letterSpacing: "0.02em",
+                          boxShadow: "0 4px 14px rgba(0,0,0,0.3)"
+                        }}
+                      >
+                        ▶ Video {v.duration}
+                      </div>
+
+                      {/* Badge Kategori Mini di Kiri Bawah Blob */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: 16,
+                          left: 20,
+                          background: "rgba(15, 23, 42, 0.75)",
+                          backdropFilter: "blur(10px)",
+                          WebkitBackdropFilter: "blur(10px)",
+                          color: "#FFFFFF",
+                          border: "1px solid rgba(255, 255, 255, 0.25)",
+                          borderRadius: 9999,
+                          padding: "4px 12px",
+                          fontSize: "0.72rem",
+                          fontWeight: 700,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 7,
+                            height: 7,
+                            borderRadius: "50%",
+                            background: idx === 0 ? "#FACC15" : "#34D399"
+                          }}
+                        />
+                        <span>{idx === 0 ? "Portal SPMB" : "Portal LMS"}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Card Content Info */}
-                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                {/* ── KONTEN DESKRIPSI DI BAWAH BLOB (BERSIH & TERBUKA TANPA KOTAK) ── */}
+                <div style={{ padding: "0 6px", display: "flex", flexDirection: "column" }}>
+                  {/* Category Pill Strip */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                     <span
                       style={{
                         background: v.tagColor.bg,
                         color: v.tagColor.text,
-                        padding: "3px 10px",
+                        border: `1px solid ${v.tagColor.border}`,
+                        padding: "4px 12px",
                         borderRadius: 9999,
                         fontSize: "0.72rem",
-                        fontWeight: 800
+                        fontWeight: 800,
+                        letterSpacing: "0.03em"
                       }}
                     >
                       {v.tag}
                     </span>
-                    <span style={{ fontSize: "0.76rem", color: "#64748B", fontWeight: 700 }}>
-                      Panduan Interaktif
+                    <span style={{ fontSize: "0.78rem", color: "#64748B", fontWeight: 700 }}>
+                      Panduan Resmi · Warga Belajar
                     </span>
                   </div>
 
+                  {/* Headline */}
                   <h3
                     style={{
-                      fontSize: "1.2rem",
+                      fontSize: "clamp(1.25rem, 2.2vw, 1.48rem)",
                       fontWeight: 900,
                       color: "#0F172A",
-                      marginBottom: 8,
-                      lineHeight: 1.3
+                      marginBottom: 10,
+                      lineHeight: 1.28,
+                      letterSpacing: "-0.01em"
                     }}
                   >
                     {v.title}
                   </h3>
 
-                  <p style={{ color: "#64748B", fontSize: "0.86rem", lineHeight: 1.6, marginBottom: 20, flex: 1 }}>
+                  {/* Description */}
+                  <p style={{ color: "#475569", fontSize: "0.9rem", lineHeight: 1.7, marginBottom: 16 }}>
                     {v.desc}
                   </p>
 
+                  {/* 3 Highlight Chips */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 }}>
+                    {v.highlights.map((h) => (
+                      <div
+                        key={h}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          background: "#F1F5F9",
+                          color: "#334155",
+                          padding: "5px 12px",
+                          borderRadius: 8,
+                          fontSize: "0.76rem",
+                          fontWeight: 700
+                        }}
+                      >
+                        <Check size={12} color={v.accentColor} strokeWidth={3} />
+                        <span>{h}</span>
+                      </div>
+                    ))}
+                  </div>
+
                   {/* Action Buttons */}
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
                     <button
                       type="button"
                       onClick={() => setVideoModal(v)}
                       className="cute-pill-btn btn-yellow"
-                      style={{ flex: 1, padding: "10px 16px", fontSize: "0.85rem" }}
+                      style={{ padding: "12px 24px", fontSize: "0.9rem", boxShadow: "0 6px 18px rgba(234, 179, 8, 0.35)" }}
                     >
-                      <Play size={15} fill="#0F172A" />
-                      <span>Tonton Video</span>
+                      <Play size={16} fill="#0F172A" />
+                      <span>Tonton Video Panduan</span>
                     </button>
 
                     <Link
                       to={v.actionTo}
                       className="cute-pill-btn"
                       style={{
-                        padding: "10px 16px",
-                        fontSize: "0.85rem",
-                        background: "#EFF6FF",
+                        padding: "12px 20px",
+                        fontSize: "0.88rem",
+                        background: "#FFFFFF",
                         color: "#1D4ED8",
-                        border: "1.5px solid #BFDBFE"
+                        border: "1.5px solid #BFDBFE",
+                        boxShadow: "0 2px 8px rgba(29, 78, 216, 0.08)"
                       }}
                     >
                       <span>{v.actionLabel}</span>
