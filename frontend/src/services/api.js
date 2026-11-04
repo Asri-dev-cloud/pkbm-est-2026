@@ -219,6 +219,10 @@ export const SpmbAPI = {
 
   // PUT /api/spmb/:id/keputusan
   // Payload: { status: 'diterima'/'ditolak', catatan_verifikasi, rombel_id }
+  // DELETE /api/spmb/berkas/:berkasId - Hapus berkas pendukung (Admin)
+  hapusBerkas: (berkasId) =>
+    apiClient.delete('/spmb/berkas/' + berkasId),
+
   buatKeputusan: (id, payload) =>
     apiClient.put(`/spmb/${id}/keputusan`, payload),
 };
@@ -293,13 +297,29 @@ export const AbsensiAPI = {
   getSesiByRombel: (rombelId) =>
     apiClient.get(`/absensi/rombel/${rombelId}`),
 
-  // POST /api/absensi/sesi/:sesiId/checkin ÔÇö WB check-in mandiri
-  checkIn: (sesiId) =>
-    apiClient.post(`/absensi/sesi/${sesiId}/checkin`),
+  // POST /api/absensi/sesi/:sesiId/checkin — WB check-in mandiri (status & catatan)
+  checkIn: (sesiId, payload = {}) =>
+    apiClient.post('/absensi/sesi/' + sesiId + '/checkin', payload),
 
-  // GET /api/absensi/rekap/saya ÔÇö Rekap kehadiran pribadi WB
+  // GET /api/absensi/rekap/saya — Rekap kehadiran pribadi WB
   getRekapSaya: () =>
     apiClient.get('/absensi/rekap/saya'),
+
+  // GET /api/absensi/rekap-matriks — Rekapitulasi Matriks Presensi LMS
+  getRekapMatriks: (params = {}) =>
+    apiClient.get('/absensi/rekap-matriks', { params }),
+
+  // PUT /api/absensi/sesi/:sesiId/siswa/:wbId — Update status presensi siswa (Admin/Tutor)
+  updateStatusSiswa: (sesiId, wbId, payload) =>
+    apiClient.put('/absensi/sesi/' + sesiId + '/siswa/' + wbId, payload),
+
+  // DELETE /api/absensi/sesi/:sesiId — Hapus sesi absensi
+  hapusSesi: (sesiId) =>
+    apiClient.delete('/absensi/sesi/' + sesiId),
+
+  // GET /api/absensi/siswa/pertemuan — Riwayat pertemuan & presensi LMS siswa
+  getRiwayatSiswaLms: (params = {}) =>
+    apiClient.get('/absensi/siswa/pertemuan', { params }),
 };
 
 

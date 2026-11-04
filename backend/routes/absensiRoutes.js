@@ -64,6 +64,27 @@ router.get(
   AbsensiController.getSesiByRombel
 );
 
+// GET /api/absensi/rekap-matriks — Rekapitulasi Presensi Matriks LMS (Siswa x Pertemuan)
+router.get(
+  '/rekap-matriks',
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  AbsensiController.getRekapMatriks
+);
+
+// PUT /api/absensi/sesi/:sesiId/siswa/:wbId — Update status kehadiran siswa tertentu
+router.put(
+  '/sesi/:sesiId/siswa/:wbId',
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  AbsensiController.updateStatusSiswa
+);
+
+// DELETE /api/absensi/sesi/:sesiId — Hapus sesi absensi
+router.delete(
+  '/sesi/:sesiId',
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  AbsensiController.hapusSesi
+);
+
 // ---- ENDPOINT WARGA BELAJAR ----
 
 // POST /api/absensi/sesi/:sesiId/checkin — WB check-in mandiri
@@ -71,6 +92,13 @@ router.post(
   '/sesi/:sesiId/checkin',
   checkRole(ROLES.WARGA_BELAJAR),
   AbsensiController.checkInMandiri
+);
+
+// GET /api/absensi/siswa/pertemuan — Riwayat pertemuan & presensi LMS siswa
+router.get(
+  '/siswa/pertemuan',
+  checkRole(ROLES.WARGA_BELAJAR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  AbsensiController.getRiwayatSiswaLms
 );
 
 // GET /api/absensi/rekap/saya — WB lihat rekap kehadiran pribadi

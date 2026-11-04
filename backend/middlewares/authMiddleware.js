@@ -48,6 +48,25 @@ export const verifyToken = (req, res, next) => {
 };
 
 // -----------------------------------------------------------
+// optionalAuth
+// Middleware yang mengecek token JWT jika ada di header,
+// jika tidak ada atau invalid tetap lanjut tanpa error (req.user = undefined).
+// -----------------------------------------------------------
+export const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+    } catch {
+      // Token tidak valid/kedaluwarsa, abaikan untuk rute publik/semi-publik
+    }
+  }
+  next();
+};
+
+// -----------------------------------------------------------
 // checkRole(...roles)
 // Middleware factory yang memeriksa apakah role user
 // termasuk dalam daftar role yang diizinkan.

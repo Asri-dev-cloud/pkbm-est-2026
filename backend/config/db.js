@@ -51,6 +51,80 @@ export const testConnection = async () => {
         // Abaikan jika sudah ada (ER_DUP_COLUMN_NAME)
       }
     }
+
+    // Otomatis pastikan kolom Dapodik tersedia di pendaftar_spmb & warga_belajar
+    const dapodikColumns = [
+      { table: 'pendaftar_spmb', col: 'jarak_rumah_km', def: 'DECIMAL(5,1) NULL DEFAULT NULL COMMENT "Jarak rumah ke sekolah (km)"' },
+      { table: 'pendaftar_spmb', col: 'tinggi_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Tinggi badan (cm)"' },
+      { table: 'pendaftar_spmb', col: 'berat_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Berat badan (kg)"' },
+      { table: 'pendaftar_spmb', col: 'jumlah_saudara_kandung', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Jumlah saudara kandung"' },
+      { table: 'warga_belajar', col: 'jarak_rumah_km', def: 'DECIMAL(5,1) NULL DEFAULT NULL COMMENT "Jarak rumah ke sekolah (km)"' },
+      { table: 'warga_belajar', col: 'tinggi_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Tinggi badan (cm)"' },
+      { table: 'warga_belajar', col: 'berat_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Berat badan (kg)"' },
+      { table: 'warga_belajar', col: 'jumlah_saudara_kandung', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Jumlah saudara kandung"' },
+      { table: 'rekaman_kehadiran', col: 'catatan', def: 'VARCHAR(255) NULL DEFAULT NULL COMMENT "Keterangan alasan izin/sakit/presensi"' },
+      { table: 'sesi_absensi', col: 'pertemuan_ke', def: 'INT UNSIGNED NULL DEFAULT 1 COMMENT "Nomor pertemuan belajar (1-16)"' },
+    ];
+
+    for (const item of dapodikColumns) {
+      try {
+        await pool.query(`ALTER TABLE \`${item.table}\` ADD COLUMN \`${item.col}\` ${item.def}`);
+      } catch (colErr) {
+        if (colErr.code !== 'ER_DUP_COLUMN_NAME') {
+          // Abaikan jika sudah ada
+        }
+      }
+    }
+
+    // Otomatis pastikan 10 Rombel Baru tersedia
+    try {
+      const [checkNew] = await pool.query("SELECT COUNT(*) AS total FROM rombel WHERE nama_rombel = 'Kelas 1 Paket A'");
+      if (!checkNew[0] || checkNew[0].total === 0) {
+        await pool.query('SET FOREIGN_KEY_CHECKS = 0');
+        await pool.query('DELETE FROM rombel_mapel');
+        await pool.query('DELETE FROM rombel');
+
+        const rombelData = [
+          [1, 'Kelas 1 Paket A', 'paket_a', 1, 30],
+          [2, 'Kelas 2 Paket A', 'paket_a', 1, 30],
+          [3, 'Kelas 7-1 Paket B', 'paket_b', 1, 30],
+          [4, 'Kelas 7-2 Paket B', 'paket_b', 1, 30],
+          [5, 'Kelas 8-1 Paket B', 'paket_b', 1, 30],
+          [6, 'Kelas 8-2 Paket B', 'paket_b', 1, 30],
+          [7, 'Kelas 10-1 Paket C', 'paket_c', 1, 30],
+          [8, 'Kelas 10-2 Paket C', 'paket_c', 1, 30],
+          [9, 'Kelas 11-1 Paket C', 'paket_c', 1, 30],
+          [10, 'Kelas 11-2 Paket C', 'paket_c', 1, 30],
+        ];
+
+        for (const [rId, rNama, rJenjang, rTaId, rKap] of rombelData) {
+          await pool.query(
+            `INSERT INTO rombel (id, nama_rombel, jenjang, tahun_ajaran_id, kapasitas, created_at)
+             VALUES (?, ?, ?, ?, ?, NOW())`,
+            [rId, rNama, rJenjang, rTaId, rKap]
+          );
+        }
+
+        // Relasikan mapel ke rombel
+        await pool.query(`
+          INSERT INTO rombel_mapel (rombel_id, mapel_id, tutor_id, is_visible, urutan, created_at)
+          SELECT r.id, mp.id, 2, 1, mp.id, NOW()
+          FROM rombel r
+          JOIN mata_pelajaran mp ON (mp.jenjang = 'semua' OR mp.jenjang = r.jenjang)
+          WHERE mp.is_active = 1
+        `);
+
+        // Update relasi rombel siswa default
+        await pool.query("UPDATE warga_belajar SET rombel_id = 1 WHERE jenjang = 'paket_a'");
+        await pool.query("UPDATE warga_belajar SET rombel_id = 3 WHERE jenjang = 'paket_b'");
+        await pool.query("UPDATE warga_belajar SET rombel_id = 7 WHERE jenjang = 'paket_c'");
+
+        await pool.query('SET FOREIGN_KEY_CHECKS = 1');
+        console.log('✅ 10 Rombel baru berhasil disinkronisasi ke database.');
+      }
+    } catch (rErr) {
+      // Abaikan jika tabel belum siap
+    }
   } catch (error) {
     console.error('\n❌ Gagal konek ke database MySQL:', error.message);
     console.error('💡 Solusi:');

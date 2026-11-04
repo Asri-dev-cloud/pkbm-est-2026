@@ -252,13 +252,28 @@ const AuthController = {
       });
 
       if (req.user.role === 'warga_belajar') {
-        const { nik, tanggal_lahir, jenis_kelamin, alamat, nama_wali, no_telp } = req.body;
+        const {
+          nik,
+          tanggal_lahir,
+          jenis_kelamin,
+          alamat,
+          jarak_rumah_km,
+          tinggi_badan,
+          berat_badan,
+          jumlah_saudara_kandung,
+          nama_wali,
+          no_telp,
+        } = req.body;
 
         await ProfileModel.updateWargaBelajarProfile(req.user.id, {
           nik,
           tanggal_lahir,
           jenis_kelamin,
           alamat,
+          jarak_rumah_km: jarak_rumah_km !== undefined && jarak_rumah_km !== '' && jarak_rumah_km !== null ? parseFloat(jarak_rumah_km) : null,
+          tinggi_badan: tinggi_badan !== undefined && tinggi_badan !== '' && tinggi_badan !== null ? parseInt(tinggi_badan, 10) : null,
+          berat_badan: berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? parseFloat(berat_badan) : null,
+          jumlah_saudara_kandung: jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' && jumlah_saudara_kandung !== null ? parseInt(jumlah_saudara_kandung, 10) : null,
           nama_wali,
           no_telp,
         });

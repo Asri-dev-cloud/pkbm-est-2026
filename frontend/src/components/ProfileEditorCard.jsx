@@ -21,6 +21,10 @@ function buildInitialForm(profile) {
     tanggal_lahir: profile?.tanggal_lahir ? String(profile.tanggal_lahir).slice(0, 10) : '',
     jenis_kelamin: profile?.jenis_kelamin || 'L',
     alamat: profile?.alamat || '',
+    jarak_rumah_km: profile?.jarak_rumah_km ?? '',
+    tinggi_badan: profile?.tinggi_badan ?? '',
+    berat_badan: profile?.berat_badan ?? '',
+    jumlah_saudara_kandung: profile?.jumlah_saudara_kandung ?? '',
     nama_wali: profile?.nama_wali || '',
     no_telp: profile?.no_telp || '',
     nip: profile?.nip || '',
@@ -44,6 +48,10 @@ function getFieldsForRole(role) {
       ] },
       { key: 'no_telp', label: 'No. Telepon', type: 'text' },
       { key: 'nama_wali', label: 'Nama Wali', type: 'text' },
+      { key: 'jarak_rumah_km', label: 'Jarak ke Sekolah (km)', type: 'number', step: '0.1' },
+      { key: 'tinggi_badan', label: 'Tinggi Badan (cm)', type: 'number' },
+      { key: 'berat_badan', label: 'Berat Badan (kg)', type: 'number' },
+      { key: 'jumlah_saudara_kandung', label: 'Jumlah Saudara Kandung', type: 'number' },
       { key: 'alamat', label: 'Alamat', type: 'textarea' },
     ];
   }

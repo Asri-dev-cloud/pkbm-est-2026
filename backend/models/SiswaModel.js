@@ -22,10 +22,15 @@ const SiswaModel = {
         wb.user_id,
         u.nama_lengkap,
         u.email,
+        u.foto_profil,
         wb.jenjang,
         wb.tanggal_lahir,
         wb.jenis_kelamin,
         wb.alamat,
+        wb.jarak_rumah_km,
+        wb.tinggi_badan,
+        wb.berat_badan,
+        wb.jumlah_saudara_kandung,
         wb.nama_wali,
         wb.no_telp,
         wb.is_aktif,
@@ -66,14 +71,18 @@ const SiswaModel = {
         wb.*,
         u.nama_lengkap,
         u.email,
-        u.foto_profil,
+        COALESCE(u.foto_profil, bs.path_file) AS foto_profil,
+        bs.path_file AS pas_foto,
         r.nama_rombel,
         ta.nama_tahun_ajaran
       FROM warga_belajar wb
       JOIN users u ON wb.user_id = u.id
       LEFT JOIN rombel r ON wb.rombel_id = r.id
       LEFT JOIN tahun_ajaran ta ON wb.tahun_ajaran_id = ta.id
+      LEFT JOIN pendaftar_spmb ps ON ps.warga_belajar_id = wb.id
+      LEFT JOIN berkas_spmb bs ON bs.pendaftar_id = ps.id AND bs.jenis_berkas = 'foto'
       WHERE wb.id = ?
+      ORDER BY bs.id DESC
       LIMIT 1
     `;
     const [rows] = await pool.execute(sql, [id]);
@@ -85,11 +94,22 @@ const SiswaModel = {
   // -----------------------------------------------------------
   findByUserId: async (user_id) => {
     const sql = `
-      SELECT wb.*, u.nama_lengkap, u.email, r.nama_rombel
+      SELECT
+        wb.*,
+        u.nama_lengkap,
+        u.email,
+        COALESCE(u.foto_profil, bs.path_file) AS foto_profil,
+        bs.path_file AS pas_foto,
+        r.nama_rombel,
+        ta.nama_tahun_ajaran
       FROM warga_belajar wb
       JOIN users u ON wb.user_id = u.id
       LEFT JOIN rombel r ON wb.rombel_id = r.id
+      LEFT JOIN tahun_ajaran ta ON wb.tahun_ajaran_id = ta.id
+      LEFT JOIN pendaftar_spmb ps ON ps.warga_belajar_id = wb.id
+      LEFT JOIN berkas_spmb bs ON bs.pendaftar_id = ps.id AND bs.jenis_berkas = 'foto'
       WHERE wb.user_id = ?
+      ORDER BY bs.id DESC
       LIMIT 1
     `;
     const [rows] = await pool.execute(sql, [user_id]);
@@ -100,14 +120,19 @@ const SiswaModel = {
   // Buat profil Warga Belajar baru
   // Dipanggil otomatis oleh pipeline SPMB saat status = 'diterima'
   // -----------------------------------------------------------
-  create: async ({ user_id, nis, nik, jenjang, tanggal_lahir, jenis_kelamin, alamat, nama_wali, no_telp, rombel_id, tahun_ajaran_id }) => {
+  create: async ({ user_id, nis, nik, jenjang, tanggal_lahir, jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung, nama_wali, no_telp, rombel_id, tahun_ajaran_id }) => {
     const sql = `
       INSERT INTO warga_belajar
-        (user_id, nis, nik, jenjang, tanggal_lahir, jenis_kelamin, alamat, nama_wali, no_telp, rombel_id, tahun_ajaran_id, is_aktif, created_at)
+        (user_id, nis, nik, jenjang, tanggal_lahir, jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung, nama_wali, no_telp, rombel_id, tahun_ajaran_id, is_aktif, created_at)
       VALUES
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
     `;
-    const params = [user_id, nis, nik || null, jenjang, tanggal_lahir, jenis_kelamin, alamat, nama_wali, no_telp, rombel_id, tahun_ajaran_id];
+    const params = [
+      user_id, nis, nik || null, jenjang, tanggal_lahir, jenis_kelamin, alamat,
+      jarak_rumah_km || null, tinggi_badan || null, berat_badan || null,
+      jumlah_saudara_kandung !== undefined ? jumlah_saudara_kandung : null,
+      nama_wali, no_telp, rombel_id, tahun_ajaran_id
+    ];
     const [result] = await pool.execute(sql, params);
     return result.insertId;
   },
@@ -115,13 +140,32 @@ const SiswaModel = {
   // -----------------------------------------------------------
   // Update data profil Warga Belajar
   // -----------------------------------------------------------
-  update: async (id, { alamat, nama_wali, no_telp, rombel_id }) => {
+  update: async (id, { alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung, nama_wali, no_telp, rombel_id }) => {
     const sql = `
       UPDATE warga_belajar
-      SET alamat = ?, nama_wali = ?, no_telp = ?, rombel_id = ?, updated_at = NOW()
+      SET alamat = ?,
+          jarak_rumah_km = ?,
+          tinggi_badan = ?,
+          berat_badan = ?,
+          jumlah_saudara_kandung = ?,
+          nama_wali = ?,
+          no_telp = ?,
+          rombel_id = ?,
+          updated_at = NOW()
       WHERE id = ?
     `;
-    const [result] = await pool.execute(sql, [alamat, nama_wali, no_telp, rombel_id, id]);
+    const params = [
+      alamat,
+      jarak_rumah_km !== undefined && jarak_rumah_km !== '' ? jarak_rumah_km : null,
+      tinggi_badan !== undefined && tinggi_badan !== '' ? tinggi_badan : null,
+      berat_badan !== undefined && berat_badan !== '' ? berat_badan : null,
+      jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' ? jumlah_saudara_kandung : null,
+      nama_wali,
+      no_telp,
+      rombel_id,
+      id
+    ];
+    const [result] = await pool.execute(sql, params);
     return result.affectedRows;
   },
 
@@ -168,47 +212,34 @@ const SiswaModel = {
       sql += ` ORDER BY r.jenjang ASC, r.id ASC`;
       const [rows] = await pool.execute(sql, params);
 
-      // Deduplikasi di JavaScript: tepat 1 per jenjang (Paket A, Paket B, Paket C)
-      const map = new Map();
-      rows.forEach((r) => {
-        const jKey = (r.jenjang || 'paket_a').toLowerCase();
-        if (!map.has(jKey)) {
-          const cleanName =
-            jKey === 'paket_a' ? 'Paket A' :
-            jKey === 'paket_b' ? 'Paket B' :
-            jKey === 'paket_c' ? 'Paket C' :
-            (r.nama_rombel || jKey.toUpperCase());
-
-          map.set(jKey, {
-            id: r.id,
-            nama: cleanName,
-            nama_rombel: cleanName,
-            jenjang: jKey,
-            kapasitas: r.kapasitas || 40,
-          });
-        }
-      });
-
-      // Jika di DB belum ada data rombel, sediakan 3 paket standar
-      if (map.size === 0) {
-        return [
-          { id: 1, nama: 'Paket A', nama_rombel: 'Paket A', jenjang: 'paket_a', kapasitas: 40 },
-          { id: 2, nama: 'Paket B', nama_rombel: 'Paket B', jenjang: 'paket_b', kapasitas: 40 },
-          { id: 3, nama: 'Paket C', nama_rombel: 'Paket C', jenjang: 'paket_c', kapasitas: 40 },
-        ];
+      if (rows && rows.length > 0) {
+        return rows.map((r) => ({
+          id: r.id,
+          nama: r.nama_rombel,
+          nama_rombel: r.nama_rombel,
+          jenjang: r.jenjang,
+          kapasitas: r.kapasitas || 30,
+        }));
       }
 
-      const sortOrder = { paket_a: 1, paket_b: 2, paket_c: 3 };
-      return Array.from(map.values()).sort(
-        (a, b) => (sortOrder[a.jenjang] || 99) - (sortOrder[b.jenjang] || 99)
-      );
+      // Daftar 10 rombel resmi jika tabel di DB belum terisi
+      const defaultList = [
+        { id: 1, nama: 'Kelas 1 Paket A', nama_rombel: 'Kelas 1 Paket A', jenjang: 'paket_a', kapasitas: 30 },
+        { id: 2, nama: 'Kelas 2 Paket A', nama_rombel: 'Kelas 2 Paket A', jenjang: 'paket_a', kapasitas: 30 },
+        { id: 3, nama: 'Kelas 7-1 Paket B', nama_rombel: 'Kelas 7-1 Paket B', jenjang: 'paket_b', kapasitas: 30 },
+        { id: 4, nama: 'Kelas 7-2 Paket B', nama_rombel: 'Kelas 7-2 Paket B', jenjang: 'paket_b', kapasitas: 30 },
+        { id: 5, nama: 'Kelas 8-1 Paket B', nama_rombel: 'Kelas 8-1 Paket B', jenjang: 'paket_b', kapasitas: 30 },
+        { id: 6, nama: 'Kelas 8-2 Paket B', nama_rombel: 'Kelas 8-2 Paket B', jenjang: 'paket_b', kapasitas: 30 },
+        { id: 7, nama: 'Kelas 10-1 Paket C', nama_rombel: 'Kelas 10-1 Paket C', jenjang: 'paket_c', kapasitas: 30 },
+        { id: 8, nama: 'Kelas 10-2 Paket C', nama_rombel: 'Kelas 10-2 Paket C', jenjang: 'paket_c', kapasitas: 30 },
+        { id: 9, nama: 'Kelas 11-1 Paket C', nama_rombel: 'Kelas 11-1 Paket C', jenjang: 'paket_c', kapasitas: 30 },
+        { id: 10, nama: 'Kelas 11-2 Paket C', nama_rombel: 'Kelas 11-2 Paket C', jenjang: 'paket_c', kapasitas: 30 },
+      ];
+
+      return jenjang ? defaultList.filter((r) => r.jenjang === jenjang) : defaultList;
     } catch (err) {
       console.error('[SiswaModel.getRombelOptions] Error:', err);
-      return [
-        { id: 1, nama: 'Paket A', nama_rombel: 'Paket A', jenjang: 'paket_a', kapasitas: 40 },
-        { id: 2, nama: 'Paket B', nama_rombel: 'Paket B', jenjang: 'paket_b', kapasitas: 40 },
-        { id: 3, nama: 'Paket C', nama_rombel: 'Paket C', jenjang: 'paket_c', kapasitas: 40 },
-      ];
+      return [];
     }
   },
 

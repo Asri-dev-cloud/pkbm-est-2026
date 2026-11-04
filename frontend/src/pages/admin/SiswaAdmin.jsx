@@ -105,6 +105,10 @@ function SiswaAdmin() {
       // Isi form edit dengan data saat ini
       setFormEdit({
         alamat:   data.alamat   || '',
+        jarak_rumah_km: data.jarak_rumah_km ?? '',
+        tinggi_badan: data.tinggi_badan ?? '',
+        berat_badan: data.berat_badan ?? '',
+        jumlah_saudara_kandung: data.jumlah_saudara_kandung ?? '',
         nama_wali: data.nama_wali || '',
         no_telp:  data.no_telp  || '',
       });
@@ -535,6 +539,70 @@ function SiswaAdmin() {
                           </div>
                         </div>
 
+                        {/* Data Periodik Dapodik */}
+                        <div style={{
+                          marginBottom: '1rem',
+                          padding: '0.875rem 1rem',
+                          background: '#F0FDF4',
+                          borderRadius: '8px',
+                          border: '1px solid #BBF7D0',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.85rem', color: '#166534', marginBottom: '0.75rem' }}>
+                            <i className="bi bi-bookmark-check-fill"></i>
+                            <span>Data Isian Dapodik (Data Pokok Pendidikan)</span>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                            <div className="form-group">
+                              <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 700 }}>Jarak ke Sekolah (km)</label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                className="form-input"
+                                placeholder="Contoh: 2.5"
+                                value={formEdit.jarak_rumah_km}
+                                onChange={e => setFormEdit(p => ({ ...p, jarak_rumah_km: e.target.value }))}
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 700 }}>Tinggi Badan (cm)</label>
+                              <input
+                                type="number"
+                                min="30"
+                                max="250"
+                                className="form-input"
+                                placeholder="Contoh: 165"
+                                value={formEdit.tinggi_badan}
+                                onChange={e => setFormEdit(p => ({ ...p, tinggi_badan: e.target.value }))}
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 700 }}>Berat Badan (kg)</label>
+                              <input
+                                type="number"
+                                min="10"
+                                max="250"
+                                className="form-input"
+                                placeholder="Contoh: 55"
+                                value={formEdit.berat_badan}
+                                onChange={e => setFormEdit(p => ({ ...p, berat_badan: e.target.value }))}
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 700 }}>Jumlah Saudara Kandung</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="30"
+                                className="form-input"
+                                placeholder="Contoh: 2 (isi 0 jika tunggal)"
+                                value={formEdit.jumlah_saudara_kandung}
+                                onChange={e => setFormEdit(p => ({ ...p, jumlah_saudara_kandung: e.target.value }))}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
                         {saveError && (
                           <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>
                             <i className="bi bi-exclamation-circle" />
@@ -550,22 +618,63 @@ function SiswaAdmin() {
                       </div>
                     ) : (
                       /* Mode Detail */
-                      <div style={{ border: '1px solid #E2E8F0', borderRadius: '10px', padding: '1rem 1.25rem', background: '#FFFFFF' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.9rem', color: '#0F172A', marginBottom: '0.875rem' }}>
-                          <i className="bi bi-info-circle-fill" style={{ color: '#1D4ED8' }}></i>
-                          <span>Informasi Kontak & Domisili</span>
+                      <div>
+                        <div style={{ border: '1px solid #E2E8F0', borderRadius: '10px', padding: '1rem 1.25rem', background: '#FFFFFF', marginBottom: '1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.9rem', color: '#0F172A', marginBottom: '0.875rem' }}>
+                            <i className="bi bi-info-circle-fill" style={{ color: '#1D4ED8' }}></i>
+                            <span>Informasi Kontak & Domisili</span>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
+                            {[
+                              { label: 'Alamat Tinggal', value: selectedWB.alamat || 'Belum diisi' },
+                              { label: 'Nama Orang Tua / Wali', value: selectedWB.nama_wali || 'Belum diisi' },
+                              { label: 'Nomor Telepon / WA', value: selectedWB.no_telp || 'Belum diisi' },
+                            ].map(({ label, value }) => (
+                              <div key={label} style={{ padding: '0.5rem 0', borderBottom: '1px solid #F1F5F9' }}>
+                                <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>{label}</span>
+                                <span style={{ fontSize: '0.925rem', fontWeight: 700, color: '#0F172A' }}>{value}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
-                          {[
-                            { label: 'Alamat Tinggal', value: selectedWB.alamat || 'Belum diisi' },
-                            { label: 'Nama Orang Tua / Wali', value: selectedWB.nama_wali || 'Belum diisi' },
-                            { label: 'Nomor Telepon / WA', value: selectedWB.no_telp || 'Belum diisi' },
-                          ].map(({ label, value }) => (
-                            <div key={label} style={{ padding: '0.5rem 0', borderBottom: '1px solid #F1F5F9' }}>
-                              <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>{label}</span>
-                              <span style={{ fontSize: '0.925rem', fontWeight: 700, color: '#0F172A' }}>{value}</span>
+
+                        {/* Card Data Dapodik di Detail */}
+                        <div style={{
+                          border: '1px solid #BBF7D0',
+                          borderRadius: '10px',
+                          padding: '1rem 1.25rem',
+                          background: '#F0FDF4',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.9rem', color: '#166534', marginBottom: '0.875rem' }}>
+                            <i className="bi bi-bookmark-check-fill" style={{ color: '#16A34A' }}></i>
+                            <span>Data Isian Dapodik (Data Pokok Pendidikan)</span>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.625rem' }}>
+                            <div style={{ background: '#FFFFFF', padding: '0.6rem 0.75rem', borderRadius: 8, border: '1px solid #DCFCE7' }}>
+                              <div style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Jarak ke Sekolah</div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                                {selectedWB.jarak_rumah_km != null ? `${selectedWB.jarak_rumah_km} km` : '—'}
+                              </div>
                             </div>
-                          ))}
+                            <div style={{ background: '#FFFFFF', padding: '0.6rem 0.75rem', borderRadius: 8, border: '1px solid #DCFCE7' }}>
+                              <div style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Tinggi Badan</div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                                {selectedWB.tinggi_badan != null ? `${selectedWB.tinggi_badan} cm` : '—'}
+                              </div>
+                            </div>
+                            <div style={{ background: '#FFFFFF', padding: '0.6rem 0.75rem', borderRadius: 8, border: '1px solid #DCFCE7' }}>
+                              <div style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Berat Badan</div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                                {selectedWB.berat_badan != null ? `${selectedWB.berat_badan} kg` : '—'}
+                              </div>
+                            </div>
+                            <div style={{ background: '#FFFFFF', padding: '0.6rem 0.75rem', borderRadius: 8, border: '1px solid #DCFCE7' }}>
+                              <div style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Saudara Kandung</div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                                {selectedWB.jumlah_saudara_kandung != null ? `${selectedWB.jumlah_saudara_kandung} orang` : '—'}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}

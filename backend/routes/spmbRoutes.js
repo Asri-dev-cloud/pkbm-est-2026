@@ -6,7 +6,7 @@
 
 import { Router } from 'express';
 import SpmbController from '../controllers/SpmbController.js';
-import { verifyToken, checkRole, ROLES } from '../middlewares/authMiddleware.js';
+import { verifyToken, checkRole, optionalAuth, ROLES } from '../middlewares/authMiddleware.js';
 import upload from '../config/multer.js';
 
 const router = Router();
@@ -22,10 +22,11 @@ router.post('/daftar', SpmbController.daftar);
 // GET /api/spmb/cek-status — Cek status pendaftaran calon siswa (tanpa login)
 router.get('/cek-status', SpmbController.cekStatusPublik);
 
-// POST /api/spmb/:id/berkas — Upload berkas pendukung (tanpa login)
-// Middleware: set folder upload ke 'spmb', lalu jalankan Multer single file
+// POST /api/spmb/:id/berkas — Upload berkas pendukung (bisa publik atau via Admin TU)
+// Middleware: optionalAuth (deteksi login admin), set folder upload ke 'spmb', lalu jalankan Multer
 router.post(
   '/:id/berkas',
+  optionalAuth,
   (req, res, next) => { req.uploadFolder = 'spmb'; next(); },
   upload.single('file'),
   SpmbController.uploadBerkas
@@ -66,6 +67,14 @@ router.put(
   verifyToken,
   checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
   SpmbController.verifikasiBerkas
+);
+
+// DELETE /api/spmb/berkas/:berkasId — Hapus satu berkas (Admin, Super Admin)
+router.delete(
+  '/berkas/:berkasId',
+  verifyToken,
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  SpmbController.hapusBerkas
 );
 
 // PUT /api/spmb/:id/keputusan — Buat keputusan terima/tolak + pipeline otomatis (Admin)

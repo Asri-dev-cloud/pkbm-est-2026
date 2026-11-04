@@ -122,10 +122,23 @@ const SiswaController = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { alamat, nama_wali, no_telp, rombel_id } = req.body;
+      const {
+        alamat,
+        jarak_rumah_km,
+        tinggi_badan,
+        berat_badan,
+        jumlah_saudara_kandung,
+        nama_wali,
+        no_telp,
+        rombel_id,
+      } = req.body;
 
       const affectedRows = await SiswaModel.update(parseInt(id), {
         alamat,
+        jarak_rumah_km: jarak_rumah_km !== undefined && jarak_rumah_km !== '' && jarak_rumah_km !== null ? parseFloat(jarak_rumah_km) : null,
+        tinggi_badan: tinggi_badan !== undefined && tinggi_badan !== '' && tinggi_badan !== null ? parseInt(tinggi_badan, 10) : null,
+        berat_badan: berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? parseFloat(berat_badan) : null,
+        jumlah_saudara_kandung: jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' && jumlah_saudara_kandung !== null ? parseInt(jumlah_saudara_kandung, 10) : null,
         nama_wali,
         no_telp,
         rombel_id,

@@ -24,6 +24,10 @@ function SpmbAdmin() {
 
   const [catatan, setCatatan] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [manualJenisBerkas, setManualJenisBerkas] = useState('kk');
+  const [manualFile, setManualFile] = useState(null);
+  const [uploadingManual, setUploadingManual] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState('');
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -83,6 +87,63 @@ function SpmbAdmin() {
       alert('Gagal memuat detail pendaftar.');
     } finally {
       setLoadDetail(false);
+    }
+  };
+
+  const handleAdminUploadBerkas = async () => {
+    if (!detail?.id || !manualFile) {
+      alert('Pilih file berkas yang akan diunggah terlebih dahulu.');
+      return;
+    }
+
+    setUploadingManual(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', manualFile);
+      fd.append('jenis_berkas', manualJenisBerkas);
+
+      const res = await SpmbAPI.uploadBerkas(detail.id, fd);
+      if (res.data?.success) {
+        alert(`Berkas ${manualJenisBerkas.toUpperCase()} berhasil disimpan ke database!`);
+        setManualFile(null);
+        const inputEl = document.getElementById('admin-manual-file-input');
+        if (inputEl) inputEl.value = '';
+
+        await bukaDetail(detail.id);
+        const [resList, resStat] = await Promise.all([
+          SpmbAPI.getAll({ status: filterStatus || undefined }),
+          SpmbAPI.getStatistik(),
+        ]);
+        setList(resList.data.data || []);
+        setStat(resStat.data.data);
+      } else {
+        alert(res.data?.message || 'Gagal mengunggah berkas.');
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Terjadi kesalahan saat mengunggah berkas.');
+    } finally {
+      setUploadingManual(false);
+    }
+  };
+
+  const handleHapusBerkas = async (berkasId, label) => {
+    const konfirmasi = window.confirm(`Hapus berkas "${label || 'ini'}" dari database dan server?`);
+    if (!konfirmasi) return;
+
+    try {
+      await SpmbAPI.hapusBerkas(berkasId);
+      alert('Berkas berhasil dihapus.');
+      if (detail) {
+        await bukaDetail(detail.id);
+        const [resList, resStat] = await Promise.all([
+          SpmbAPI.getAll({ status: filterStatus || undefined }),
+          SpmbAPI.getStatistik(),
+        ]);
+        setList(resList.data.data || []);
+        setStat(resStat.data.data);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal menghapus berkas.');
     }
   };
 
@@ -293,18 +354,75 @@ function SpmbAdmin() {
                 </div>
               )}
 
-              {!loading && !error && (
-                list.length === 0 ? (
-                  <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', background: '#FFFFFF', borderRadius: 14, border: '1px solid #E2E8F0' }}>
-                    <div className="empty-state">
-                      <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#94A3B8' }}></i>
-                      <h3 style={{ color: '#1E293B', marginTop: 10 }}>Tidak Ada Pendaftar</h3>
-                      <p style={{ color: '#64748B' }}>Belum ada berkas pendaftar baru dengan status seleksi ini.</p>
+              {/* Search Bar */}
+              <div style={{ marginBottom: '1rem', position: 'relative' }}>
+                <i className="bi bi-search" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}></i>
+                <input
+                  type="text"
+                  placeholder="Cari nama, email, no. telp, atau ID..."
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 32px 8px 36px',
+                    borderRadius: 8,
+                    border: '1px solid #CBD5E1',
+                    fontSize: '0.85rem',
+                    background: '#FFFFFF',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                {searchKeyword && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchKeyword('')}
+                    style={{
+                      position: 'absolute',
+                      right: 10,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: '#94A3B8',
+                      padding: 0
+                    }}
+                  >
+                    <i className="bi bi-x-circle-fill"></i>
+                  </button>
+                )}
+              </div>
+
+              {!loading && !error && (() => {
+                const filteredList = list.filter((p) => {
+                  if (!searchKeyword.trim()) return true;
+                  const q = searchKeyword.toLowerCase();
+                  return (
+                    p.nama_lengkap?.toLowerCase().includes(q) ||
+                    p.email?.toLowerCase().includes(q) ||
+                    p.no_telp?.includes(q) ||
+                    String(p.id).includes(q)
+                  );
+                });
+
+                if (filteredList.length === 0) {
+                  return (
+                    <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', background: '#FFFFFF', borderRadius: 14, border: '1px solid #E2E8F0' }}>
+                      <div className="empty-state">
+                        <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#94A3B8' }}></i>
+                        <h3 style={{ color: '#1E293B', marginTop: 10 }}>Tidak Ada Pendaftar</h3>
+                        <p style={{ color: '#64748B' }}>
+                          {searchKeyword ? `Tidak ditemukan pendaftar dengan kata kunci "${searchKeyword}".` : 'Belum ada berkas pendaftar baru dengan status seleksi ini.'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ) : (
+                  );
+                }
+
+                return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                    {list.map((pendaftar) => {
+                    {filteredList.map((pendaftar) => {
                       const isSelected = detail?.id === pendaftar.id;
                       return (
                         <div
@@ -343,12 +461,22 @@ function SpmbAdmin() {
                               <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0F172A', marginBottom: 2 }}>
                                 {pendaftar.nama_lengkap}
                               </div>
-                              <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                                 <span className="badge" style={{ background: '#F1F5F9', color: '#334155', fontWeight: 700, padding: '2px 8px' }}>
                                   {labelJenjang[pendaftar.jenjang_daftar] || pendaftar.jenjang_daftar}
                                 </span>
                                 <span>•</span>
                                 <span>{formatTanggal(pendaftar.created_at)}</span>
+                                <span>•</span>
+                                {pendaftar.jumlah_berkas > 0 ? (
+                                  <span style={{ color: '#16A34A', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                                    <i className="bi bi-file-earmark-check-fill"></i> {pendaftar.jumlah_berkas} Berkas
+                                  </span>
+                                ) : (
+                                  <span style={{ color: '#D97706', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                                    <i className="bi bi-exclamation-triangle-fill"></i> Belum Ada Berkas
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <span className={`badge ${getBadgeClass(pendaftar.status)}`} style={{ textTransform: 'capitalize', fontWeight: 700, padding: '4px 10px' }}>
@@ -359,8 +487,8 @@ function SpmbAdmin() {
                       );
                     })}
                   </div>
-                )
-              )}
+                );
+              })()}
             </div>
 
             {(detail || loadDetail) && (
@@ -400,6 +528,7 @@ function SpmbAdmin() {
                           { label: 'Jenis Kelamin', value: detail.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan', icon: 'bi-gender-ambiguous' },
                           { label: 'Nama Orang Tua / Wali', value: detail.nama_wali || '—', icon: 'bi-people' },
                           { label: 'Nomor WhatsApp / HP', value: detail.no_telp || '—', icon: 'bi-whatsapp' },
+                          { label: 'Alamat Tinggal', value: detail.alamat || '—', icon: 'bi-geo-alt' },
                         ].map((item) => (
                           <div
                             key={item.label}
@@ -419,89 +548,305 @@ function SpmbAdmin() {
                         ))}
                       </div>
 
-                      <div style={{ marginBottom: '1.25rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.9rem', color: '#0F172A', marginBottom: '0.75rem' }}>
-                          <i className="bi bi-paperclip" style={{ color: '#1D4ED8' }}></i>
-                          <span>Berkas Persyaratan Dokumen</span>
+                      {/* Data Isian Dapodik */}
+                      <div style={{
+                        marginBottom: '1.25rem',
+                        padding: '1rem',
+                        background: '#F0FDF4',
+                        borderRadius: '10px',
+                        border: '1px solid #BBF7D0',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.85rem', color: '#166534', marginBottom: '0.75rem' }}>
+                          <i className="bi bi-bookmark-check-fill"></i>
+                          <span>Data Isian Dapodik (Data Pokok Pendidikan)</span>
                         </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.625rem' }}>
+                          <div style={{ background: '#FFFFFF', padding: '0.6rem 0.75rem', borderRadius: 8, border: '1px solid #DCFCE7' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Jarak ke Sekolah</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                              {detail.jarak_rumah_km != null ? `${detail.jarak_rumah_km} km` : '—'}
+                            </div>
+                          </div>
+                          <div style={{ background: '#FFFFFF', padding: '0.6rem 0.75rem', borderRadius: 8, border: '1px solid #DCFCE7' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Tinggi Badan</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                              {detail.tinggi_badan != null ? `${detail.tinggi_badan} cm` : '—'}
+                            </div>
+                          </div>
+                          <div style={{ background: '#FFFFFF', padding: '0.6rem 0.75rem', borderRadius: 8, border: '1px solid #DCFCE7' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Berat Badan</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                              {detail.berat_badan != null ? `${detail.berat_badan} kg` : '—'}
+                            </div>
+                          </div>
+                          <div style={{ background: '#FFFFFF', padding: '0.6rem 0.75rem', borderRadius: 8, border: '1px solid #DCFCE7' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Saudara Kandung</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                              {detail.jumlah_saudara_kandung != null ? `${detail.jumlah_saudara_kandung} orang` : '—'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: '1.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: 6 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.95rem', color: '#0F172A' }}>
+                            <i className="bi bi-file-earmark-text-fill" style={{ color: '#1D4ED8' }}></i>
+                            <span>Berkas Persyaratan Dokumen (Database)</span>
+                          </div>
+                          <span className="badge" style={{ background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, padding: '4px 10px' }}>
+                            {detail.berkas?.length || 0} Berkas Tersimpan
+                          </span>
+                        </div>
+
+                        {/* Daftar Berkas Terunggah dari Database */}
                         {!detail.berkas || detail.berkas.length === 0 ? (
-                          <div style={{ padding: '1rem', background: '#F8FAFC', borderRadius: 8, border: '1px dashed #CBD5E1', textAlign: 'center', color: '#64748B', fontSize: '0.85rem' }}>
-                            Belum ada berkas pendukung yang diunggah.
+                          <div style={{
+                            padding: '1.25rem',
+                            background: '#FFFBEB',
+                            borderRadius: 10,
+                            border: '1.5px dashed #FDE68A',
+                            textAlign: 'center',
+                            color: '#92400E',
+                            marginBottom: 16
+                          }}>
+                            <i className="bi bi-exclamation-triangle-fill" style={{ fontSize: '1.5rem', color: '#D97706', display: 'block', marginBottom: 6 }}></i>
+                            <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>Belum ada berkas pendukung yang diunggah oleh calon siswa.</div>
+                            <div style={{ fontSize: '0.8rem', color: '#B45309', marginTop: 4 }}>
+                              Calon siswa mungkin menyerahkan berkas fotokopi fisik ke loket TU atau mengirimkannya via WhatsApp. Staf Admin TU dapat langsung mengunggahnya secara manual di formulir bawah ini.
+                            </div>
                           </div>
                         ) : (
-                          detail.berkas.map((berkas) => {
-                            const statusBerkas = berkas.status_verifikasi;
-                            return (
-                              <div
-                                key={berkas.id}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                            {detail.berkas.map((berkas) => {
+                              const statusBerkas = berkas.status_verifikasi;
+                              const labelJenis = {
+                                kk: 'Kartu Keluarga (KK)',
+                                ijazah: 'Ijazah Terakhir / SKL / Raport',
+                                foto: 'Pas Foto 3x4 Terbaru',
+                                dokumen_lain: 'Dokumen Pendukung Lain'
+                              }[berkas.jenis_berkas] || berkas.jenis_berkas?.replace('_', ' ');
+
+                              return (
+                                <div
+                                  key={berkas.id}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: '0.75rem',
+                                    padding: '0.75rem 1rem',
+                                    background:
+                                      statusBerkas === 'valid'
+                                        ? '#F0FDF4'
+                                        : statusBerkas === 'tidak_valid'
+                                          ? '#FEF2F2'
+                                          : '#FFFFFF',
+                                    border: `1px solid ${
+                                      statusBerkas === 'valid'
+                                        ? '#BBF7D0'
+                                        : statusBerkas === 'tidak_valid'
+                                          ? '#FECACA'
+                                          : '#E2E8F0'
+                                    }`,
+                                    borderRadius: '10px',
+                                    flexWrap: 'wrap'
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 160, flex: 1 }}>
+                                    <div style={{
+                                      width: 34,
+                                      height: 34,
+                                      borderRadius: 8,
+                                      background: statusBerkas === 'valid' ? '#DCFCE7' : '#EFF6FF',
+                                      color: statusBerkas === 'valid' ? '#16A34A' : '#1D4ED8',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      flexShrink: 0
+                                    }}>
+                                      <i className="bi bi-file-earmark-text" style={{ fontSize: '1.1rem' }}></i>
+                                    </div>
+                                    <div style={{ minWidth: 0 }}>
+                                      <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#0F172A' }}>
+                                        {labelJenis}
+                                      </div>
+                                      <div style={{ fontSize: '0.75rem', color: '#64748B', wordBreak: 'break-all' }}>
+                                        {berkas.nama_file || 'File Berkas'}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                    {statusBerkas && (
+                                      <span className={`badge ${getBadgeClass(statusBerkas)}`} style={{ fontSize: '0.725rem', fontWeight: 700, padding: '4px 8px' }}>
+                                        {statusBerkas === 'valid' ? '✓ Sah' : statusBerkas === 'tidak_valid' ? '✗ Ditolak' : '⏳ Menunggu'}
+                                      </span>
+                                    )}
+
+                                    {berkas.path_file && (
+                                      <a
+                                        href={toAssetUrl(berkas.path_file)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-secondary"
+                                        style={{ padding: '4px 10px', fontSize: '0.78rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                      >
+                                        <i className="bi bi-eye"></i> Tinjau
+                                      </a>
+                                    )}
+
+                                    {statusBerkas !== 'valid' && (
+                                      <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        style={{ padding: '4px 10px', fontSize: '0.78rem', fontWeight: 700, color: '#16A34A', borderColor: '#BBF7D0', background: '#F0FDF4' }}
+                                        onClick={() => handleVerifikasiBerkas(berkas.id, 'valid')}
+                                      >
+                                        <i className="bi bi-check2"></i> Sah
+                                      </button>
+                                    )}
+
+                                    {statusBerkas !== 'tidak_valid' && (
+                                      <button
+                                        type="button"
+                                        className="btn btn-danger"
+                                        style={{ padding: '4px 10px', fontSize: '0.78rem', fontWeight: 700 }}
+                                        onClick={() => handleVerifikasiBerkas(berkas.id, 'tidak_valid')}
+                                      >
+                                        <i className="bi bi-x"></i> Tolak
+                                      </button>
+                                    )}
+
+                                    <button
+                                      type="button"
+                                      title="Hapus Berkas dari Database"
+                                      onClick={() => handleHapusBerkas(berkas.id, labelJenis)}
+                                      style={{
+                                        background: '#FEF2F2',
+                                        color: '#DC2626',
+                                        border: '1px solid #FECACA',
+                                        padding: '4px 8px',
+                                        borderRadius: 6,
+                                        cursor: 'pointer',
+                                        fontSize: '0.85rem'
+                                      }}
+                                    >
+                                      <i className="bi bi-trash3"></i>
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Card Unggah Berkas Manual oleh Admin */}
+                        <div style={{
+                          padding: '1.1rem 1.25rem',
+                          background: '#F0F9FF',
+                          borderRadius: '12px',
+                          border: '1.5px solid #BAE6FD',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <i className="bi bi-cloud-arrow-up-fill" style={{ color: '#0284C7', fontSize: '1.25rem' }}></i>
+                            <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0369A1' }}>
+                              Unggah Berkas Manual (Oleh Admin TU)
+                            </h4>
+                          </div>
+                          <p style={{ margin: '0 0 12px', fontSize: '0.8rem', color: '#0284C7', lineHeight: 1.4 }}>
+                            Bantu unggah dokumen calon siswa jika berkas diserahkan dalam bentuk fisik/fotokopi ke loket atau dikirim melalui WhatsApp.
+                          </p>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#0369A1', marginBottom: 4 }}>
+                                Jenis Berkas Persyaratan <span style={{ color: '#DC2626' }}>*</span>
+                              </label>
+                              <select
+                                value={manualJenisBerkas}
+                                onChange={(e) => setManualJenisBerkas(e.target.value)}
+                                disabled={uploadingManual}
                                 style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '0.75rem',
-                                  padding: '0.625rem 0.875rem',
-                                  marginBottom: 8,
-                                  background:
-                                    statusBerkas === 'valid'
-                                      ? '#F0FDF4'
-                                      : statusBerkas === 'tidak_valid'
-                                        ? '#FEF2F2'
-                                        : '#F8FAFC',
-                                  border: `1px solid ${
-                                    statusBerkas === 'valid'
-                                      ? '#BBF7D0'
-                                      : statusBerkas === 'tidak_valid'
-                                        ? '#FECACA'
-                                        : '#E2E8F0'
-                                  }`,
-                                  borderRadius: '8px',
+                                  width: '100%',
+                                  height: 38,
+                                  padding: '0 10px',
+                                  borderRadius: 8,
+                                  border: '1px solid #94A3B8',
+                                  fontSize: '0.85rem',
+                                  fontWeight: 600,
+                                  background: '#FFFFFF',
+                                  boxSizing: 'border-box'
                                 }}
                               >
-                                <i className="bi bi-file-earmark-text" style={{ color: '#1D4ED8', fontSize: '1.2rem' }}></i>
-                                <span style={{ flex: 1, fontSize: '0.875rem', fontWeight: 700, color: '#1E293B', textTransform: 'capitalize' }}>
-                                  {berkas.jenis_berkas?.replace('_', ' ') || 'Berkas'}
-                                </span>
+                                <option value="kk">Kartu Keluarga (KK)</option>
+                                <option value="ijazah">Ijazah Terakhir / SKL / Raport</option>
+                                <option value="foto">Pas Foto 3x4 Terbaru</option>
+                                <option value="dokumen_lain">Dokumen Pendukung Lainnya</option>
+                              </select>
+                            </div>
 
-                                {berkas.path_file && (
-                                  <a
-                                    href={toAssetUrl(berkas.path_file)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="btn btn-secondary"
-                                    style={{ padding: '4px 10px', fontSize: '0.78rem', fontWeight: 600 }}
-                                  >
-                                    <i className="bi bi-eye"></i> Tinjau
-                                  </a>
-                                )}
+                            <div>
+                              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#0369A1', marginBottom: 4 }}>
+                                Pilih File Berkas (JPG, PNG, PDF) <span style={{ color: '#DC2626' }}>*</span>
+                              </label>
+                              <input
+                                id="admin-manual-file-input"
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                                disabled={uploadingManual}
+                                onChange={(e) => setManualFile(e.target.files?.[0] || null)}
+                                style={{
+                                  width: '100%',
+                                  height: 38,
+                                  padding: '4px 8px',
+                                  borderRadius: 8,
+                                  border: '1px solid #94A3B8',
+                                  fontSize: '0.8rem',
+                                  background: '#FFFFFF',
+                                  boxSizing: 'border-box'
+                                }}
+                              />
+                            </div>
+                          </div>
 
-                                {detail.status === 'pending' && statusBerkas !== 'valid' && (
-                                  <button
-                                    className="btn btn-secondary"
-                                    style={{ padding: '4px 10px', fontSize: '0.78rem', fontWeight: 700, color: '#16A34A', borderColor: '#BBF7D0', background: '#F0FDF4' }}
-                                    onClick={() => handleVerifikasiBerkas(berkas.id, 'valid')}
-                                  >
-                                    <i className="bi bi-check2"></i> Sah
-                                  </button>
-                                )}
+                          {manualFile && (
+                            <div style={{ fontSize: '0.78rem', color: '#0369A1', marginBottom: 8, fontWeight: 600 }}>
+                              File terpilih: <strong>{manualFile.name}</strong> ({(manualFile.size / 1024).toFixed(1)} KB)
+                            </div>
+                          )}
 
-                                {detail.status === 'pending' && statusBerkas !== 'tidak_valid' && (
-                                  <button
-                                    className="btn btn-danger"
-                                    style={{ padding: '4px 10px', fontSize: '0.78rem', fontWeight: 700 }}
-                                    onClick={() => handleVerifikasiBerkas(berkas.id, 'tidak_valid')}
-                                  >
-                                    <i className="bi bi-x"></i> Tolak
-                                  </button>
-                                )}
-
-                                {statusBerkas && (
-                                  <span className={`badge ${getBadgeClass(statusBerkas)}`} style={{ fontSize: '0.7rem', fontWeight: 700 }}>
-                                    {statusBerkas}
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })
-                        )}
+                          <button
+                            type="button"
+                            onClick={handleAdminUploadBerkas}
+                            disabled={uploadingManual || !manualFile}
+                            className="btn btn-primary"
+                            style={{
+                              width: '100%',
+                              height: 38,
+                              background: '#0284C7',
+                              borderColor: '#0284C7',
+                              fontSize: '0.85rem',
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: 6
+                            }}
+                          >
+                            {uploadingManual ? (
+                              <>
+                                <span className="spinner-sm"></span>
+                                <span>Menyimpan Berkas ke Database...</span>
+                              </>
+                            ) : (
+                              <>
+                                <i className="bi bi-cloud-arrow-up-fill"></i>
+                                <span>Simpan Berkas ke Database Pendaftar Ini</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
 
                       {detail.status === 'pending' && (

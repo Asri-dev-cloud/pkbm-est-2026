@@ -439,42 +439,25 @@ function TugasSiswa() {
     };
   }, [tugasList]);
 
-  // Normalisasi opsi rombel agar selalu tepat 1 per jenjang (Paket A, Paket B, Paket C)
+  // Opsi rombel resmi
   const normalizedRombelOptions = useMemo(() => {
-    const mapByJenjang = new Map();
-    rombelOptions.forEach((r) => {
-      const jKey = (r.jenjang || 'paket_a').toLowerCase();
-      if (!mapByJenjang.has(jKey)) {
-        const cleanName =
-          jKey === 'paket_a' ? 'Paket A' :
-          jKey === 'paket_b' ? 'Paket B' :
-          jKey === 'paket_c' ? 'Paket C' :
-          (r.nama || r.nama_rombel || jKey.toUpperCase());
-
-        mapByJenjang.set(jKey, {
-          ...r,
-          id: r.id,
-          nama: cleanName,
-          nama_rombel: cleanName,
-          jenjang: jKey,
-        });
-      }
-    });
-
-    // Jika belum ada data rombel dari backend, sediakan 3 paket standar
-    if (mapByJenjang.size === 0) {
-      return [
-        { id: 1, nama: 'Paket A', nama_rombel: 'Paket A', jenjang: 'paket_a' },
-        { id: 2, nama: 'Paket B', nama_rombel: 'Paket B', jenjang: 'paket_b' },
-        { id: 3, nama: 'Paket C', nama_rombel: 'Paket C', jenjang: 'paket_c' },
-      ];
+    if (rombelOptions && rombelOptions.length > 0) {
+      return rombelOptions;
     }
 
-    // Urutkan Paket A -> Paket B -> Paket C
-    const sortOrder = { paket_a: 1, paket_b: 2, paket_c: 3 };
-    return Array.from(mapByJenjang.values()).sort(
-      (a, b) => (sortOrder[a.jenjang] || 99) - (sortOrder[b.jenjang] || 99)
-    );
+    // Jika belum ada data rombel dari backend, sediakan 10 kelas standar
+    return [
+      { id: 1, nama: 'Kelas 1 Paket A', nama_rombel: 'Kelas 1 Paket A', jenjang: 'paket_a' },
+      { id: 2, nama: 'Kelas 2 Paket A', nama_rombel: 'Kelas 2 Paket A', jenjang: 'paket_a' },
+      { id: 3, nama: 'Kelas 7-1 Paket B', nama_rombel: 'Kelas 7-1 Paket B', jenjang: 'paket_b' },
+      { id: 4, nama: 'Kelas 7-2 Paket B', nama_rombel: 'Kelas 7-2 Paket B', jenjang: 'paket_b' },
+      { id: 5, nama: 'Kelas 8-1 Paket B', nama_rombel: 'Kelas 8-1 Paket B', jenjang: 'paket_b' },
+      { id: 6, nama: 'Kelas 8-2 Paket B', nama_rombel: 'Kelas 8-2 Paket B', jenjang: 'paket_b' },
+      { id: 7, nama: 'Kelas 10-1 Paket C', nama_rombel: 'Kelas 10-1 Paket C', jenjang: 'paket_c' },
+      { id: 8, nama: 'Kelas 10-2 Paket C', nama_rombel: 'Kelas 10-2 Paket C', jenjang: 'paket_c' },
+      { id: 9, nama: 'Kelas 11-1 Paket C', nama_rombel: 'Kelas 11-1 Paket C', jenjang: 'paket_c' },
+      { id: 10, nama: 'Kelas 11-2 Paket C', nama_rombel: 'Kelas 11-2 Paket C', jenjang: 'paket_c' },
+    ];
   }, [rombelOptions]);
 
   // Objek Rombel terpilih saat ini

@@ -886,27 +886,84 @@ function LoginPage() {
                     )}
                   </div>
 
-                  {/* Berkas Upload Status */}
-                  {Array.isArray(searchResult.berkas) && searchResult.berkas.length > 0 && (
-                    <div className="login-spmb-berkas-list">
-                      <div className="login-spmb-berkas-head">Status Berkas Dokumen:</div>
-                      {searchResult.berkas.map((b, idx) => (
-                        <div key={idx} className="login-spmb-berkas-item">
-                          <span className="name">
-                            <FileText size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
-                            {b.jenis_berkas?.toUpperCase() || 'Dokumen'}
-                          </span>
-                          <span className={`badge ${b.status_verifikasi || 'pending'}`}>
-                            {b.status_verifikasi === 'valid'
-                              ? '✓ Valid'
-                              : b.status_verifikasi === 'tidak_valid'
-                                ? '✗ Tidak Valid'
-                                : '⏳ Antrean'}
-                          </span>
-                        </div>
-                      ))}
+                  {/* Berkas Dokumen Checklist */}
+                  <div className="login-spmb-berkas-list" style={{ marginTop: 16 }}>
+                    <div className="login-spmb-berkas-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Status Dokumen Persyaratan di Database:</span>
                     </div>
-                  )}
+                    {(() => {
+                      const berkasMap = {};
+                      (searchResult.berkas || []).forEach(b => {
+                        berkasMap[b.jenis_berkas] = b;
+                      });
+
+                      const requiredDocs = [
+                        { key: 'kk', label: 'Kartu Keluarga (KK)' },
+                        { key: 'ijazah', label: 'Ijazah Terakhir / SKL' },
+                        { key: 'foto', label: 'Pas Foto 3x4' },
+                      ];
+
+                      return (
+                        <>
+                          {requiredDocs.map(doc => {
+                            const found = berkasMap[doc.key];
+                            return (
+                              <div key={doc.key} className="login-spmb-berkas-item">
+                                <span className="name">
+                                  <FileText size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
+                                  {doc.label}
+                                </span>
+                                {found ? (
+                                  <span className={`badge ${found.status_verifikasi || 'pending'}`}>
+                                    {found.status_verifikasi === 'valid'
+                                      ? '✓ Sah / Valid'
+                                      : found.status_verifikasi === 'tidak_valid'
+                                        ? '✗ Tidak Valid'
+                                        : '⏳ Ditinjau TU'}
+                                  </span>
+                                ) : (
+                                  <span className="badge" style={{ background: '#FEF3C7', color: '#92400E' }}>
+                                    ⚠️ Belum Diunggah
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                          {/* Tampilkan dokumen tambahan lainnya jika ada */}
+                          {(searchResult.berkas || [])
+                            .filter(b => !['kk', 'ijazah', 'foto'].includes(b.jenis_berkas))
+                            .map((extra, idx) => (
+                              <div key={idx} className="login-spmb-berkas-item">
+                                <span className="name">
+                                  <FileText size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
+                                  {extra.nama_file || 'Dokumen Pendukung Lain'}
+                                </span>
+                                <span className={`badge ${extra.status_verifikasi || 'pending'}`}>
+                                  {extra.status_verifikasi === 'valid' ? '✓ Sah' : '⏳ Ditinjau TU'}
+                                </span>
+                              </div>
+                            ))}
+
+                          {/* Alert jika belum lengkap */}
+                          {(!searchResult.berkas || searchResult.berkas.length < 3) && searchResult.status !== 'diterima' && (
+                            <div style={{
+                              marginTop: 10,
+                              padding: '10px 12px',
+                              background: '#F0F9FF',
+                              border: '1px solid #BAE6FD',
+                              borderRadius: 8,
+                              fontSize: '0.78rem',
+                              color: '#0369A1',
+                              lineHeight: 1.45
+                            }}>
+                              <strong>Informasi Berkas:</strong> Berkas yang belum diunggah dapat diserahkan langsung secara fisik ke kantor Tata Usaha PKBM Bina Mandiri atau dikirimkan via WhatsApp agar dapat dibantu diunggah oleh staf Admin TU.
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
 
                   {/* Quick Action Buttons */}
                   <div className="login-spmb-actions">

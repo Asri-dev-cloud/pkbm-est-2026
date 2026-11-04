@@ -11,7 +11,6 @@ import {
   FileText,
   Search,
   ExternalLink,
-  Eye,
   Sparkles,
   Download,
   X,
@@ -215,25 +214,6 @@ function ModulBukuSiswa() {
     }
 
     setActiveReader(item);
-
-    // Kirim sinyal increment statistik dibaca tanpa blocking UI
-    try {
-      ModulBukuAPI.getDetail(item.id, true);
-    } catch {}
-
-    // Update state lokal read count
-    setModulList((prev) =>
-      prev.map((m) => (m.id === item.id ? { ...m, total_dibaca: (m.total_dibaca || 0) + 1 } : m))
-    );
-
-    // Update local storage read count
-    try {
-      const stored = getLocalStoredModul();
-      const updated = stored.map((m) =>
-        m.id === item.id ? { ...m, total_dibaca: (m.total_dibaca || 0) + 1 } : m
-      );
-      localStorage.setItem('pkbm_custom_modul', JSON.stringify(updated));
-    } catch {}
   };
 
   const handleCloseReader = () => {
@@ -382,10 +362,6 @@ function ModulBukuSiswa() {
                             <span className="modul-meta-item">
                               <GraduationCap size={13} />
                               <span>{item.penulis || 'PKBM Bina Mandiri'}</span>
-                            </span>
-                            <span className="modul-meta-item">
-                              <Eye size={13} />
-                              <span>{item.total_dibaca || 0}x dibaca</span>
                             </span>
                             {item.file_size > 0 && (
                               <span className="modul-meta-item">

@@ -16,6 +16,7 @@ import {
   GraduationCap,
   BookOpen,
   Calendar,
+  CalendarCheck,
   ClipboardCheck,
   BookMarked,
   Network,
@@ -50,6 +51,7 @@ function Sidebar({ user }) {
   // Submenu LMS untuk Admin
   const adminLmsItems = [
     { path: '/dashboard/siswa/ruang-belajar', icon: BookOpen, label: 'Ruang Belajar' },
+    { path: '/dashboard/admin/absensi', icon: CalendarCheck, label: 'Rekap Presensi LMS' },
     { path: '/dashboard/admin/modul-buku', icon: Library, label: 'Modul & Buku' },
     { path: '/dashboard/siswa/tugas', icon: ClipboardCheck, label: 'Tugas Mingguan' },
     { path: '/dashboard/admin/periode-ujian', icon: Calendar, label: 'Periode Ujian' },

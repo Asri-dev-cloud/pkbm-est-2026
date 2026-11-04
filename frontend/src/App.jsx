@@ -47,6 +47,7 @@ import PeriodeUjianAdmin from './pages/admin/PeriodeUjianAdmin.jsx';
 import PesertaUjianAdmin from './pages/admin/PesertaUjianAdmin.jsx';
 import BeritaAdmin from './pages/admin/BeritaAdmin.jsx';
 import ModulBukuAdmin from './pages/admin/ModulBukuAdmin.jsx';
+import AbsensiAdmin from './pages/admin/AbsensiAdmin.jsx';
 
 // ── Error Boundary untuk Mengisolasi Error Rendering ─────────
 class RouteErrorBoundary extends React.Component {
@@ -253,6 +254,10 @@ function App() {
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><BeritaAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/spmb"
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><SpmbAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/absensi"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><AbsensiAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/presensi"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><AbsensiAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/siswa"
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><SiswaAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/master-mapel"

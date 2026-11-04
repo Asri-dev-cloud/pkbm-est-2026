@@ -22,30 +22,27 @@ const AbsensiController = {
   // -----------------------------------------------------------
   bukaSesi: async (req, res) => {
     try {
-      const { rombel_id, mapel_id, tanggal, mode, durasi_timer, pertemuan_id } = req.body;
+      const { rombel_id, mapel_id, tanggal, mode = 'mandiri', durasi_timer, pertemuan_id, pertemuan_ke = 1, catatan = null } = req.body;
 
-      if (!rombel_id || !tanggal || !mode) {
+      if (!rombel_id) {
         return res.status(400).json({
           success: false,
-          message: 'Field wajib: rombel_id, tanggal, mode (manual/mandiri).',
+          message: 'Rombongan belajar (rombel_id) wajib dipilih.',
         });
       }
 
-      if (mode === 'mandiri' && !durasi_timer) {
-        return res.status(400).json({
-          success: false,
-          message: 'durasi_timer wajib diisi untuk mode mandiri (dalam detik, contoh: 300).',
-        });
-      }
+      const finalTanggal = tanggal || new Date().toISOString().split('T')[0];
 
-      const sesiId = await AbsensiModel.bukasSesi({
+      const sesiId = await AbsensiModel.bukaSesi({
         tutor_id: req.user.id,
         rombel_id: parseInt(rombel_id),
         mapel_id: mapel_id ? parseInt(mapel_id) : null,
-        tanggal,
+        tanggal: finalTanggal,
         mode,
         durasi_timer: durasi_timer ? parseInt(durasi_timer) : null,
-        pertemuan_id: pertemuan_id ? parseInt(pertemuan_id) : null
+        pertemuan_id: pertemuan_id ? parseInt(pertemuan_id) : null,
+        pertemuan_ke: pertemuan_ke ? parseInt(pertemuan_ke) : 1,
+        catatan: catatan ? String(catatan).trim() : null
       });
 
       return res.status(201).json({
@@ -222,8 +219,13 @@ const AbsensiController = {
         });
       }
 
-      // Proses check-in (validasi timer ada di model)
-      await AbsensiModel.checkInMandiri(parseInt(sesiId), wb.id);
+      const { status = 'hadir', catatan = null } = req.body || {};
+
+      // Proses check-in mandiri (validasi status & timer ada di model)
+      await AbsensiModel.checkInMandiri(parseInt(sesiId), wb.id, {
+        status,
+        catatan: catatan ? String(catatan).trim() : null
+      });
 
       return res.status(200).json({
         success: true,
@@ -314,6 +316,99 @@ const AbsensiController = {
     } catch (error) {
       console.error('[AbsensiController.getRekapSaya] Error:', error);
       return res.status(500).json({ success: false, message: 'Gagal mengambil rekap kehadiran.' });
+    }
+  },
+
+  // -----------------------------------------------------------
+  // GET /api/absensi/rekap-matriks  [Admin, Tutor, Super Admin]
+  // Rekapitulasi Presensi Berbasis LMS Matriks (Siswa x Pertemuan)
+  // -----------------------------------------------------------
+  getRekapMatriks: async (req, res) => {
+    try {
+      const { rombel_id, mapel_id } = req.query;
+      if (!rombel_id) {
+        return res.status(400).json({ success: false, message: 'Rombongan belajar (rombel_id) wajib dipilih.' });
+      }
+
+      const data = await AbsensiModel.getRekapMatriks({
+        rombel_id: parseInt(rombel_id),
+        mapel_id: mapel_id ? parseInt(mapel_id) : null
+      });
+
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error('[AbsensiController.getRekapMatriks] Error:', error);
+      return res.status(500).json({ success: false, message: 'Gagal memuat rekap matriks presensi.' });
+    }
+  },
+
+  // -----------------------------------------------------------
+  // PUT /api/absensi/sesi/:sesiId/siswa/:wbId  [Admin, Tutor, Super Admin]
+  // Update status kehadiran satu siswa secara langsung (H/I/S/A)
+  // -----------------------------------------------------------
+  updateStatusSiswa: async (req, res) => {
+    try {
+      const { sesiId, wbId } = req.params;
+      const { status, catatan } = req.body;
+
+      if (!status) {
+        return res.status(400).json({ success: false, message: 'Status presensi (hadir/izin/sakit/alpa) wajib diisi.' });
+      }
+
+      await AbsensiModel.updateStatusKehadiranSiswa({
+        sesi_id: parseInt(sesiId),
+        warga_belajar_id: parseInt(wbId),
+        status,
+        catatan: catatan ? String(catatan).trim() : null,
+        metode: req.user?.role === 'warga_belajar' ? 'mandiri_wb' : 'manual_tutor'
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: `Status presensi berhasil diubah menjadi '${status}'.`
+      });
+    } catch (error) {
+      console.error('[AbsensiController.updateStatusSiswa] Error:', error);
+      return res.status(500).json({ success: false, message: error.message || 'Gagal mengubah status presensi.' });
+    }
+  },
+
+  // -----------------------------------------------------------
+  // DELETE /api/absensi/sesi/:sesiId  [Admin, Tutor, Super Admin]
+  // Menghapus sesi absensi dan seluruh rekaman kehadirannya
+  // -----------------------------------------------------------
+  hapusSesi: async (req, res) => {
+    try {
+      const { sesiId } = req.params;
+      await AbsensiModel.hapusSesi(parseInt(sesiId));
+      return res.status(200).json({ success: true, message: 'Sesi absensi berhasil dihapus.' });
+    } catch (error) {
+      console.error('[AbsensiController.hapusSesi] Error:', error);
+      return res.status(500).json({ success: false, message: 'Gagal menghapus sesi absensi.' });
+    }
+  },
+
+  // -----------------------------------------------------------
+  // GET /api/absensi/siswa/pertemuan  [Warga Belajar]
+  // Mengambil seluruh riwayat pertemuan & presensi LMS untuk siswa
+  // -----------------------------------------------------------
+  getRiwayatSiswaLms: async (req, res) => {
+    try {
+      const wb = await SiswaModel.findByUserId(req.user.id);
+      if (!wb) {
+        return res.status(404).json({ success: false, message: 'Profil Warga Belajar tidak ditemukan.' });
+      }
+
+      const { mapel_id } = req.query;
+      const riwayat = await AbsensiModel.getRiwayatSiswaLms(wb.id, {
+        rombel_id: wb.rombel_id,
+        mapel_id: mapel_id ? parseInt(mapel_id) : null
+      });
+
+      return res.status(200).json({ success: true, data: riwayat });
+    } catch (error) {
+      console.error('[AbsensiController.getRiwayatSiswaLms] Error:', error);
+      return res.status(500).json({ success: false, message: 'Gagal memuat riwayat presensi LMS.' });
     }
   },
 };

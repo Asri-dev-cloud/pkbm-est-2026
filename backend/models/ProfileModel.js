@@ -11,7 +11,8 @@ const ProfileModel = {
             u.email,
             u.role,
             u.is_active,
-            u.foto_profil,
+            COALESCE(u.foto_profil, bs.path_file) AS foto_profil,
+            bs.path_file AS pas_foto,
             wb.id AS profil_id,
             wb.nis,
             wb.nik,
@@ -19,6 +20,10 @@ const ProfileModel = {
             wb.tanggal_lahir,
             wb.jenis_kelamin,
             wb.alamat,
+            wb.jarak_rumah_km,
+            wb.tinggi_badan,
+            wb.berat_badan,
+            wb.jumlah_saudara_kandung,
             wb.nama_wali,
             wb.no_telp,
             wb.rombel_id,
@@ -30,7 +35,10 @@ const ProfileModel = {
           LEFT JOIN warga_belajar wb ON wb.user_id = u.id
           LEFT JOIN rombel r ON r.id = wb.rombel_id
           LEFT JOIN tahun_ajaran ta ON ta.id = wb.tahun_ajaran_id
+          LEFT JOIN pendaftar_spmb ps ON ps.warga_belajar_id = wb.id
+          LEFT JOIN berkas_spmb bs ON bs.pendaftar_id = ps.id AND bs.jenis_berkas = 'foto'
           WHERE u.id = ?
+          ORDER BY bs.id DESC
           LIMIT 1
         `,
         [userId]
@@ -96,7 +104,7 @@ const ProfileModel = {
 
   updateWargaBelajarProfile: async (
     userId,
-    { nik, tanggal_lahir, jenis_kelamin, alamat, nama_wali, no_telp }
+    { nik, tanggal_lahir, jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung, nama_wali, no_telp }
   ) => {
     const [result] = await pool.execute(
       `
@@ -106,12 +114,28 @@ const ProfileModel = {
           tanggal_lahir = ?,
           jenis_kelamin = ?,
           alamat = ?,
+          jarak_rumah_km = ?,
+          tinggi_badan = ?,
+          berat_badan = ?,
+          jumlah_saudara_kandung = ?,
           nama_wali = ?,
           no_telp = ?,
           updated_at = NOW()
         WHERE user_id = ?
       `,
-      [nik || null, tanggal_lahir, jenis_kelamin, alamat || null, nama_wali || null, no_telp || null, userId]
+      [
+        nik || null,
+        tanggal_lahir,
+        jenis_kelamin,
+        alamat || null,
+        jarak_rumah_km !== undefined && jarak_rumah_km !== '' ? jarak_rumah_km : null,
+        tinggi_badan !== undefined && tinggi_badan !== '' ? tinggi_badan : null,
+        berat_badan !== undefined && berat_badan !== '' ? berat_badan : null,
+        jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' ? jumlah_saudara_kandung : null,
+        nama_wali || null,
+        no_telp || null,
+        userId
+      ]
     );
     return result.affectedRows;
   },

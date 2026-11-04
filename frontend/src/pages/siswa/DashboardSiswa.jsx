@@ -43,17 +43,31 @@ function DashboardSiswa() {
 
   // Single trigger function untuk membuka modal Edit Profil tanpa duplikasi
   const [openProfileModalFn, setOpenProfileModalFn] = useState(null);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
+    setImageError(false);
+  }, [profil?.foto_profil, profil?.pas_foto, user?.foto_profil]);
+
+  useEffect(() => {
+    let timeoutId;
     const fetchProfil = async () => {
+      // Safety timeout agar halaman tidak pernah stuck/hang jika respon jaringan terhambat
+      timeoutId = setTimeout(() => {
+        setLoadingProfil(false);
+      }, 5000);
+
       try {
         setLoadingProfil(true);
         const response = await SiswaAPI.getProfilSaya();
         setProfil(response.data.data);
       } catch (err) {
         const pesan = err.response?.data?.message || 'Gagal memuat profil. Silakan muat ulang halaman.';
-        setErrorProfil(pesan);
+        if (!user?.nama_lengkap && !user?.nama) {
+          setErrorProfil(pesan);
+        }
       } finally {
+        clearTimeout(timeoutId);
         setLoadingProfil(false);
       }
     };
@@ -85,6 +99,8 @@ function DashboardSiswa() {
     fetchProfil();
     fetchAbsensi();
     fetchTagihan();
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   if (loadingProfil) {
@@ -133,6 +149,7 @@ function DashboardSiswa() {
   const jenjangFormat = formatJenjang(profil?.jenjang);
   const persentaseHadir = rekapAbsensi?.persentase_hadir ?? 100;
   const tagihanTertunggak = tagihan?.belumLunas?.length ?? 0;
+  const fotoUrl = profil?.foto_profil || profil?.pas_foto || user?.foto_profil || user?.pas_foto;
 
   return (
     <div className="app-layout edutech-theme-scope">
@@ -210,65 +227,45 @@ function DashboardSiswa() {
                 </div>
               </div>
 
-              {/* Template Kartu Siswa Digital Resmi */}
-              <div className="edutech-student-card-template">
-                <div className="card-template-header">
-                  <div className="card-template-brand">
-                    <Building2 size={16} className="brand-icon" />
-                    <span>PKBM BINA MANDIRI</span>
-                  </div>
-                  <span className="card-template-live">
-                    <span className="live-dot"></span> TERVERIFIKASI
-                  </span>
+              {/* Profil Siswa Hero (Tanpa Kotak & Foto Bulat Lebih Besar) */}
+              <div className="edutech-hero-profile-wrap">
+                <div className="hero-profile-avatar-circle">
+                  {fotoUrl && !imageError ? (
+                    <img
+                      src={toAssetUrl(fotoUrl)}
+                      alt={`Foto ${namaLengkap}`}
+                      className="hero-profile-avatar-img"
+                      onError={() => setImageError(true)}
+                    />
+                  ) : (
+                    <span className="hero-profile-avatar-initial">
+                      {namaLengkap.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
 
-                <div className="card-template-body">
-                  <div className="card-template-avatar">
-                    {profil?.foto_profil ? (
-                      <img
-                        src={toAssetUrl(profil.foto_profil)}
-                        alt={`Foto ${namaLengkap}`}
-                        className="template-avatar-img"
-                      />
-                    ) : (
-                      <span className="template-avatar-initial">
-                        {namaLengkap.charAt(0).toUpperCase()}
-                      </span>
-                    )}
+                {/* Keterangan langsung di bawah foto (bersih tanpa kotak) */}
+                <div className="hero-profile-details">
+                  <h3 className="hero-profile-name">{namaLengkap}</h3>
+                  <div className="hero-profile-meta-row">
+                    <IdCard size={15} className="hero-icon-sky" />
+                    <span>NIS: <strong>{profil?.nis || 'Belum Ditetapkan'}</strong></span>
+                  </div>
+                  <div className="hero-profile-meta-row">
+                    <GraduationCap size={15} className="hero-icon-gold" />
+                    <span className="hero-meta-jenjang">{jenjangFormat}</span>
                   </div>
 
-                  <div className="card-template-info">
-                    <h3 className="template-name">{namaLengkap}</h3>
-                    <div className="template-meta-row">
-                      <IdCard size={13} color="#1D4ED8" />
-                      <span>NIS: <strong>{profil?.nis || 'Belum Ditetapkan'}</strong></span>
-                    </div>
-                    <div className="template-meta-row">
-                      <GraduationCap size={13} color="#F59E0B" />
-                      <span>{jenjangFormat}</span>
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    className="hero-profile-edit-btn"
+                    onClick={() => openProfileModalFn && openProfileModalFn()}
+                    title="Perbarui data profil & foto"
+                  >
+                    <PencilLine size={13} />
+                    <span>Detail & Perbarui Profil</span>
+                  </button>
                 </div>
-
-                <div className="card-template-footer">
-                  <div className="template-footer-chip">
-                    <span className="chip-caption">ROMBEL</span>
-                    <span className="chip-data">{profil?.nama_rombel || 'Kelas Reguler'}</span>
-                  </div>
-                  <div className="template-footer-chip">
-                    <span className="chip-caption">STATUS</span>
-                    <span className="chip-data chip-status-active">WB AKTIF</span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  className="card-template-edit-link"
-                  onClick={() => openProfileModalFn && openProfileModalFn()}
-                >
-                  <PencilLine size={13} />
-                  <span>Detail & Perbarui Profil</span>
-                </button>
               </div>
             </div>
           </section>

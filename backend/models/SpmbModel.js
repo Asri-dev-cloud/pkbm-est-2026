@@ -5,7 +5,14 @@
 // dan pipeline otomatis saat status berubah menjadi 'diterima'.
 // ============================================================
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import pool from '../config/db.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const backendRootDir = path.resolve(__dirname, '..');
 
 const SpmbModel = {
 
@@ -15,17 +22,25 @@ const SpmbModel = {
   // -----------------------------------------------------------
   create: async ({
     nama_lengkap, email, nik, no_telp, jenjang_daftar,
-    tanggal_lahir, jenis_kelamin, alamat, nama_wali, password_hash, tahun_ajaran_id
+    tanggal_lahir, jenis_kelamin, alamat,
+    jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
+    nama_wali, password_hash, tahun_ajaran_id
   }) => {
     const sql = `
       INSERT INTO pendaftar_spmb
         (nama_lengkap, email, nik, password_hash, no_telp, jenjang_daftar, tanggal_lahir,
-         jenis_kelamin, alamat, nama_wali, tahun_ajaran_id, status, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
+         jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
+         nama_wali, tahun_ajaran_id, status, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
     `;
     const params = [
       nama_lengkap, email, nik || null, password_hash, no_telp, jenjang_daftar,
-      tanggal_lahir, jenis_kelamin, alamat, nama_wali, tahun_ajaran_id
+      tanggal_lahir, jenis_kelamin, alamat,
+      jarak_rumah_km !== undefined && jarak_rumah_km !== '' && jarak_rumah_km !== null ? jarak_rumah_km : null,
+      tinggi_badan !== undefined && tinggi_badan !== '' && tinggi_badan !== null ? tinggi_badan : null,
+      berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? berat_badan : null,
+      jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' && jumlah_saudara_kandung !== null ? jumlah_saudara_kandung : null,
+      nama_wali, tahun_ajaran_id
     ];
     const [result] = await pool.execute(sql, params);
     return result.insertId;
@@ -47,6 +62,10 @@ const SpmbModel = {
         ps.tanggal_lahir,
         ps.jenis_kelamin,
         ps.alamat,
+        ps.jarak_rumah_km,
+        ps.tinggi_badan,
+        ps.berat_badan,
+        ps.jumlah_saudara_kandung,
         ps.nama_wali,
         ps.status,
         ps.catatan_verifikasi,
@@ -95,6 +114,10 @@ const SpmbModel = {
         ps.tanggal_lahir,
         ps.jenis_kelamin,
         ps.alamat,
+        ps.jarak_rumah_km,
+        ps.tinggi_badan,
+        ps.berat_badan,
+        ps.jumlah_saudara_kandung,
         ps.nama_wali,
         ps.status,
         ps.catatan_verifikasi,
@@ -124,16 +147,68 @@ const SpmbModel = {
   },
 
   // -----------------------------------------------------------
-  // Simpan info berkas yang diupload calon WB
+  // Simpan info berkas yang diupload calon WB atau Admin TU
   // Dipanggil setelah Multer berhasil menyimpan file
+  // Jika jenis berkas selain 'dokumen_lain' sudah ada, lakukan replace
+  // dan bersihkan file lama agar tidak menumpuk di storage
   // -----------------------------------------------------------
-  tambahBerkas: async ({ pendaftar_id, jenis_berkas, nama_file, path_file }) => {
+  tambahBerkas: async ({ pendaftar_id, jenis_berkas, nama_file, path_file, status_verifikasi = 'menunggu' }) => {
+    if (jenis_berkas !== 'dokumen_lain') {
+      const [existing] = await pool.execute(
+        `SELECT id, path_file FROM berkas_spmb WHERE pendaftar_id = ? AND jenis_berkas = ? LIMIT 1`,
+        [pendaftar_id, jenis_berkas]
+      );
+      if (existing.length > 0) {
+        const oldPath = existing[0].path_file;
+        if (oldPath) {
+          try {
+            const fullOldPath = path.resolve(backendRootDir, oldPath);
+            if (fs.existsSync(fullOldPath)) {
+              fs.unlinkSync(fullOldPath);
+            }
+          } catch (e) {
+            console.warn('[SpmbModel.tambahBerkas] Gagal menghapus file lama:', e.message);
+          }
+        }
+        await pool.execute(
+          `UPDATE berkas_spmb 
+           SET nama_file = ?, path_file = ?, status_verifikasi = ?, catatan = NULL, created_at = NOW() 
+           WHERE id = ?`,
+          [nama_file, path_file, status_verifikasi, existing[0].id]
+        );
+        return existing[0].id;
+      }
+    }
+
     const sql = `
       INSERT INTO berkas_spmb (pendaftar_id, jenis_berkas, nama_file, path_file, status_verifikasi)
-      VALUES (?, ?, ?, ?, 'menunggu')
+      VALUES (?, ?, ?, ?, ?)
     `;
-    const [result] = await pool.execute(sql, [pendaftar_id, jenis_berkas, nama_file, path_file]);
+    const [result] = await pool.execute(sql, [pendaftar_id, jenis_berkas, nama_file, path_file, status_verifikasi]);
     return result.insertId;
+  },
+
+  // -----------------------------------------------------------
+  // Hapus berkas pendukung (oleh Admin atau Pendaftar)
+  // Menghapus file fisik dari disk dan record dari database
+  // -----------------------------------------------------------
+  hapusBerkas: async (berkas_id) => {
+    const [rows] = await pool.execute(
+      `SELECT id, path_file FROM berkas_spmb WHERE id = ? LIMIT 1`,
+      [berkas_id]
+    );
+    if (rows.length > 0 && rows[0].path_file) {
+      try {
+        const fullPath = path.resolve(backendRootDir, rows[0].path_file);
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+        }
+      } catch (e) {
+        console.warn('[SpmbModel.hapusBerkas] Gagal menghapus file fisik:', e.message);
+      }
+    }
+    const [result] = await pool.execute(`DELETE FROM berkas_spmb WHERE id = ?`, [berkas_id]);
+    return result.affectedRows;
   },
 
   // -----------------------------------------------------------

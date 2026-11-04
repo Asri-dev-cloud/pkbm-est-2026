@@ -25,7 +25,9 @@ const SpmbController = {
     try {
       const {
         nama_lengkap, email, nik, no_telp, jenjang_daftar,
-        tanggal_lahir, jenis_kelamin, alamat, nama_wali, password,
+        tanggal_lahir, jenis_kelamin, alamat,
+        jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
+        nama_wali, password,
       } = req.body;
 
       // Validasi field wajib
@@ -80,7 +82,12 @@ const SpmbController = {
       // Simpan data pendaftaran ke database (status awal: 'pending')
       const pendaftarId = await SpmbModel.create({
         nama_lengkap, email, nik, no_telp, jenjang_daftar,
-        tanggal_lahir, jenis_kelamin, alamat, nama_wali, password_hash, tahun_ajaran_id,
+        tanggal_lahir, jenis_kelamin, alamat,
+        jarak_rumah_km: jarak_rumah_km !== undefined && jarak_rumah_km !== '' && jarak_rumah_km !== null ? parseFloat(jarak_rumah_km) : null,
+        tinggi_badan: tinggi_badan !== undefined && tinggi_badan !== '' && tinggi_badan !== null ? parseInt(tinggi_badan, 10) : null,
+        berat_badan: berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? parseFloat(berat_badan) : null,
+        jumlah_saudara_kandung: jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' && jumlah_saudara_kandung !== null ? parseInt(jumlah_saudara_kandung, 10) : null,
+        nama_wali, password_hash, tahun_ajaran_id,
       });
 
       return res.status(201).json({
@@ -135,6 +142,9 @@ const SpmbController = {
         });
       }
 
+      const isAdminUpload = req.user && (req.user.role === 'super_admin' || req.user.role === 'admin');
+      const status_verifikasi = isAdminUpload ? 'valid' : 'menunggu';
+
       // Simpan info berkas ke database
       const berkasId = await SpmbModel.tambahBerkas({
         pendaftar_id: parseInt(id),
@@ -142,12 +152,15 @@ const SpmbController = {
         nama_file: req.file.originalname,
         // Path disimpan relatif dari root backend, akses via /uploads/spmb/namafile
         path_file: req.file.path,
+        status_verifikasi,
       });
 
       return res.status(201).json({
         success: true,
-        message: `Berkas '${jenis_berkas}' berhasil diupload.`,
-        data: { berkas_id: berkasId, path: req.file.path },
+        message: isAdminUpload
+          ? `Berkas '${jenis_berkas}' berhasil diunggah dan terverifikasi valid oleh Admin.`
+          : `Berkas '${jenis_berkas}' berhasil diupload.`,
+        data: { berkas_id: berkasId, path: req.file.path, status_verifikasi },
       });
 
     } catch (error) {
@@ -385,6 +398,28 @@ const SpmbController = {
   },
 
   // -----------------------------------------------------------
+  // DELETE /api/spmb/berkas/:berkasId  [Admin, Super Admin]
+  // Menghapus berkas pendukung (file fisik & record database)
+  // -----------------------------------------------------------
+  hapusBerkas: async (req, res) => {
+    try {
+      const { berkasId } = req.params;
+      const affected = await SpmbModel.hapusBerkas(parseInt(berkasId));
+      if (affected === 0) {
+        return res.status(404).json({ success: false, message: 'Berkas tidak ditemukan.' });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Berkas berhasil dihapus.',
+      });
+    } catch (error) {
+      console.error('[SpmbController.hapusBerkas] Error:', error);
+      return res.status(500).json({ success: false, message: 'Gagal menghapus berkas.' });
+    }
+  },
+
+  // -----------------------------------------------------------
   // PUT /api/spmb/:id/keputusan  [Admin]
   // Keputusan akhir: TERIMA atau TOLAK pendaftar
   // Body: { status: 'diterima'|'ditolak', catatan_verifikasi, rombel_id }
@@ -495,17 +530,27 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
   // 3. User account (cek duplikasi email)
   let userId;
   const existingUser = await UserModel.findByEmail(pendaftar.email);
+  // Cek apakah ada pas foto di berkas_spmb
+  const [berkasFoto] = await pool.execute(
+    `SELECT path_file FROM berkas_spmb WHERE pendaftar_id = ? AND jenis_berkas = 'foto' ORDER BY id DESC LIMIT 1`,
+    [pendaftarId]
+  );
+  const pasFotoFile = berkasFoto[0]?.path_file || null;
+
   if (existingUser) {
     userId = existingUser.id;
     if (existingUser.role !== 'warga_belajar') {
       await pool.execute(`UPDATE users SET role = 'warga_belajar' WHERE id = ?`, [userId]);
     }
+    if (pasFotoFile) {
+      await pool.execute(`UPDATE users SET foto_profil = COALESCE(foto_profil, ?) WHERE id = ?`, [pasFotoFile, userId]);
+    }
   } else {
     const password_hash = pendaftar.password_hash || await hashPassword(pendaftar.no_telp || '12345678');
     const [uResult] = await pool.execute(
-      `INSERT INTO users (nama_lengkap, email, password_hash, role, is_active, created_at)
-       VALUES (?, ?, ?, 'warga_belajar', 1, NOW())`,
-      [pendaftar.nama_lengkap, pendaftar.email, password_hash]
+      `INSERT INTO users (nama_lengkap, email, password_hash, role, foto_profil, is_active, created_at)
+       VALUES (?, ?, ?, 'warga_belajar', ?, 1, NOW())`,
+      [pendaftar.nama_lengkap, pendaftar.email, password_hash, pasFotoFile]
     );
     userId = uResult.insertId;
   }
@@ -521,9 +566,31 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
   if (wbRows.length > 0) {
     wbId = wbRows[0].id;
     nis = wbRows[0].nis;
-    if (chosenRombelId && wbRows[0].rombel_id !== chosenRombelId) {
-      await pool.execute(`UPDATE warga_belajar SET rombel_id = ? WHERE id = ?`, [chosenRombelId, wbId]);
-    }
+    await pool.execute(
+      `UPDATE warga_belajar SET
+         rombel_id = COALESCE(?, rombel_id),
+         jarak_rumah_km = COALESCE(?, jarak_rumah_km),
+         tinggi_badan = COALESCE(?, tinggi_badan),
+         berat_badan = COALESCE(?, berat_badan),
+         jumlah_saudara_kandung = COALESCE(?, jumlah_saudara_kandung),
+         nik = COALESCE(?, nik),
+         alamat = COALESCE(?, alamat),
+         nama_wali = COALESCE(?, nama_wali),
+         no_telp = COALESCE(?, no_telp)
+       WHERE id = ?`,
+      [
+        chosenRombelId,
+        pendaftar.jarak_rumah_km || null,
+        pendaftar.tinggi_badan || null,
+        pendaftar.berat_badan || null,
+        pendaftar.jumlah_saudara_kandung !== undefined && pendaftar.jumlah_saudara_kandung !== null ? pendaftar.jumlah_saudara_kandung : null,
+        pendaftar.nik || null,
+        pendaftar.alamat || null,
+        pendaftar.nama_wali || null,
+        pendaftar.no_telp || null,
+        wbId
+      ]
+    );
   } else {
     const [cntRows] = await pool.execute(`SELECT COUNT(*) AS total FROM warga_belajar`);
     const totalWb = cntRows[0]?.total || 0;
@@ -531,8 +598,10 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
 
     const [wbResult] = await pool.execute(
       `INSERT INTO warga_belajar
-        (user_id, nis, nik, jenjang, tanggal_lahir, jenis_kelamin, alamat, nama_wali, no_telp, rombel_id, tahun_ajaran_id, is_aktif, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())`,
+        (user_id, nis, nik, jenjang, tanggal_lahir, jenis_kelamin, alamat,
+         jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
+         nama_wali, no_telp, rombel_id, tahun_ajaran_id, is_aktif, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())`,
       [
         userId,
         nis,
@@ -541,6 +610,10 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
         pendaftar.tanggal_lahir,
         pendaftar.jenis_kelamin,
         pendaftar.alamat,
+        pendaftar.jarak_rumah_km || null,
+        pendaftar.tinggi_badan || null,
+        pendaftar.berat_badan || null,
+        pendaftar.jumlah_saudara_kandung !== undefined && pendaftar.jumlah_saudara_kandung !== null ? pendaftar.jumlah_saudara_kandung : null,
         pendaftar.nama_wali,
         pendaftar.no_telp,
         chosenRombelId,
