@@ -16,8 +16,17 @@ const router = Router();
 // Diakses oleh calon Warga Belajar dari halaman landing page
 // ============================================================
 
-// POST /api/spmb/daftar — Submit form pendaftaran (tanpa login)
-router.post('/daftar', SpmbController.daftar);
+// POST /api/spmb/daftar — Submit form pendaftaran beserta 3 berkas wajib (tanpa login)
+router.post(
+  '/daftar',
+  (req, res, next) => { req.uploadFolder = 'spmb'; next(); },
+  upload.fields([
+    { name: 'kk', maxCount: 1 },
+    { name: 'ijazah', maxCount: 1 },
+    { name: 'foto', maxCount: 1 }
+  ]),
+  SpmbController.daftar
+);
 
 // GET /api/spmb/cek-status — Cek status pendaftaran calon siswa (tanpa login)
 router.get('/cek-status', SpmbController.cekStatusPublik);

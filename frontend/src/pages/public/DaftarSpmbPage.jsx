@@ -104,6 +104,7 @@ function DaftarSpmbPage() {
   const [uploadMsg, setUploadMsg] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errorStep2, setErrorStep2] = useState('');
   const [copied, setCopied] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -117,72 +118,31 @@ function DaftarSpmbPage() {
     setForm(prev => ({ ...prev, jenjang_daftar: jenjangKey }));
   };
 
-  // ── Step 2: Auto-upload Berkas Saat File Dipilih ──
-  const handleFileChange = async (key, file) => {
+  // ── Step 2: Pemilihan & Validasi Berkas Fisik ──
+  const handleFileChange = (key, file) => {
     if (!file) return;
-
-    if (!pendaftarId) {
-      alert('ID Pendaftaran belum terdeteksi. Silakan simpan formulir data diri terlebih dahulu.');
-      return;
-    }
 
     // Validasi ukuran maks 10MB
     if (file.size > 10 * 1024 * 1024) {
-      setFiles(prev => ({ ...prev, [key]: file }));
+      setFiles(prev => ({ ...prev, [key]: null }));
       setUploadStatus(prev => ({ ...prev, [key]: 'error' }));
       setUploadMsg(prev => ({ ...prev, [key]: 'Ukuran file melebihi 10MB. Harap gunakan file berukuran lebih kecil.' }));
+      setErrorStep2(`Ukuran file "${file.name}" melebihi 10MB.`);
       return;
     }
+
+    const sizeStr = file.size > 1024 * 1024
+      ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+      : `${Math.round(file.size / 1024)} KB`;
 
     setFiles(prev => ({ ...prev, [key]: file }));
-    setUploadStatus(prev => ({ ...prev, [key]: 'uploading' }));
-    setUploadMsg(prev => ({ ...prev, [key]: `Mengunggah ${file.name} ke server...` }));
-
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('jenis_berkas', key);
-
-      const res = await SpmbAPI.uploadBerkas(pendaftarId, fd);
-      if (res.data?.success) {
-        setUploadStatus(prev => ({ ...prev, [key]: 'done' }));
-        setUploadMsg(prev => ({ ...prev, [key]: `✓ ${file.name} berhasil tersimpan ke sistem!` }));
-      } else {
-        setUploadStatus(prev => ({ ...prev, [key]: 'error' }));
-        setUploadMsg(prev => ({ ...prev, [key]: res.data?.message || 'Gagal mengupload berkas.' }));
-      }
-    } catch (err) {
-      setUploadStatus(prev => ({ ...prev, [key]: 'error' }));
-      setUploadMsg(prev => ({
-        ...prev,
-        [key]: err.response?.data?.message || 'Gagal mengunggah file. Silakan periksa jaringan dan coba lagi.'
-      }));
-    }
+    setUploadStatus(prev => ({ ...prev, [key]: 'done' }));
+    setUploadMsg(prev => ({ ...prev, [key]: `✓ ${file.name} (${sizeStr}) — Berkas siap dikirim` }));
+    setErrorStep2(''); // Bersihkan pesan error jika berkas sukses dipilih
   };
 
-  const handleSelesaikanPendaftaran = () => {
-    const isAnyUploading = Object.values(uploadStatus).some(s => s === 'uploading');
-    if (isAnyUploading) {
-      alert('Mohon tunggu sebentar, dokumen Anda sedang dalam proses pengunggahan...');
-      return;
-    }
-
-    const countDone = Object.values(uploadStatus).filter(s => s === 'done').length;
-    if (countDone === 0) {
-      const lanjut = window.confirm(
-        'Perhatian:\n\nAnda belum mengunggah dokumen berkas persyaratan (KK, Ijazah, Pas Foto).\n\n' +
-        'Apakah Anda ingin tetap menyelesaikan pendaftaran sekarang?\n' +
-        '(Catatan: Dokumen fisik dapat diserahkan langsung ke kantor Tata Usaha PKBM Bina Mandiri atau dikirimkan via WhatsApp agar dibantu unggah oleh Admin).'
-      );
-      if (!lanjut) return;
-    }
-
-    setStep(3);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // ── Step 1: Submit Data Diri ke Backend & Database ──
-  const handleSubmitDataDiri = async (e) => {
+  // ── Step 1: Validasi Data Diri & Lanjut ke Step 2 (Belum disimpan ke DB agar berkas tidak kosong) ──
+  const handleSubmitDataDiri = (e) => {
     e.preventDefault();
     setError('');
 
@@ -227,27 +187,52 @@ function DaftarSpmbPage() {
       return;
     }
 
+    // Formulir data diri valid, lanjut ke Step 2 (Unggah Berkas Wajib)
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ── Step 2: Kirim Pendaftaran Lengkap (Formulir + 3 Berkas Wajib ke Backend Atomik) ──
+  const handleSelesaikanPendaftaran = async () => {
+    setErrorStep2('');
+
+    // Validasi ketat: ketiga berkas (KK, Ijazah, Pas Foto) WAJIB telah dipilih
+    const requiredDocs = [
+      { key: 'kk', label: 'Kartu Keluarga (KK)' },
+      { key: 'ijazah', label: 'Ijazah Terakhir / SKL / Raport' },
+      { key: 'foto', label: 'Pas Foto 3x4 Terbaru' }
+    ];
+
+    const missing = requiredDocs.filter(d => !files[d.key]);
+
+    if (missing.length > 0) {
+      setErrorStep2(
+        `Pendaftaran TIDAK DAPAT diselesaikan karena Anda belum melampirkan seluruh 3 berkas persyaratan wajib:\n` +
+        missing.map((m, idx) => `• ${m.label}`).join('\n') +
+        `\n\nHarap pilih seluruh file berkas di atas. Seluruh 3 berkas wajib ada agar pendaftaran resmi tercatat di sistem.`
+      );
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const payload = {
-        nama_lengkap: form.nama_lengkap.trim(),
-        email: form.email.trim(),
-        nik: form.nik ? form.nik.trim() : null,
-        no_telp: form.no_telp.trim(),
-        password: form.password,
-        jenjang_daftar: form.jenjang_daftar,
-        tanggal_lahir: form.tanggal_lahir,
-        jenis_kelamin: form.jenis_kelamin,
-        alamat: form.alamat.trim(),
-        jarak_rumah_km: form.jarak_rumah_km !== '' ? parseFloat(form.jarak_rumah_km) : null,
-        tinggi_badan: form.tinggi_badan !== '' ? parseInt(form.tinggi_badan, 10) : null,
-        berat_badan: form.berat_badan !== '' ? parseFloat(form.berat_badan) : null,
-        jumlah_saudara_kandung: form.jumlah_saudara_kandung !== '' ? parseInt(form.jumlah_saudara_kandung, 10) : 0,
-        nama_wali: form.nama_wali.trim()
-      };
+      const fd = new FormData();
+      // Tambahkan seluruh data diri
+      Object.keys(form).forEach(key => {
+        const val = form[key];
+        if (val !== undefined && val !== null && String(val).trim() !== '') {
+          fd.append(key, String(val).trim());
+        }
+      });
 
-      const res = await SpmbAPI.daftar(payload);
+      // Tambahkan 3 berkas wajib
+      fd.append('kk', files.kk);
+      fd.append('ijazah', files.ijazah);
+      fd.append('foto', files.foto);
+
+      const res = await SpmbAPI.daftar(fd);
 
       if (res.data?.success) {
         const id = res.data.data?.pendaftar_id;
@@ -264,50 +249,22 @@ function DaftarSpmbPage() {
             registeredAt: new Date().toISOString()
           })
         );
-        setStep(2);
+        setStep(3);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        setError(res.data?.message || 'Gagal menyimpan data pendaftaran.');
+        setErrorStep2(res.data?.message || 'Gagal menyimpan data pendaftaran.');
+        window.scrollTo({ top: 180, behavior: 'smooth' });
       }
     } catch (err) {
       const errMsg =
         err.response?.data?.message ||
         (err.code === 'ERR_NETWORK'
           ? 'Koneksi ke server gagal. Pastikan jaringan internet aktif.'
-          : 'Terjadi kendala saat mengirim data formulir.');
-      setError(errMsg);
+          : 'Terjadi kendala saat mengirim data formulir dan berkas.');
+      setErrorStep2(errMsg);
       window.scrollTo({ top: 180, behavior: 'smooth' });
     } finally {
       setLoading(false);
-    }
-  };
-
-  // ── Step 2: Upload Berkas ──
-  const handleUploadBerkas = async (key) => {
-    if (!files[key] || !pendaftarId) return;
-
-    setUploadStatus(prev => ({ ...prev, [key]: 'uploading' }));
-    setUploadMsg(prev => ({ ...prev, [key]: '' }));
-
-    try {
-      const fd = new FormData();
-      fd.append('file', files[key]);
-      fd.append('jenis_berkas', key);
-
-      const res = await SpmbAPI.uploadBerkas(pendaftarId, fd);
-      if (res.data?.success) {
-        setUploadStatus(prev => ({ ...prev, [key]: 'done' }));
-        setUploadMsg(prev => ({ ...prev, [key]: 'Berkas berhasil tersimpan.' }));
-      } else {
-        setUploadStatus(prev => ({ ...prev, [key]: 'error' }));
-        setUploadMsg(prev => ({ ...prev, [key]: res.data?.message || 'Gagal mengupload berkas.' }));
-      }
-    } catch (err) {
-      setUploadStatus(prev => ({ ...prev, [key]: 'error' }));
-      setUploadMsg(prev => ({
-        ...prev,
-        [key]: err.response?.data?.message || 'Gagal mengunggah. Coba lagi.'
-      }));
     }
   };
 
@@ -773,24 +730,14 @@ function DaftarSpmbPage() {
                 </span>
               </div>
 
-              {/* Submit Button */}
+              {/* Submit Button Step 1 */}
               <button
                 type="submit"
-                disabled={loading}
                 className="spmb-btn spmb-btn-primary spmb-btn-full"
                 style={{ marginTop: 8 }}
               >
-                {loading ? (
-                  <>
-                    <div className="spmb-spinner" />
-                    <span>Menyimpan ke Database...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Lanjut ke Upload Berkas</span>
-                    <ArrowRight size={18} />
-                  </>
-                )}
+                <span>Lanjut ke Unggah 3 Berkas Wajib</span>
+                <ArrowRight size={18} />
               </button>
             </form>
           </div>
@@ -802,12 +749,22 @@ function DaftarSpmbPage() {
             <div className="spmb-card-header">
               <h2 className="spmb-card-title">
                 <UploadCloud size={24} color="var(--spmb-blue-royal)" />
-                Langkah 2: Upload Berkas Dokumen Persyaratan
+                Langkah 2: Unggah 3 Dokumen Persyaratan Wajib
               </h2>
               <p className="spmb-card-subtitle">
-                Nomor pendaftaran sementara: <strong>#{String(pendaftarId).padStart(6, '0')}</strong> atas nama <strong>{form.nama_lengkap}</strong>.
+                Calon Warga Belajar: <strong>{form.nama_lengkap}</strong> — Jenjang: <strong>{form.jenjang_daftar?.replace('_', ' ')?.toUpperCase()}</strong>.
               </p>
             </div>
+
+            {/* Error Banner jika ada berkas yang belum dipilih */}
+            {errorStep2 && (
+              <div className="spmb-alert error" style={{ marginBottom: 20, background: '#FEF2F2', border: '1.5px solid #FCA5A5', color: '#991B1B' }}>
+                <AlertCircle size={20} style={{ flexShrink: 0 }} />
+                <div style={{ whiteSpace: 'pre-line', fontSize: '0.85rem', fontWeight: 600, lineHeight: 1.5 }}>
+                  {errorStep2}
+                </div>
+              </div>
+            )}
 
             {/* Indikator Kelengkapan Berkas */}
             {(() => {
@@ -828,7 +785,7 @@ function DaftarSpmbPage() {
                       ) : (
                         <Info size={16} color="var(--spmb-blue-royal)" />
                       )}
-                      <span>Kelengkapan Dokumen: <strong>{countDone} dari {DAFTAR_BERKAS.length} Berkas</strong> Tersimpan di Database</span>
+                      <span>Kelengkapan Dokumen: <strong>{countDone} dari {DAFTAR_BERKAS.length} Berkas Wajib</strong> Siap Dikirim</span>
                     </span>
                     <span style={{ fontSize: '0.85rem', fontWeight: 800, color: countDone === DAFTAR_BERKAS.length ? '#16A34A' : '#1D4ED8' }}>
                       {pct}%
@@ -849,7 +806,7 @@ function DaftarSpmbPage() {
             <div className="spmb-alert info" style={{ marginBottom: 24 }}>
               <Info size={18} style={{ flexShrink: 0 }} />
               <div style={{ fontSize: '0.825rem', lineHeight: 1.5 }}>
-                <strong>Unggah Otomatis:</strong> Saat Anda memilih file dari galeri atau berkas komputer, sistem akan otomatis mengunggah dan menyimpannya langsung ke database. Jika saat ini berkas fisik belum siap, Anda tetap dapat menekan tombol <strong>"Selesaikan & Simpan Pendaftaran"</strong> untuk menyerahkan berkas langsung ke kantor TU PKBM Bina Mandiri.
+                <strong>PENTING — Seluruh 3 Berkas Wajib Diunggah:</strong> Sesuai regulasi SPMB PKBM Bina Mandiri, berkas <strong>Kartu Keluarga (KK)</strong>, <strong>Ijazah Terakhir / SKL / Raport</strong>, dan <strong>Pas Foto 3x4</strong> wajib dilampirkan. Sistem tidak mengizinkan pendaftaran diselesaikan jika berkas belum lengkap.
               </div>
             </div>
 
@@ -870,31 +827,19 @@ function DaftarSpmbPage() {
                       <div>
                         <div className="spmb-upload-title">
                           <span style={{ marginRight: 8 }}>{item.icon}</span>
-                          {item.label}
+                          {item.label} <span style={{ color: '#DC2626' }}>* (Wajib)</span>
                         </div>
                         <div className="spmb-upload-desc">{item.keterangan}</div>
                       </div>
 
                       <div>
-                        {status === 'done' && (
+                        {status === 'done' ? (
                           <span className="spmb-upload-badge" style={{ background: '#DCFCE7', color: '#15803D' }}>
-                            <CheckCircle2 size={14} /> Tersimpan di Database
+                            <CheckCircle2 size={14} /> Berkas Siap Dikirim
                           </span>
-                        )}
-                        {status === 'uploading' && (
-                          <span className="spmb-upload-badge" style={{ background: '#DBEAFE', color: '#1E40AF', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                            <div className="spmb-spinner small" style={{ width: 12, height: 12, borderWidth: 2 }} />
-                            Mengunggah...
-                          </span>
-                        )}
-                        {status === 'error' && (
-                          <span className="spmb-upload-badge" style={{ background: '#FEE2E2', color: '#B91C1C' }}>
-                            Upload Gagal
-                          </span>
-                        )}
-                        {status === 'idle' && (
-                          <span className="spmb-upload-badge" style={{ background: '#F1F5F9', color: '#64748B' }}>
-                            Belum Ada File
+                        ) : (
+                          <span className="spmb-upload-badge" style={{ background: '#FEF2F2', color: '#DC2626' }}>
+                            <AlertCircle size={14} /> Wajib Dipilih
                           </span>
                         )}
                       </div>
@@ -905,20 +850,18 @@ function DaftarSpmbPage() {
                       <label
                         className="spmb-upload-drop"
                         style={{
-                          cursor: status === 'uploading' ? 'wait' : 'pointer',
-                          opacity: status === 'uploading' ? 0.7 : 1,
+                          cursor: 'pointer',
+                          borderColor: '#CBD5E1',
+                          background: '#F8FAFC'
                         }}
                       >
-                        <UploadCloud size={20} color="var(--spmb-blue-royal)" />
-                        <span>
-                          {status === 'uploading'
-                            ? 'Sedang menyimpan file ke database...'
-                            : `Pilih File ${item.label} (Otomatis Upload)`}
+                        <UploadCloud size={22} color="var(--spmb-blue-royal)" />
+                        <span style={{ fontWeight: 600 }}>
+                          Pilih File {item.label} (Format JPG, PNG, atau PDF)
                         </span>
                         <input
                           type="file"
                           accept=".jpg,.jpeg,.png,.pdf"
-                          disabled={status === 'uploading'}
                           onChange={(e) => {
                             const selected = e.target.files?.[0] || null;
                             if (selected) handleFileChange(item.key, selected);
@@ -934,14 +877,14 @@ function DaftarSpmbPage() {
                         padding: '12px 16px',
                         background: '#FFFFFF',
                         borderRadius: 10,
-                        border: '1px solid #BBF7D0',
+                        border: '1.5px solid #86EFAC',
                         flexWrap: 'wrap',
                         gap: 10,
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
                           <CheckCircle2 size={18} color="#16A34A" style={{ flexShrink: 0 }} />
                           <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#14532D', wordBreak: 'break-all' }}>
-                            {file?.name || `Berkas ${item.label} berhasil tersimpan`}
+                            {file?.name || `Berkas ${item.label} telah dipilih`}
                           </span>
                         </div>
                         <label
@@ -973,29 +916,17 @@ function DaftarSpmbPage() {
                       </div>
                     )}
 
-                    {/* Feedback Pesan Upload */}
+                    {/* Feedback Pesan File */}
                     {msg && (
                       <div style={{
                         marginTop: 8,
                         fontSize: '0.8rem',
-                        color: status === 'error' ? '#DC2626' : status === 'done' ? '#16A34A' : '#1D4ED8',
+                        color: status === 'error' ? '#DC2626' : '#16A34A',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
                         gap: 6
                       }}>
                         <span>{msg}</span>
-                        {status === 'error' && (
-                          <button
-                            type="button"
-                            onClick={() => handleUploadBerkas(item.key)}
-                            className="spmb-btn spmb-btn-secondary"
-                            style={{ padding: '4px 10px', fontSize: '0.75rem' }}
-                          >
-                            Coba Upload Lagi
-                          </button>
-                        )}
                       </div>
                     )}
                   </div>
@@ -1004,27 +935,55 @@ function DaftarSpmbPage() {
             </div>
 
             {/* Navigation / Actions */}
-            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="spmb-btn spmb-btn-secondary"
-                style={{ flex: 1, minWidth: 140 }}
-              >
-                <ArrowLeft size={16} />
-                Kembali ke Data Diri
-              </button>
+            {(() => {
+              const countDone = Object.values(uploadStatus).filter(s => s === 'done').length;
+              const isReady = countDone === DAFTAR_BERKAS.length;
 
-              <button
-                type="button"
-                onClick={handleSelesaikanPendaftaran}
-                className="spmb-btn spmb-btn-yellow"
-                style={{ flex: 1.5, minWidth: 200 }}
-              >
-                <span>Selesaikan & Simpan Pendaftaran</span>
-                <CheckCircle2 size={18} />
-              </button>
-            </div>
+              return (
+                <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    disabled={loading}
+                    className="spmb-btn spmb-btn-secondary"
+                    style={{ flex: 1, minWidth: 140 }}
+                  >
+                    <ArrowLeft size={16} />
+                    Kembali ke Data Diri
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSelesaikanPendaftaran}
+                    disabled={loading || !isReady}
+                    className="spmb-btn spmb-btn-yellow"
+                    style={{
+                      flex: 1.8,
+                      minWidth: 220,
+                      opacity: isReady ? 1 : 0.65,
+                      cursor: isReady ? 'pointer' : 'not-allowed',
+                      boxShadow: isReady ? '0 4px 14px rgba(245, 158, 11, 0.4)' : 'none'
+                    }}
+                  >
+                    {loading ? (
+                      <>
+                        <div className="spmb-spinner small" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                        <span>Menyimpan ke Database...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>
+                          {isReady
+                            ? '✓ Kirim Pendaftaran Lengkap (3/3 Berkas Siap)'
+                            : `Wajib Lengkapi 3 Berkas (${countDone}/3 Siap)`}
+                        </span>
+                        <CheckCircle2 size={18} />
+                      </>
+                    )}
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         )}
 

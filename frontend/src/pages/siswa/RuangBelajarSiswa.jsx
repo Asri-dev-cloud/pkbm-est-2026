@@ -23,6 +23,12 @@ function RuangBelajarSiswa() {
 
   const isStudent = user?.role === 'warga_belajar';
 
+  // ── Objek Rombel Aktif yang Sedang Dibuka ─────────────────
+  const currentRombelObj = isStudent
+    ? { nama_rombel: user.nama_rombel || 'Kelas Anda' }
+    : (rombelList.find(r => String(r.id) === String(selectedRombelId)) || { nama_rombel: 'Kelas Terpilih' });
+  const currentRombelNama = currentRombelObj.nama_rombel || currentRombelObj.nama || 'Kelas';
+
   // ── 1. Mengambil Rombel / Profil Awal ──────────────────────
   useEffect(() => {
     const initData = async () => {
@@ -304,7 +310,7 @@ function RuangBelajarSiswa() {
                               letterSpacing: '0.04em'
                             }}
                           >
-                            {item.kode || 'MAPEL'}
+                            {item.kode ? item.kode.replace('-ALL', '') : 'MAPEL'} • {currentRombelNama}
                           </span>
                           <span style={{
                             width: 38,
@@ -366,8 +372,8 @@ function RuangBelajarSiswa() {
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <i className="bi bi-layers" style={{ color: '#64748B', fontSize: '0.95rem', width: '18px' }}></i>
-                            <span>Jenjang: {item.jenjang === 'semua' ? 'Semua Paket' : item.jenjang?.replace('_', ' ')?.toUpperCase()}</span>
+                            <i className="bi bi-mortarboard-fill" style={{ color: '#1D4ED8', fontSize: '0.95rem', width: '18px' }}></i>
+                            <span style={{ fontWeight: 700, color: '#1E293B' }}>Kelas: {currentRombelNama}</span>
                           </div>
                         </div>
 

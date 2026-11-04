@@ -22,6 +22,7 @@ function KelasTerpaduSiswa() {
   
   // Data Kelas
   const [mapel, setMapel] = useState(null);
+  const [rombelDetail, setRombelDetail] = useState(null);
   const [pertemuans, setPertemuans] = useState([]);
   const [activePertemuanId, setActivePertemuanId] = useState(null);
 
@@ -216,6 +217,15 @@ function KelasTerpaduSiswa() {
         if (!rombelId) {
           setError('Data Rombel tidak ditemukan. Silakan masuk kembali dari halaman Ruang Belajar.');
           return;
+        }
+
+        // Ambil info rombel untuk label ruang kelas
+        try {
+          const rRes = await SiswaAPI.getRombelOptions();
+          const foundR = (rRes.data?.data || []).find(r => String(r.id) === String(rombelId));
+          if (foundR) setRombelDetail(foundR);
+        } catch (e) {
+          console.warn('Gagal memuat info rombel:', e);
         }
 
         // Ambil info mapel spesifik dari daftar mapel
@@ -713,7 +723,7 @@ function KelasTerpaduSiswa() {
                   <div className="kelas-terpadu-hero-main" style={{ flex: '1 1 500px' }}>
                     <h1 className="kelas-terpadu-title" style={{
                       fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-                      fontSize: '2.25rem',
+                      fontSize: '2.1rem',
                       fontWeight: 800,
                       color: 'white',
                       marginTop: '0.5rem',
@@ -721,11 +731,14 @@ function KelasTerpaduSiswa() {
                       lineHeight: 1.2,
                       letterSpacing: '-0.02em'
                     }}>
-                      {mapel?.nama || 'Mata Pelajaran'} <span style={{ color: '#FACC15', fontSize: '1.75rem', fontWeight: 700 }}>({mapel?.kode || 'KS2026'})</span>
+                      {mapel?.nama || 'Mata Pelajaran'}{' '}
+                      <span style={{ color: '#FACC15', fontSize: '1.45rem', fontWeight: 800 }}>
+                        — {rombelDetail?.nama_rombel || rombelDetail?.nama || user.nama_rombel || 'Ruang Belajar'}
+                      </span>
                     </h1>
                     
                     <p className="kelas-terpadu-subtitle" style={{ color: '#E2E8F0', fontSize: '0.94rem', margin: '0 0 1.5rem 0', maxWidth: '600px', lineHeight: 1.6 }}>
-                      Pantau materi pembelajaran, kehadiran, tugas, forum diskusi, dan pengumuman kelas dalam satu halaman.
+                      Ruang kelas digital khusus <strong>{rombelDetail?.nama_rombel || rombelDetail?.nama || 'rombel ini'}</strong>. Seluruh materi, tugas mingguan, pengumuman, dan absensi pertemuan terisolasi mandiri.
                     </p>
 
                     <div className="kelas-terpadu-tutor-chip" style={{

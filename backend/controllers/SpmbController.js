@@ -7,21 +7,41 @@
 // - Pipeline otomatis saat status = 'diterima'
 // ============================================================
 
+import fs from 'fs';
+import path from 'path';
 import SpmbModel from '../models/SpmbModel.js';
 import UserModel from '../models/UserModel.js';
 import SiswaModel from '../models/SiswaModel.js';
 import { hashPassword, generateNIS } from '../utils/helpers.js';
 import pool from '../config/db.js';
 
+// Helper pembersih file sementara jika validasi / transaksi gagal
+const cleanUploadedFiles = (files = []) => {
+  files.forEach(f => {
+    if (f && f.path) {
+      try {
+        const fullPath = path.resolve(f.path);
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+        }
+      } catch (err) {
+        console.warn('[cleanUploadedFiles] Gagal menghapus file sisa:', err.message);
+      }
+    }
+  });
+};
+
 const SpmbController = {
 
   // -----------------------------------------------------------
   // POST /api/spmb/daftar  [PUBLIK — tanpa login]
-  // Calon WB mengisi & submit form pendaftaran online
-  // Body: { nama_lengkap, email, no_telp, jenjang_daftar,
-  //         tanggal_lahir, jenis_kelamin, alamat, nama_wali }
+  // Calon WB mengisi data diri dan WAJIB mengunggah 3 berkas:
+  // (1) Kartu Keluarga (KK), (2) Ijazah/SKL/Raport, (3) Pas Foto 3x4
+  // Seluruh data disimpan secara atomik dalam 1 transaksi DB.
   // -----------------------------------------------------------
   daftar: async (req, res) => {
+    let conn;
+    const uploadedFiles = [];
     try {
       const {
         nama_lengkap, email, nik, no_telp, jenjang_daftar,
@@ -30,36 +50,63 @@ const SpmbController = {
         nama_wali, password,
       } = req.body;
 
-      // Validasi field wajib
+      // Ambil berkas dari Multer upload.fields
+      const files = req.files || {};
+      const fileKK = files.kk ? files.kk[0] : null;
+      const fileIjazah = files.ijazah ? files.ijazah[0] : null;
+      const fileFoto = files.foto ? files.foto[0] : null;
+
+      if (fileKK) uploadedFiles.push(fileKK);
+      if (fileIjazah) uploadedFiles.push(fileIjazah);
+      if (fileFoto) uploadedFiles.push(fileFoto);
+
+      // 1. Validasi field wajib data diri
       if (!nama_lengkap || !email || !no_telp || !jenjang_daftar ||
           !tanggal_lahir || !jenis_kelamin || !alamat || !nama_wali || !password) {
+        cleanUploadedFiles(uploadedFiles);
         return res.status(400).json({
           success: false,
-          message: 'Semua field wajib diisi. Pastikan tidak ada yang kosong.',
+          message: 'Semua kolom formulir bertanda (*) wajib diisi lengkap.',
         });
       }
 
       if (String(password).length < 8) {
+        cleanUploadedFiles(uploadedFiles);
         return res.status(400).json({
           success: false,
-          message: 'Password minimal 8 karakter.',
+          message: 'Password akun minimal 8 karakter demi keamanan.',
         });
       }
 
-      // Validasi format jenjang
+      // 2. Validasi format jenjang
       const jenjangValid = ['paket_a', 'paket_b', 'paket_c'];
       if (!jenjangValid.includes(jenjang_daftar)) {
+        cleanUploadedFiles(uploadedFiles);
         return res.status(400).json({
           success: false,
           message: 'Jenjang tidak valid. Pilih: paket_a, paket_b, atau paket_c.',
         });
       }
 
-      // Ambil tahun ajaran aktif dari database
+      // 3. Validasi ketat 3 berkas wajib (KK, Ijazah, Foto)
+      if (!fileKK || !fileIjazah || !fileFoto) {
+        cleanUploadedFiles(uploadedFiles);
+        const missing = [];
+        if (!fileKK) missing.push('Kartu Keluarga (KK)');
+        if (!fileIjazah) missing.push('Ijazah Terakhir / SKL / Raport');
+        if (!fileFoto) missing.push('Pas Foto 3x4 Terbaru');
+        return res.status(400).json({
+          success: false,
+          message: `Pendaftaran TIDAK DAPAT diproses karena berkas persyaratan belum lengkap. Wajib melampirkan seluruh 3 berkas:\n• ${missing.join('\n• ')}`,
+        });
+      }
+
+      // 4. Ambil tahun ajaran aktif dari database
       const [taRows] = await pool.execute(
         `SELECT id FROM tahun_ajaran WHERE is_aktif = 1 LIMIT 1`
       );
       if (!taRows[0]) {
+        cleanUploadedFiles(uploadedFiles);
         return res.status(503).json({
           success: false,
           message: 'Pendaftaran belum dibuka. Tahun ajaran aktif belum dikonfigurasi.',
@@ -67,42 +114,82 @@ const SpmbController = {
       }
       const tahun_ajaran_id = taRows[0].id;
 
-      const password_hash = await hashPassword(password);
-
-      // Cek duplikasi: email yang sama di tahun ajaran yang sama
-      const sudahDaftar = await SpmbModel.cekEmailTerdaftar(email, tahun_ajaran_id);
+      // 5. Cek duplikasi email pada tahun ajaran aktif
+      const sudahDaftar = await SpmbModel.cekEmailTerdaftar(email.trim(), tahun_ajaran_id);
       if (sudahDaftar) {
+        cleanUploadedFiles(uploadedFiles);
         return res.status(409).json({
           success: false,
           message: 'Email ini sudah pernah mendaftar pada tahun ajaran aktif. ' +
-                   'Silakan hubungi staf TU untuk informasi lebih lanjut.',
+                   'Silakan hubungi staf TU atau login untuk memeriksa status Anda.',
         });
       }
 
-      // Simpan data pendaftaran ke database (status awal: 'pending')
-      const pendaftarId = await SpmbModel.create({
-        nama_lengkap, email, nik, no_telp, jenjang_daftar,
-        tanggal_lahir, jenis_kelamin, alamat,
-        jarak_rumah_km: jarak_rumah_km !== undefined && jarak_rumah_km !== '' && jarak_rumah_km !== null ? parseFloat(jarak_rumah_km) : null,
-        tinggi_badan: tinggi_badan !== undefined && tinggi_badan !== '' && tinggi_badan !== null ? parseInt(tinggi_badan, 10) : null,
-        berat_badan: berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? parseFloat(berat_badan) : null,
-        jumlah_saudara_kandung: jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' && jumlah_saudara_kandung !== null ? parseInt(jumlah_saudara_kandung, 10) : null,
-        nama_wali, password_hash, tahun_ajaran_id,
-      });
+      const password_hash = await hashPassword(password);
+
+      // 6. Transaksi Database Atomik: Pendaftar + 3 Berkas disimpan bersamaan
+      conn = await pool.getConnection();
+      await conn.beginTransaction();
+
+      const sqlPendaftar = `
+        INSERT INTO pendaftar_spmb
+          (nama_lengkap, email, nik, password_hash, no_telp, jenjang_daftar, tanggal_lahir,
+           jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
+           nama_wali, tahun_ajaran_id, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
+      `;
+      const paramsPendaftar = [
+        nama_lengkap.trim(),
+        email.trim(),
+        nik ? nik.trim() : null,
+        password_hash,
+        no_telp.trim(),
+        jenjang_daftar,
+        tanggal_lahir,
+        jenis_kelamin,
+        alamat.trim(),
+        jarak_rumah_km !== undefined && jarak_rumah_km !== '' && jarak_rumah_km !== null ? parseFloat(jarak_rumah_km) : null,
+        tinggi_badan !== undefined && tinggi_badan !== '' && tinggi_badan !== null ? parseInt(tinggi_badan, 10) : null,
+        berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? parseFloat(berat_badan) : null,
+        jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' && jumlah_saudara_kandung !== null ? parseInt(jumlah_saudara_kandung, 10) : 0,
+        nama_wali.trim(),
+        tahun_ajaran_id
+      ];
+
+      const [resPendaftar] = await conn.execute(sqlPendaftar, paramsPendaftar);
+      const pendaftarId = resPendaftar.insertId;
+
+      // Simpan 3 berkas ke berkas_spmb
+      const sqlBerkas = `
+        INSERT INTO berkas_spmb (pendaftar_id, jenis_berkas, nama_file, path_file, status_verifikasi, created_at)
+        VALUES (?, ?, ?, ?, 'menunggu', NOW())
+      `;
+
+      await conn.execute(sqlBerkas, [pendaftarId, 'kk', fileKK.originalname, fileKK.path]);
+      await conn.execute(sqlBerkas, [pendaftarId, 'ijazah', fileIjazah.originalname, fileIjazah.path]);
+      await conn.execute(sqlBerkas, [pendaftarId, 'foto', fileFoto.originalname, fileFoto.path]);
+
+      await conn.commit();
+      conn.release();
+      conn = null;
 
       return res.status(201).json({
         success: true,
-        message: 'Pendaftaran berhasil dikirim! Silakan upload berkas pendukung.',
+        message: 'Pendaftaran SPMB dan 3 berkas persyaratan berhasil disimpan ke sistem!',
         data: {
           pendaftar_id: pendaftarId,
-          // Kembalikan ID agar frontend bisa langsung redirect ke halaman upload berkas
           pesan: 'Simpan nomor pendaftaran Anda: #' + pendaftarId,
         },
       });
 
     } catch (error) {
+      if (conn) {
+        try { await conn.rollback(); } catch (rbErr) {}
+        try { conn.release(); } catch (relErr) {}
+      }
+      cleanUploadedFiles(uploadedFiles);
       console.error('[SpmbController.daftar] Error:', error);
-      return res.status(500).json({ success: false, message: 'Gagal menyimpan pendaftaran.' });
+      return res.status(500).json({ success: false, message: 'Gagal menyimpan pendaftaran. Periksa kembali kelengkapan formulir dan berkas Anda.' });
     }
   },
 

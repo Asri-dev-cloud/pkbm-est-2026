@@ -164,6 +164,16 @@ function SpmbAdmin() {
       return;
     }
 
+    if (status === 'diterima' && (!detail.berkas || detail.berkas.length < 3)) {
+      const berkasCount = detail.berkas ? detail.berkas.length : 0;
+      const lanjut = window.confirm(
+        `PERHATIAN TU: Pendaftar ini baru memiliki ${berkasCount} dari 3 berkas persyaratan wajib (KK, Ijazah, Foto).\n\n` +
+        `Apakah dokumen fisik calon siswa ini sudah diserahkan langsung ke kantor atau via WhatsApp?\n\n` +
+        `Klik OK untuk tetap Menerima, atau Cancel jika ingin mengunggah berkas terlebih dahulu.`
+      );
+      if (!lanjut) return;
+    }
+
     const konfirmasi = window.confirm(
       `${status === 'diterima' ? 'TERIMA' : 'TOLAK'} pendaftaran ${detail.nama_lengkap}?\n\n` +
       (status === 'diterima'
@@ -468,13 +478,17 @@ function SpmbAdmin() {
                                 <span>•</span>
                                 <span>{formatTanggal(pendaftar.created_at)}</span>
                                 <span>•</span>
-                                {pendaftar.jumlah_berkas > 0 ? (
+                                {pendaftar.jumlah_berkas >= 3 ? (
                                   <span style={{ color: '#16A34A', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                                    <i className="bi bi-file-earmark-check-fill"></i> {pendaftar.jumlah_berkas} Berkas
+                                    <i className="bi bi-file-earmark-check-fill"></i> Berkas Lengkap (3/3)
+                                  </span>
+                                ) : pendaftar.jumlah_berkas > 0 ? (
+                                  <span style={{ color: '#D97706', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                                    <i className="bi bi-exclamation-circle-fill"></i> {pendaftar.jumlah_berkas}/3 Berkas
                                   </span>
                                 ) : (
-                                  <span style={{ color: '#D97706', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                                    <i className="bi bi-exclamation-triangle-fill"></i> Belum Ada Berkas
+                                  <span style={{ color: '#DC2626', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                                    <i className="bi bi-exclamation-triangle-fill"></i> Berkas Kosong
                                   </span>
                                 )}
                               </div>
