@@ -16,15 +16,30 @@ const router = Router();
 // Diakses oleh calon Warga Belajar dari halaman landing page
 // ============================================================
 
-// POST /api/spmb/daftar — Submit form pendaftaran beserta 3 berkas wajib (tanpa login)
-router.post(
-  '/daftar',
-  (req, res, next) => { req.uploadFolder = 'spmb'; next(); },
-  upload.fields([
+// POST /api/spmb/daftar — Submit form pendaftaran beserta berkas (tanpa login)
+const handleSpmbUpload = (req, res, next) => {
+  req.uploadFolder = 'spmb';
+  const uploadMiddleware = upload.fields([
     { name: 'kk', maxCount: 1 },
     { name: 'ijazah', maxCount: 1 },
     { name: 'foto', maxCount: 1 }
-  ]),
+  ]);
+
+  uploadMiddleware(req, res, (err) => {
+    if (err) {
+      console.error('[Multer /api/spmb/daftar error]:', err.message);
+      return res.status(400).json({
+        success: false,
+        message: `Gagal memproses berkas unggahan: ${err.message}`,
+      });
+    }
+    next();
+  });
+};
+
+router.post(
+  '/daftar',
+  handleSpmbUpload,
   SpmbController.daftar
 );
 

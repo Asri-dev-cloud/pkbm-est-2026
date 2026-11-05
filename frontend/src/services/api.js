@@ -16,16 +16,23 @@ import axios from 'axios';
 // ── 1. NORMALISASI BASE URL & BUAT INSTANCE AXIOS ─────────────
 // baseURL diambil dari .env (VITE_API_URL).
 // Otomatis menormalisasi akhiran '/api' agar tidak 404 pada VPS/hosting.
-const rawBaseUrl = (import.meta.env.VITE_API_URL || '/api').trim();
-const cleanBaseUrl = rawBaseUrl.replace(/\/+$/, '');
-const baseURL = cleanBaseUrl.endsWith('/api') ? cleanBaseUrl : `${cleanBaseUrl}/api`;
+const getBaseUrl = () => {
+  if (typeof window !== 'undefined' && window.location) {
+    const host = window.location.hostname.toLowerCase();
+    if (host.includes('pkbmbinamandiri.sch.id')) {
+      return '/api';
+    }
+  }
+  const rawBaseUrl = (import.meta.env.VITE_API_URL || '/api').trim();
+  const cleanBaseUrl = rawBaseUrl.replace(/\/+$/, '');
+  return cleanBaseUrl.endsWith('/api') ? cleanBaseUrl : `${cleanBaseUrl}/api`;
+};
+
+const baseURL = getBaseUrl();
 
 const apiClient = axios.create({
   baseURL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 15000, // Batas waktu request: 15 detik
+  timeout: 30000,
 });
 
 // Helper universal untuk membuat URL file/asset yang aman untuk browser
@@ -33,6 +40,12 @@ export const toAssetUrl = (filePath) => {
   if (!filePath) return '';
   if (/^https?:\/\//i.test(filePath)) return filePath;
   const normalized = String(filePath).replace(/\\/g, '/').replace(/^\/+/, '');
+  if (typeof window !== 'undefined' && window.location) {
+    const host = window.location.hostname.toLowerCase();
+    if (host.includes('pkbmbinamandiri.sch.id')) {
+      return `/${normalized}`;
+    }
+  }
   const apiUrl = (import.meta.env.VITE_API_URL || '').trim();
   if (/^https?:\/\//i.test(apiUrl)) {
     const origin = apiUrl.replace(/\/api\/?$/i, '').replace(/\/+$/, '');
@@ -53,7 +66,12 @@ apiClient.interceptors.request.use(
     // Jika data adalah FormData, hapus Content-Type bawaan agar browser/axios
     // membuat header multipart/form-data beserta boundary unik secara otomatis
     if (config.data instanceof FormData) {
+      if (config.headers && typeof config.headers.delete === 'function') {
+        config.headers.delete('Content-Type');
+        config.headers.delete('content-type');
+      }
       delete config.headers['Content-Type'];
+      delete config.headers['content-type'];
     }
     return config;
   },
@@ -187,18 +205,69 @@ export const UserAPI = {
 export const SpmbAPI = {
 
   // POST /api/spmb/daftar — PUBLIK, tidak butuh token
-  // Payload: { nama_lengkap, nik, tanggal_lahir, jenjang_dituju, ... }
-  daftar: (payload) =>
-    apiClient.post('/spmb/daftar', payload),
+  // Menggunakan native fetch untuk FormData murni sehingga boundary dibuat otomatis oleh browser
+  daftar: async (payload) => {
+    if (typeof FormData !== 'undefined' && payload instanceof FormData) {
+      const url = `${baseURL}/spmb/daftar`;
+      const token = typeof localStorage !== 'undefined' ? localStorage.getItem('pkbm_token') : null;
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: payload
+      });
+
+      let json = null;
+      try {
+        json = await res.json();
+      } catch (e) {}
+
+      if (!res.ok) {
+        const error = new Error(json?.message || `Gagal menghubungi server (HTTP ${res.status})`);
+        error.response = { status: res.status, data: json };
+        throw error;
+      }
+
+      return { data: json };
+    }
+    return apiClient.post('/spmb/daftar', payload);
+  },
 
   // GET /api/spmb/cek-status?q=keyword — PUBLIK, cek status pendaftaran
   cekStatusPublik: (keyword) =>
     apiClient.get('/spmb/cek-status', { params: { q: keyword } }),
 
   // POST /api/spmb/:id/berkas — Upload berkas (FormData)
-  // Boundary dibuat otomatis oleh browser & interceptor
-  uploadBerkas: (id, formData) =>
-    apiClient.post(`/spmb/${id}/berkas`, formData),
+  uploadBerkas: async (id, formData) => {
+    if (typeof FormData !== 'undefined' && formData instanceof FormData) {
+      const url = `${baseURL}/spmb/${id}/berkas`;
+      const token = typeof localStorage !== 'undefined' ? localStorage.getItem('pkbm_token') : null;
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData
+      });
+
+      let json = null;
+      try {
+        json = await res.json();
+      } catch (e) {}
+
+      if (!res.ok) {
+        const error = new Error(json?.message || `Gagal unggah berkas (HTTP ${res.status})`);
+        error.response = { status: res.status, data: json };
+        throw error;
+      }
+
+      return { data: json };
+    }
+    return apiClient.post(`/spmb/${id}/berkas`, formData);
+  },
 
   // GET /api/spmb ÔÇö Daftar semua pendaftar (Admin)
   getAll: (params = {}) =>

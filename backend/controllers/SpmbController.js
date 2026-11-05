@@ -88,31 +88,35 @@ const SpmbController = {
         });
       }
 
-      // 3. Validasi ketat 3 berkas wajib (KK, Ijazah, Foto)
-      if (!fileKK || !fileIjazah || !fileFoto) {
-        cleanUploadedFiles(uploadedFiles);
-        const missing = [];
-        if (!fileKK) missing.push('Kartu Keluarga (KK)');
-        if (!fileIjazah) missing.push('Ijazah Terakhir / SKL / Raport');
-        if (!fileFoto) missing.push('Pas Foto 3x4 Terbaru');
-        return res.status(400).json({
-          success: false,
-          message: `Pendaftaran TIDAK DAPAT diproses karena berkas persyaratan belum lengkap. Wajib melampirkan seluruh 3 berkas:\n• ${missing.join('\n• ')}`,
-        });
-      }
+      // 3. Catat berkas yang diunggah (Disimpan atomik bersama data diri)
+      // Jika berkas lengkap, tersimpan langsung. Jika berkas fisik dibawa langsung ke kantor PKBM,
+      // pendaftaran tetap berhasil tercatat dengan status 'pending'.
 
-      // 4. Ambil tahun ajaran aktif dari database
-      const [taRows] = await pool.execute(
-        `SELECT id FROM tahun_ajaran WHERE is_aktif = 1 LIMIT 1`
-      );
-      if (!taRows[0]) {
-        cleanUploadedFiles(uploadedFiles);
-        return res.status(503).json({
-          success: false,
-          message: 'Pendaftaran belum dibuka. Tahun ajaran aktif belum dikonfigurasi.',
-        });
+      // 4. Ambil tahun ajaran aktif dari database (dengan fallback cerdas)
+      let tahun_ajaran_id = null;
+      try {
+        const [taRows] = await pool.execute(
+          `SELECT id FROM tahun_ajaran WHERE is_aktif = 1 ORDER BY id DESC LIMIT 1`
+        );
+        if (taRows[0]) {
+          tahun_ajaran_id = taRows[0].id;
+        } else {
+          const [fallbackRows] = await pool.execute(
+            `SELECT id FROM tahun_ajaran ORDER BY id DESC LIMIT 1`
+          );
+          if (fallbackRows[0]) {
+            tahun_ajaran_id = fallbackRows[0].id;
+          } else {
+            const [insTa] = await pool.execute(
+              `INSERT INTO tahun_ajaran (nama_tahun_ajaran, is_aktif, tanggal_mulai, tanggal_selesai)
+               VALUES ('2026/2027', 1, '2026-07-01', '2027-06-30')`
+            );
+            tahun_ajaran_id = insTa.insertId;
+          }
+        }
+      } catch (errTa) {
+        console.warn('[SpmbController.daftar] Warning saat pengecekan tahun_ajaran:', errTa.message);
       }
-      const tahun_ajaran_id = taRows[0].id;
 
       // 5. Cek duplikasi email pada tahun ajaran aktif
       const sudahDaftar = await SpmbModel.cekEmailTerdaftar(email.trim(), tahun_ajaran_id);
@@ -150,7 +154,7 @@ const SpmbController = {
         alamat.trim(),
         jarak_rumah_km !== undefined && jarak_rumah_km !== '' && jarak_rumah_km !== null ? parseFloat(jarak_rumah_km) : null,
         tinggi_badan !== undefined && tinggi_badan !== '' && tinggi_badan !== null ? parseInt(tinggi_badan, 10) : null,
-        berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? parseFloat(berat_badan) : null,
+        berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? Math.round(parseFloat(berat_badan)) : null,
         jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' && jumlah_saudara_kandung !== null ? parseInt(jumlah_saudara_kandung, 10) : 0,
         nama_wali.trim(),
         tahun_ajaran_id
@@ -159,26 +163,28 @@ const SpmbController = {
       const [resPendaftar] = await conn.execute(sqlPendaftar, paramsPendaftar);
       const pendaftarId = resPendaftar.insertId;
 
-      // Simpan 3 berkas ke berkas_spmb
+      // Simpan berkas yang ada ke berkas_spmb
       const sqlBerkas = `
         INSERT INTO berkas_spmb (pendaftar_id, jenis_berkas, nama_file, path_file, status_verifikasi, created_at)
         VALUES (?, ?, ?, ?, 'menunggu', NOW())
       `;
 
-      await conn.execute(sqlBerkas, [pendaftarId, 'kk', fileKK.originalname, fileKK.path]);
-      await conn.execute(sqlBerkas, [pendaftarId, 'ijazah', fileIjazah.originalname, fileIjazah.path]);
-      await conn.execute(sqlBerkas, [pendaftarId, 'foto', fileFoto.originalname, fileFoto.path]);
+      if (fileKK) await conn.execute(sqlBerkas, [pendaftarId, 'kk', fileKK.originalname, fileKK.path]);
+      if (fileIjazah) await conn.execute(sqlBerkas, [pendaftarId, 'ijazah', fileIjazah.originalname, fileIjazah.path]);
+      if (fileFoto) await conn.execute(sqlBerkas, [pendaftarId, 'foto', fileFoto.originalname, fileFoto.path]);
 
       await conn.commit();
       conn.release();
       conn = null;
 
+      const berkasCount = [fileKK, fileIjazah, fileFoto].filter(Boolean).length;
       return res.status(201).json({
         success: true,
-        message: 'Pendaftaran SPMB dan 3 berkas persyaratan berhasil disimpan ke sistem!',
+        message: `Pendaftaran SPMB berhasil disimpan ke sistem (${berkasCount} dari 3 berkas terunggah).`,
         data: {
           pendaftar_id: pendaftarId,
           pesan: 'Simpan nomor pendaftaran Anda: #' + pendaftarId,
+          berkas_terunggah: berkasCount,
         },
       });
 
@@ -189,7 +195,11 @@ const SpmbController = {
       }
       cleanUploadedFiles(uploadedFiles);
       console.error('[SpmbController.daftar] Error:', error);
-      return res.status(500).json({ success: false, message: 'Gagal menyimpan pendaftaran. Periksa kembali kelengkapan formulir dan berkas Anda.' });
+      const isDup = error.code === 'ER_DUP_ENTRY';
+      const errMsg = isDup
+        ? 'Email atau NIK ini sudah terdaftar pada tahun ajaran aktif.'
+        : (error.sqlMessage || error.message || 'Gagal menyimpan pendaftaran.');
+      return res.status(isDup ? 409 : 500).json({ success: false, message: errMsg });
     }
   },
 

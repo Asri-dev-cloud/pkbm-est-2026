@@ -269,12 +269,14 @@ const SpmbModel = {
   // Mencegah duplikasi pendaftaran
   // -----------------------------------------------------------
   cekEmailTerdaftar: async (email, tahun_ajaran_id) => {
-    const sql = `
-      SELECT id FROM pendaftar_spmb
-      WHERE email = ? AND tahun_ajaran_id = ?
-      LIMIT 1
-    `;
-    const [rows] = await pool.execute(sql, [email, tahun_ajaran_id]);
+    let sql = `SELECT id FROM pendaftar_spmb WHERE LOWER(email) = LOWER(?)`;
+    const params = [email.trim()];
+    if (tahun_ajaran_id) {
+      sql += ` AND tahun_ajaran_id = ?`;
+      params.push(tahun_ajaran_id);
+    }
+    sql += ` LIMIT 1`;
+    const [rows] = await pool.execute(sql, params);
     return rows[0] || null;
   },
 

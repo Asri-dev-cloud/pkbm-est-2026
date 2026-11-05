@@ -13,7 +13,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
+import ModalPratinjauExcel from '../../components/ModalPratinjauExcel.jsx';
 import { SiswaAPI } from '../../services/api.js';
+import { generateLaporanSiswaExcel, getTahunAjaranRealTime } from '../../utils/excelExport.js';
 
 // ── Konstanta ────────────────────────────────────────────────
 const JENJANG_LABEL = {
@@ -52,6 +54,10 @@ function SiswaAdmin() {
   const [saving,      setSaving]      = useState(false);
   const [saveError,   setSaveError]   = useState('');
   const [saveSuccess, setSaveSuccess] = useState('');
+
+  // ── State: Modal Pratinjau & Download Excel ──────────────────
+  const [modalExcelOpen, setModalExcelOpen] = useState(false);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
 
   // ── Fetch: Daftar Siswa & Statistik ─────────────────────
   useEffect(() => {
@@ -151,6 +157,26 @@ function SiswaAdmin() {
     }
   };
 
+  // ── Handler Unduh File Excel Langsung ────────────────────────
+  const handleDownloadExcelLangsung = async () => {
+    setDownloadingExcel(true);
+    try {
+      const infoJenjang = filterJenjang ? (JENJANG_LABEL[filterJenjang] || filterJenjang) : 'Semua Jenjang';
+      const infoAktif = filterAktif === '1' ? 'Warga Belajar Aktif' : filterAktif === '0' ? 'Nonaktif' : 'Semua Status';
+      await generateLaporanSiswaExcel({
+        data: siswaFiltered,
+        tahunAjaran: getTahunAjaranRealTime(),
+        filterInfo: `${infoJenjang} (${infoAktif})`,
+        tipeLaporan: 'Data Warga Belajar',
+      });
+    } catch (err) {
+      console.error('Gagal download Excel:', err);
+      alert('Terjadi kesalahan saat mengunduh file Excel.');
+    } finally {
+      setDownloadingExcel(false);
+    }
+  };
+
   // ── Format Tanggal ───────────────────────────────────────
   const formatTanggal = (tgl) => {
     if (!tgl) return '—';
@@ -170,7 +196,8 @@ function SiswaAdmin() {
         <div className="app-content">
 
           {/* ── Header ─────────────────────────────────── */}
-          <div style={{ marginBottom: '1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+          {/* ── Header ──────────────────────────────────────── */}
+          <div style={{ marginBottom: '1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
               <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                 Data Warga Belajar
@@ -178,6 +205,68 @@ function SiswaAdmin() {
               <p style={{ color: '#475569', marginTop: 4, fontSize: '0.925rem' }}>
                 Kelola basis data induk seluruh warga belajar aktif, rombel penempatan, serta kelengkapan kontak dan wali.
               </p>
+            </div>
+
+            {/* Tombol Aksi Excel: Download & Buka/Lihat Rekapan Resmi */}
+            <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setModalExcelOpen(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '9px 15px',
+                  borderRadius: '10px',
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  color: '#1D4ED8',
+                  backgroundColor: '#EFF6FF',
+                  border: '1.5px solid #BFDBFE',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  transition: 'all 0.15s ease',
+                }}
+                title="Buka dan lihat rekapan lembar kerja Excel secara langsung"
+              >
+                <i className="bi bi-eye-fill" style={{ fontSize: '1rem', color: '#2563EB' }} />
+                <span>Buka / Lihat Excel</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownloadExcelLangsung}
+                disabled={downloadingExcel}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '9px 16px',
+                  borderRadius: '10px',
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  color: '#FFFFFF',
+                  backgroundColor: '#059669',
+                  border: 'none',
+                  cursor: downloadingExcel ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 6px -1px rgba(5, 150, 105, 0.25)',
+                  transition: 'all 0.15s ease',
+                  opacity: downloadingExcel ? 0.75 : 1,
+                }}
+                title="Download rekapan Laporan Hasil Penerimaan Siswa Baru (.xlsx)"
+              >
+                {downloadingExcel ? (
+                  <>
+                    <span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
+                    <span>Mengunduh...</span>
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-file-earmark-excel-fill" style={{ fontSize: '1rem' }} />
+                    <span>Download Excel</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
@@ -299,6 +388,55 @@ function SiswaAdmin() {
                   <option value="0">Nonaktif</option>
                   <option value="">Semua Status</option>
                 </select>
+
+                {/* Tombol Aksi Excel di Tabel */}
+                <button
+                  type="button"
+                  onClick={() => setModalExcelOpen(true)}
+                  style={{
+                    height: 38,
+                    padding: '0 12px',
+                    borderRadius: 8,
+                    border: '1.5px solid #CBD5E1',
+                    backgroundColor: '#FFFFFF',
+                    color: '#1E293B',
+                    fontSize: '0.825rem',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    cursor: 'pointer',
+                  }}
+                  title="Lihat Pratinjau Rekapan Lembar Kerja Excel"
+                >
+                  <i className="bi bi-eye" style={{ color: '#2563EB' }} />
+                  <span>Lihat Excel</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadExcelLangsung}
+                  disabled={downloadingExcel}
+                  style={{
+                    height: 38,
+                    padding: '0 13px',
+                    borderRadius: 8,
+                    border: 'none',
+                    backgroundColor: '#059669',
+                    color: '#FFFFFF',
+                    fontSize: '0.825rem',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    cursor: downloadingExcel ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  }}
+                  title="Unduh Rekapan Excel (.xlsx)"
+                >
+                  <i className="bi bi-file-earmark-excel-fill" />
+                  <span>Unduh Excel</span>
+                </button>
               </div>
             </div>
 
@@ -700,6 +838,16 @@ function SiswaAdmin() {
           </div>
         </div>
       )}
+
+      {/* ── Modal Pratinjau & Download Excel Resmi ── */}
+      <ModalPratinjauExcel
+        isOpen={modalExcelOpen}
+        onClose={() => setModalExcelOpen(false)}
+        data={siswaFiltered}
+        defaultTahunAjaran={getTahunAjaranRealTime()}
+        filterInfo={`${filterJenjang ? (JENJANG_LABEL[filterJenjang] || filterJenjang) : 'Semua Jenjang'} (${filterAktif === '1' ? 'Aktif' : filterAktif === '0' ? 'Nonaktif' : 'Semua Status'})`}
+        tipeLaporan="Data Warga Belajar"
+      />
     </div>
   );
 }

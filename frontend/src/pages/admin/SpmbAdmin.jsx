@@ -5,7 +5,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
+import ModalPratinjauExcel from '../../components/ModalPratinjauExcel.jsx';
 import { SiswaAPI, SpmbAPI, toAssetUrl } from '../../services/api.js';
+import { generateLaporanSiswaExcel, getTahunAjaranRealTime } from '../../utils/excelExport.js';
 
 function SpmbAdmin() {
   const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
@@ -28,6 +30,45 @@ function SpmbAdmin() {
   const [manualFile, setManualFile] = useState(null);
   const [uploadingManual, setUploadingManual] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [modalExcelOpen, setModalExcelOpen] = useState(false);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
+
+  const getFilteredSpmbList = () => {
+    return list.filter((p) => {
+      if (!searchKeyword.trim()) return true;
+      const q = searchKeyword.toLowerCase();
+      return (
+        p.nama_lengkap?.toLowerCase().includes(q) ||
+        p.email?.toLowerCase().includes(q) ||
+        p.no_telp?.includes(q) ||
+        String(p.id).includes(q)
+      );
+    });
+  };
+
+  const handleDownloadExcelLangsung = async () => {
+    setDownloadingExcel(true);
+    try {
+      const dataToExport = getFilteredSpmbList();
+      const labelStatus = {
+        pending: 'Menunggu Verifikasi',
+        diterima: 'Diterima',
+        ditolak: 'Ditolak',
+        '': 'Semua Status Seleksi',
+      };
+      await generateLaporanSiswaExcel({
+        data: dataToExport,
+        tahunAjaran: getTahunAjaranRealTime(),
+        filterInfo: `SPMB: ${labelStatus[filterStatus] || 'Semua Data'}`,
+        tipeLaporan: 'Penerimaan SPMB',
+      });
+    } catch (err) {
+      console.error('Gagal unduh file Excel:', err);
+      alert('Terjadi kesalahan saat mengunduh file Excel.');
+    } finally {
+      setDownloadingExcel(false);
+    }
+  };
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -245,7 +286,7 @@ function SpmbAdmin() {
       <Sidebar user={user} />
       <main className="app-main">
         <div className="app-content">
-          <div style={{ marginBottom: '1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ marginBottom: '1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
               <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                 Verifikasi SPMB
@@ -253,6 +294,68 @@ function SpmbAdmin() {
               <p style={{ color: '#475569', marginTop: 4, fontSize: '0.925rem' }}>
                 Tinjau kelengkapan berkas calon siswa, tetapkan rombongan belajar, dan terbitkan akun resmi Warga Belajar.
               </p>
+            </div>
+
+            {/* Tombol Aksi Excel: Download & Buka/Lihat Rekapan SPMB */}
+            <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setModalExcelOpen(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '9px 15px',
+                  borderRadius: '10px',
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  color: '#1D4ED8',
+                  backgroundColor: '#EFF6FF',
+                  border: '1.5px solid #BFDBFE',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  transition: 'all 0.15s ease',
+                }}
+                title="Buka dan lihat rekapan lembar kerja Excel secara langsung"
+              >
+                <i className="bi bi-eye-fill" style={{ fontSize: '1rem', color: '#2563EB' }} />
+                <span>Buka / Lihat Excel</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownloadExcelLangsung}
+                disabled={downloadingExcel}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '9px 16px',
+                  borderRadius: '10px',
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  color: '#FFFFFF',
+                  backgroundColor: '#059669',
+                  border: 'none',
+                  cursor: downloadingExcel ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 6px -1px rgba(5, 150, 105, 0.25)',
+                  transition: 'all 0.15s ease',
+                  opacity: downloadingExcel ? 0.75 : 1,
+                }}
+                title="Download rekapan Laporan Hasil Penerimaan Siswa Baru (.xlsx)"
+              >
+                {downloadingExcel ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" style={{ width: 14, height: 14 }} />
+                    <span>Mengunduh...</span>
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-file-earmark-excel-fill" style={{ fontSize: '1rem' }} />
+                    <span>Download Excel</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
@@ -1007,6 +1110,16 @@ function SpmbAdmin() {
           </div>
         </div>
       </main>
+
+      {/* ── Modal Pratinjau & Download Excel Resmi ── */}
+      <ModalPratinjauExcel
+        isOpen={modalExcelOpen}
+        onClose={() => setModalExcelOpen(false)}
+        data={getFilteredSpmbList()}
+        defaultTahunAjaran={getTahunAjaranRealTime()}
+        filterInfo={`SPMB: ${filterStatus === 'pending' ? 'Menunggu Verifikasi' : filterStatus === 'diterima' ? 'Diterima' : filterStatus === 'ditolak' ? 'Ditolak' : 'Semua Status'}`}
+        tipeLaporan="Penerimaan SPMB"
+      />
     </div>
   );
 }

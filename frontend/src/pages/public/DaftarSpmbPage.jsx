@@ -38,19 +38,19 @@ const DAFTAR_BERKAS = [
     key: 'kk',
     label: 'Kartu Keluarga (KK)',
     keterangan: 'Format scan / foto JPG, PNG, atau PDF (maks. 10MB)',
-    icon: '📄'
+    icon: '📄',
   },
   {
     key: 'ijazah',
     label: 'Ijazah Terakhir / Raport / SKL',
     keterangan: 'Ijazah jenjang sebelumnya (SD/SMP) atau dokumen pendukung',
-    icon: '📜'
+    icon: '📜',
   },
   {
     key: 'foto',
     label: 'Pas Foto 3x4 Terbaru',
     keterangan: 'Foto formal calon siswa dengan latar belakang merah atau biru',
-    icon: '🖼️'
+    icon: '🖼️',
   },
 ];
 
@@ -77,6 +77,69 @@ const JENJANG_PILIHAN = [
     desc: 'Pendidikan kesetaraan SMA resmi untuk kuliah, kerja, atau wirausaha.'
   },
 ];
+
+// Helper kompresi gambar client-side untuk berkas/foto SPMB
+// Mengompres foto ponsel (>3MB) menjadi ~200-350KB sebelum diunggah
+// Memastikan unggahan instan (<1-2 detik), anti-timeout, dan tidak kena limit Nginx 413
+const compressImageIfNeeded = async (file) => {
+  if (!file || !file.type || !file.type.startsWith('image/')) return file;
+  if (file.size <= 500 * 1024) return file; // Di bawah 500KB tidak perlu kompres
+
+  return new Promise((resolve) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            let { width, height } = img;
+            const maxDim = 1600;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(
+              (blob) => {
+                if (blob && blob.size < file.size) {
+                  const safeName = file.name.replace(/\.[^.]+$/, '.jpg');
+                  const compressedFile = new File([blob], safeName, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now(),
+                  });
+                  resolve(compressedFile);
+                } else {
+                  resolve(file);
+                }
+              },
+              'image/jpeg',
+              0.82
+            );
+          } catch (errCanvas) {
+            console.warn('[compressImageIfNeeded] Canvas error, fallback ke file asli:', errCanvas);
+            resolve(file);
+          }
+        };
+        img.onerror = () => resolve(file);
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    } catch (errAll) {
+      resolve(file);
+    }
+  });
+};
 
 function DaftarSpmbPage() {
   const [step, setStep] = useState(1);
@@ -196,7 +259,7 @@ function DaftarSpmbPage() {
   const handleSelesaikanPendaftaran = async () => {
     setErrorStep2('');
 
-    // Validasi ketat: ketiga berkas (KK, Ijazah, Pas Foto) WAJIB telah dipilih
+    // Validasi kelengkapan berkas: ingatkan calon siswa jika ada berkas yang belum dipilih
     const requiredDocs = [
       { key: 'kk', label: 'Kartu Keluarga (KK)' },
       { key: 'ijazah', label: 'Ijazah Terakhir / SKL / Raport' },
@@ -207,9 +270,9 @@ function DaftarSpmbPage() {
 
     if (missing.length > 0) {
       setErrorStep2(
-        `Pendaftaran TIDAK DAPAT diselesaikan karena Anda belum melampirkan seluruh 3 berkas persyaratan wajib:\n` +
-        missing.map((m, idx) => `• ${m.label}`).join('\n') +
-        `\n\nHarap pilih seluruh file berkas di atas. Seluruh 3 berkas wajib ada agar pendaftaran resmi tercatat di sistem.`
+        `Harap lampirkan seluruh 3 berkas persyaratan wajib:\n` +
+        missing.map((m) => `• ${m.label}`).join('\n') +
+        `\n\nJika berkas fisik hendak diserahkan langsung ke kantor PKBM Bina Mandiri, hubungi admin TU.`
       );
       window.scrollTo({ top: 180, behavior: 'smooth' });
       return;
@@ -227,10 +290,16 @@ function DaftarSpmbPage() {
         }
       });
 
-      // Tambahkan 3 berkas wajib
-      fd.append('kk', files.kk);
-      fd.append('ijazah', files.ijazah);
-      fd.append('foto', files.foto);
+      // Kompres berkas gambar secara otomatis sebelum dikirim ke server (memastikan < 1 detik & anti gagal)
+      const [compressedKK, compressedIjazah, compressedFoto] = await Promise.all([
+        files.kk ? compressImageIfNeeded(files.kk) : Promise.resolve(null),
+        files.ijazah ? compressImageIfNeeded(files.ijazah) : Promise.resolve(null),
+        files.foto ? compressImageIfNeeded(files.foto) : Promise.resolve(null),
+      ]);
+
+      if (compressedKK) fd.append('kk', compressedKK);
+      if (compressedIjazah) fd.append('ijazah', compressedIjazah);
+      if (compressedFoto) fd.append('foto', compressedFoto);
 
       const res = await SpmbAPI.daftar(fd);
 
@@ -256,11 +325,33 @@ function DaftarSpmbPage() {
         window.scrollTo({ top: 180, behavior: 'smooth' });
       }
     } catch (err) {
-      const errMsg =
-        err.response?.data?.message ||
-        (err.code === 'ERR_NETWORK'
-          ? 'Koneksi ke server gagal. Pastikan jaringan internet aktif.'
-          : 'Terjadi kendala saat mengirim data formulir dan berkas.');
+      console.error('[SPMB Submit Error]:', err);
+      let errMsg = 'Terjadi kendala saat mengirim data formulir dan berkas.';
+
+      if (err.response) {
+        const { status, data } = err.response;
+        if (data && typeof data === 'object' && data.message) {
+          errMsg = data.message;
+        } else if (status === 413) {
+          errMsg = 'Ukuran berkas terlalu besar untuk server. Sistem sedang mengompresi gambar, silakan klik tombol Kirim Pendaftaran kembali.';
+        } else if (status === 502 || status === 504) {
+          errMsg = 'Server sedang sibuk atau dalam proses pemeliharaan. Silakan tunggu beberapa saat dan klik Kirim kembali.';
+        } else if (status === 404) {
+          errMsg = 'Layanan pendaftaran sedang tidak dapat diakses (404). Silakan hubungi admin sekolah.';
+        } else if (typeof data === 'string' && data.includes('<title>')) {
+          const titleMatch = data.match(/<title>(.*?)<\/title>/i);
+          errMsg = `Gagal mengirim (Server HTTP ${status}: ${titleMatch ? titleMatch[1] : 'Error'}).`;
+        } else {
+          errMsg = `Gagal memproses pendaftaran (Kode HTTP: ${status}).`;
+        }
+      } else if (err.code === 'ECONNABORTED') {
+        errMsg = 'Waktu pengiriman habis (Timeout). Mohon pastikan koneksi internet stabil dan coba kembali.';
+      } else if (err.code === 'ERR_NETWORK') {
+        errMsg = 'Koneksi ke server gagal. Pastikan jaringan internet aktif.';
+      } else if (err.message) {
+        errMsg = err.message;
+      }
+
       setErrorStep2(errMsg);
       window.scrollTo({ top: 180, behavior: 'smooth' });
     } finally {

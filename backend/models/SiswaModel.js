@@ -35,10 +35,12 @@ const SiswaModel = {
         wb.no_telp,
         wb.is_aktif,
         r.nama_rombel,
+        ta.nama_tahun_ajaran,
         wb.created_at
       FROM warga_belajar wb
       JOIN users u ON wb.user_id = u.id
       LEFT JOIN rombel r ON wb.rombel_id = r.id
+      LEFT JOIN tahun_ajaran ta ON wb.tahun_ajaran_id = ta.id
       WHERE 1=1
     `;
 

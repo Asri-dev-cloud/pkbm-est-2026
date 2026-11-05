@@ -43,6 +43,11 @@ const defaultOrigins = [
   'http://localhost:8000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
+  'https://pkbmbinamandiri.sch.id',
+  'https://www.pkbmbinamandiri.sch.id',
+  'https://api.pkbmbinamandiri.sch.id',
+  'http://pkbmbinamandiri.sch.id',
+  'http://www.pkbmbinamandiri.sch.id',
 ];
 
 const envOrigins = (
@@ -68,6 +73,11 @@ const corsOptions = {
       configuredOrigins.includes('*') ||
       configuredOrigins.includes(cleanOrigin)
     ) {
+      return callback(null, true);
+    }
+
+    // 2b. Izinkan domain & semua subdomain pkbmbinamandiri.sch.id
+    if (/^https?:\/\/([a-z0-9-]+\.)*pkbmbinamandiri\.sch\.id(:\d+)?$/i.test(cleanOrigin)) {
       return callback(null, true);
     }
 
