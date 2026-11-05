@@ -89,6 +89,8 @@ export async function generateLaporanSiswaExcel({
   tahunAjaran = null,
   filterInfo = 'Semua Jenjang',
   tipeLaporan = 'Data Warga Belajar', // 'Data Warga Belajar' | 'Penerimaan SPMB'
+  namaKepala = '( Nama Kepala PKBM )',
+  nipKepala = 'NIP / NUPTK: ....................................................',
 }) {
   const ta = tahunAjaran || getTahunAjaranRealTime();
   const logoBase64 = await getLogoBase64();
@@ -445,39 +447,38 @@ export async function generateLaporanSiswaExcel({
   // -------------------------------------------------------------
   const signStartRow = currentRowIdx + 2;
   worksheet.getRow(signStartRow).height = 18;
-  worksheet.mergeCells(`J${signStartRow}:${LAST_COL}${signStartRow}`);
-  const tglSignCell = worksheet.getCell(`J${signStartRow}`);
+  worksheet.mergeCells(`K${signStartRow}:${LAST_COL}${signStartRow}`);
+  const tglSignCell = worksheet.getCell(`K${signStartRow}`);
   tglSignCell.value = `Tangerang, ${formatTanggalDokumen()}`;
   tglSignCell.font = { name: 'Arial', size: 9.5, color: { argb: 'FF0F172A' } };
   tglSignCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
   const signJabatanRow = signStartRow + 1;
-  worksheet.getRow(signJabatanRow).height = 18;
-  worksheet.mergeCells(`J${signJabatanRow}:${LAST_COL}${signJabatanRow}`);
-  const jabatanCell = worksheet.getCell(`J${signJabatanRow}`);
+  worksheet.getRow(signJabatanRow).height = 30;
+  worksheet.mergeCells(`K${signJabatanRow}:${LAST_COL}${signJabatanRow}`);
+  const jabatanCell = worksheet.getCell(`K${signJabatanRow}`);
   jabatanCell.value = 'Mengetahui,\nKepala PKBM Bina Mandiri';
   jabatanCell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: 'FF0F172A' } };
   jabatanCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-  worksheet.getRow(signJabatanRow).height = 30;
 
   // Ruang tanda tangan kosong (3 baris)
-  worksheet.getRow(signJabatanRow + 1).height = 15;
-  worksheet.getRow(signJabatanRow + 2).height = 15;
-  worksheet.getRow(signJabatanRow + 3).height = 15;
+  worksheet.getRow(signJabatanRow + 1).height = 16;
+  worksheet.getRow(signJabatanRow + 2).height = 16;
+  worksheet.getRow(signJabatanRow + 3).height = 16;
 
   const signNamaRow = signJabatanRow + 4;
-  worksheet.getRow(signNamaRow).height = 18;
-  worksheet.mergeCells(`J${signNamaRow}:${LAST_COL}${signNamaRow}`);
-  const namaKepalaCell = worksheet.getCell(`J${signNamaRow}`);
-  namaKepalaCell.value = 'Dra. Hj. Siti Rohmah, M.Pd';
+  worksheet.getRow(signNamaRow).height = 20;
+  worksheet.mergeCells(`K${signNamaRow}:${LAST_COL}${signNamaRow}`);
+  const namaKepalaCell = worksheet.getCell(`K${signNamaRow}`);
+  namaKepalaCell.value = namaKepala;
   namaKepalaCell.font = { name: 'Arial', size: 10, bold: true, underline: true, color: { argb: 'FF0F172A' } };
   namaKepalaCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
   const signNipRow = signNamaRow + 1;
   worksheet.getRow(signNipRow).height = 16;
-  worksheet.mergeCells(`J${signNipRow}:${LAST_COL}${signNipRow}`);
-  const nipCell = worksheet.getCell(`J${signNipRow}`);
-  nipCell.value = 'NIP / NUPTK: 197408152008012004';
+  worksheet.mergeCells(`K${signNipRow}:${LAST_COL}${signNipRow}`);
+  const nipCell = worksheet.getCell(`K${signNipRow}`);
+  nipCell.value = nipKepala;
   nipCell.font = { name: 'Arial', size: 8.5, color: { argb: 'FF475569' } };
   nipCell.alignment = { horizontal: 'center', vertical: 'middle' };
 

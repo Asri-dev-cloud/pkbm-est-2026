@@ -30,6 +30,8 @@ export default function ModalPratinjauExcel({
     defaultTahunAjaran || getTahunAjaranRealTime()
   );
   const [downloading, setDownloading] = useState(false);
+  const [namaPenandatangan, setNamaPenandatangan] = useState('( Nama Kepala PKBM )');
+  const [nipPenandatangan, setNipPenandatangan] = useState('NIP / NUPTK: ....................................................');
   const printAreaRef = useRef(null);
 
   if (!isOpen) return null;
@@ -58,6 +60,8 @@ export default function ModalPratinjauExcel({
         tahunAjaran,
         filterInfo,
         tipeLaporan,
+        namaKepala: namaPenandatangan,
+        nipKepala: nipPenandatangan,
       });
     } catch (err) {
       console.error('Gagal generate Excel:', err);
@@ -755,16 +759,16 @@ export default function ModalPratinjauExcel({
                 <div style={{ height: '65px' }} />
                 <div
                   style={{
-                    fontSize: '0.88rem',
-                    fontWeight: 800,
+                    fontSize: '0.92rem',
+                    fontWeight: 700,
                     textDecoration: 'underline',
                     color: '#0F172A',
                   }}
                 >
-                  Dra. Hj. Siti Rohmah, M.Pd
+                  {namaPenandatangan}
                 </div>
-                <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: 2 }}>
-                  NIP / NUPTK: 197408152008012004
+                <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: 3 }}>
+                  {nipPenandatangan}
                 </div>
               </div>
             </div>
