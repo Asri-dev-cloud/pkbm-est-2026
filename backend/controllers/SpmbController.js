@@ -9,11 +9,16 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import SpmbModel from '../models/SpmbModel.js';
 import UserModel from '../models/UserModel.js';
 import SiswaModel from '../models/SiswaModel.js';
 import { hashPassword, generateNIS } from '../utils/helpers.js';
 import pool from '../config/db.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const backendRootDir = path.resolve(__dirname, '..');
 
 // Helper pembersih file sementara jika validasi / transaksi gagal
 const cleanUploadedFiles = (files = []) => {
@@ -513,6 +518,64 @@ const SpmbController = {
     } catch (error) {
       console.error('[SpmbController.hapusBerkas] Error:', error);
       return res.status(500).json({ success: false, message: 'Gagal menghapus berkas.' });
+    }
+  },
+
+  // -----------------------------------------------------------
+  // GET /api/spmb/berkas/:berkasId/file  [Publik / Admin]
+  // Menyajikan file berkas secara langsung dengan streaming andal
+  // -----------------------------------------------------------
+  getBerkasFile: async (req, res) => {
+    try {
+      const { berkasId } = req.params;
+      const [rows] = await pool.execute(
+        `SELECT id, jenis_berkas, nama_file, path_file FROM berkas_spmb WHERE id = ? LIMIT 1`,
+        [parseInt(berkasId)]
+      );
+
+      if (rows.length === 0 || !rows[0].path_file) {
+        return res.status(404).json({ success: false, message: 'Berkas tidak ditemukan di database.' });
+      }
+
+      const berkas = rows[0];
+      const candidatePaths = [
+        path.resolve(backendRootDir, berkas.path_file),
+        path.resolve(backendRootDir, 'uploads', berkas.path_file.replace(/^uploads[\\/]/, '')),
+        path.resolve(backendRootDir, 'uploads', 'spmb', path.basename(berkas.path_file)),
+        path.resolve(backendRootDir, 'uploads', path.basename(berkas.path_file)),
+      ];
+
+      let foundPath = candidatePaths.find((p) => fs.existsSync(p) && fs.statSync(p).isFile());
+
+      if (!foundPath) {
+        return res.status(404).json({
+          success: false,
+          message: `File fisik '${berkas.nama_file}' tidak ditemukan di server.`,
+          path: berkas.path_file,
+        });
+      }
+
+      const ext = path.extname(foundPath).toLowerCase();
+      const mimeTypes = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.webp': 'image/webp',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.pdf': 'application/pdf',
+        '.doc': 'application/msword',
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      };
+
+      if (mimeTypes[ext]) {
+        res.setHeader('Content-Type', mimeTypes[ext]);
+      }
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(berkas.nama_file || path.basename(foundPath))}"`);
+      return res.sendFile(foundPath);
+    } catch (error) {
+      console.error('[SpmbController.getBerkasFile] Error:', error);
+      return res.status(500).json({ success: false, message: 'Gagal mengambil file berkas.' });
     }
   },
 

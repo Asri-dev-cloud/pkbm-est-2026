@@ -85,6 +85,13 @@ router.get(
   SpmbController.getById
 );
 
+// GET /api/spmb/berkas/:berkasId/file — Dapatkan file fisik berkas (stream/inline)
+router.get(
+  '/berkas/:berkasId/file',
+  optionalAuth,
+  SpmbController.getBerkasFile
+);
+
 // PUT /api/spmb/berkas/:berkasId/verifikasi — Verifikasi satu berkas (Admin)
 router.put(
   '/berkas/:berkasId/verifikasi',

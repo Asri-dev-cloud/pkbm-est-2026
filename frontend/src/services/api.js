@@ -36,22 +36,57 @@ const apiClient = axios.create({
 });
 
 // Helper universal untuk membuat URL file/asset yang aman untuk browser
-export const toAssetUrl = (filePath) => {
-  if (!filePath) return '';
+export const toAssetUrl = (filePath, fallbackBerkasId = null) => {
+  if (!filePath) {
+    if (fallbackBerkasId) return `/api/spmb/berkas/${fallbackBerkasId}/file`;
+    return '';
+  }
   if (/^https?:\/\//i.test(filePath)) return filePath;
   const normalized = String(filePath).replace(/\\/g, '/').replace(/^\/+/, '');
+  const isUpload = normalized.startsWith('uploads/');
+  const uploadSubPath = isUpload ? normalized.replace(/^uploads\//, '') : normalized;
+
   if (typeof window !== 'undefined' && window.location) {
     const host = window.location.hostname.toLowerCase();
     if (host.includes('pkbmbinamandiri.sch.id')) {
-      return `/${normalized}`;
+      // Prioritaskan /api/uploads/ karena Nginx selalu me-reverse proxy /api/ ke Express port 8000
+      return `/api/uploads/${uploadSubPath}`;
     }
   }
+
   const apiUrl = (import.meta.env.VITE_API_URL || '').trim();
   if (/^https?:\/\//i.test(apiUrl)) {
     const origin = apiUrl.replace(/\/api\/?$/i, '').replace(/\/+$/, '');
-    return `${origin}/${normalized}`;
+    return `${origin}/uploads/${uploadSubPath}`;
   }
-  return `/${normalized}`;
+
+  // Standar: gunakan /api/uploads/... yang selalu diproxy dengan andal
+  return `/api/uploads/${uploadSubPath}`;
+};
+
+// Helper untuk menyediakan daftar kandidat URL untuk failover/fallback otomatis
+export const getAssetUrlCandidates = (filePath, berkasId = null) => {
+  const list = [];
+  if (filePath && /^https?:\/\//i.test(filePath)) {
+    list.push(filePath);
+  } else if (filePath) {
+    const normalized = String(filePath).replace(/\\/g, '/').replace(/^\/+/, '');
+    const uploadSubPath = normalized.replace(/^uploads\//, '');
+
+    // Kandidat 1: /api/uploads/... (diteruskan Nginx lewat proxy /api/)
+    list.push(`/api/uploads/${uploadSubPath}`);
+    // Kandidat 2: /uploads/... (akses langsung jika Nginx punya alias static)
+    list.push(`/uploads/${uploadSubPath}`);
+    // Kandidat 3: Path dinormalisasi
+    list.push(`/${normalized}`);
+  }
+
+  // Kandidat 4: Endpoint streaming backend terproteksi/khusus
+  if (berkasId) {
+    list.push(`/api/spmb/berkas/${berkasId}/file`);
+  }
+
+  return [...new Set(list.filter(Boolean))];
 };
 
 
@@ -291,6 +326,10 @@ export const SpmbAPI = {
   // DELETE /api/spmb/berkas/:berkasId - Hapus berkas pendukung (Admin)
   hapusBerkas: (berkasId) =>
     apiClient.delete('/spmb/berkas/' + berkasId),
+
+  // GET /api/spmb/berkas/:berkasId/file - Dapatkan URL streaming file berkas
+  getBerkasFileUrl: (berkasId) =>
+    `${baseURL}/spmb/berkas/${berkasId}/file`,
 
   buatKeputusan: (id, payload) =>
     apiClient.put(`/spmb/${id}/keputusan`, payload),

@@ -16,6 +16,7 @@ import HomePage from './pages/public/HomePage.jsx';
 import LoginPage from './pages/public/LoginPage.jsx';
 import DaftarSpmbPage from './pages/public/DaftarSpmbPage.jsx';
 import NotFoundPage from './pages/public/NotFoundPage.jsx';
+import UploadsRedirector from './pages/public/UploadsRedirector.jsx';
 
 // ── Komponen Pendukung ───────────────────────────────────────
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -274,6 +275,10 @@ function App() {
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><UserAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/klub"
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><KlubAdmin /></ProtectedRoute>} />
+
+        {/* Penangan URL File Uploads (Cegah 404 jika dibuka di tab baru) */}
+        <Route path="/uploads/*" element={<UploadsRedirector />} />
+        <Route path="/api/uploads/*" element={<UploadsRedirector />} />
 
         {/* Fallback 404 */}
         <Route path="*" element={<NotFoundPage />} />

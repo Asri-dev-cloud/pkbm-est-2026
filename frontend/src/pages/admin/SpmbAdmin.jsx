@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
 import ModalPratinjauExcel from '../../components/ModalPratinjauExcel.jsx';
+import ModalPratinjauBerkas from '../../components/ModalPratinjauBerkas.jsx';
 import { SiswaAPI, SpmbAPI, toAssetUrl } from '../../services/api.js';
 import { generateLaporanSiswaExcel, getTahunAjaranRealTime } from '../../utils/excelExport.js';
 
@@ -32,6 +33,7 @@ function SpmbAdmin() {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [modalExcelOpen, setModalExcelOpen] = useState(false);
   const [downloadingExcel, setDownloadingExcel] = useState(false);
+  const [previewBerkasTarget, setPreviewBerkasTarget] = useState(null);
 
   const getFilteredSpmbList = () => {
     return list.filter((p) => {
@@ -802,15 +804,15 @@ function SpmbAdmin() {
                                     )}
 
                                     {berkas.path_file && (
-                                      <a
-                                        href={toAssetUrl(berkas.path_file)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                      <button
+                                        type="button"
                                         className="btn btn-secondary"
-                                        style={{ padding: '4px 10px', fontSize: '0.78rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                        style={{ padding: '4px 10px', fontSize: '0.78rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
+                                        onClick={() => setPreviewBerkasTarget(berkas)}
+                                        title="Tinjau & Periksa Berkas Ini Secara Langsung"
                                       >
                                         <i className="bi bi-eye"></i> Tinjau
-                                      </a>
+                                      </button>
                                     )}
 
                                     {statusBerkas !== 'valid' && (
@@ -1120,6 +1122,20 @@ function SpmbAdmin() {
         filterInfo={`SPMB: ${filterStatus === 'pending' ? 'Menunggu Verifikasi' : filterStatus === 'diterima' ? 'Diterima' : filterStatus === 'ditolak' ? 'Ditolak' : 'Semua Status'}`}
         tipeLaporan="Penerimaan SPMB"
       />
+
+      {/* ── Modal In-App Pratinjau & Verifikasi Berkas Calon Siswa ── */}
+      {previewBerkasTarget && (
+        <ModalPratinjauBerkas
+          isOpen={!!previewBerkasTarget}
+          onClose={() => setPreviewBerkasTarget(null)}
+          berkas={previewBerkasTarget}
+          pendaftar={detail}
+          onVerifikasi={async (berkasId, status) => {
+            await handleVerifikasiBerkas(berkasId, status);
+            setPreviewBerkasTarget((prev) => (prev ? { ...prev, status_verifikasi: status } : null));
+          }}
+        />
+      )}
     </div>
   );
 }

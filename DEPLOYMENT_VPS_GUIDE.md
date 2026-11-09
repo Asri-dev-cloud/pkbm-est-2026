@@ -240,3 +240,4 @@ Semua perbaikan penting agar aplikasi tidak mengalami error API saat diakses di 
 5. **Normalisasi Upload Multer**: File upload di backend otomatis tersimpan pada path absolut `backend/uploads/<kategori>` dan nama path di database selalu berformat forward-slash konsisten (`uploads/...`).
 6. **Redirect 401 & ProtectedRoute**: Session timeout atau akses tanpa login secara konsisten mengarahkan pengguna ke `/login`.
 7. **Pembersihan Root Directory**: File sementara (`var/`), loose test scripts (`check-env.js`, `check-pass.js`, `make-hash.js`, `test-db.js`) dipindah ke `backend/scripts/`, dan dokumen SRS masuk ke `docs/`.
+8. **Pratinjau Berkas SPMB & Anti-Hijack Nginx (`location ^~ /uploads/`)**: Nginx menggunakan prefiks `^~` agar file gambar/dokumen berkas upload tidak tertimpa regex frontend dist yang memicu 404. Ditambah In-App Document Reader Modal interaktif di `SpmbAdmin.jsx` dan endpoint streaming `GET /api/spmb/berkas/:id/file`.

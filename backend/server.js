@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { testConnection } from './config/db.js';
 
@@ -119,8 +120,58 @@ app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Sajikan folder uploads sebagai file statis
-app.use('/uploads', express.static(uploadsDir));
+// Sajikan folder uploads sebagai file statis via /uploads dan /api/uploads
+app.use(['/uploads', '/api/uploads'], express.static(uploadsDir, {
+  fallthrough: true,
+  maxAge: '30d',
+}));
+
+// Route fallback cerdas untuk akses & pratinjau file upload jika file statis terlewat atau beda format URL
+app.get(['/uploads/*', '/api/uploads/*'], (req, res, next) => {
+  try {
+    const rawPath = req.path.replace(/^\/(?:api\/)?uploads\/?/i, '');
+    const decodedSubPath = decodeURIComponent(rawPath);
+    const resolvedPath = path.resolve(uploadsDir, decodedSubPath);
+
+    // Keamanan path traversal
+    if (!resolvedPath.startsWith(uploadsDir)) {
+      return res.status(403).json({ success: false, message: 'Akses ditolak.' });
+    }
+
+    if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isFile()) {
+      return res.sendFile(resolvedPath);
+    }
+
+    // Coba nama file dengan karakter spasi diubah menjadi underscore (format sanitasi multer)
+    const sanitizedCandidate = path.resolve(uploadsDir, decodedSubPath.replace(/\s+/g, '_'));
+    if (fs.existsSync(sanitizedCandidate) && fs.statSync(sanitizedCandidate).isFile()) {
+      return res.sendFile(sanitizedCandidate);
+    }
+
+    // Coba basename di dalam subfolder langsung
+    const parts = decodedSubPath.split('/');
+    if (parts.length > 1) {
+      const folder = parts[0];
+      const filename = parts.slice(1).join('/');
+      const altCandidate = path.resolve(uploadsDir, folder, path.basename(filename));
+      if (fs.existsSync(altCandidate) && fs.statSync(altCandidate).isFile()) {
+        return res.sendFile(altCandidate);
+      }
+    }
+
+    return res.status(404).json({
+      success: false,
+      message: `File '${decodedSubPath}' tidak ditemukan di penyimpanan server.`,
+      debug: {
+        path: decodedSubPath,
+        time: new Date().toISOString(),
+      },
+    });
+  } catch (err) {
+    console.error('[Uploads Static Fallback Error]:', err);
+    return next(err);
+  }
+});
 
 // ============================================================
 // ROOT & HEALTH CHECK ENDPOINTS

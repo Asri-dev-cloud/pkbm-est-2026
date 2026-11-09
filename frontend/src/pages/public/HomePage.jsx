@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import LedDisplayBoard from "../../components/LedDisplayBoard";
 import {
   CheckCircle2,
   Award,
@@ -828,7 +829,7 @@ export default function HomePage() {
           left: 0,
           right: 0,
           zIndex: 1000,
-          padding: "0 clamp(12px, 3vw, 32px)",
+          padding: "0 clamp(10px, 2.2vw, 28px)",
           display: "flex",
           justifyContent: "center",
           pointerEvents: "none"
@@ -838,16 +839,16 @@ export default function HomePage() {
           style={{
             pointerEvents: "auto",
             width: "100%",
-            maxWidth: 1180,
+            maxWidth: 1540,
             background: isScrolled ? "rgba(255, 255, 255, 0.97)" : "rgba(255, 255, 255, 0.94)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
             borderRadius: 9999, // Capsule Pill Shape
-            padding: "6px 8px 6px 10px",
+            padding: "8px clamp(12px, 1.4vw, 20px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 12,
+            gap: "clamp(10px, 1.8vw, 20px)",
             border: "1px solid rgba(226, 232, 240, 0.8)",
             boxShadow: isScrolled
               ? "0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.05)"
@@ -942,7 +943,7 @@ export default function HomePage() {
           </div>
 
           {/* Tengah: Navigation Links (Hanya Desktop) */}
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-1.5 xl:gap-2.5">
             <a href="#tutorial" className="pill-nav-link">
               <span>Tutorial</span>
             </a>
@@ -1338,34 +1339,13 @@ export default function HomePage() {
 
           </div>
         </div>
-
-        {/* ── WAVY SCALLOP DIVIDER PUTIH DI BAWAH HERO (RAPI, FLAWLESS, TANPA GAP) ── */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-1px",
-            left: 0,
-            right: 0,
-            width: "100%",
-            lineHeight: 0,
-            zIndex: 10,
-            pointerEvents: "none"
-          }}
-        >
-          <svg
-            viewBox="0 0 1440 120"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            preserveAspectRatio="none"
-            style={{ width: "100%", height: "clamp(55px, 7vw, 95px)", display: "block" }}
-          >
-            <path
-              d="M0,45 C280,105 480,15 720,65 C960,115 1180,25 1440,55 L1440,120 L0,120 Z"
-              fill="#FFFFFF"
-            />
-          </svg>
-        </div>
       </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          2.1 SECTION ANIMASI LED RUNNING TEXT DISPLAY BOARD
+          Slogan: "Ramah Bakat, Kaya Karya" — Tampilan Warna-Warni & Eye Catching
+          ══════════════════════════════════════════════════════════ */}
+      <LedDisplayBoard />
 
       {/* ══════════════════════════════════════════════════════════
           2.5 SECTION TUTORIAL VIDEO (DI BAWAH HERO)
@@ -1374,6 +1354,7 @@ export default function HomePage() {
       <section
         id="tutorial"
         style={{
+          marginTop: "-2px",
           padding: "60px clamp(16px, 4vw, 48px) 65px",
           background: "linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 55%, #FFFFFF 100%)",
           position: "relative",
