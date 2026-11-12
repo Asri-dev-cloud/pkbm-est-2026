@@ -699,71 +699,503 @@
   width: 100%;
 }
 
-/* ── Upload Berkas Cards (Step 2) ────────────────────────── */
-.spmb-upload-item {
-  border: 1.5px solid var(--spmb-border);
+/* ── Step 2: Progress Tracker Card ──────────────────────── */
+.spmb-progress-card {
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
   border-radius: 14px;
-  padding: 20px;
-  margin-bottom: 16px;
-  background: #FFFFFF;
-  transition: all 0.2s ease;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: all 0.3s ease;
 }
 
-.spmb-upload-item.done {
-  background: #F0FDF4;
+.spmb-progress-card.all-completed {
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
   border-color: #86EFAC;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.12);
 }
 
-.spmb-upload-top {
+.spmb-progress-card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
-.spmb-upload-title {
-  font-size: 0.98rem;
-  font-weight: 700;
-  color: var(--spmb-black);
-}
-
-.spmb-upload-desc {
-  font-size: 0.8rem;
-  color: var(--spmb-text-muted);
-  margin-top: 2px;
-}
-
-.spmb-upload-badge {
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 4px 10px;
-  border-radius: 4px;
-  display: inline-flex;
+.spmb-progress-status-info {
+  display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 12px;
 }
 
-.spmb-upload-drop {
-  border: 1.5px dashed #CBD5E1;
-  background: #F8FAFC;
+.spmb-progress-icon-badge {
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
-  padding: 16px;
-  text-align: center;
-  cursor: pointer;
+  background: #EFF6FF;
+  color: var(--spmb-blue-royal);
+  border: 1px solid #BFDBFE;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--spmb-text-main);
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+
+.spmb-progress-icon-badge.done {
+  background: #16A34A;
+  color: #FFFFFF;
+  border-color: #15803D;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+.spmb-progress-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #1E293B;
+  line-height: 1.3;
+}
+
+.spmb-progress-desc {
+  font-size: 0.76rem;
+  color: #64748B;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.spmb-progress-pct-badge {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #1D4ED8;
+  background: #FFFFFF;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1.5px solid #BFDBFE;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(29, 78, 216, 0.08);
+}
+
+.spmb-progress-card.all-completed .spmb-progress-pct-badge {
+  color: #15803D;
+  border-color: #86EFAC;
+}
+
+.spmb-progress-bar-track {
+  height: 9px;
+  background: #E2E8F0;
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.spmb-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563EB 0%, #3B82F6 100%);
+  border-radius: 9999px;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spmb-progress-bar-fill.fill-completed {
+  background: linear-gradient(90deg, #16A34A 0%, #22C55E 100%);
+}
+
+/* ── Upload Berkas Cards Grid ────────────────────────────── */
+.spmb-upload-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.spmb-upload-card {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 18px 20px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+  position: relative;
+}
+
+.spmb-upload-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.spmb-upload-card.is-done {
+  background: #FAFCFA;
+  border-color: #86EFAC;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.07);
+}
+
+/* Card Header */
+.spmb-upload-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.spmb-upload-card-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+}
+
+.spmb-upload-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1.5px solid #DBEAFE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   transition: all 0.2s ease;
 }
 
-.spmb-upload-drop:hover {
-  border-color: var(--spmb-blue-royal);
-  background: var(--spmb-blue-light);
-  color: var(--spmb-blue-royal);
+.spmb-upload-card-icon.icon-done {
+  background: #DCFCE7;
+  color: #16A34A;
+  border-color: #BBF7D0;
+}
+
+.spmb-upload-card-titles {
+  flex: 1;
+}
+
+.spmb-upload-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.spmb-upload-title-text {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.3;
+}
+
+.spmb-badge-required {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.spmb-upload-subtitle-text {
+  font-size: 0.8rem;
+  color: #64748B;
+  margin: 3px 0 0;
+  line-height: 1.45;
+}
+
+.spmb-ktp-note-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 4px 10px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #1D4ED8;
+  line-height: 1.35;
+}
+
+/* Status Badges */
+.spmb-upload-card-status {
+  flex-shrink: 0;
+}
+
+.spmb-status-pill-ready {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #86EFAC;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.spmb-status-pill-waiting {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+/* ── Modern Dropzone ─────────────────────────────────────── */
+.spmb-dropzone-modern {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  background: #F8FAFC;
+  border: 2px dashed #CBD5E1;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.spmb-dropzone-modern:hover {
+  background: #EFF6FF;
+  border-color: #3B82F6;
+  transform: translateY(-1px);
+}
+
+.spmb-dropzone-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1.5px solid #BFDBFE;
+  color: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.1);
+  transition: all 0.2s ease;
+}
+
+.spmb-dropzone-modern:hover .spmb-dropzone-icon-circle {
+  background: #2563EB;
+  color: #FFFFFF;
+  border-color: #2563EB;
+}
+
+.spmb-dropzone-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.spmb-dropzone-title {
+  display: block;
+  font-size: 0.88rem;
+  color: #1E293B;
+  line-height: 1.35;
+}
+
+.spmb-dropzone-hint {
+  display: block;
+  font-size: 0.76rem;
+  color: #64748B;
+  margin-top: 2px;
+}
+
+.spmb-dropzone-ktp-tip {
+  display: block;
+  font-size: 0.74rem;
+  color: #1D4ED8;
+  font-weight: 700;
+  margin-top: 3px;
+}
+
+.spmb-dropzone-browse-button {
+  padding: 8px 16px;
+  background: #FFFFFF;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.spmb-dropzone-modern:hover .spmb-dropzone-browse-button {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* ── Selected File Showcase Card ─────────────────────────── */
+.spmb-file-preview-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 16px;
+  background: #FFFFFF;
+  border: 1.5px solid #86EFAC;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.06);
+}
+
+.spmb-file-preview-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.spmb-preview-thumb-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid #E2E8F0;
+  flex-shrink: 0;
+  background: #F1F5F9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.spmb-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.spmb-preview-pdf-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  background: #FEF2F2;
+  border: 1.5px solid #FECACA;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.spmb-pdf-tag {
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: #DC2626;
+  letter-spacing: 0.05em;
+  margin-top: -2px;
+}
+
+.spmb-file-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.spmb-file-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.spmb-file-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+
+.spmb-file-size-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+  background: #F1F5F9;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.spmb-file-check-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #15803D;
+}
+
+/* File Actions (Change & Remove) */
+.spmb-file-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.spmb-file-btn-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: #F8FAFC;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.spmb-file-btn-change:hover {
+  background: #EFF6FF;
+  border-color: #93C5FD;
+  color: #1D4ED8;
+}
+
+.spmb-file-btn-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: #FFFFFF;
+  border: 1.5px solid #FECACA;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #DC2626;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.spmb-file-btn-remove:hover {
+  background: #FEF2F2;
+  border-color: #F87171;
+  color: #991B1B;
+}
+
+.spmb-file-feedback {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* ── Success Screen (Step 3) ─────────────────────────────── */
@@ -913,5 +1345,45 @@
   }
   .spmb-step-connector {
     margin: 0 8px;
+  }
+  .spmb-upload-card {
+    padding: 16px 14px;
+  }
+  .spmb-upload-card-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .spmb-upload-card-status {
+    align-self: flex-start;
+  }
+  .spmb-dropzone-modern {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 18px 14px;
+  }
+  .spmb-dropzone-content {
+    text-align: center;
+  }
+  .spmb-dropzone-browse-button {
+    width: 100%;
+    text-align: center;
+  }
+  .spmb-file-preview-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .spmb-file-actions-row {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .spmb-progress-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .spmb-progress-pct-badge {
+    align-self: flex-start;
   }
 }

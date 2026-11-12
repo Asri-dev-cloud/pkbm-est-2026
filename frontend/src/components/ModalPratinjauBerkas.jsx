@@ -63,7 +63,7 @@ export default function ModalPratinjauBerkas({
   const labelJenis = {
     kk: 'Kartu Keluarga (KK)',
     akta: 'Akta Kelahiran',
-    ktp: 'KTP / Identitas',
+    ktp: 'KTP Siswa / Orang Tua',
     ijazah: 'Ijazah Terakhir / SKL / Raport',
     foto: 'Pas Foto 3×4 Terbaru',
     dokumen_lain: 'Dokumen Pendukung Lain',

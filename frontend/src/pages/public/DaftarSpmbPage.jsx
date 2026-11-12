@@ -31,7 +31,9 @@ import {
   Users,
   Baby,
   CreditCard,
-  Camera
+  Camera,
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 import { SpmbAPI } from '../../services/api.js';
 import './DaftarSpmbPage.css';
@@ -51,8 +53,9 @@ const DAFTAR_BERKAS = [
   },
   {
     key: 'ktp',
-    label: 'KTP / Identitas',
-    keterangan: 'KTP siswa atau KTP orang tua / wali jika siswa belum 17 tahun',
+    label: 'KTP Siswa / KTP Orang Tua',
+    keterangan: 'Bagi calon siswa yang belum memiliki KTP (usia di bawah 17 tahun), silakan upload KTP Orang Tua atau Wali.',
+    noteKhusus: 'Belum punya KTP? Silakan upload foto/scan KTP Orang Tua.',
     iconComponent: CreditCard,
   },
   {
@@ -191,6 +194,7 @@ function DaftarSpmbPage() {
   const [files, setFiles] = useState({ kk: null, akta: null, ktp: null, ijazah: null, foto: null });
   const [uploadStatus, setUploadStatus] = useState({ kk: 'idle', akta: 'idle', ktp: 'idle', ijazah: 'idle', foto: 'idle' });
   const [uploadMsg, setUploadMsg] = useState({});
+  const [filePreviews, setFilePreviews] = useState({ kk: null, akta: null, ktp: null, ijazah: null, foto: null });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [errorStep2, setErrorStep2] = useState('');
@@ -226,8 +230,30 @@ function DaftarSpmbPage() {
 
     setFiles(prev => ({ ...prev, [key]: file }));
     setUploadStatus(prev => ({ ...prev, [key]: 'done' }));
-    setUploadMsg(prev => ({ ...prev, [key]: `${file.name} (${sizeStr}) — Berkas siap dikirim` }));
+    setUploadMsg(prev => ({ ...prev, [key]: `${file.name} (${sizeStr})` }));
     setErrorStep2(''); // Bersihkan pesan error jika berkas sukses dipilih
+
+    // Buat URL pratinjau instan jika tipe berkas adalah gambar
+    if (file.type && file.type.startsWith('image/')) {
+      try {
+        const previewUrl = URL.createObjectURL(file);
+        setFilePreviews(prev => ({ ...prev, [key]: previewUrl }));
+      } catch (err) {
+        console.warn('Gagal membuat preview URL:', err);
+      }
+    } else {
+      setFilePreviews(prev => ({ ...prev, [key]: null }));
+    }
+  };
+
+  const handleRemoveFile = (key) => {
+    setFiles(prev => ({ ...prev, [key]: null }));
+    setUploadStatus(prev => ({ ...prev, [key]: 'idle' }));
+    setUploadMsg(prev => ({ ...prev, [key]: '' }));
+    if (filePreviews[key]) {
+      try { URL.revokeObjectURL(filePreviews[key]); } catch (e) {}
+    }
+    setFilePreviews(prev => ({ ...prev, [key]: null }));
   };
 
   // ── Step 1: Validasi Data Diri & Lanjut ke Step 2 (Belum disimpan ke DB agar berkas tidak kosong) ──
@@ -889,113 +915,142 @@ function DaftarSpmbPage() {
               </div>
             )}
 
-            {/* Indikator Kelengkapan Berkas */}
+            {/* Indikator Kelengkapan Berkas Modern */}
             {(() => {
               const countDone = Object.values(uploadStatus).filter(s => s === 'done').length;
-              const pct = Math.round((countDone / DAFTAR_BERKAS.length) * 100);
+              const totalDocs = DAFTAR_BERKAS.length;
+              const pct = Math.round((countDone / totalDocs) * 100);
+              const isAllDone = countDone === totalDocs;
+
               return (
-                <div style={{
-                  marginBottom: 20,
-                  padding: '14px 18px',
-                  background: countDone === DAFTAR_BERKAS.length ? '#F0FDF4' : '#F8FAFC',
-                  borderRadius: 12,
-                  border: countDone === DAFTAR_BERKAS.length ? '1.5px solid #86EFAC' : '1px solid #E2E8F0'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {countDone === DAFTAR_BERKAS.length ? (
-                        <CheckCircle2 size={16} color="#16A34A" />
-                      ) : (
-                        <Info size={16} color="var(--spmb-blue-royal)" />
-                      )}
-                      <span>Kelengkapan Dokumen: <strong>{countDone} dari {DAFTAR_BERKAS.length} Berkas Wajib</strong> Siap Dikirim</span>
-                    </span>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: countDone === DAFTAR_BERKAS.length ? '#16A34A' : '#1D4ED8' }}>
-                      {pct}%
-                    </span>
+                <div className={`spmb-progress-card ${isAllDone ? 'all-completed' : ''}`}>
+                  <div className="spmb-progress-card-top">
+                    <div className="spmb-progress-status-info">
+                      <div className={`spmb-progress-icon-badge ${isAllDone ? 'done' : ''}`}>
+                        {isAllDone ? (
+                          <CheckCircle2 size={18} />
+                        ) : (
+                          <UploadCloud size={18} />
+                        )}
+                      </div>
+                      <div>
+                        <div className="spmb-progress-title">
+                          {isAllDone
+                            ? 'Seluruh 5 Berkas Telah Lengkap & Siap Dikirim!'
+                            : `Kelengkapan Berkas: ${countDone} dari ${totalDocs} Dokumen Terpilih`}
+                        </div>
+                        <div className="spmb-progress-desc">
+                          {isAllDone
+                            ? 'Silakan periksa kembali berkas Anda sebelum mengklik tombol kirim pendaftaran di bawah.'
+                            : `Harap unggah seluruh ${totalDocs} berkas persyaratan wajib di bawah ini untuk melanjutkan.`}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="spmb-progress-pct-badge">
+                      <span>{pct}%</span>
+                    </div>
                   </div>
-                  <div style={{ height: 8, background: '#E2E8F0', borderRadius: 9999, overflow: 'hidden' }}>
-                    <div style={{
-                      width: `${pct}%`,
-                      height: '100%',
-                      background: countDone === DAFTAR_BERKAS.length ? '#16A34A' : '#1D4ED8',
-                      transition: 'width 0.3s ease'
-                    }} />
+
+                  <div className="spmb-progress-bar-track">
+                    <div
+                      className={`spmb-progress-bar-fill ${isAllDone ? 'fill-completed' : ''}`}
+                      style={{ width: `${pct}%` }}
+                    />
                   </div>
                 </div>
               );
             })()}
 
             <div className="spmb-alert info" style={{ marginBottom: 24 }}>
-              <Info size={18} style={{ flexShrink: 0 }} />
-              <div style={{ fontSize: '0.825rem', lineHeight: 1.5 }}>
-                <strong>PENTING — Seluruh 5 Berkas Wajib Diunggah:</strong> Sesuai regulasi SPMB PKBM Bina Mandiri, berkas <strong>Kartu Keluarga (KK)</strong>, <strong>Akta Kelahiran</strong>, <strong>KTP / Identitas</strong>, <strong>Ijazah Terakhir / SKL / Raport</strong>, dan <strong>Pas Foto 3x4</strong> wajib dilampirkan. Sistem tidak mengizinkan pendaftaran diselesaikan jika berkas belum lengkap.
+              <Info size={18} style={{ flexShrink: 0, marginTop: 2 }} />
+              <div style={{ fontSize: '0.85rem', lineHeight: 1.55 }}>
+                <strong>Petunjuk Berkas Persyaratan:</strong> Sesuai regulasi SPMB PKBM Bina Mandiri, berkas <strong>Kartu Keluarga (KK)</strong>, <strong>Akta Kelahiran</strong>, <strong>KTP</strong>, <strong>Ijazah Terakhir / Raport</strong>, dan <strong>Pas Foto 3x4</strong> wajib dilampirkan.
+                <div style={{ marginTop: 4, fontWeight: 700, color: '#1D4ED8' }}>
+                  Khusus pendaftar yang belum memiliki e-KTP (usia di bawah 17 tahun), silakan unggah foto/scan KTP Orang Tua atau Wali.
+                </div>
               </div>
             </div>
 
-            {/* List Berkas */}
-            <div style={{ marginBottom: 28 }}>
+            {/* List Berkas Modern Cards */}
+            <div className="spmb-upload-cards-grid">
               {DAFTAR_BERKAS.map((item) => {
                 const status = uploadStatus[item.key];
                 const file = files[item.key];
                 const msg = uploadMsg[item.key];
+                const previewUrl = filePreviews[item.key];
+                const isImage = file?.type?.startsWith('image/') || /\.(jpe?g|png|webp)$/i.test(file?.name || '');
+                const isPdf = file?.type === 'application/pdf' || /\.pdf$/i.test(file?.name || '');
+                const isDone = status === 'done' && file;
+
+                // Format ukuran berkas
+                let fileSizeStr = '';
+                if (file?.size) {
+                  fileSizeStr = file.size > 1024 * 1024
+                    ? `${(file.size / (1024 * 1024)).toFixed(2)} MB`
+                    : `${Math.round(file.size / 1024)} KB`;
+                }
 
                 return (
                   <div
                     key={item.key}
-                    className={`spmb-upload-item ${status === 'done' ? 'done' : ''}`}
-                    style={{ marginBottom: 16 }}
+                    className={`spmb-upload-card ${isDone ? 'is-done' : ''}`}
                   >
-                    <div className="spmb-upload-top">
-                      <div>
-                        <div className="spmb-upload-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div style={{
-                            width: 34,
-                            height: 34,
-                            borderRadius: 8,
-                            background: status === 'done' ? '#DCFCE7' : '#EFF6FF',
-                            color: status === 'done' ? '#16A34A' : '#1D4ED8',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            border: `1px solid ${status === 'done' ? '#BBF7D0' : '#BFDBFE'}`
-                          }}>
-                            <item.iconComponent size={18} />
-                          </div>
-                          <div>
-                            <span style={{ fontWeight: 800 }}>{item.label}</span> <span style={{ color: '#DC2626', fontSize: '0.8rem', fontWeight: 700 }}>* (Wajib)</span>
-                          </div>
+                    <div className="spmb-upload-card-header">
+                      <div className="spmb-upload-card-left">
+                        <div className={`spmb-upload-card-icon ${isDone ? 'icon-done' : ''}`}>
+                          <item.iconComponent size={20} />
                         </div>
-                        <div className="spmb-upload-desc">{item.keterangan}</div>
+                        <div className="spmb-upload-card-titles">
+                          <div className="spmb-upload-title-row">
+                            <span className="spmb-upload-title-text">{item.label}</span>
+                            <span className="spmb-badge-required">Wajib</span>
+                          </div>
+                          <p className="spmb-upload-subtitle-text">{item.keterangan}</p>
+                          {item.noteKhusus && !isDone && (
+                            <div className="spmb-ktp-note-badge">
+                              <Info size={13} style={{ flexShrink: 0 }} />
+                              <span>{item.noteKhusus}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      <div>
-                        {status === 'done' ? (
-                          <span className="spmb-upload-badge" style={{ background: '#DCFCE7', color: '#15803D' }}>
-                            <CheckCircle2 size={14} /> Berkas Siap Dikirim
+                      <div className="spmb-upload-card-status">
+                        {isDone ? (
+                          <span className="spmb-status-pill-ready">
+                            <CheckCircle2 size={14} />
+                            <span>Siap Dikirim</span>
                           </span>
                         ) : (
-                          <span className="spmb-upload-badge" style={{ background: '#FEF2F2', color: '#DC2626' }}>
-                            <AlertCircle size={14} /> Wajib Dipilih
+                          <span className="spmb-status-pill-waiting">
+                            <AlertCircle size={14} />
+                            <span>Wajib Dipilih</span>
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Area Upload & Dropzone */}
-                    {status !== 'done' ? (
-                      <label
-                        className="spmb-upload-drop"
-                        style={{
-                          cursor: 'pointer',
-                          borderColor: '#CBD5E1',
-                          background: '#F8FAFC'
-                        }}
-                      >
-                        <UploadCloud size={22} color="var(--spmb-blue-royal)" />
-                        <span style={{ fontWeight: 600 }}>
-                          Pilih File {item.label} (Format JPG, PNG, atau PDF)
+                    {/* Area Dropzone atau File Box */}
+                    {!isDone ? (
+                      <label className="spmb-dropzone-modern">
+                        <div className="spmb-dropzone-icon-circle">
+                          <UploadCloud size={24} />
+                        </div>
+                        <div className="spmb-dropzone-content">
+                          <span className="spmb-dropzone-title">
+                            <strong>Pilih atau seret berkas {item.label}</strong>
+                          </span>
+                          <span className="spmb-dropzone-hint">
+                            Format JPG, PNG, atau PDF (Ukuran maksimal 10 MB)
+                          </span>
+                          {item.key === 'ktp' && (
+                            <span className="spmb-dropzone-ktp-tip">
+                              * Belum punya KTP? Cukup unggah KTP Orang Tua / Wali
+                            </span>
+                          )}
+                        </div>
+                        <span className="spmb-dropzone-browse-button">
+                          Browse File
                         </span>
                         <input
                           type="file"
@@ -1008,62 +1063,81 @@ function DaftarSpmbPage() {
                         />
                       </label>
                     ) : (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '12px 16px',
-                        background: '#FFFFFF',
-                        borderRadius: 10,
-                        border: '1.5px solid #86EFAC',
-                        flexWrap: 'wrap',
-                        gap: 10,
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
-                          <CheckCircle2 size={18} color="#16A34A" style={{ flexShrink: 0 }} />
-                          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#14532D', wordBreak: 'break-all' }}>
-                            {file?.name || `Berkas ${item.label} telah dipilih`}
-                          </span>
+                      <div className="spmb-file-preview-card">
+                        <div className="spmb-file-preview-left">
+                          {isImage && previewUrl ? (
+                            <div className="spmb-preview-thumb-box">
+                              <img
+                                src={previewUrl}
+                                alt={`Pratinjau ${item.label}`}
+                                className="spmb-preview-img"
+                              />
+                            </div>
+                          ) : (
+                            <div className="spmb-preview-pdf-box">
+                              <FileText size={26} color="#DC2626" />
+                              <span className="spmb-pdf-tag">PDF</span>
+                            </div>
+                          )}
+
+                          <div className="spmb-file-details">
+                            <div className="spmb-file-name" title={file?.name}>
+                              {file?.name}
+                            </div>
+                            <div className="spmb-file-meta-row">
+                              {fileSizeStr && (
+                                <span className="spmb-file-size-tag">
+                                  {fileSizeStr}
+                                </span>
+                              )}
+                              <span className="spmb-file-check-tag">
+                                <CheckCircle2 size={13} color="#16A34A" />
+                                <span>Dokumen Terpilih</span>
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <label
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            padding: '6px 14px',
-                            borderRadius: 6,
-                            border: '1px solid #CBD5E1',
-                            background: '#F8FAFC',
-                            color: '#334155',
-                            fontSize: '0.78rem',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <span>Ganti File</span>
-                          <input
-                            type="file"
-                            accept=".jpg,.jpeg,.png,.pdf"
-                            onChange={(e) => {
-                              const selected = e.target.files?.[0] || null;
-                              if (selected) handleFileChange(item.key, selected);
-                            }}
-                            style={{ display: 'none' }}
-                          />
-                        </label>
+
+                        <div className="spmb-file-actions-row">
+                          <label className="spmb-file-btn-change" title="Ganti File Ini">
+                            <RefreshCw size={13} />
+                            <span>Ganti File</span>
+                            <input
+                              type="file"
+                              accept=".jpg,.jpeg,.png,.pdf"
+                              onChange={(e) => {
+                                const selected = e.target.files?.[0] || null;
+                                if (selected) handleFileChange(item.key, selected);
+                              }}
+                              style={{ display: 'none' }}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFile(item.key)}
+                            className="spmb-file-btn-remove"
+                            title="Hapus Berkas Ini"
+                          >
+                            <Trash2 size={13} />
+                            <span>Hapus</span>
+                          </button>
+                        </div>
                       </div>
                     )}
 
-                    {/* Feedback Pesan File */}
+                    {/* Feedback Pesan Status */}
                     {msg && (
-                      <div style={{
-                        marginTop: 8,
-                        fontSize: '0.8rem',
-                        color: status === 'error' ? '#DC2626' : '#16A34A',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6
-                      }}>
+                      <div
+                        className="spmb-file-feedback"
+                        style={{
+                          color: status === 'error' ? '#DC2626' : '#16A34A',
+                        }}
+                      >
+                        {status === 'error' ? (
+                          <AlertCircle size={14} style={{ flexShrink: 0 }} />
+                        ) : (
+                          <CheckCircle2 size={14} style={{ flexShrink: 0 }} />
+                        )}
                         <span>{msg}</span>
                       </div>
                     )}

@@ -836,7 +836,7 @@ function SpmbAdmin() {
                               const labelJenis = {
                                 kk: 'Kartu Keluarga (KK)',
                                 akta: 'Akta Kelahiran',
-                                ktp: 'KTP / Identitas',
+                                ktp: 'KTP Siswa / Orang Tua',
                                 ijazah: 'Ijazah Terakhir / SKL / Raport',
                                 foto: 'Pas Foto 3x4 Terbaru',
                                 dokumen_lain: 'Dokumen Pendukung Lain'
@@ -1002,7 +1002,7 @@ function SpmbAdmin() {
                               >
                                 <option value="kk">Kartu Keluarga (KK)</option>
                                 <option value="akta">Akta Kelahiran</option>
-                                <option value="ktp">KTP Calon Siswa / Orang Tua</option>
+                                <option value="ktp">KTP Siswa / Orang Tua (Jika Siswa Belum 17 Tahun)</option>
                                 <option value="ijazah">Ijazah Terakhir / SKL / Raport</option>
                                 <option value="foto">Pas Foto 3x4 Terbaru</option>
                                 <option value="dokumen_lain">Dokumen Pendukung Lainnya</option>
@@ -1504,15 +1504,20 @@ function SpmbAdmin() {
                   {[
                     { key: 'kk', label: '1. Kartu Keluarga (KK)', icon: 'bi-file-text' },
                     { key: 'akta', label: '2. Akta Kelahiran', icon: 'bi-file-earmark-person' },
-                    { key: 'ktp', label: '3. KTP / Identitas', icon: 'bi-card-heading' },
+                    { key: 'ktp', label: '3. KTP Siswa / Orang Tua', keterangan: 'Jika belum punya KTP, upload KTP orang tua', icon: 'bi-card-heading' },
                     { key: 'ijazah', label: '4. Ijazah / SKL / Raport', icon: 'bi-mortarboard' },
                     { key: 'foto', label: '5. Pas Foto 3x4', icon: 'bi-image' },
                   ].map((doc) => (
                     <div key={doc.key} style={{ background: '#FFFFFF', padding: '10px 12px', borderRadius: 8, border: '1px solid #CBD5E1' }}>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#0F172A', marginBottom: 4 }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#0F172A', marginBottom: 2 }}>
                         <i className={`bi ${doc.icon}`} style={{ marginRight: 4, color: '#0284C7' }} />
                         {doc.label}
                       </label>
+                      {doc.keterangan && (
+                        <div style={{ fontSize: '0.68rem', color: '#1D4ED8', fontWeight: 600, marginBottom: 4 }}>
+                          * {doc.keterangan}
+                        </div>
+                      )}
                       <input
                         type="file"
                         accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"

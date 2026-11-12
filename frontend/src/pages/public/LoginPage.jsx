@@ -900,7 +900,7 @@ function LoginPage() {
                       const requiredDocs = [
                         { key: 'kk', label: 'Kartu Keluarga (KK)' },
                         { key: 'akta', label: 'Akta Kelahiran' },
-                        { key: 'ktp', label: 'KTP / Identitas' },
+                        { key: 'ktp', label: 'KTP Siswa / Orang Tua' },
                         { key: 'ijazah', label: 'Ijazah Terakhir / SKL' },
                         { key: 'foto', label: 'Pas Foto 3x4' },
                       ];
@@ -965,7 +965,7 @@ function LoginPage() {
                               color: '#0369A1',
                               lineHeight: 1.45
                             }}>
-                              <strong>Informasi Berkas:</strong> Berkas yang belum diunggah dapat diserahkan langsung secara fisik ke kantor Tata Usaha PKBM Bina Mandiri atau dikirimkan via WhatsApp agar dapat dibantu diunggah oleh staf Admin TU.
+                              <strong>Informasi Berkas:</strong> Bagi calon siswa yang belum memiliki KTP (usia di bawah 17 tahun), cukup lampirkan scan/foto KTP Orang Tua atau Wali. Berkas yang belum diunggah juga dapat diserahkan langsung secara fisik ke kantor Tata Usaha PKBM Bina Mandiri atau dikirimkan via WhatsApp.
                             </div>
                           )}
                         </>
