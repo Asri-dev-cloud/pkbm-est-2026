@@ -102,7 +102,7 @@ CREATE TABLE `bank_soal` (
 CREATE TABLE `berkas_spmb` (
   `id` int UNSIGNED NOT NULL,
   `pendaftar_id` int UNSIGNED NOT NULL,
-  `jenis_berkas` enum('kk','ijazah','foto','dokumen_lain') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `jenis_berkas` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `nama_file` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `path_file` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `status_verifikasi` enum('menunggu','valid','tidak_valid') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'menunggu',

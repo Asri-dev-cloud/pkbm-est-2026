@@ -62,6 +62,8 @@ export default function ModalPratinjauBerkas({
   // Label jenis berkas
   const labelJenis = {
     kk: 'Kartu Keluarga (KK)',
+    akta: 'Akta Kelahiran',
+    ktp: 'KTP / Identitas',
     ijazah: 'Ijazah Terakhir / SKL / Raport',
     foto: 'Pas Foto 3×4 Terbaru',
     dokumen_lain: 'Dokumen Pendukung Lain',
@@ -194,7 +196,19 @@ export default function ModalPratinjauBerkas({
                           : '#B45309',
                     }}
                   >
-                    {statusBerkas === 'valid' ? '✓ Terverifikasi Sah' : statusBerkas === 'tidak_valid' ? '✗ Ditolak' : '⏳ Menunggu Verifikasi'}
+                    {statusBerkas === 'valid' ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <i className="bi bi-check-circle-fill"></i> Terverifikasi Sah
+                      </span>
+                    ) : statusBerkas === 'tidak_valid' ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <i className="bi bi-x-circle-fill"></i> Ditolak
+                      </span>
+                    ) : (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <i className="bi bi-clock-history"></i> Menunggu Verifikasi
+                      </span>
+                    )}
                   </span>
                 )}
               </div>

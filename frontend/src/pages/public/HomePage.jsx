@@ -259,7 +259,7 @@ const FAQS = [
   },
   {
     q: "Bagaimana cara mendaftar dan apa saja persyaratannya?",
-    a: "Pendaftaran dapat dilakukan 100% online melalui tombol 'Daftar SPMB'. Anda cukup menyiapkan foto/scan Kartu Keluarga (KK), KTP (jika ada), dan ijazah jenjang sebelumnya (misal ijazah SD untuk Paket B, atau SMP untuk Paket C)."
+    a: "Pendaftaran dapat dilakukan 100% online melalui tombol 'Daftar SPMB'. Anda cukup menyiapkan foto/scan berkas persyaratan: Kartu Keluarga (KK), Akta Kelahiran, KTP (atau KTP orang tua jika belum 17 tahun), Ijazah/SKL jenjang sebelumnya, dan Pas Foto 3x4."
   },
   {
     q: "Apakah lulusan Paket C bisa mendaftar ke Perguruan Tinggi Negeri (PTN)?",

@@ -72,7 +72,10 @@ const fileFilter = (req, file, cb) => {
     'video/ogg',
   ];
 
-  if (allowedTypes.includes(file.mimetype)) {
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.mp4', '.webm', '.mov'];
+  const ext = path.extname(file.originalname || '').toLowerCase();
+
+  if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
     cb(null, true); // Terima file
   } else {
     cb(new Error('Tipe file tidak diizinkan. Hanya JPG, PNG, WEBP, GIF, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, ZIP, MP4, WEBM, MOV.'), false);

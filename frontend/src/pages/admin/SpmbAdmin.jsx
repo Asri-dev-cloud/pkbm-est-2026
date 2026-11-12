@@ -35,6 +35,76 @@ function SpmbAdmin() {
   const [downloadingExcel, setDownloadingExcel] = useState(false);
   const [previewBerkasTarget, setPreviewBerkasTarget] = useState(null);
 
+  // ── State: Modal Tambah Pendaftar Manual (Oleh Admin TU) ──
+  const [modalTambahOpen, setModalTambahOpen] = useState(false);
+  const [tambahLoading, setTambahLoading] = useState(false);
+  const initialFormTambah = {
+    nama_lengkap: '',
+    email: '',
+    nik: '',
+    no_telp: '',
+    jenjang_daftar: 'paket_c',
+    tanggal_lahir: '',
+    jenis_kelamin: 'L',
+    alamat: '',
+    jarak_rumah_km: '1',
+    tinggi_badan: '160',
+    berat_badan: '55',
+    jumlah_saudara_kandung: '0',
+    nama_wali: '',
+    password: 'Password123!',
+  };
+  const [formTambah, setFormTambah] = useState(initialFormTambah);
+  const [filesTambah, setFilesTambah] = useState({ kk: null, akta: null, ktp: null, ijazah: null, foto: null });
+
+  const handleSimpanPendaftarManual = async (e) => {
+    e.preventDefault();
+    if (!formTambah.nama_lengkap || !formTambah.email || !formTambah.no_telp || !formTambah.tanggal_lahir || !formTambah.alamat || !formTambah.nama_wali) {
+      alert('Mohon lengkapi semua data wajib bertanda (*).');
+      return;
+    }
+
+    setTambahLoading(true);
+    try {
+      const fd = new FormData();
+      Object.keys(formTambah).forEach((k) => {
+        if (formTambah[k] !== undefined && formTambah[k] !== null && String(formTambah[k]).trim() !== '') {
+          fd.append(k, String(formTambah[k]).trim());
+        }
+      });
+
+      if (filesTambah.kk) fd.append('kk', filesTambah.kk);
+      if (filesTambah.akta) fd.append('akta', filesTambah.akta);
+      if (filesTambah.ktp) fd.append('ktp', filesTambah.ktp);
+      if (filesTambah.ijazah) fd.append('ijazah', filesTambah.ijazah);
+      if (filesTambah.foto) fd.append('foto', filesTambah.foto);
+
+      const res = await SpmbAPI.daftar(fd);
+      if (res.data?.success) {
+        const newId = res.data.data?.pendaftar_id;
+        alert(`Pendaftar baru "${formTambah.nama_lengkap}" berhasil didaftarkan ke sistem!`);
+        setModalTambahOpen(false);
+        setFormTambah(initialFormTambah);
+        setFilesTambah({ kk: null, akta: null, ktp: null, ijazah: null, foto: null });
+
+        // Refresh data
+        const [resList, resStat] = await Promise.all([
+          SpmbAPI.getAll({ status: filterStatus || undefined }),
+          SpmbAPI.getStatistik(),
+        ]);
+        setList(resList.data.data || []);
+        setStat(resStat.data.data);
+        if (newId) await bukaDetail(newId);
+      } else {
+        alert(res.data?.message || 'Gagal menyimpan pendaftaran.');
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Terjadi kesalahan saat menyimpan pendaftaran.');
+    } finally {
+      setTambahLoading(false);
+    }
+  };
+
   const getFilteredSpmbList = () => {
     return list.filter((p) => {
       if (!searchKeyword.trim()) return true;
@@ -207,10 +277,10 @@ function SpmbAdmin() {
       return;
     }
 
-    if (status === 'diterima' && (!detail.berkas || detail.berkas.length < 3)) {
+    if (status === 'diterima' && (!detail.berkas || detail.berkas.length < 5)) {
       const berkasCount = detail.berkas ? detail.berkas.length : 0;
       const lanjut = window.confirm(
-        `PERHATIAN TU: Pendaftar ini baru memiliki ${berkasCount} dari 3 berkas persyaratan wajib (KK, Ijazah, Foto).\n\n` +
+        `PERHATIAN TU: Pendaftar ini baru memiliki ${berkasCount} dari 5 berkas persyaratan wajib (KK, Akta Kelahiran, KTP, Ijazah, Foto).\n\n` +
         `Apakah dokumen fisik calon siswa ini sudah diserahkan langsung ke kantor atau via WhatsApp?\n\n` +
         `Klik OK untuk tetap Menerima, atau Cancel jika ingin mengunggah berkas terlebih dahulu.`
       );
@@ -300,6 +370,30 @@ function SpmbAdmin() {
 
             {/* Tombol Aksi Excel: Download & Buka/Lihat Rekapan SPMB */}
             <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setModalTambahOpen(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '9px 16px',
+                  borderRadius: '10px',
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  color: '#FFFFFF',
+                  backgroundColor: '#1D4ED8',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 6px -1px rgba(29, 78, 216, 0.25)',
+                  transition: 'all 0.15s ease',
+                }}
+                title="Daftarkan calon peserta didik baru secara langsung dari loket TU"
+              >
+                <i className="bi bi-person-plus-fill" style={{ fontSize: '1rem' }} />
+                <span>+ Tambah Pendaftar</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setModalExcelOpen(true)}
@@ -583,13 +677,13 @@ function SpmbAdmin() {
                                 <span>•</span>
                                 <span>{formatTanggal(pendaftar.created_at)}</span>
                                 <span>•</span>
-                                {pendaftar.jumlah_berkas >= 3 ? (
+                                {pendaftar.jumlah_berkas >= 5 ? (
                                   <span style={{ color: '#16A34A', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                                    <i className="bi bi-file-earmark-check-fill"></i> Berkas Lengkap (3/3)
+                                    <i className="bi bi-file-earmark-check-fill"></i> Berkas Lengkap (5/5)
                                   </span>
                                 ) : pendaftar.jumlah_berkas > 0 ? (
                                   <span style={{ color: '#D97706', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                                    <i className="bi bi-exclamation-circle-fill"></i> {pendaftar.jumlah_berkas}/3 Berkas
+                                    <i className="bi bi-exclamation-circle-fill"></i> {pendaftar.jumlah_berkas}/5 Berkas
                                   </span>
                                 ) : (
                                   <span style={{ color: '#DC2626', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
@@ -741,6 +835,8 @@ function SpmbAdmin() {
                               const statusBerkas = berkas.status_verifikasi;
                               const labelJenis = {
                                 kk: 'Kartu Keluarga (KK)',
+                                akta: 'Akta Kelahiran',
+                                ktp: 'KTP / Identitas',
                                 ijazah: 'Ijazah Terakhir / SKL / Raport',
                                 foto: 'Pas Foto 3x4 Terbaru',
                                 dokumen_lain: 'Dokumen Pendukung Lain'
@@ -798,8 +894,14 @@ function SpmbAdmin() {
 
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                                     {statusBerkas && (
-                                      <span className={`badge ${getBadgeClass(statusBerkas)}`} style={{ fontSize: '0.725rem', fontWeight: 700, padding: '4px 8px' }}>
-                                        {statusBerkas === 'valid' ? '✓ Sah' : statusBerkas === 'tidak_valid' ? '✗ Ditolak' : '⏳ Menunggu'}
+                                      <span className={`badge ${getBadgeClass(statusBerkas)}`} style={{ fontSize: '0.725rem', fontWeight: 700, padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                        {statusBerkas === 'valid' ? (
+                                          <><i className="bi bi-check-circle-fill"></i> Sah</>
+                                        ) : statusBerkas === 'tidak_valid' ? (
+                                          <><i className="bi bi-x-circle-fill"></i> Ditolak</>
+                                        ) : (
+                                          <><i className="bi bi-clock-history"></i> Menunggu</>
+                                        )}
                                       </span>
                                     )}
 
@@ -899,6 +1001,8 @@ function SpmbAdmin() {
                                 }}
                               >
                                 <option value="kk">Kartu Keluarga (KK)</option>
+                                <option value="akta">Akta Kelahiran</option>
+                                <option value="ktp">KTP Calon Siswa / Orang Tua</option>
                                 <option value="ijazah">Ijazah Terakhir / SKL / Raport</option>
                                 <option value="foto">Pas Foto 3x4 Terbaru</option>
                                 <option value="dokumen_lain">Dokumen Pendukung Lainnya</option>
@@ -1051,8 +1155,18 @@ function SpmbAdmin() {
                                 Status Akun Warga Belajar
                               </div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0F172A' }}>
-                                  {detail.warga_belajar_id ? '✅ Terhubung ke Data Warga Belajar' : '⚠️ Belum Tersinkronkan ke DB Siswa'}
+                                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0F172A', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                  {detail.warga_belajar_id ? (
+                                    <>
+                                      <i className="bi bi-check-circle-fill" style={{ color: '#16A34A' }}></i>
+                                      <span>Terhubung ke Data Warga Belajar</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i className="bi bi-exclamation-triangle-fill" style={{ color: '#D97706' }}></i>
+                                      <span>Belum Tersinkronkan ke DB Siswa</span>
+                                    </>
+                                  )}
                                 </span>
                                 {detail.nis && (
                                   <span className="badge badge-primary" style={{ fontSize: '0.8rem', fontWeight: 700 }}>
@@ -1135,6 +1249,335 @@ function SpmbAdmin() {
             setPreviewBerkasTarget((prev) => (prev ? { ...prev, status_verifikasi: status } : null));
           }}
         />
+      )}
+
+      {/* ── Modal Tambah Pendaftar Manual (Admin TU) ── */}
+      {modalTambahOpen && (
+        <div
+          className="admin-modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !tambahLoading) setModalTambahOpen(false);
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1050,
+            padding: '1rem',
+          }}
+        >
+          <div
+            className="admin-modal-dialog"
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              maxWidth: 760,
+              width: '100%',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid #E2E8F0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#F8FAFC',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    backgroundColor: '#EFF6FF',
+                    color: '#1D4ED8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.25rem',
+                  }}
+                >
+                  <i className="bi bi-person-plus-fill" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>
+                    Tambah Pendaftar Baru (Loket TU)
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748B' }}>
+                    Daftarkan calon siswa secara langsung dan lampirkan berkas (KK, Akta, KTP, Ijazah, Foto)
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => !tambahLoading && setModalTambahOpen(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.25rem',
+                  color: '#64748B',
+                  cursor: 'pointer',
+                  padding: 4,
+                }}
+              >
+                <i className="bi bi-x-lg" />
+              </button>
+            </div>
+
+            {/* Modal Body Form */}
+            <form onSubmit={handleSimpanPendaftarManual} style={{ overflowY: 'auto', padding: '1.5rem', flex: 1 }}>
+              {/* Seksi 1: Data Identitas Siswa */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.9rem', color: '#0369A1', marginBottom: 12 }}>
+                  <i className="bi bi-person-vcard" />
+                  <span>1. Identitas Calon Siswa</span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Nama Lengkap Siswa <span style={{ color: '#DC2626' }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Muhammad Rizky"
+                      value={formTambah.nama_lengkap}
+                      onChange={(e) => setFormTambah({ ...formTambah, nama_lengkap: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Alamat Email Aktif <span style={{ color: '#DC2626' }}>*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="nama@email.com"
+                      value={formTambah.email}
+                      onChange={(e) => setFormTambah({ ...formTambah, email: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      No. WhatsApp / HP <span style={{ color: '#DC2626' }}>*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="08xxxxxxxxxx"
+                      value={formTambah.no_telp}
+                      onChange={(e) => setFormTambah({ ...formTambah, no_telp: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      NIK (Nomor Induk Kependudukan)
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={16}
+                      placeholder="16 Digit NIK"
+                      value={formTambah.nik}
+                      onChange={(e) => setFormTambah({ ...formTambah, nik: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Pilihan Jenjang Pendidikan <span style={{ color: '#DC2626' }}>*</span>
+                    </label>
+                    <select
+                      value={formTambah.jenjang_daftar}
+                      onChange={(e) => setFormTambah({ ...formTambah, jenjang_daftar: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem', fontWeight: 600 }}
+                    >
+                      <option value="paket_a">Paket A (Setara SD)</option>
+                      <option value="paket_b">Paket B (Setara SMP)</option>
+                      <option value="paket_c">Paket C (Setara SMA)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Tanggal Lahir <span style={{ color: '#DC2626' }}>*</span>
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formTambah.tanggal_lahir}
+                      onChange={(e) => setFormTambah({ ...formTambah, tanggal_lahir: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Jenis Kelamin <span style={{ color: '#DC2626' }}>*</span>
+                    </label>
+                    <select
+                      value={formTambah.jenis_kelamin}
+                      onChange={(e) => setFormTambah({ ...formTambah, jenis_kelamin: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    >
+                      <option value="L">Laki-laki</option>
+                      <option value="P">Perempuan</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Nama Orang Tua / Wali <span style={{ color: '#DC2626' }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nama orang tua/wali"
+                      value={formTambah.nama_wali}
+                      onChange={(e) => setFormTambah({ ...formTambah, nama_wali: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                    Alamat Tempat Tinggal Lengkap <span style={{ color: '#DC2626' }}>*</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    required
+                    placeholder="Alamat lengkap calon siswa..."
+                    value={formTambah.alamat}
+                    onChange={(e) => setFormTambah({ ...formTambah, alamat: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                    Password Awal Akun Siswa <span style={{ color: '#DC2626' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formTambah.password}
+                    onChange={(e) => setFormTambah({ ...formTambah, password: e.target.value })}
+                    style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem', fontFamily: 'monospace' }}
+                  />
+                  <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: 3 }}>
+                    Password awal untuk siswa saat login ke sistem Ruang Belajar.
+                  </div>
+                </div>
+              </div>
+
+              {/* Seksi 2: Upload 5 Berkas Persyaratan */}
+              <div style={{ background: '#F0F9FF', border: '1.5px solid #BAE6FD', borderRadius: 12, padding: '1rem 1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.9rem', color: '#0369A1', marginBottom: 8 }}>
+                  <i className="bi bi-file-earmark-check-fill" />
+                  <span>2. Lampirkan 5 Berkas Persyaratan (KK, Akta, KTP, Ijazah, Foto)</span>
+                </div>
+                <p style={{ margin: '0 0 12px', fontSize: '0.78rem', color: '#0284C7', lineHeight: 1.4 }}>
+                  Jika berkas fisik sudah diserahkan ke loket TU, Anda dapat langsung mengunggahnya sekarang atau menyusul melalui detail pendaftar.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+                  {[
+                    { key: 'kk', label: '1. Kartu Keluarga (KK)', icon: 'bi-file-text' },
+                    { key: 'akta', label: '2. Akta Kelahiran', icon: 'bi-file-earmark-person' },
+                    { key: 'ktp', label: '3. KTP / Identitas', icon: 'bi-card-heading' },
+                    { key: 'ijazah', label: '4. Ijazah / SKL / Raport', icon: 'bi-mortarboard' },
+                    { key: 'foto', label: '5. Pas Foto 3x4', icon: 'bi-image' },
+                  ].map((doc) => (
+                    <div key={doc.key} style={{ background: '#FFFFFF', padding: '10px 12px', borderRadius: 8, border: '1px solid #CBD5E1' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#0F172A', marginBottom: 4 }}>
+                        <i className={`bi ${doc.icon}`} style={{ marginRight: 4, color: '#0284C7' }} />
+                        {doc.label}
+                      </label>
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                        onChange={(e) => setFilesTambah({ ...filesTambah, [doc.key]: e.target.files?.[0] || null })}
+                        style={{ fontSize: '0.75rem', width: '100%' }}
+                      />
+                      {filesTambah[doc.key] && (
+                        <div style={{ fontSize: '0.7rem', color: '#16A34A', fontWeight: 700, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <i className="bi bi-check-lg"></i>
+                          <span>{filesTambah[doc.key].name}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div
+                style={{
+                  marginTop: '1.5rem',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: 10,
+                }}
+              >
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={tambahLoading}
+                  onClick={() => setModalTambahOpen(false)}
+                  style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={tambahLoading}
+                  style={{
+                    padding: '8px 22px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    backgroundColor: '#1D4ED8',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  {tambahLoading ? (
+                    <>
+                      <span className="spinner-sm" />
+                      <span>Menyimpan Pendaftaran...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-check-lg" />
+                      <span>Daftarkan Siswa Sekarang</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

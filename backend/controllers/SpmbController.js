@@ -36,12 +36,24 @@ const cleanUploadedFiles = (files = []) => {
   });
 };
 
+// Helper universal untuk memastikan path berkas di DB selalu berformat 'uploads/spmb/filename.ext'
+const toCleanUploadPath = (filePath) => {
+  if (!filePath) return '';
+  const normalized = String(filePath).replace(/\\/g, '/').replace(/^\/+/, '');
+  const uploadIdx = normalized.indexOf('uploads/');
+  if (uploadIdx !== -1) {
+    return normalized.substring(uploadIdx);
+  }
+  return `uploads/spmb/${path.basename(normalized)}`;
+};
+
 const SpmbController = {
 
   // -----------------------------------------------------------
   // POST /api/spmb/daftar  [PUBLIK — tanpa login]
-  // Calon WB mengisi data diri dan WAJIB mengunggah 3 berkas:
-  // (1) Kartu Keluarga (KK), (2) Ijazah/SKL/Raport, (3) Pas Foto 3x4
+  // Calon WB mengisi data diri dan WAJIB mengunggah 5 berkas:
+  // (1) Kartu Keluarga (KK), (2) Akta Kelahiran, (3) KTP,
+  // (4) Ijazah/SKL/Raport, (5) Pas Foto 3x4
   // Seluruh data disimpan secara atomik dalam 1 transaksi DB.
   // -----------------------------------------------------------
   daftar: async (req, res) => {
@@ -58,10 +70,14 @@ const SpmbController = {
       // Ambil berkas dari Multer upload.fields
       const files = req.files || {};
       const fileKK = files.kk ? files.kk[0] : null;
+      const fileAkta = files.akta ? files.akta[0] : null;
+      const fileKTP = files.ktp ? files.ktp[0] : null;
       const fileIjazah = files.ijazah ? files.ijazah[0] : null;
       const fileFoto = files.foto ? files.foto[0] : null;
 
       if (fileKK) uploadedFiles.push(fileKK);
+      if (fileAkta) uploadedFiles.push(fileAkta);
+      if (fileKTP) uploadedFiles.push(fileKTP);
       if (fileIjazah) uploadedFiles.push(fileIjazah);
       if (fileFoto) uploadedFiles.push(fileFoto);
 
@@ -93,9 +109,24 @@ const SpmbController = {
         });
       }
 
-      // 3. Catat berkas yang diunggah (Disimpan atomik bersama data diri)
-      // Jika berkas lengkap, tersimpan langsung. Jika berkas fisik dibawa langsung ke kantor PKBM,
-      // pendaftaran tetap berhasil tercatat dengan status 'pending'.
+      // 3. Validasi ketat 5 berkas wajib untuk pendaftaran mandiri calon siswa (publik)
+      const isAdminRegistration = req.user && (req.user.role === 'admin' || req.user.role === 'super_admin');
+      if (!isAdminRegistration) {
+        const missingDocs = [];
+        if (!fileKK) missingDocs.push('Kartu Keluarga (KK)');
+        if (!fileAkta) missingDocs.push('Akta Kelahiran');
+        if (!fileKTP) missingDocs.push('KTP / Identitas');
+        if (!fileIjazah) missingDocs.push('Ijazah Terakhir / SKL / Raport');
+        if (!fileFoto) missingDocs.push('Pas Foto 3x4');
+
+        if (missingDocs.length > 0) {
+          cleanUploadedFiles(uploadedFiles);
+          return res.status(400).json({
+            success: false,
+            message: `Pendaftaran online mewajibkan seluruh 5 berkas persyaratan. Dokumen yang belum dipilih: ${missingDocs.join(', ')}.`,
+          });
+        }
+      }
 
       // 4. Ambil tahun ajaran aktif dari database (dengan fallback cerdas)
       let tahun_ajaran_id = null;
@@ -174,18 +205,20 @@ const SpmbController = {
         VALUES (?, ?, ?, ?, 'menunggu', NOW())
       `;
 
-      if (fileKK) await conn.execute(sqlBerkas, [pendaftarId, 'kk', fileKK.originalname, fileKK.path]);
-      if (fileIjazah) await conn.execute(sqlBerkas, [pendaftarId, 'ijazah', fileIjazah.originalname, fileIjazah.path]);
-      if (fileFoto) await conn.execute(sqlBerkas, [pendaftarId, 'foto', fileFoto.originalname, fileFoto.path]);
+      if (fileKK) await conn.execute(sqlBerkas, [pendaftarId, 'kk', fileKK.originalname, toCleanUploadPath(fileKK.path)]);
+      if (fileAkta) await conn.execute(sqlBerkas, [pendaftarId, 'akta', fileAkta.originalname, toCleanUploadPath(fileAkta.path)]);
+      if (fileKTP) await conn.execute(sqlBerkas, [pendaftarId, 'ktp', fileKTP.originalname, toCleanUploadPath(fileKTP.path)]);
+      if (fileIjazah) await conn.execute(sqlBerkas, [pendaftarId, 'ijazah', fileIjazah.originalname, toCleanUploadPath(fileIjazah.path)]);
+      if (fileFoto) await conn.execute(sqlBerkas, [pendaftarId, 'foto', fileFoto.originalname, toCleanUploadPath(fileFoto.path)]);
 
       await conn.commit();
       conn.release();
       conn = null;
 
-      const berkasCount = [fileKK, fileIjazah, fileFoto].filter(Boolean).length;
+      const berkasCount = [fileKK, fileAkta, fileKTP, fileIjazah, fileFoto].filter(Boolean).length;
       return res.status(201).json({
         success: true,
-        message: `Pendaftaran SPMB berhasil disimpan ke sistem (${berkasCount} dari 3 berkas terunggah).`,
+        message: `Pendaftaran SPMB berhasil disimpan ke sistem (${berkasCount} dari 5 berkas terunggah).`,
         data: {
           pendaftar_id: pendaftarId,
           pesan: 'Simpan nomor pendaftaran Anda: #' + pendaftarId,
@@ -227,11 +260,11 @@ const SpmbController = {
       }
 
       // Validasi jenis berkas
-      const jenisValid = ['kk', 'ijazah', 'foto', 'dokumen_lain'];
+      const jenisValid = ['kk', 'akta', 'ktp', 'ijazah', 'foto', 'dokumen_lain'];
       if (!jenis_berkas || !jenisValid.includes(jenis_berkas)) {
         return res.status(400).json({
           success: false,
-          message: 'Jenis berkas tidak valid. Pilih: kk, ijazah, foto, atau dokumen_lain.',
+          message: 'Jenis berkas tidak valid. Pilih: kk, akta, ktp, ijazah, foto, atau dokumen_lain.',
         });
       }
 
@@ -252,8 +285,8 @@ const SpmbController = {
         pendaftar_id: parseInt(id),
         jenis_berkas,
         nama_file: req.file.originalname,
-        // Path disimpan relatif dari root backend, akses via /uploads/spmb/namafile
-        path_file: req.file.path,
+        // Path disimpan relatif dari root backend, akses via uploads/spmb/namafile
+        path_file: toCleanUploadPath(req.file.path),
         status_verifikasi,
       });
 

@@ -21,6 +21,8 @@ const handleSpmbUpload = (req, res, next) => {
   req.uploadFolder = 'spmb';
   const uploadMiddleware = upload.fields([
     { name: 'kk', maxCount: 1 },
+    { name: 'akta', maxCount: 1 },
+    { name: 'ktp', maxCount: 1 },
     { name: 'ijazah', maxCount: 1 },
     { name: 'foto', maxCount: 1 }
   ]);
@@ -39,6 +41,7 @@ const handleSpmbUpload = (req, res, next) => {
 
 router.post(
   '/daftar',
+  optionalAuth,
   handleSpmbUpload,
   SpmbController.daftar
 );

@@ -899,6 +899,8 @@ function LoginPage() {
 
                       const requiredDocs = [
                         { key: 'kk', label: 'Kartu Keluarga (KK)' },
+                        { key: 'akta', label: 'Akta Kelahiran' },
+                        { key: 'ktp', label: 'KTP / Identitas' },
                         { key: 'ijazah', label: 'Ijazah Terakhir / SKL' },
                         { key: 'foto', label: 'Pas Foto 3x4' },
                       ];
@@ -914,16 +916,18 @@ function LoginPage() {
                                   {doc.label}
                                 </span>
                                 {found ? (
-                                  <span className={`badge ${found.status_verifikasi || 'pending'}`}>
-                                    {found.status_verifikasi === 'valid'
-                                      ? '✓ Sah / Valid'
-                                      : found.status_verifikasi === 'tidak_valid'
-                                        ? '✗ Tidak Valid'
-                                        : '⏳ Ditinjau TU'}
+                                  <span className={`badge ${found.status_verifikasi || 'pending'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                    {found.status_verifikasi === 'valid' ? (
+                                      <><CheckCircle2 size={13} /> Sah / Valid</>
+                                    ) : found.status_verifikasi === 'tidak_valid' ? (
+                                      <><XCircle size={13} /> Tidak Valid</>
+                                    ) : (
+                                      <><Clock size={13} /> Ditinjau TU</>
+                                    )}
                                   </span>
                                 ) : (
-                                  <span className="badge" style={{ background: '#FEF3C7', color: '#92400E' }}>
-                                    ⚠️ Belum Diunggah
+                                  <span className="badge" style={{ background: '#FEF3C7', color: '#92400E', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                    <AlertCircle size={13} /> Belum Diunggah
                                   </span>
                                 )}
                               </div>
@@ -932,21 +936,25 @@ function LoginPage() {
 
                           {/* Tampilkan dokumen tambahan lainnya jika ada */}
                           {(searchResult.berkas || [])
-                            .filter(b => !['kk', 'ijazah', 'foto'].includes(b.jenis_berkas))
+                            .filter(b => !['kk', 'akta', 'ktp', 'ijazah', 'foto'].includes(b.jenis_berkas))
                             .map((extra, idx) => (
                               <div key={idx} className="login-spmb-berkas-item">
                                 <span className="name">
                                   <FileText size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
                                   {extra.nama_file || 'Dokumen Pendukung Lain'}
                                 </span>
-                                <span className={`badge ${extra.status_verifikasi || 'pending'}`}>
-                                  {extra.status_verifikasi === 'valid' ? '✓ Sah' : '⏳ Ditinjau TU'}
+                                <span className={`badge ${extra.status_verifikasi || 'pending'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                  {extra.status_verifikasi === 'valid' ? (
+                                    <><CheckCircle2 size={13} /> Sah</>
+                                  ) : (
+                                    <><Clock size={13} /> Ditinjau TU</>
+                                  )}
                                 </span>
                               </div>
                             ))}
 
                           {/* Alert jika belum lengkap */}
-                          {(!searchResult.berkas || searchResult.berkas.length < 3) && searchResult.status !== 'diterima' && (
+                          {(!searchResult.berkas || searchResult.berkas.length < 5) && searchResult.status !== 'diterima' && (
                             <div style={{
                               marginTop: 10,
                               padding: '10px 12px',

@@ -76,6 +76,16 @@ export const testConnection = async () => {
       }
     }
 
+    // Otomatis pastikan kolom jenis_berkas di berkas_spmb fleksibel & aman (VARCHAR 50) untuk KK, Akta, KTP, Ijazah, Foto
+    try {
+      await pool.query(
+        "ALTER TABLE `berkas_spmb` MODIFY COLUMN `jenis_berkas` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL"
+      );
+      console.log('✅ Kolom jenis_berkas tabel berkas_spmb dimutakhirkan ke VARCHAR(50) untuk KK, Akta, KTP, Ijazah, Foto.');
+    } catch (enumErr) {
+      // Abaikan jika sudah sesuai atau tabel belum siap
+    }
+
     // Otomatis pastikan 10 Rombel Baru tersedia
     try {
       const [checkNew] = await pool.query("SELECT COUNT(*) AS total FROM rombel WHERE nama_rombel = 'Kelas 1 Paket A'");
