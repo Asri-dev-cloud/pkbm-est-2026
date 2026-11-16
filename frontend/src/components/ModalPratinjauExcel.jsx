@@ -31,7 +31,7 @@ export default function ModalPratinjauExcel({
   );
   const [downloading, setDownloading] = useState(false);
   const [namaPenandatangan, setNamaPenandatangan] = useState('Indrayani, S.S.,M.Pd.');
-  const [nipPenandatangan, setNipPenandatangan] = useState('NIP / NUPTK: ....................................................');
+  const [nipPenandatangan, setNipPenandatangan] = useState('');
   const printAreaRef = useRef(null);
 
   if (!isOpen) return null;
@@ -767,9 +767,11 @@ export default function ModalPratinjauExcel({
                 >
                   {namaPenandatangan}
                 </div>
-                <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: 3 }}>
-                  {nipPenandatangan}
-                </div>
+                {nipPenandatangan ? (
+                  <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: 3 }}>
+                    {nipPenandatangan}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>

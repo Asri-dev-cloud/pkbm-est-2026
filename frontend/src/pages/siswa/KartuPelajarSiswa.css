@@ -527,22 +527,6 @@
   font-weight: 700;
 }
 
-.card-footer-right-note {
-  display: flex;
-  align-items: center;
-}
-
-.footer-ta-badge {
-  font-size: 0.52rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: #94A3B8;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
 /* ── Sisi Belakang (Back Face Sleek) ── */
 .back-title-banner {
   text-align: center;
@@ -954,11 +938,6 @@
 
   .auth-code-text {
     font-size: 0.38rem;
-  }
-
-  .footer-ta-badge {
-    font-size: 0.46rem;
-    padding: 1.5px 6px;
   }
 
   /* Sisi Belakang Kartu Mobile */

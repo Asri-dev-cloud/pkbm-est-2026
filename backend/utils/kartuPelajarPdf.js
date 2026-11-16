@@ -382,7 +382,8 @@ export const buildKartuPelajarPdf = async ({ siswa, outputPath = null }) => {
   const lines = [];
 
   const namaLengkap = (siswa.nama_lengkap || 'WARGA BELAJAR').toUpperCase();
-  const nis = siswa.nis || 'DALAM PENETAPAN';
+  const rawNis = siswa.nis || 'DALAM PENETAPAN';
+  const nis = rawNis.replace('PKBM-2025-', 'PKBM-2026-');
   const nik = siswa.nik || '-';
   const jenjangRaw = String(siswa.jenjang || 'paket_c').toLowerCase();
   const jenjangLabel = jenjangRaw === 'paket_a' ? 'Paket A (Setara SD)' :
@@ -478,7 +479,8 @@ export const buildKartuPelajarPdf = async ({ siswa, outputPath = null }) => {
 
   // Kepala Lembaga resmi: Indrayani, S.S.,M.Pd. (Kanan Bawah)
   const sigX = backX + 130;
-  lines.push(textLine('F1', 5.5, sigX, cardY + 54, 'Sumedang, 1 Juli 2026', 0.85, 0.9, 0.95));
+  const currentYear = new Date().getFullYear();
+  lines.push(textLine('F1', 5.5, sigX, cardY + 54, `Sumedang, ${currentYear}`, 0.85, 0.9, 0.95));
   lines.push(textLine('F2', 6, sigX - 5, cardY + 44, 'Kepala PKBM Bina Mandiri', 1, 1, 1));
 
   lines.push(rectStroke(sigX + 10, cardY + 22, 26, 18, 0.25, 0.55, 0.9, 0.8));

@@ -1030,7 +1030,7 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
   } else {
     const [cntRows] = await pool.execute(`SELECT COUNT(*) AS total FROM warga_belajar`);
     const totalWb = cntRows[0]?.total || 0;
-    nis = generateNIS(totalWb + 1, tahunAjaranAktif?.nama_tahun_ajaran || '2025/2026');
+    nis = generateNIS(totalWb + 1, tahunAjaranAktif?.nama_tahun_ajaran || '2026/2027');
 
     const [wbResult] = await pool.execute(
       `INSERT INTO warga_belajar

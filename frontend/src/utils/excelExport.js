@@ -90,7 +90,7 @@ export async function generateLaporanSiswaExcel({
   filterInfo = 'Semua Jenjang',
   tipeLaporan = 'Data Warga Belajar', // 'Data Warga Belajar' | 'Penerimaan SPMB'
   namaKepala = 'Indrayani, S.S.,M.Pd.',
-  nipKepala = 'NIP / NUPTK: ....................................................',
+  nipKepala = '',
 }) {
   const ta = tahunAjaran || getTahunAjaranRealTime();
   const logoBase64 = await getLogoBase64();
@@ -474,13 +474,15 @@ export async function generateLaporanSiswaExcel({
   namaKepalaCell.font = { name: 'Arial', size: 10, bold: true, underline: true, color: { argb: 'FF0F172A' } };
   namaKepalaCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-  const signNipRow = signNamaRow + 1;
-  worksheet.getRow(signNipRow).height = 16;
-  worksheet.mergeCells(`K${signNipRow}:${LAST_COL}${signNipRow}`);
-  const nipCell = worksheet.getCell(`K${signNipRow}`);
-  nipCell.value = nipKepala;
-  nipCell.font = { name: 'Arial', size: 8.5, color: { argb: 'FF475569' } };
-  nipCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  if (nipKepala) {
+    const signNipRow = signNamaRow + 1;
+    worksheet.getRow(signNipRow).height = 16;
+    worksheet.mergeCells(`K${signNipRow}:${LAST_COL}${signNipRow}`);
+    const nipCell = worksheet.getCell(`K${signNipRow}`);
+    nipCell.value = nipKepala;
+    nipCell.font = { name: 'Arial', size: 8.5, color: { argb: 'FF475569' } };
+    nipCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  }
 
   // -------------------------------------------------------------
   // 7. WRITE BUFFER & TRIGGER BROWSER DOWNLOAD

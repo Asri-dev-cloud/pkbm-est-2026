@@ -100,12 +100,18 @@ function KartuPelajarSiswa() {
     setIsFlipped(false);
   };
 
+  // Data profil siswa yang dinormalisasi ke tahun ajaran berjalan (2026)
+  const cleanProfil = profil ? {
+    ...profil,
+    nis: (profil.nis || '').replace('PKBM-2025-', 'PKBM-2026-') || profil.nis,
+  } : null;
+
   // Unduh Dokumen PDF Resmi Presisi 300 DPI
   const handleDownloadPdf = async () => {
-    if (!profil) return;
+    if (!cleanProfil) return;
     setDownloadingPdf(true);
     try {
-      await triggerDownloadKartuPelajarPdf(profil);
+      await triggerDownloadKartuPelajarPdf(cleanProfil);
     } catch (err) {
       console.error('[KartuPelajar] Gagal mengunduh PDF:', err);
       alert('Gagal mengunduh file PDF Kartu Pelajar. Silakan coba kembali.');
@@ -116,10 +122,10 @@ function KartuPelajarSiswa() {
 
   // Unduh Gambar Kartu Pelajar (PNG HD 300 DPI)
   const handleDownloadImage = async () => {
-    if (!profil) return;
+    if (!cleanProfil) return;
     setDownloadingImg(true);
     try {
-      await downloadCardImage(profil, 'both');
+      await downloadCardImage(cleanProfil, 'both');
     } catch (err) {
       console.error('[KartuPelajar] Gagal mengunduh gambar:', err);
       alert('Gagal mengunduh gambar kartu pelajar.');
@@ -241,7 +247,7 @@ function KartuPelajarSiswa() {
                 >
                   {siswaList.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.nis ? `[${s.nis}] ` : ''}{s.nama_lengkap} ({labelJenjang[s.jenjang] || s.jenjang})
+                      {s.nis ? `[${(s.nis || '').replace('PKBM-2025-', 'PKBM-2026-')}] ` : ''}{s.nama_lengkap} ({labelJenjang[s.jenjang] || s.jenjang})
                     </option>
                   ))}
                 </select>
@@ -356,7 +362,7 @@ function KartuPelajarSiswa() {
 
                         <div className="student-nis-subline">
                           <span className="nis-tag">NIS</span>
-                          <span className="nis-number">{profil.nis || 'DALAM PENETAPAN'}</span>
+                          <span className="nis-number">{cleanProfil.nis || 'DALAM PENETAPAN'}</span>
                         </div>
 
                         <div className="student-meta-list">
@@ -380,21 +386,17 @@ function KartuPelajarSiswa() {
                       </div>
                     </div>
 
-                    {/* Footer Kartu Sleek (Tanpa QR Code) */}
+                    {/* Footer Kartu Sleek (Tanpa QR Code & Kotak TA Dihapus) */}
                     <div className="card-bottom-bar">
                       <div className="card-auth-code">
                         <BarcodeView
-                          value={profil.nis || 'PKBM-BINA-MANDIRI'}
-                          width={130}
+                          value={cleanProfil.nis || 'PKBM-BINA-MANDIRI'}
+                          width={140}
                           height={18}
                           color="#FFFFFF"
                           showText={false}
                         />
                         <span className="auth-code-text">AUTHENTIC STUDENT IDENTIFICATION</span>
-                      </div>
-
-                      <div className="card-footer-right-note">
-                        <span className="footer-ta-badge">{profil.nama_tahun_ajaran || '2026/2027'}</span>
                       </div>
                     </div>
                   </div>
@@ -425,7 +427,7 @@ function KartuPelajarSiswa() {
                       </div>
 
                       <div className="back-official-endorsement">
-                        <div className="sig-place-date">Sumedang, 1 Juli 2026</div>
+                        <div className="sig-place-date">Sumedang, {new Date().getFullYear()}</div>
                         <div className="sig-office-title">Kepala PKBM Bina Mandiri</div>
                         <div className="sig-image-wrapper">
                           <img

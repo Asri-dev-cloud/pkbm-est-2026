@@ -42,11 +42,17 @@ export const formatRupiah = (angka) => {
 // -----------------------------------------------------------
 // generateNIS
 // Generate Nomor Induk Siswa otomatis.
-// Format: PKBM-TAHUN-NOMOR_URUT (contoh: PKBM-2025-0001)
+// Format: PKBM-TAHUN-NOMOR_URUT (contoh: PKBM-2026-0001)
 // -----------------------------------------------------------
 export const generateNIS = (nomorUrut, tahunAjaran = null) => {
-  const tahunDariLabel = String(tahunAjaran || '').match(/\d{4}/)?.[0];
-  const tahun = tahunDariLabel || new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
+  let tahun = currentYear;
+  if (tahunAjaran) {
+    const parts = String(tahunAjaran).match(/\d{4}/g);
+    if (parts && parts.length > 0) {
+      tahun = parts.find(p => parseInt(p, 10) === currentYear) || parts[parts.length - 1] || currentYear;
+    }
+  }
   const urut  = String(nomorUrut).padStart(4, '0');
   return `PKBM-${tahun}-${urut}`;
 };

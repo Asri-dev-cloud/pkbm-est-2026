@@ -475,9 +475,10 @@ export async function drawCardFront(ctx, siswa, offsetX = 0, offsetY = 0) {
   ctx.font = '800 15px "Plus Jakarta Sans", sans-serif';
   ctx.fillText('NIS:', dataX, textCursorY);
 
+  const displayNis = (siswa.nis || '').replace('PKBM-2025-', 'PKBM-2026-') || 'DALAM PENETAPAN';
   ctx.fillStyle = '#F8FAFC';
   ctx.font = '800 20px monospace';
-  ctx.fillText(siswa.nis || 'DALAM PENETAPAN', dataX + 46, textCursorY);
+  ctx.fillText(displayNis, dataX + 46, textCursorY);
 
   // Rincian Data Key-Value Bersih (NIK Penuh Tanpa Sensor)
   const metaItems = [
@@ -593,7 +594,7 @@ export async function drawCardBack(ctx, siswa, offsetX = 0, offsetY = 0) {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#CBD5E1';
   ctx.font = '500 14px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('Sumedang, 1 Juli 2026', endorseX, qrY + 10);
+  ctx.fillText(`Sumedang, ${new Date().getFullYear()}`, endorseX, qrY + 10);
 
   ctx.fillStyle = '#FFFFFF';
   ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
