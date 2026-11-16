@@ -209,6 +209,16 @@ export const SiswaAPI = {
   // Payload: { alamat, nama_wali, no_telp, rombel_id }
   update: (id, payload) =>
     apiClient.put(`/siswa/${id}`, payload),
+
+  // GET /api/siswa/kartu/verifikasi/:nis (Publik)
+  verifikasiKartuPublik: (nis) =>
+    apiClient.get(`/siswa/kartu/verifikasi/${encodeURIComponent(nis)}`),
+
+  // GET /api/siswa/kartu-pelajar-pdf atau /api/siswa/:id/kartu-pelajar-pdf (Blob)
+  downloadKartuPelajarPdf: (id) => {
+    const url = id ? `/siswa/${id}/kartu-pelajar-pdf` : '/siswa/kartu-pelajar-pdf';
+    return apiClient.get(url, { responseType: 'blob' });
+  },
 };
 
 

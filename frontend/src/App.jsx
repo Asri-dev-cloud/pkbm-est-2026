@@ -17,6 +17,7 @@ import LoginPage from './pages/public/LoginPage.jsx';
 import DaftarSpmbPage from './pages/public/DaftarSpmbPage.jsx';
 import NotFoundPage from './pages/public/NotFoundPage.jsx';
 import UploadsRedirector from './pages/public/UploadsRedirector.jsx';
+import VerifikasiKartuPage from './pages/public/VerifikasiKartuPage.jsx';
 
 // ── Komponen Pendukung ───────────────────────────────────────
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -34,6 +35,7 @@ import KlubSiswa from './pages/siswa/KlubSiswa.jsx';
 import TagihanSiswa from './pages/siswa/TagihanSiswa.jsx';
 import BeritaSiswa from './pages/siswa/BeritaSiswa.jsx';
 import ModulBukuSiswa from './pages/siswa/ModulBukuSiswa.jsx';
+import KartuPelajarSiswa from './pages/siswa/KartuPelajarSiswa.jsx';
 
 // ── Halaman Admin TU & Keuangan ──────────────────────────────
 import DashboardAdmin from './pages/admin/DashboardAdmin.jsx';
@@ -158,10 +160,14 @@ function SeoMetaManager() {
     } else if (path === '/daftar') {
       title       = 'Pendaftaran Warga Belajar Baru | PKBM Bina Mandiri';
       description = 'Daftar sebagai warga belajar baru PKBM Bina Mandiri secara online untuk Paket A, Paket B, dan Paket C.';
+    } else if (path === '/verifikasi-kartu' || path === '/kartu-pelajar/verifikasi') {
+      title       = 'Verifikasi Kartu Pelajar Digital | PKBM Bina Mandiri';
+      description = 'Layanan validasi keabsahan Kartu Pelajar resmi Warga Belajar PKBM Bina Mandiri.';
     } else if (path.startsWith('/dashboard')) {
       robots      = 'index, follow';
       description = 'Area dashboard internal PKBM Bina Mandiri.';
       if (path === '/dashboard/siswa')         title = 'Dashboard Siswa | PKBM Bina Mandiri';
+      else if (path === '/dashboard/siswa/kartu-pelajar' || path === '/dashboard/admin/siswa/kartu-pelajar') title = 'Kartu Pelajar Digital | PKBM Bina Mandiri';
       else if (path === '/dashboard/siswa/tugas' || path === '/dashboard/siswa/tugas-mingguan') title = 'Tugas Mingguan Siswa | LMS PKBM Bina Mandiri';
       else if (path === '/dashboard/siswa/modul-buku') title = 'Kumpulan Modul & Buku Digital | PKBM Bina Mandiri';
       else if (path === '/dashboard/admin/modul-buku') title = 'Kelola Modul & Buku Digital | PKBM Bina Mandiri';
@@ -216,6 +222,9 @@ function App() {
         {/* Login dipindah ke /login */}
         <Route path="/login"  element={<LoginPage />} />
         <Route path="/daftar" element={<DaftarSpmbPage />} />
+        {/* Verifikasi Publik Kartu Pelajar Digital (Scan QR Code) */}
+        <Route path="/verifikasi-kartu" element={<VerifikasiKartuPage />} />
+        <Route path="/kartu-pelajar/verifikasi" element={<VerifikasiKartuPage />} />
 
         {/* /dashboard → redirect otomatis sesuai role */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
@@ -223,6 +232,8 @@ function App() {
         {/* ══ RUTE WARGA BELAJAR (LMS SISWA) ═══════════════════ */}
         <Route path="/dashboard/siswa"
           element={<ProtectedRoute allowedRoles={['warga_belajar']}><DashboardSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/kartu-pelajar"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><KartuPelajarSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/ruang-belajar"
           element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><RuangBelajarSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/kelas/:mapelId"
@@ -261,6 +272,8 @@ function App() {
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><AbsensiAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/siswa"
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><SiswaAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/siswa/kartu-pelajar"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><KartuPelajarSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/admin/master-mapel"
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><MasterMapelAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/mapel-rombel"

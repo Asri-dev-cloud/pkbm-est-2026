@@ -256,15 +256,27 @@ function DashboardSiswa() {
                     <span className="hero-meta-jenjang">{jenjangFormat}</span>
                   </div>
 
-                  <button
-                    type="button"
-                    className="hero-profile-edit-btn"
-                    onClick={() => openProfileModalFn && openProfileModalFn()}
-                    title="Perbarui data profil & foto"
-                  >
-                    <PencilLine size={13} />
-                    <span>Detail & Perbarui Profil</span>
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="hero-profile-edit-btn"
+                      onClick={() => openProfileModalFn && openProfileModalFn()}
+                      title="Perbarui data profil & foto"
+                    >
+                      <PencilLine size={13} />
+                      <span>Detail Profil</span>
+                    </button>
+
+                    <Link
+                      to="/dashboard/siswa/kartu-pelajar"
+                      className="hero-profile-edit-btn"
+                      style={{ textDecoration: 'none', background: 'rgba(29, 78, 216, 0.1)', color: '#1D4ED8', borderColor: 'rgba(29, 78, 216, 0.25)' }}
+                      title="Buka & cetak Kartu Pelajar Digital"
+                    >
+                      <IdCard size={13} />
+                      <span>Kartu Pelajar</span>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

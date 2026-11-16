@@ -12,6 +12,7 @@
 // ============================================================
 
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
 import ModalPratinjauExcel from '../../components/ModalPratinjauExcel.jsx';
 import { SiswaAPI } from '../../services/api.js';
@@ -533,7 +534,26 @@ function SiswaAdmin() {
                           </span>
                         </td>
                         <td>
-                          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', alignItems: 'center' }}>
+                            <Link
+                              to={`/dashboard/siswa/kartu-pelajar?id=${s.id}`}
+                              className="btn btn-secondary"
+                              style={{
+                                padding: '5px 10px',
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                color: '#1D4ED8',
+                                backgroundColor: '#EFF6FF',
+                                borderColor: '#BFDBFE',
+                              }}
+                              title="Lihat & Cetak Kartu Pelajar Digital"
+                            >
+                              <i className="bi bi-person-badge" /> Kartu
+                            </Link>
                             <button
                               className="btn btn-secondary"
                               style={{ padding: '5px 10px', fontSize: '0.8rem', fontWeight: 600 }}
@@ -824,6 +844,24 @@ function SiswaAdmin() {
                 <button type="button" className="btn btn-secondary" onClick={tutupModal}>
                   {modalMode === 'edit' ? 'Batal' : 'Tutup'}
                 </button>
+                {modalMode !== 'edit' && selectedWB && (
+                  <Link
+                    to={`/dashboard/siswa/kartu-pelajar?id=${selectedWB.id}`}
+                    className="btn btn-secondary"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      textDecoration: 'none',
+                      color: '#1D4ED8',
+                      backgroundColor: '#EFF6FF',
+                      borderColor: '#BFDBFE',
+                      fontWeight: 700,
+                    }}
+                  >
+                    <i className="bi bi-person-badge" /> Cetak Kartu Pelajar
+                  </Link>
+                )}
                 {modalMode === 'edit' ? (
                   <button type="submit" className="btn btn-primary" disabled={saving}>
                     {saving ? <><div className="spinner" style={{ width: 14, height: 14 }} /> Menyimpan...</> : <><i className="bi bi-check2" /> Simpan Perubahan</>}

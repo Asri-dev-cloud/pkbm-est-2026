@@ -89,7 +89,7 @@ export async function generateLaporanSiswaExcel({
   tahunAjaran = null,
   filterInfo = 'Semua Jenjang',
   tipeLaporan = 'Data Warga Belajar', // 'Data Warga Belajar' | 'Penerimaan SPMB'
-  namaKepala = '( Nama Kepala PKBM )',
+  namaKepala = 'Indrayani, S.S.,M.Pd.',
   nipKepala = 'NIP / NUPTK: ....................................................',
 }) {
   const ta = tahunAjaran || getTahunAjaranRealTime();
@@ -177,7 +177,7 @@ export async function generateLaporanSiswaExcel({
     },
     {
       row: 5,
-      text: 'Sekretariat: Jl. KH. Hasyim Ashari No. 85, Cipondoh, Kota Tangerang, Banten | Web: pkbmbinamandiri.sch.id',
+      text: 'Sekretariat: PKBM Bina Mandiri, Sumedang, Jawa Barat | Web: pkbmbinamandiri.sch.id',
       font: { name: 'Arial', size: 9, color: { argb: 'FF64748B' } },
       alignment: { horizontal: 'center', vertical: 'middle' },
       height: 16,
@@ -449,7 +449,7 @@ export async function generateLaporanSiswaExcel({
   worksheet.getRow(signStartRow).height = 18;
   worksheet.mergeCells(`K${signStartRow}:${LAST_COL}${signStartRow}`);
   const tglSignCell = worksheet.getCell(`K${signStartRow}`);
-  tglSignCell.value = `Tangerang, ${formatTanggalDokumen()}`;
+  tglSignCell.value = `Sumedang, ${formatTanggalDokumen()}`;
   tglSignCell.font = { name: 'Arial', size: 9.5, color: { argb: 'FF0F172A' } };
   tglSignCell.alignment = { horizontal: 'center', vertical: 'middle' };
 

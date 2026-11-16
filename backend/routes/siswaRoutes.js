@@ -10,7 +10,15 @@ import { verifyToken, checkRole, ROLES } from '../middlewares/authMiddleware.js'
 
 const router = Router();
 
-// Semua route di bawah ini wajib login
+// ============================================================
+// ENDPOINT PUBLIK — Tanpa token JWT (untuk verifikasi scan QR Code Kartu Pelajar)
+// ============================================================
+router.get('/kartu/verifikasi/:nis', SiswaController.verifikasiKartuPublik);
+router.get('/verifikasi/:nis', SiswaController.verifikasiKartuPublik);
+
+// ============================================================
+// ENDPOINT TERPROTEKSI — Membutuhkan token JWT
+// ============================================================
 router.use(verifyToken);
 
 // GET /api/siswa — Ambil semua WB (Admin, Tutor, Super Admin)
@@ -36,6 +44,13 @@ router.get(
   SiswaController.getProfilSaya
 );
 
+// GET /api/siswa/kartu-pelajar-pdf — Download PDF Kartu Pelajar saya
+router.get(
+  '/kartu-pelajar-pdf',
+  checkRole(ROLES.WARGA_BELAJAR, ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TUTOR),
+  SiswaController.downloadKartuPelajarPdf
+);
+
 // GET /api/siswa/rombel/options — opsi rombel aktif untuk admin SPMB
 router.get(
   '/rombel/options',
@@ -47,6 +62,13 @@ router.get(
   '/mapel/options',
   checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TUTOR, ROLES.WARGA_BELAJAR),
   SiswaController.getMapelOptions
+);
+
+// GET /api/siswa/:id/kartu-pelajar-pdf — Download PDF Kartu Pelajar berdasarkan ID siswa
+router.get(
+  '/:id/kartu-pelajar-pdf',
+  checkRole(ROLES.WARGA_BELAJAR, ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TUTOR),
+  SiswaController.downloadKartuPelajarPdf
 );
 
 // GET /api/siswa/:id — Detail satu WB berdasarkan ID

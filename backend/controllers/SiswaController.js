@@ -6,6 +6,7 @@
 // ============================================================
 
 import SiswaModel from '../models/SiswaModel.js';
+import { buildKartuPelajarPdf } from '../utils/kartuPelajarPdf.js';
 
 const SiswaController = {
 
@@ -233,6 +234,120 @@ const SiswaController = {
       return res.status(500).json({
         success: false,
         message: 'Gagal mengambil daftar mata pelajaran.',
+      });
+    }
+  },
+
+  // -----------------------------------------------------------
+  // GET /api/siswa/kartu/verifikasi/:nis [PUBLIK — Tanpa Login]
+  // Memvalidasi keaslian Kartu Pelajar Digital saat QR Code di-scan
+  // -----------------------------------------------------------
+  verifikasiKartuPublik: async (req, res) => {
+    try {
+      const nisParam = req.params.nis || req.query.nis;
+      if (!nisParam || !String(nisParam).trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Nomor Induk Siswa (NIS) wajib disertakan.',
+        });
+      }
+
+      const siswa = await SiswaModel.findByNis(String(nisParam).trim());
+      if (!siswa) {
+        return res.status(404).json({
+          success: false,
+          message: `Warga Belajar dengan NIS "${nisParam}" tidak ditemukan di database resmi PKBM Bina Mandiri.`,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Kartu Pelajar Warga Belajar terverifikasi resmi oleh PKBM Bina Mandiri.',
+        data: {
+          id: siswa.id,
+          nis: siswa.nis,
+          nik: siswa.nik ? siswa.nik.replace(/(.{4})(.*)(.{4})/, (_, a, b, c) => a + '*'.repeat(Math.max(2, b.length)) + c) : null,
+          nama_lengkap: siswa.nama_lengkap,
+          jenjang: siswa.jenjang,
+          nama_rombel: siswa.nama_rombel || 'Dalam Penetapan Rombel',
+          nama_tahun_ajaran: siswa.nama_tahun_ajaran || '2026/2027',
+          jenis_kelamin: siswa.jenis_kelamin,
+          tanggal_lahir: siswa.tanggal_lahir,
+          alamat: siswa.alamat,
+          is_aktif: siswa.is_aktif === 1,
+          foto_profil: siswa.foto_profil || null,
+          terdaftar_sejak: siswa.created_at,
+          lembaga: 'PKBM Bina Mandiri',
+          npsn: 'P9962854',
+          status_kartu: siswa.is_aktif === 1 ? 'AKTIF & RESMI' : 'NONAKTIF / ALUMNI',
+        },
+      });
+    } catch (error) {
+      console.error('[SiswaController.verifikasiKartuPublik] Error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal memverifikasi kartu pelajar.',
+      });
+    }
+  },
+
+  // -----------------------------------------------------------
+  // GET /api/siswa/kartu-pelajar-pdf
+  // GET /api/siswa/:id/kartu-pelajar-pdf
+  // Download file PDF resmi Kartu Pelajar Digital siap cetak A4
+  // Akses: Warga Belajar (profil sendiri), Admin, Tutor, Super Admin
+  // -----------------------------------------------------------
+  downloadKartuPelajarPdf: async (req, res) => {
+    try {
+      let siswa = null;
+      const targetId = req.params.id;
+
+      if (targetId && !isNaN(targetId)) {
+        const parsedId = parseInt(targetId, 10);
+        if (req.user.role === 'warga_belajar') {
+          const myProfile = await SiswaModel.findByUserId(req.user.id);
+          if (!myProfile || myProfile.id !== parsedId) {
+            return res.status(403).json({
+              success: false,
+              message: 'Anda tidak memiliki hak akses untuk mengunduh kartu siswa lain.',
+            });
+          }
+          siswa = myProfile;
+        } else {
+          siswa = await SiswaModel.findById(parsedId);
+        }
+      } else {
+        if (req.user.role === 'warga_belajar') {
+          siswa = await SiswaModel.findByUserId(req.user.id);
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: 'Parameter ID siswa wajib disertakan untuk admin.',
+          });
+        }
+      }
+
+      if (!siswa) {
+        return res.status(404).json({
+          success: false,
+          message: 'Data Warga Belajar tidak ditemukan.',
+        });
+      }
+
+      const pdfBuffer = await buildKartuPelajarPdf({ siswa });
+      const safeNis = (siswa.nis || `ID-${siswa.id}`).replace(/[^a-zA-Z0-9_-]/g, '_');
+      const filename = `Kartu_Pelajar_${safeNis}.pdf`;
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+
+      return res.end(pdfBuffer);
+    } catch (error) {
+      console.error('[SiswaController.downloadKartuPelajarPdf] Error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal menghasilkan dokumen Kartu Pelajar PDF.',
       });
     }
   },

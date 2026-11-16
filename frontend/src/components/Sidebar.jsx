@@ -34,6 +34,7 @@ import {
   Receipt,
   Newspaper,
   Library,
+  IdCard,
   Menu,
   X
 } from 'lucide-react';
@@ -65,6 +66,7 @@ function Sidebar({ user }) {
   const adminAdminItems = [
     { path: '/dashboard/admin/spmb', icon: UserPlus, label: 'Verifikasi SPMB' },
     { path: '/dashboard/admin/siswa', icon: Users, label: 'Data Siswa' },
+    { path: '/dashboard/siswa/kartu-pelajar', icon: IdCard, label: 'Kartu Pelajar Digital' },
     { path: '/dashboard/admin/users', icon: ShieldCheck, label: 'Manajemen Akun' },
   ];
 
@@ -327,6 +329,12 @@ function Sidebar({ user }) {
                       <li><NavLink to="/dashboard/siswa/klub" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><Trophy size={15} /><span>Klub Minat</span></NavLink></li>
                     </ul>
                   )}
+                </li>
+                <li>
+                  <NavLink to="/dashboard/siswa/kartu-pelajar" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>
+                    <IdCard size={18} className="menu-icon" />
+                    <span className="menu-label">Kartu Pelajar</span>
+                  </NavLink>
                 </li>
                 <li>
                   <NavLink to="/dashboard/siswa/tagihan" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}>

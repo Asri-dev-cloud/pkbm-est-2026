@@ -119,6 +119,34 @@ const SiswaModel = {
   },
 
   // -----------------------------------------------------------
+  // Cari WB berdasarkan NIS (dipakai verifikasi QR Kartu Pelajar)
+  // -----------------------------------------------------------
+  findByNis: async (nis) => {
+    if (!nis) return null;
+    const sql = `
+      SELECT
+        wb.*,
+        u.nama_lengkap,
+        u.email,
+        COALESCE(u.foto_profil, bs.path_file) AS foto_profil,
+        bs.path_file AS pas_foto,
+        r.nama_rombel,
+        ta.nama_tahun_ajaran
+      FROM warga_belajar wb
+      JOIN users u ON wb.user_id = u.id
+      LEFT JOIN rombel r ON wb.rombel_id = r.id
+      LEFT JOIN tahun_ajaran ta ON wb.tahun_ajaran_id = ta.id
+      LEFT JOIN pendaftar_spmb ps ON ps.warga_belajar_id = wb.id
+      LEFT JOIN berkas_spmb bs ON bs.pendaftar_id = ps.id AND bs.jenis_berkas = 'foto'
+      WHERE LOWER(wb.nis) = LOWER(?)
+      ORDER BY bs.id DESC
+      LIMIT 1
+    `;
+    const [rows] = await pool.execute(sql, [String(nis).trim()]);
+    return rows[0] || null;
+  },
+
+  // -----------------------------------------------------------
   // Buat profil Warga Belajar baru
   // Dipanggil otomatis oleh pipeline SPMB saat status = 'diterima'
   // -----------------------------------------------------------

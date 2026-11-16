@@ -30,7 +30,7 @@ export default function ModalPratinjauExcel({
     defaultTahunAjaran || getTahunAjaranRealTime()
   );
   const [downloading, setDownloading] = useState(false);
-  const [namaPenandatangan, setNamaPenandatangan] = useState('( Nama Kepala PKBM )');
+  const [namaPenandatangan, setNamaPenandatangan] = useState('Indrayani, S.S.,M.Pd.');
   const [nipPenandatangan, setNipPenandatangan] = useState('NIP / NUPTK: ....................................................');
   const printAreaRef = useRef(null);
 
@@ -444,7 +444,7 @@ export default function ModalPratinjauExcel({
                     marginTop: 2,
                   }}
                 >
-                  Sekretariat: Jl. KH. Hasyim Ashari No. 85, Cipondoh, Kota Tangerang, Banten | Web: pkbmbinamandiri.sch.id
+                  Sekretariat: PKBM Bina Mandiri, Sumedang, Jawa Barat | Web: pkbmbinamandiri.sch.id
                 </div>
               </div>
 
@@ -741,7 +741,7 @@ export default function ModalPratinjauExcel({
             >
               <div style={{ textAlign: 'center', minWidth: '240px' }}>
                 <div style={{ fontSize: '0.82rem', color: '#0F172A' }}>
-                  Tangerang, {formatTanggalDokumen()}
+                  Sumedang, {formatTanggalDokumen()}
                 </div>
                 <div
                   style={{
