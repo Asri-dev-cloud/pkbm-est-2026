@@ -119,4 +119,12 @@ router.put(
   SpmbController.buatKeputusan
 );
 
+// PUT /api/spmb/:id/batal-terima — Batalkan penerimaan calon siswa & kembalikan ke pending (Admin)
+router.put(
+  '/:id/batal-terima',
+  verifyToken,
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  SpmbController.batalkanPenerimaan
+);
+
 export default router;

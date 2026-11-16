@@ -243,6 +243,24 @@ const SpmbModel = {
   },
 
   // -----------------------------------------------------------
+  // Batalkan penerimaan pendaftar (kembalikan status ke pending & putuskan WB)
+  // -----------------------------------------------------------
+  batalkanPenerimaan: async (id, { catatan_verifikasi, diverifikasi_oleh }) => {
+    const sql = `
+      UPDATE pendaftar_spmb
+      SET
+        status = 'pending',
+        warga_belajar_id = NULL,
+        catatan_verifikasi = ?,
+        diverifikasi_oleh = ?,
+        tanggal_verifikasi = NOW()
+      WHERE id = ?
+    `;
+    const [result] = await pool.execute(sql, [catatan_verifikasi || null, diverifikasi_oleh, id]);
+    return result.affectedRows;
+  },
+
+  // -----------------------------------------------------------
   // Catat ID warga_belajar yang dibuat dari pipeline SPMB
   // Dipanggil setelah pipeline otomatis selesai membuat akun WB
   // -----------------------------------------------------------

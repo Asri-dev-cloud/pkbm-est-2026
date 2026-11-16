@@ -614,8 +614,8 @@ const SpmbController = {
 
   // -----------------------------------------------------------
   // PUT /api/spmb/:id/keputusan  [Admin]
-  // Keputusan akhir: TERIMA atau TOLAK pendaftar
-  // Body: { status: 'diterima'|'ditolak', catatan_verifikasi, rombel_id }
+  // Keputusan akhir: TERIMA, TOLAK, atau BATALKAN/KEMBALIKAN KE PENDING
+  // Body: { status: 'diterima'|'ditolak'|'pending'|'batal', catatan_verifikasi, rombel_id }
   // -----------------------------------------------------------
   buatKeputusan: async (req, res) => {
     try {
@@ -623,11 +623,11 @@ const SpmbController = {
       const { status, catatan_verifikasi, rombel_id } = req.body;
 
       // Validasi input
-      const statusValid = ['diterima', 'ditolak'];
+      const statusValid = ['diterima', 'ditolak', 'pending', 'batal', 'batal_terima'];
       if (!status || !statusValid.includes(status)) {
         return res.status(400).json({
           success: false,
-          message: 'Status harus "diterima" atau "ditolak".',
+          message: 'Status harus "diterima", "ditolak", atau "pending" / "batal".',
         });
       }
 
@@ -635,6 +635,12 @@ const SpmbController = {
       const pendaftar = await SpmbModel.findById(parseInt(id));
       if (!pendaftar) {
         return res.status(404).json({ success: false, message: 'Pendaftar tidak ditemukan.' });
+      }
+
+      // Jika membatalkan penerimaan / mengembalikan ke status pending
+      if (status === 'pending' || status === 'batal' || status === 'batal_terima') {
+        req.body.alasan_pembatalan = catatan_verifikasi || req.body.alasan_pembatalan;
+        return await SpmbController.batalkanPenerimaan(req, res);
       }
 
       // Jika pendaftar sudah diterima dan sudah punya akun WB, izinkan update rombel / catatan
@@ -685,6 +691,243 @@ const SpmbController = {
       return res.status(500).json({
         success: false,
         message: 'Gagal memproses keputusan SPMB. Error: ' + error.message,
+      });
+    }
+  },
+
+  // -----------------------------------------------------------
+  // PUT /api/spmb/:id/batal-terima  [Admin, Super Admin]
+  // Membatalkan penerimaan calon siswa:
+  // 1. Mengembalikan status pendaftar_spmb ke 'pending'
+  // 2. Melepaskan tautan warga_belajar_id dari pendaftar_spmb
+  // 3. Menghapus atau menonaktifkan data warga_belajar & users siswa
+  // 4. Mengembalikan status berkas 'valid' ke 'menunggu' untuk re-verifikasi
+  // -----------------------------------------------------------
+  batalkanPenerimaan: async (req, res) => {
+    let conn;
+    try {
+      const { id } = req.params;
+      const { alasan_pembatalan, catatan_verifikasi } = req.body;
+      const pendaftarId = parseInt(id);
+
+      if (isNaN(pendaftarId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'ID pendaftar tidak valid.',
+        });
+      }
+
+      const pendaftar = await SpmbModel.findById(pendaftarId);
+      if (!pendaftar) {
+        return res.status(404).json({
+          success: false,
+          message: `Pendaftar dengan ID ${pendaftarId} tidak ditemukan.`,
+        });
+      }
+
+      // Jika berstatus ditolak dan admin ingin membatalkan penolakan (mengembalikan ke pending)
+      if (pendaftar.status === 'ditolak') {
+        const timestampStr = new Date().toLocaleString('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        const alasan = (alasan_pembatalan || catatan_verifikasi || '').trim();
+        const catatanBaru = alasan
+          ? `[Penolakan Dibatalkan ${timestampStr}] ${alasan}`
+          : `Penolakan dibatalkan oleh Admin pada ${timestampStr}. Status dikembalikan ke antrian verifikasi.`;
+
+        await pool.execute(
+          `UPDATE pendaftar_spmb
+           SET status = 'pending',
+               catatan_verifikasi = ?,
+               diverifikasi_oleh = ?,
+               tanggal_verifikasi = NOW()
+           WHERE id = ?`,
+          [catatanBaru, req.user?.id || 1, pendaftarId]
+        );
+
+        return res.status(200).json({
+          success: true,
+          message: `Status pendaftar "${pendaftar.nama_lengkap}" berhasil dikembalikan ke Menunggu Verifikasi.`,
+          data: { pendaftar_id: pendaftarId, status: 'pending' },
+        });
+      }
+
+      // Pastikan status saat ini memang 'diterima'
+      if (pendaftar.status !== 'diterima') {
+        return res.status(400).json({
+          success: false,
+          message: `Pendaftar "${pendaftar.nama_lengkap}" saat ini berstatus '${pendaftar.status}'. Pembatalan penerimaan hanya dapat dilakukan pada siswa yang telah diterima.`,
+        });
+      }
+
+      conn = await pool.getConnection();
+      await conn.beginTransaction();
+
+      let wbId = pendaftar.warga_belajar_id;
+      let userId = null;
+
+      // Cari user_id dan warga_belajar_id terkait
+      if (wbId) {
+        const [wbRows] = await conn.execute(
+          `SELECT id, user_id FROM warga_belajar WHERE id = ? LIMIT 1`,
+          [wbId]
+        );
+        if (wbRows.length > 0) {
+          userId = wbRows[0].user_id;
+        }
+      }
+
+      if (!wbId && pendaftar.email) {
+        const [uRows] = await conn.execute(
+          `SELECT id, role FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1`,
+          [pendaftar.email.trim()]
+        );
+        if (uRows.length > 0) {
+          userId = uRows[0].id;
+          const [wbRows] = await conn.execute(
+            `SELECT id FROM warga_belajar WHERE user_id = ? LIMIT 1`,
+            [userId]
+          );
+          if (wbRows.length > 0) {
+            wbId = wbRows[0].id;
+          }
+        }
+      }
+
+      // 1. Putuskan referensi warga_belajar_id dari pendaftar_spmb terlebih dahulu
+      await conn.execute(
+        `UPDATE pendaftar_spmb SET warga_belajar_id = NULL WHERE id = ?`,
+        [pendaftarId]
+      );
+
+      // 2. Bersihkan atau nonaktifkan data Warga Belajar
+      if (wbId) {
+        // Cek apakah ada data transaksional/akademik yang mengikat WB ini
+        let hasForeignData = false;
+        try {
+          const [tagihan] = await conn.execute(`SELECT COUNT(*) AS c FROM tagihan_siswa WHERE warga_belajar_id = ?`, [wbId]);
+          const [nilai] = await conn.execute(`SELECT COUNT(*) AS c FROM nilai_akhir WHERE warga_belajar_id = ?`, [wbId]);
+          const [absen] = await conn.execute(`SELECT COUNT(*) AS c FROM rekaman_kehadiran WHERE warga_belajar_id = ?`, [wbId]);
+          const [ujian] = await conn.execute(`SELECT COUNT(*) AS c FROM peserta_ujian WHERE warga_belajar_id = ?`, [wbId]);
+          const [tugas] = await conn.execute(`SELECT COUNT(*) AS c FROM pengumpulan_tugas WHERE warga_belajar_id = ?`, [wbId]);
+          const [klub] = await conn.execute(`SELECT COUNT(*) AS c FROM anggota_klub WHERE warga_belajar_id = ?`, [wbId]);
+
+          const totalData = (tagihan[0]?.c || 0) + (nilai[0]?.c || 0) + (absen[0]?.c || 0) +
+                            (ujian[0]?.c || 0) + (tugas[0]?.c || 0) + (klub[0]?.c || 0);
+          if (totalData > 0) {
+            hasForeignData = true;
+          }
+        } catch (checkErr) {
+          console.warn('[SpmbController.batalkanPenerimaan] Check child records warn:', checkErr.message);
+        }
+
+        if (!hasForeignData) {
+          try {
+            await conn.execute(`DELETE FROM progres_materi WHERE warga_belajar_id = ?`, [wbId]);
+            await conn.execute(`DELETE FROM warga_belajar WHERE id = ?`, [wbId]);
+          } catch (delWbErr) {
+            console.warn('[SpmbController.batalkanPenerimaan] Hard delete WB blocked, fallback soft deactivate:', delWbErr.message);
+            await conn.execute(
+              `UPDATE warga_belajar SET is_aktif = 0, rombel_id = NULL WHERE id = ?`,
+              [wbId]
+            );
+          }
+        } else {
+          // Jika sudah ada riwayat akademik, nonaktifkan secara aman
+          await conn.execute(
+            `UPDATE warga_belajar SET is_aktif = 0, rombel_id = NULL WHERE id = ?`,
+            [wbId]
+          );
+        }
+      }
+
+      // 3. Bersihkan akun user jika akun khusus warga_belajar
+      if (userId) {
+        const [uCheck] = await conn.execute(
+          `SELECT id, role FROM users WHERE id = ? LIMIT 1`,
+          [userId]
+        );
+        if (uCheck.length > 0 && uCheck[0].role === 'warga_belajar') {
+          // Cek apakah masih ada profil warga_belajar lain yang memakai user_id ini
+          const [remainingWb] = await conn.execute(
+            `SELECT id FROM warga_belajar WHERE user_id = ? LIMIT 1`,
+            [userId]
+          );
+          if (remainingWb.length === 0) {
+            try {
+              await conn.execute(`DELETE FROM refresh_token WHERE user_id = ?`, [userId]);
+              await conn.execute(`DELETE FROM reset_password_token WHERE user_id = ?`, [userId]);
+              await conn.execute(`DELETE FROM notifikasi WHERE user_id = ?`, [userId]);
+              await conn.execute(`DELETE FROM users WHERE id = ?`, [userId]);
+            } catch (delUserErr) {
+              console.warn('[SpmbController.batalkanPenerimaan] Delete user blocked, fallback is_active = 0:', delUserErr.message);
+              await conn.execute(`UPDATE users SET is_active = 0 WHERE id = ?`, [userId]);
+            }
+          } else {
+            await conn.execute(`UPDATE users SET is_active = 0 WHERE id = ?`, [userId]);
+          }
+        }
+      }
+
+      // 4. Kembalikan status pendaftar_spmb ke 'pending'
+      const alasanFinal = (alasan_pembatalan || catatan_verifikasi || '').trim();
+      const timestampStr = new Date().toLocaleString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      const catatanUpdate = alasanFinal
+        ? `[Penerimaan Dibatalkan ${timestampStr}] ${alasanFinal}`
+        : `Penerimaan dibatalkan oleh Admin pada ${timestampStr}. Status dikembalikan ke antrian verifikasi.`;
+
+      await conn.execute(
+        `UPDATE pendaftar_spmb
+         SET status = 'pending',
+             warga_belajar_id = NULL,
+             catatan_verifikasi = ?,
+             diverifikasi_oleh = ?,
+             tanggal_verifikasi = NOW()
+         WHERE id = ?`,
+        [catatanUpdate, req.user?.id || 1, pendaftarId]
+      );
+
+      // 5. Kembalikan berkas yang tadinya auto-valid ke 'menunggu' untuk re-verifikasi
+      await conn.execute(
+        `UPDATE berkas_spmb
+         SET status_verifikasi = 'menunggu'
+         WHERE pendaftar_id = ? AND status_verifikasi = 'valid'`,
+        [pendaftarId]
+      );
+
+      await conn.commit();
+      conn.release();
+      conn = null;
+
+      return res.status(200).json({
+        success: true,
+        message: `Penerimaan calon siswa "${pendaftar.nama_lengkap}" berhasil DIBATALKAN. Status pendaftaran telah dikembalikan ke Menunggu Verifikasi.`,
+        data: {
+          pendaftar_id: pendaftarId,
+          status: 'pending',
+          catatan_verifikasi: catatanUpdate,
+        },
+      });
+
+    } catch (error) {
+      if (conn) {
+        try { await conn.rollback(); } catch (rbErr) {}
+        try { conn.release(); } catch (relErr) {}
+      }
+      console.error('[SpmbController.batalkanPenerimaan] Error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal membatalkan penerimaan pendaftar. Error: ' + error.message,
       });
     }
   },

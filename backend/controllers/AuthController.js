@@ -149,6 +149,14 @@ const AuthController = {
         });
       }
 
+      // Pastikan status akun aktif
+      if (!user.is_active) {
+        return res.status(403).json({
+          success: false,
+          message: 'Akun Anda telah dinonaktifkan atau status penerimaan dibatalkan. Silakan hubungi Administrator TU.',
+        });
+      }
+
       // Buat token JWT yang berisi payload minimun (id & role)
       // Jangan menaruh data sensitif di payload JWT
       const token = jwt.sign(

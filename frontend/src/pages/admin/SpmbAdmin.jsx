@@ -35,6 +35,11 @@ function SpmbAdmin() {
   const [downloadingExcel, setDownloadingExcel] = useState(false);
   const [previewBerkasTarget, setPreviewBerkasTarget] = useState(null);
 
+  // ── State: Modal Batalkan Penerimaan / Keputusan ──
+  const [modalBatalOpen, setModalBatalOpen] = useState(false);
+  const [alasanBatal, setAlasanBatal] = useState('');
+  const [batalLoading, setBatalLoading] = useState(false);
+
   // ── State: Modal Tambah Pendaftar Manual (Oleh Admin TU) ──
   const [modalTambahOpen, setModalTambahOpen] = useState(false);
   const [tambahLoading, setTambahLoading] = useState(false);
@@ -328,6 +333,48 @@ function SpmbAdmin() {
       alert(err.response?.data?.message || 'Gagal membuat keputusan.');
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const handleBukaModalBatal = () => {
+    if (!detail) return;
+    setAlasanBatal('');
+    setModalBatalOpen(true);
+  };
+
+  const handleKonfirmasiBatalPenerimaan = async () => {
+    if (!detail) return;
+    setBatalLoading(true);
+    try {
+      const res = await SpmbAPI.batalkanPenerimaan(detail.id, {
+        alasan_pembatalan: alasanBatal.trim() || undefined,
+      });
+
+      if (res.data?.success) {
+        alert(res.data.message || `Penerimaan siswa "${detail.nama_lengkap}" berhasil dibatalkan.`);
+        setModalBatalOpen(false);
+        setAlasanBatal('');
+
+        // Refresh data
+        const [resList, resStat, resDetail] = await Promise.all([
+          SpmbAPI.getAll({ status: filterStatus || undefined }),
+          SpmbAPI.getStatistik(),
+          SpmbAPI.getById(detail.id),
+        ]);
+
+        setList(resList.data.data || []);
+        setStat(resStat.data.data);
+        setDetail(resDetail.data.data);
+        if (resDetail.data?.data?.jenjang_daftar) {
+          await fetchRombelOptions(resDetail.data.data.jenjang_daftar);
+        }
+      } else {
+        alert(res.data?.message || 'Gagal membatalkan penerimaan.');
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Terjadi kesalahan saat membatalkan penerimaan.');
+    } finally {
+      setBatalLoading(false);
     }
   };
 
@@ -1214,6 +1261,66 @@ function SpmbAdmin() {
                                   <span>Buka di Halaman Data Siswa</span>
                                 </Link>
                               )}
+
+                              {/* Aksi Pembatalan Penerimaan */}
+                              <div style={{ marginTop: '0.875rem', paddingTop: '0.875rem', borderTop: '1px dashed #CBD5E1' }}>
+                                <button
+                                  type="button"
+                                  onClick={handleBukaModalBatal}
+                                  disabled={processing || batalLoading}
+                                  style={{
+                                    width: '100%',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 7,
+                                    padding: '9px 14px',
+                                    borderRadius: 8,
+                                    fontSize: '0.85rem',
+                                    fontWeight: 700,
+                                    color: '#DC2626',
+                                    backgroundColor: '#FEF2F2',
+                                    border: '1.5px solid #FCA5A5',
+                                    cursor: (processing || batalLoading) ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    boxShadow: '0 1px 2px rgba(220, 38, 38, 0.05)',
+                                  }}
+                                  title="Batalkan penerimaan siswa ini dan kembalikan status pendaftaran ke antrian verifikasi (Pending)"
+                                >
+                                  <i className="bi bi-arrow-counterclockwise" style={{ fontSize: '1rem' }}></i>
+                                  <span>Batalkan Penerimaan Siswa</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {detail.status === 'ditolak' && (
+                            <div style={{ marginTop: '0.75rem' }}>
+                              <button
+                                type="button"
+                                onClick={handleBukaModalBatal}
+                                disabled={processing || batalLoading}
+                                style={{
+                                  width: '100%',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 7,
+                                  padding: '9px 14px',
+                                  borderRadius: 8,
+                                  fontSize: '0.85rem',
+                                  fontWeight: 700,
+                                  color: '#475569',
+                                  backgroundColor: '#F1F5F9',
+                                  border: '1.5px solid #CBD5E1',
+                                  cursor: (processing || batalLoading) ? 'not-allowed' : 'pointer',
+                                  transition: 'all 0.15s ease',
+                                }}
+                                title="Batalkan penolakan dan kembalikan pendaftar ke antrian verifikasi (Pending)"
+                              >
+                                <i className="bi bi-arrow-counterclockwise" style={{ fontSize: '1rem' }}></i>
+                                <span>Batalkan Penolakan (Kembalikan ke Pending)</span>
+                              </button>
                             </div>
                           )}
                         </div>
@@ -1581,6 +1688,225 @@ function SpmbAdmin() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Konfirmasi Batalkan Penerimaan Siswa ── */}
+      {modalBatalOpen && detail && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !batalLoading) setModalBatalOpen(false);
+          }}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: 16,
+              maxWidth: 520,
+              width: '100%',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+              overflow: 'hidden',
+              animation: 'fadeIn 0.2s ease-out',
+            }}
+          >
+            {/* Header Modal */}
+            <div
+              style={{
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid #F1F5F9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: detail.status === 'diterima' ? '#FEF2F2' : '#F8FAFC',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: detail.status === 'diterima' ? '#FEE2E2' : '#E2E8F0',
+                    color: detail.status === 'diterima' ? '#DC2626' : '#475569',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.2rem',
+                  }}
+                >
+                  <i className={`bi ${detail.status === 'diterima' ? 'bi-exclamation-triangle-fill' : 'bi-arrow-counterclockwise'}`} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0F172A' }}>
+                    {detail.status === 'diterima' ? 'Batalkan Penerimaan Siswa' : 'Batalkan Penolakan Pendaftar'}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748B' }}>
+                    Nomor Pendaftaran: #{detail.id}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => !batalLoading && setModalBatalOpen(false)}
+                disabled={batalLoading}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '1.25rem',
+                  color: '#94A3B8',
+                  cursor: batalLoading ? 'not-allowed' : 'pointer',
+                  padding: 4,
+                  lineHeight: 1,
+                }}
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Isi Modal */}
+            <div style={{ padding: '1.5rem' }}>
+              <div
+                style={{
+                  padding: '1rem',
+                  borderRadius: 10,
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  marginBottom: '1.25rem',
+                }}
+              >
+                <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: '6px', fontSize: '0.85rem' }}>
+                  <span style={{ color: '#64748B', fontWeight: 600 }}>Nama Siswa:</span>
+                  <span style={{ color: '#0F172A', fontWeight: 800 }}>{detail.nama_lengkap}</span>
+
+                  <span style={{ color: '#64748B', fontWeight: 600 }}>Jenjang:</span>
+                  <span style={{ color: '#0F172A', fontWeight: 700 }}>
+                    {labelJenjang[detail.jenjang_daftar] || detail.jenjang_daftar}
+                  </span>
+
+                  {detail.nis && (
+                    <>
+                      <span style={{ color: '#64748B', fontWeight: 600 }}>NIS:</span>
+                      <span style={{ color: '#1D4ED8', fontWeight: 700 }}>{detail.nis}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 10,
+                  padding: '0.875rem 1rem',
+                  borderRadius: 10,
+                  background: '#FFFBEB',
+                  border: '1px solid #FDE68A',
+                  color: '#92400E',
+                  fontSize: '0.825rem',
+                  lineHeight: 1.5,
+                  marginBottom: '1.25rem',
+                }}
+              >
+                <i className="bi bi-info-circle-fill" style={{ fontSize: '1.1rem', flexShrink: 0, color: '#D97706' }} />
+                <div>
+                  <strong>Konsekuensi Tindakan:</strong>
+                  <ul style={{ margin: '4px 0 0', paddingLeft: '1.1rem' }}>
+                    <li>Status pendaftaran akan dikembalikan ke <strong>Menunggu Verifikasi (Pending)</strong>.</li>
+                    {detail.status === 'diterima' && (
+                      <li>Profil Warga Belajar dan akses akun siswa akan dicabut dari sistem.</li>
+                    )}
+                    <li>Panitia TU dapat kembali memverifikasi berkas, menetapkan rombel ulang, atau menolak pendaftar.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '0.5rem' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.825rem',
+                    fontWeight: 700,
+                    color: '#334155',
+                    marginBottom: 6,
+                  }}
+                >
+                  Alasan Pembatalan (Opsional):
+                </label>
+                <textarea
+                  className="form-input"
+                  rows={3}
+                  placeholder="Contoh: Siswa mengundurkan diri, salah pilih rombel, berkas fisik belum diserahkan, dsb..."
+                  value={alasanBatal}
+                  onChange={(e) => setAlasanBatal(e.target.value)}
+                  style={{ resize: 'vertical', fontSize: '0.85rem' }}
+                />
+              </div>
+            </div>
+
+            {/* Footer Modal */}
+            <div
+              style={{
+                padding: '1rem 1.5rem',
+                borderTop: '1px solid #F1F5F9',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 10,
+                background: '#F8FAFC',
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setModalBatalOpen(false)}
+                disabled={batalLoading}
+                style={{ padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600 }}
+              >
+                Kembali / Tutup
+              </button>
+              <button
+                type="button"
+                onClick={handleKonfirmasiBatalPenerimaan}
+                disabled={batalLoading}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 18px',
+                  borderRadius: 8,
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  color: '#FFFFFF',
+                  backgroundColor: '#DC2626',
+                  border: 'none',
+                  cursor: batalLoading ? 'not-allowed' : 'pointer',
+                  opacity: batalLoading ? 0.75 : 1,
+                  boxShadow: '0 2px 4px rgba(220, 38, 38, 0.25)',
+                }}
+              >
+                {batalLoading ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" style={{ width: 14, height: 14 }} />
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-arrow-counterclockwise" />
+                    <span>Ya, Batalkan Penerimaan</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
