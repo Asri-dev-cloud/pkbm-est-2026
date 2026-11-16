@@ -46,22 +46,8 @@ export const toAssetUrl = (filePath, fallbackBerkasId = null) => {
   const isUpload = normalized.startsWith('uploads/');
   const uploadSubPath = isUpload ? normalized.replace(/^uploads\//, '') : normalized;
 
-  if (typeof window !== 'undefined' && window.location) {
-    const host = window.location.hostname.toLowerCase();
-    if (host.includes('pkbmbinamandiri.sch.id')) {
-      // Prioritaskan /api/uploads/ karena Nginx selalu me-reverse proxy /api/ ke Express port 8000
-      return `/api/uploads/${uploadSubPath}`;
-    }
-  }
-
-  const apiUrl = (import.meta.env.VITE_API_URL || '').trim();
-  if (/^https?:\/\//i.test(apiUrl)) {
-    const origin = apiUrl.replace(/\/api\/?$/i, '').replace(/\/+$/, '');
-    return `${origin}/uploads/${uploadSubPath}`;
-  }
-
-  // Standar: gunakan /api/uploads/... yang selalu diproxy dengan andal
-  return `/api/uploads/${uploadSubPath}`;
+  // Standar: gunakan /uploads/... yang dilayani langsung oleh Nginx & diproxy oleh Vite
+  return `/uploads/${uploadSubPath}`;
 };
 
 // Helper untuk menyediakan daftar kandidat URL untuk failover/fallback otomatis
@@ -219,6 +205,13 @@ export const SiswaAPI = {
     const url = id ? `/siswa/${id}/kartu-pelajar-pdf` : '/siswa/kartu-pelajar-pdf';
     return apiClient.get(url, { responseType: 'blob' });
   },
+
+  // POST /api/siswa/:id/foto
+  // Upload atau perbarui pas foto siswa (Admin/Super Admin)
+  uploadFoto: (id, formData) =>
+    apiClient.post(`/siswa/${id}/foto`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 

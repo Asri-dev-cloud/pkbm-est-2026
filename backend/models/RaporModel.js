@@ -76,30 +76,83 @@ const RaporModel = {
     await RaporModel.ensureTables();
 
     // 1. Tahun Ajaran
-    const [tahunAjaran] = await pool.query(
-      `SELECT id, nama_tahun_ajaran, is_aktif FROM tahun_ajaran ORDER BY is_aktif DESC, nama_tahun_ajaran DESC`
-    );
+    let tahunAjaran = [];
+    try {
+      const [rows] = await pool.query(
+        `SELECT id, nama_tahun_ajaran, is_aktif FROM tahun_ajaran ORDER BY is_aktif DESC, nama_tahun_ajaran DESC`
+      );
+      tahunAjaran = rows;
+    } catch {
+      try {
+        const [rows] = await pool.query(`SELECT id, nama_tahun_ajaran FROM tahun_ajaran ORDER BY id DESC`);
+        tahunAjaran = rows.map(r => ({ ...r, is_aktif: 1 }));
+      } catch {
+        tahunAjaran = [{ id: 1, nama_tahun_ajaran: '2026/2027', is_aktif: 1 }];
+      }
+    }
 
     // 2. Rombel
-    const [rombel] = await pool.query(
-      `SELECT id, nama_rombel, jenjang FROM rombel ORDER BY jenjang ASC, nama_rombel ASC`
-    );
+    let rombel = [];
+    try {
+      const [rows] = await pool.query(
+        `SELECT id, nama_rombel, jenjang FROM rombel ORDER BY jenjang ASC, nama_rombel ASC`
+      );
+      rombel = rows;
+    } catch {
+      try {
+        const [rows] = await pool.query(`SELECT id, nama_rombel FROM rombel ORDER BY id ASC`);
+        rombel = rows;
+      } catch {
+        rombel = [];
+      }
+    }
 
     // 3. Mata Pelajaran (menggunakan kolom tabel DB: id, nama, kode, jenjang)
-    const [mapel] = await pool.query(
-      `SELECT id, nama AS nama_mapel, kode AS kode_mapel, jenjang, 75 AS kkm 
-       FROM mata_pelajaran 
-       WHERE is_active = 1 
-       ORDER BY id ASC, nama ASC`
-    );
+    let mapel = [];
+    try {
+      const [rows] = await pool.query(
+        `SELECT id, nama AS nama_mapel, kode AS kode_mapel, jenjang, 75 AS kkm 
+         FROM mata_pelajaran 
+         WHERE is_active = 1 
+         ORDER BY id ASC, nama ASC`
+      );
+      mapel = rows;
+    } catch {
+      try {
+        const [rows] = await pool.query(
+          `SELECT id, nama AS nama_mapel, kode AS kode_mapel, jenjang, 75 AS kkm 
+           FROM mata_pelajaran 
+           ORDER BY id ASC, nama ASC`
+        );
+        mapel = rows;
+      } catch {
+        mapel = [];
+      }
+    }
 
     // 4. Daftar Seluruh Warga Belajar
-    const [siswaList] = await pool.query(
-      `SELECT wb.id, wb.nis, wb.jenjang, wb.rombel_id, wb.tahun_ajaran_id, u.nama_lengkap, u.email
-       FROM warga_belajar wb
-       JOIN users u ON wb.user_id = u.id
-       ORDER BY u.nama_lengkap ASC`
-    );
+    let siswaList = [];
+    try {
+      const [rows] = await pool.query(
+        `SELECT wb.id, wb.nis, wb.nik, wb.jenjang, wb.rombel_id, wb.tahun_ajaran_id, u.nama_lengkap, u.email
+         FROM warga_belajar wb
+         JOIN users u ON wb.user_id = u.id
+         ORDER BY u.nama_lengkap ASC`
+      );
+      siswaList = rows;
+    } catch (e) {
+      console.warn('[RaporModel.getMeta Siswa Fallback]:', e.message);
+      try {
+        const [rows] = await pool.query(
+          `SELECT wb.id, wb.nis, wb.jenjang, wb.rombel_id, wb.tahun_ajaran_id, u.nama_lengkap
+           FROM warga_belajar wb
+           JOIN users u ON wb.user_id = u.id`
+        );
+        siswaList = rows;
+      } catch {
+        siswaList = [];
+      }
+    }
 
     return {
       tahun_ajaran: tahunAjaran,
@@ -137,17 +190,25 @@ const RaporModel = {
         wb.jenjang,
         u.nama_lengkap,
         u.email,
-        u.foto,
+        u.foto_profil AS foto,
+        u.foto_profil,
         COALESCE(rb.nama_rombel, UPPER(wb.jenjang)) AS nama_rombel,
         COALESCE(ta.nama_tahun_ajaran, '2026/2027') AS nama_tahun_ajaran,
-        COUNT(rn.id) AS total_mapel,
-        ROUND(COALESCE(AVG(rn.nilai_akhir), 0), 1) AS rata_rata_nilai
+        COALESCE(stat.total_mapel, 0) AS total_mapel,
+        COALESCE(stat.rata_rata_nilai, 0) AS rata_rata_nilai
       FROM rapor_periode r
       JOIN warga_belajar wb ON r.warga_belajar_id = wb.id
       JOIN users u ON wb.user_id = u.id
       LEFT JOIN rombel rb ON r.rombel_id = rb.id
       LEFT JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
-      LEFT JOIN rapor_nilai rn ON r.id = rn.rapor_id
+      LEFT JOIN (
+        SELECT 
+          rapor_id,
+          COUNT(id) AS total_mapel,
+          ROUND(AVG(nilai_akhir), 1) AS rata_rata_nilai
+        FROM rapor_nilai
+        GROUP BY rapor_id
+      ) stat ON stat.rapor_id = r.id
       WHERE 1=1
     `;
 
@@ -175,7 +236,6 @@ const RaporModel = {
     }
 
     sql += `
-      GROUP BY r.id
       ORDER BY r.created_at DESC, u.nama_lengkap ASC
     `;
 
@@ -213,7 +273,8 @@ const RaporModel = {
         wb.alamat,
         u.nama_lengkap,
         u.email,
-        u.foto,
+        u.foto_profil AS foto,
+        u.foto_profil,
         COALESCE(rb.nama_rombel, UPPER(wb.jenjang)) AS nama_rombel,
         COALESCE(ta.nama_tahun_ajaran, '2026/2027') AS nama_tahun_ajaran
       FROM rapor_periode r
@@ -294,12 +355,19 @@ const RaporModel = {
         r.updated_at,
         COALESCE(rb.nama_rombel, 'Kelas Terpadu') AS nama_rombel,
         COALESCE(ta.nama_tahun_ajaran, '2026/2027') AS nama_tahun_ajaran,
-        COUNT(rn.id) AS total_mapel,
-        ROUND(COALESCE(AVG(rn.nilai_akhir), 0), 1) AS rata_rata_nilai
+        COALESCE(stat.total_mapel, 0) AS total_mapel,
+        COALESCE(stat.rata_rata_nilai, 0) AS rata_rata_nilai
       FROM rapor_periode r
       LEFT JOIN rombel rb ON r.rombel_id = rb.id
       LEFT JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
-      LEFT JOIN rapor_nilai rn ON r.id = rn.rapor_id
+      LEFT JOIN (
+        SELECT 
+          rapor_id,
+          COUNT(id) AS total_mapel,
+          ROUND(AVG(nilai_akhir), 1) AS rata_rata_nilai
+        FROM rapor_nilai
+        GROUP BY rapor_id
+      ) stat ON stat.rapor_id = r.id
       WHERE r.warga_belajar_id = ?
     `;
 
@@ -316,8 +384,7 @@ const RaporModel = {
     }
 
     sql += `
-      GROUP BY r.id
-      ORDER BY ta.is_aktif DESC, r.semester DESC, r.created_at DESC
+      ORDER BY r.created_at DESC
     `;
 
     const [rows] = await pool.query(sql, params);

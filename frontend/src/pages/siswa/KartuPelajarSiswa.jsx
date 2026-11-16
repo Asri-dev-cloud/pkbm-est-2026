@@ -37,9 +37,10 @@ function KartuPelajarSiswa() {
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [downloadingImg, setDownloadingImg] = useState(false);
 
-  // State khusus Admin
+  // State khusus Admin & Foto Siswa
   const [siswaList, setSiswaList] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0);
 
   // Ambil data profil siswa
   useEffect(() => {
@@ -105,6 +106,47 @@ function KartuPelajarSiswa() {
     ...profil,
     nis: (profil.nis || '').replace('PKBM-2025-', 'PKBM-2026-') || profil.nis,
   } : null;
+
+  // Susun kandidat URL foto dari database dengan multi-candidate failover
+  const photoCandidates = React.useMemo(() => {
+    if (!profil) return [];
+    const raw = profil.foto_pendaftaran || profil.pas_foto || profil.foto_profil || profil.foto;
+    const candidates = [];
+    if (raw) {
+      if (/^https?:\/\//i.test(raw)) {
+        candidates.push(raw);
+      } else {
+        const clean = String(raw).replace(/\\/g, '/').replace(/^\/+/, '');
+        const sub = clean.replace(/^uploads\//, '');
+        // 1. Lewat proxy /api/uploads/
+        candidates.push(`/api/uploads/${sub}`);
+        // 2. Akses direct /uploads/
+        candidates.push(`/uploads/${sub}`);
+        // 3. Absolute domain resmi
+        candidates.push(`https://pkbmbinamandiri.sch.id/uploads/${sub}`);
+        candidates.push(`https://pkbmbinamandiri.sch.id/api/uploads/${sub}`);
+        // 4. Raw path
+        candidates.push(`/${clean}`);
+      }
+    }
+    if (profil.berkas_foto_id) {
+      candidates.push(`/api/spmb/berkas/${profil.berkas_foto_id}/file`);
+      candidates.push(`https://pkbmbinamandiri.sch.id/api/spmb/berkas/${profil.berkas_foto_id}/file`);
+    }
+    return [...new Set(candidates.filter(Boolean))];
+  }, [profil]);
+
+  useEffect(() => {
+    setActivePhotoIdx(0);
+  }, [profil?.id, profil?.foto_pendaftaran, profil?.pas_foto, profil?.foto_profil]);
+
+  const handlePhotoError = () => {
+    if (activePhotoIdx + 1 < photoCandidates.length) {
+      setActivePhotoIdx((prev) => prev + 1);
+    } else {
+      setActivePhotoIdx(999);
+    }
+  };
 
   // Unduh Dokumen PDF Resmi Presisi 300 DPI
   const handleDownloadPdf = async () => {
@@ -336,23 +378,19 @@ function KartuPelajarSiswa() {
                     {/* Badan Depan (Foto & Typographic Flow Bersih Tanpa Kotak-Kotak) */}
                     <div className="card-main-content">
                       <div className="card-photo-portrait">
-                        {profil.foto_profil || profil.pas_foto ? (
+                        {photoCandidates.length > 0 && activePhotoIdx < photoCandidates.length ? (
                           <img
-                            src={toAssetUrl(profil.foto_profil || profil.pas_foto)}
+                            key={photoCandidates[activePhotoIdx]}
+                            src={photoCandidates[activePhotoIdx]}
                             alt={profil.nama_lengkap}
                             className="student-portrait-img"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
+                            onError={handlePhotoError}
                           />
-                        ) : null}
-                        <div
-                          className="student-portrait-fallback"
-                          style={{ display: (profil.foto_profil || profil.pas_foto) ? 'none' : 'flex' }}
-                        >
-                          <span>{profil.nama_lengkap?.charAt(0)?.toUpperCase() || 'W'}</span>
-                        </div>
+                        ) : (
+                          <div className="student-portrait-fallback">
+                            <span>{profil.nama_lengkap?.charAt(0)?.toUpperCase() || 'W'}</span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="card-details-flow">

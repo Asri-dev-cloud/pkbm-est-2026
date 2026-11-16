@@ -135,6 +135,56 @@ export const testConnection = async () => {
     } catch (rErr) {
       // Abaikan jika tabel belum siap
     }
+
+    // Otomatis pastikan tabel rapor_periode dan rapor_nilai siap digunakan
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS \`rapor_periode\` (
+          \`id\` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+          \`warga_belajar_id\` INT UNSIGNED NOT NULL,
+          \`rombel_id\` INT UNSIGNED NOT NULL,
+          \`tahun_ajaran_id\` INT UNSIGNED NOT NULL,
+          \`semester\` ENUM('1', '2') NOT NULL DEFAULT '1' COMMENT 'Semester 1 (Ganjil) atau 2 (Genap)',
+          \`total_hadir\` INT NOT NULL DEFAULT 0,
+          \`total_izin\` INT NOT NULL DEFAULT 0,
+          \`total_sakit\` INT NOT NULL DEFAULT 0,
+          \`total_alpa\` INT NOT NULL DEFAULT 0,
+          \`catatan_wali\` TEXT NULL COMMENT 'Catatan wali kelas / perkembangan belajar siswa',
+          \`status_rapor\` ENUM('draft', 'final') NOT NULL DEFAULT 'draft',
+          \`tanggal_cetak\` DATETIME NULL,
+          \`created_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          \`updated_at\` DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (\`id\`),
+          UNIQUE KEY \`uq_rapor\` (\`warga_belajar_id\`, \`tahun_ajaran_id\`, \`semester\`),
+          KEY \`idx_wb\` (\`warga_belajar_id\`),
+          KEY \`idx_rombel\` (\`rombel_id\`),
+          KEY \`idx_ta\` (\`tahun_ajaran_id\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Header rapor per WB per semester';
+      `);
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS \`rapor_nilai\` (
+          \`id\` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+          \`rapor_id\` INT UNSIGNED NOT NULL,
+          \`mapel_id\` INT UNSIGNED NOT NULL,
+          \`nilai_tugas\` DECIMAL(5,2) DEFAULT 0.00,
+          \`nilai_uts\` DECIMAL(5,2) DEFAULT 0.00,
+          \`nilai_uas\` DECIMAL(5,2) DEFAULT 0.00,
+          \`nilai_akhir\` DECIMAL(5,2) DEFAULT 0.00,
+          \`predikat\` ENUM('A', 'B', 'C', 'D') DEFAULT 'B',
+          \`catatan\` TEXT NULL COMMENT 'Deskripsi capaian kompetensi / catatan tutor',
+          \`created_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          \`updated_at\` DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (\`id\`),
+          UNIQUE KEY \`uq_rapor_mapel\` (\`rapor_id\`, \`mapel_id\`),
+          KEY \`idx_rapor\` (\`rapor_id\`),
+          KEY \`idx_mapel\` (\`mapel_id\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Detail nilai mapel per rapor';
+      `);
+      console.log('✅ Tabel rapor_periode dan rapor_nilai siap digunakan.');
+    } catch (raporErr) {
+      console.warn('[Rapor Table Init Notice]:', raporErr.message);
+    }
   } catch (error) {
     console.error('\n❌ Gagal konek ke database MySQL:', error.message);
     console.error('💡 Solusi:');

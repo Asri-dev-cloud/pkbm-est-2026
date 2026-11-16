@@ -6,6 +6,7 @@
 // ============================================================
 
 import SiswaModel from '../models/SiswaModel.js';
+import pool from '../config/db.js';
 import { buildKartuPelajarPdf } from '../utils/kartuPelajarPdf.js';
 
 const SiswaController = {
@@ -349,6 +350,86 @@ const SiswaController = {
         success: false,
         message: 'Gagal menghasilkan dokumen Kartu Pelajar PDF.',
       });
+    }
+  },
+
+  // -----------------------------------------------------------
+  // POST /api/siswa/:id/foto
+  // Upload/Perbarui Pas Foto Siswa (Admin & Super Admin)
+  // Otomatis sinkron ke tabel users & berkas_spmb
+  // -----------------------------------------------------------
+  uploadFoto: async (req, res) => {
+    try {
+      const targetId = req.params.id;
+      if (!targetId || isNaN(targetId)) {
+        return res.status(400).json({ success: false, message: 'ID siswa tidak valid.' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'File pas foto wajib diunggah.' });
+      }
+
+      const cleanPath = req.file.path.replace(/\\/g, '/');
+
+      // Ambil user_id dari warga_belajar
+      const [wbRows] = await pool.execute(
+        `SELECT wb.id, wb.user_id, wb.nik, u.email, u.nama_lengkap 
+         FROM warga_belajar wb 
+         JOIN users u ON wb.user_id = u.id 
+         WHERE wb.id = ? LIMIT 1`,
+        [targetId]
+      );
+
+      if (wbRows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Data siswa tidak ditemukan.' });
+      }
+
+      const wb = wbRows[0];
+
+      // Update foto_profil di tabel users
+      await pool.execute(
+        `UPDATE users SET foto_profil = ?, updated_at = NOW() WHERE id = ?`,
+        [cleanPath, wb.user_id]
+      );
+
+      // Cek apakah ada record di pendaftar_spmb
+      const [psRows] = await pool.execute(
+        `SELECT id FROM pendaftar_spmb 
+         WHERE warga_belajar_id = ? OR email = ? OR (nik IS NOT NULL AND nik = ?) 
+         LIMIT 1`,
+        [wb.id, wb.email, wb.nik]
+      );
+
+      if (psRows.length > 0) {
+        const pendaftarId = psRows[0].id;
+        const [existingBerkas] = await pool.execute(
+          `SELECT id FROM berkas_spmb WHERE pendaftar_id = ? AND jenis_berkas IN ('foto', 'pas_foto') LIMIT 1`,
+          [pendaftarId]
+        );
+        if (existingBerkas.length > 0) {
+          await pool.execute(
+            `UPDATE berkas_spmb SET path_file = ?, nama_file = ?, status_verifikasi = 'valid', updated_at = NOW() WHERE id = ?`,
+            [cleanPath, req.file.originalname, existingBerkas[0].id]
+          );
+        } else {
+          await pool.execute(
+            `INSERT INTO berkas_spmb (pendaftar_id, jenis_berkas, nama_file, path_file, status_verifikasi, created_at)
+             VALUES (?, 'foto', ?, ?, 'valid', NOW())`,
+            [pendaftarId, req.file.originalname, cleanPath]
+          );
+        }
+      }
+
+      const updatedSiswa = await SiswaModel.findById(targetId);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Pas foto siswa berhasil disimpan ke database.',
+        data: updatedSiswa,
+      });
+    } catch (error) {
+      console.error('[SiswaController.uploadFoto] Error:', error);
+      return res.status(500).json({ success: false, message: 'Gagal mengupload pas foto siswa.' });
     }
   },
 };

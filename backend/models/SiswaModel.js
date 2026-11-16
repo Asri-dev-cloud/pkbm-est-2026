@@ -22,7 +22,10 @@ const SiswaModel = {
         wb.user_id,
         u.nama_lengkap,
         u.email,
-        u.foto_profil,
+        COALESCE(bs.path_file, u.foto_profil) AS foto_profil,
+        COALESCE(bs.path_file, u.foto_profil) AS pas_foto,
+        bs.path_file AS foto_pendaftaran,
+        bs.id AS berkas_foto_id,
         wb.jenjang,
         wb.tanggal_lahir,
         wb.jenis_kelamin,
@@ -41,6 +44,22 @@ const SiswaModel = {
       JOIN users u ON wb.user_id = u.id
       LEFT JOIN rombel r ON wb.rombel_id = r.id
       LEFT JOIN tahun_ajaran ta ON wb.tahun_ajaran_id = ta.id
+      LEFT JOIN pendaftar_spmb ps ON ps.id = (
+        SELECT p.id FROM pendaftar_spmb p
+        WHERE p.warga_belajar_id = wb.id
+           OR (wb.nik IS NOT NULL AND wb.nik != '' AND p.nik = wb.nik)
+           OR (u.email IS NOT NULL AND u.email != '' AND p.email = u.email)
+           OR (u.nama_lengkap IS NOT NULL AND p.nama_lengkap = u.nama_lengkap)
+        ORDER BY p.id DESC
+        LIMIT 1
+      )
+      LEFT JOIN berkas_spmb bs ON bs.id = (
+        SELECT b.id FROM berkas_spmb b
+        WHERE b.pendaftar_id = ps.id
+          AND b.jenis_berkas IN ('foto', 'pas_foto', 'pasfoto', 'foto_profil')
+        ORDER BY b.id DESC
+        LIMIT 1
+      )
       WHERE 1=1
     `;
 
@@ -73,16 +92,26 @@ const SiswaModel = {
         wb.*,
         u.nama_lengkap,
         u.email,
-        COALESCE(u.foto_profil, bs.path_file) AS foto_profil,
-        bs.path_file AS pas_foto,
+        COALESCE(bs.path_file, u.foto_profil) AS foto_profil,
+        COALESCE(bs.path_file, u.foto_profil) AS pas_foto,
+        bs.path_file AS foto_pendaftaran,
+        bs.id AS berkas_foto_id,
         r.nama_rombel,
         ta.nama_tahun_ajaran
       FROM warga_belajar wb
       JOIN users u ON wb.user_id = u.id
       LEFT JOIN rombel r ON wb.rombel_id = r.id
       LEFT JOIN tahun_ajaran ta ON wb.tahun_ajaran_id = ta.id
-      LEFT JOIN pendaftar_spmb ps ON ps.warga_belajar_id = wb.id
-      LEFT JOIN berkas_spmb bs ON bs.pendaftar_id = ps.id AND bs.jenis_berkas = 'foto'
+      LEFT JOIN pendaftar_spmb ps ON (
+        ps.warga_belajar_id = wb.id
+        OR (wb.nik IS NOT NULL AND wb.nik != '' AND ps.nik = wb.nik)
+        OR (u.email IS NOT NULL AND u.email != '' AND ps.email = u.email)
+        OR (u.nama_lengkap IS NOT NULL AND ps.nama_lengkap = u.nama_lengkap)
+      )
+      LEFT JOIN berkas_spmb bs ON (
+        bs.pendaftar_id = ps.id
+        AND bs.jenis_berkas IN ('foto', 'pas_foto', 'pasfoto', 'foto_profil')
+      )
       WHERE wb.id = ?
       ORDER BY bs.id DESC
       LIMIT 1
@@ -100,16 +129,26 @@ const SiswaModel = {
         wb.*,
         u.nama_lengkap,
         u.email,
-        COALESCE(u.foto_profil, bs.path_file) AS foto_profil,
-        bs.path_file AS pas_foto,
+        COALESCE(bs.path_file, u.foto_profil) AS foto_profil,
+        COALESCE(bs.path_file, u.foto_profil) AS pas_foto,
+        bs.path_file AS foto_pendaftaran,
+        bs.id AS berkas_foto_id,
         r.nama_rombel,
         ta.nama_tahun_ajaran
       FROM warga_belajar wb
       JOIN users u ON wb.user_id = u.id
       LEFT JOIN rombel r ON wb.rombel_id = r.id
       LEFT JOIN tahun_ajaran ta ON wb.tahun_ajaran_id = ta.id
-      LEFT JOIN pendaftar_spmb ps ON ps.warga_belajar_id = wb.id
-      LEFT JOIN berkas_spmb bs ON bs.pendaftar_id = ps.id AND bs.jenis_berkas = 'foto'
+      LEFT JOIN pendaftar_spmb ps ON (
+        ps.warga_belajar_id = wb.id
+        OR (wb.nik IS NOT NULL AND wb.nik != '' AND ps.nik = wb.nik)
+        OR (u.email IS NOT NULL AND u.email != '' AND ps.email = u.email)
+        OR (u.nama_lengkap IS NOT NULL AND ps.nama_lengkap = u.nama_lengkap)
+      )
+      LEFT JOIN berkas_spmb bs ON (
+        bs.pendaftar_id = ps.id
+        AND bs.jenis_berkas IN ('foto', 'pas_foto', 'pasfoto', 'foto_profil')
+      )
       WHERE wb.user_id = ?
       ORDER BY bs.id DESC
       LIMIT 1
@@ -128,16 +167,26 @@ const SiswaModel = {
         wb.*,
         u.nama_lengkap,
         u.email,
-        COALESCE(u.foto_profil, bs.path_file) AS foto_profil,
-        bs.path_file AS pas_foto,
+        COALESCE(bs.path_file, u.foto_profil) AS foto_profil,
+        COALESCE(bs.path_file, u.foto_profil) AS pas_foto,
+        bs.path_file AS foto_pendaftaran,
+        bs.id AS berkas_foto_id,
         r.nama_rombel,
         ta.nama_tahun_ajaran
       FROM warga_belajar wb
       JOIN users u ON wb.user_id = u.id
       LEFT JOIN rombel r ON wb.rombel_id = r.id
       LEFT JOIN tahun_ajaran ta ON wb.tahun_ajaran_id = ta.id
-      LEFT JOIN pendaftar_spmb ps ON ps.warga_belajar_id = wb.id
-      LEFT JOIN berkas_spmb bs ON bs.pendaftar_id = ps.id AND bs.jenis_berkas = 'foto'
+      LEFT JOIN pendaftar_spmb ps ON (
+        ps.warga_belajar_id = wb.id
+        OR (wb.nik IS NOT NULL AND wb.nik != '' AND ps.nik = wb.nik)
+        OR (u.email IS NOT NULL AND u.email != '' AND ps.email = u.email)
+        OR (u.nama_lengkap IS NOT NULL AND ps.nama_lengkap = u.nama_lengkap)
+      )
+      LEFT JOIN berkas_spmb bs ON (
+        bs.pendaftar_id = ps.id
+        AND bs.jenis_berkas IN ('foto', 'pas_foto', 'pasfoto', 'foto_profil')
+      )
       WHERE LOWER(wb.nis) = LOWER(?)
       ORDER BY bs.id DESC
       LIMIT 1

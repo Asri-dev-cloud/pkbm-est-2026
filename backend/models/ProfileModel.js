@@ -11,8 +11,10 @@ const ProfileModel = {
             u.email,
             u.role,
             u.is_active,
-            COALESCE(u.foto_profil, bs.path_file) AS foto_profil,
-            bs.path_file AS pas_foto,
+            COALESCE(bs.path_file, u.foto_profil) AS foto_profil,
+            COALESCE(bs.path_file, u.foto_profil) AS pas_foto,
+            bs.path_file AS foto_pendaftaran,
+            bs.id AS berkas_foto_id,
             wb.id AS profil_id,
             wb.nis,
             wb.nik,
@@ -35,8 +37,22 @@ const ProfileModel = {
           LEFT JOIN warga_belajar wb ON wb.user_id = u.id
           LEFT JOIN rombel r ON r.id = wb.rombel_id
           LEFT JOIN tahun_ajaran ta ON ta.id = wb.tahun_ajaran_id
-          LEFT JOIN pendaftar_spmb ps ON ps.warga_belajar_id = wb.id
-          LEFT JOIN berkas_spmb bs ON bs.pendaftar_id = ps.id AND bs.jenis_berkas = 'foto'
+          LEFT JOIN pendaftar_spmb ps ON ps.id = (
+            SELECT p.id FROM pendaftar_spmb p
+            WHERE p.warga_belajar_id = wb.id
+               OR (wb.nik IS NOT NULL AND wb.nik != '' AND p.nik = wb.nik)
+               OR (u.email IS NOT NULL AND u.email != '' AND p.email = u.email)
+               OR (u.nama_lengkap IS NOT NULL AND p.nama_lengkap = u.nama_lengkap)
+            ORDER BY p.id DESC
+            LIMIT 1
+          )
+          LEFT JOIN berkas_spmb bs ON bs.id = (
+            SELECT b.id FROM berkas_spmb b
+            WHERE b.pendaftar_id = ps.id
+              AND b.jenis_berkas IN ('foto', 'pas_foto', 'pasfoto', 'foto_profil')
+            ORDER BY b.id DESC
+            LIMIT 1
+          )
           WHERE u.id = ?
           ORDER BY bs.id DESC
           LIMIT 1

@@ -6,6 +6,7 @@
 
 import { Router } from 'express';
 import SiswaController from '../controllers/SiswaController.js';
+import upload from '../config/multer.js';
 import { verifyToken, checkRole, ROLES } from '../middlewares/authMiddleware.js';
 
 const router = Router();
@@ -83,6 +84,18 @@ router.put(
   '/:id',
   checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
   SiswaController.update
+);
+
+// POST /api/siswa/:id/foto — Upload / Update Pas Foto Siswa (Admin & Super Admin)
+router.post(
+  '/:id/foto',
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  (req, res, next) => {
+    req.uploadFolder = 'spmb';
+    next();
+  },
+  upload.single('foto'),
+  SiswaController.uploadFoto
 );
 
 export default router;

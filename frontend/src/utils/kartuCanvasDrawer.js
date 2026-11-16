@@ -5,6 +5,7 @@
 // ============================================================
 
 import { getKartuVerificationUrl } from './qrCode.jsx';
+import { toAssetUrl } from '../services/api.js';
 
 // Dimensi standar CR-80 pada 300 DPI
 const CARD_WIDTH = 1012;
@@ -381,23 +382,23 @@ export async function drawCardFront(ctx, siswa, offsetX = 0, offsetY = 0) {
   // Teks Kop
   ctx.textAlign = 'left';
   ctx.fillStyle = '#94A3B8';
-  ctx.font = '700 13px "Plus Jakarta Sans", sans-serif';
+  ctx.font = '800 15px "Outfit", "Plus Jakarta Sans", sans-serif';
   ctx.fillText('KEMENTERIAN PENDIDIKAN & KEBUDAYAAN', 124, kopY + 18);
 
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = '900 24px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('PKBM BINA MANDIRI', 124, kopY + 46);
+  ctx.font = '900 28px "Outfit", sans-serif';
+  ctx.fillText('PKBM BINA MANDIRI', 124, kopY + 47);
 
   ctx.fillStyle = '#FCD34D';
-  ctx.font = '700 13px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('NPSN: P9962854 • TERAKREDITASI RESMI', 124, kopY + 68);
+  ctx.font = '700 15px "Outfit", "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('NPSN: P9962854 • TERAKREDITASI RESMI', 124, kopY + 70);
 
   // Badge Jenjang Kanan
   const jenjangBadge = badgeJenjangText[siswa.jenjang] || 'WARGA BELAJAR';
-  ctx.font = '800 15px "Plus Jakarta Sans", sans-serif';
-  const badgeWidth = ctx.measureText(jenjangBadge).width + 28;
+  ctx.font = '800 16px "Outfit", sans-serif';
+  const badgeWidth = ctx.measureText(jenjangBadge).width + 30;
   const badgeX = CARD_WIDTH - badgeWidth - 36;
-  drawRoundedRect(ctx, badgeX, kopY + 18, badgeWidth, 34, 10);
+  drawRoundedRect(ctx, badgeX, kopY + 18, badgeWidth, 36, 10);
   ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
   ctx.fill();
   ctx.strokeStyle = '#F59E0B';
@@ -406,7 +407,7 @@ export async function drawCardFront(ctx, siswa, offsetX = 0, offsetY = 0) {
 
   ctx.fillStyle = '#FDE68A';
   ctx.textAlign = 'center';
-  ctx.fillText(jenjangBadge, badgeX + badgeWidth / 2, kopY + 41);
+  ctx.fillText(jenjangBadge, badgeX + badgeWidth / 2, kopY + 42);
 
   // Garis Emas Pembatas Kop
   const goldLineY = kopY + 86;
@@ -432,7 +433,8 @@ export async function drawCardFront(ctx, siswa, offsetX = 0, offsetY = 0) {
   drawRoundedRect(ctx, photoX, photoY, photoW, photoH, photoRadius);
   ctx.clip();
 
-  const fotoSrc = siswa.foto_profil || siswa.pas_foto;
+  const rawFoto = siswa.foto_pendaftaran || siswa.pas_foto || siswa.foto_profil;
+  const fotoSrc = rawFoto ? toAssetUrl(rawFoto, siswa.berkas_foto_id) : null;
   const photoImg = fotoSrc ? await loadImage(fotoSrc) : null;
 
   if (photoImg) {
@@ -445,7 +447,7 @@ export async function drawCardFront(ctx, siswa, offsetX = 0, offsetY = 0) {
     ctx.fillRect(photoX, photoY, photoW, photoH);
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 80px "Plus Jakarta Sans", sans-serif';
+    ctx.font = '900 80px "Outfit", "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText((siswa.nama_lengkap || 'W').charAt(0).toUpperCase(), photoX + photoW / 2, photoY + photoH / 2 + 28);
   }
@@ -464,21 +466,21 @@ export async function drawCardFront(ctx, siswa, offsetX = 0, offsetY = 0) {
   // Nama Siswa
   ctx.textAlign = 'left';
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = '900 28px "Plus Jakarta Sans", sans-serif';
+  ctx.font = '900 32px "Outfit", "Plus Jakarta Sans", sans-serif';
   const rawNama = (siswa.nama_lengkap || 'WARGA BELAJAR').toUpperCase();
   const namaDisplay = rawNama.length > 22 ? rawNama.substring(0, 20) + '...' : rawNama;
   ctx.fillText(namaDisplay, dataX, textCursorY);
 
   // NIS Subline
-  textCursorY += 34;
+  textCursorY += 36;
   ctx.fillStyle = '#FCD34D';
-  ctx.font = '800 15px "Plus Jakarta Sans", sans-serif';
+  ctx.font = '800 18px "Outfit", sans-serif';
   ctx.fillText('NIS:', dataX, textCursorY);
 
   const displayNis = (siswa.nis || '').replace('PKBM-2025-', 'PKBM-2026-') || 'DALAM PENETAPAN';
   ctx.fillStyle = '#F8FAFC';
-  ctx.font = '800 20px monospace';
-  ctx.fillText(displayNis, dataX + 46, textCursorY);
+  ctx.font = '800 24px "Space Mono", monospace';
+  ctx.fillText(displayNis, dataX + 54, textCursorY);
 
   // Rincian Data Key-Value Bersih (NIK Penuh Tanpa Sensor)
   const metaItems = [
@@ -489,14 +491,14 @@ export async function drawCardFront(ctx, siswa, offsetX = 0, offsetY = 0) {
   ];
 
   metaItems.forEach(([label, value]) => {
-    textCursorY += 32;
+    textCursorY += 33;
     ctx.fillStyle = '#94A3B8';
-    ctx.font = '600 15px "Plus Jakarta Sans", sans-serif';
+    ctx.font = '700 18px "Outfit", "Plus Jakarta Sans", sans-serif';
     ctx.fillText(label, dataX, textCursorY);
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText(`:  ${value}`, dataX + 90, textCursorY);
+    ctx.font = '700 18px "Outfit", "Plus Jakarta Sans", sans-serif';
+    ctx.fillText(`:  ${value}`, dataX + 105, textCursorY);
   });
 
   // 6. Footer Kartu Depan (Tanpa QR Code)

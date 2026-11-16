@@ -83,7 +83,7 @@ export default function RaporAdmin() {
       // 1. Coba panggil RaporAPI.getMeta()
       try {
         const metaRes = await RaporAPI.getMeta();
-        if (metaRes.data?.success && metaRes.data.data?.siswa?.length > 0) {
+        if (metaRes.data?.success && metaRes.data.data) {
           loadedMeta = metaRes.data.data;
         }
       } catch (err) {
@@ -99,40 +99,46 @@ export default function RaporAdmin() {
         ]);
 
         const rawSiswa = siswaRes.status === 'fulfilled' && siswaRes.value.data?.success
-          ? siswaRes.value.data.data
+          ? (siswaRes.value.data.data || [])
           : [];
 
-        const rawRombel = rombelRes.status === 'fulfilled' && rombelRes.value.data?.success
-          ? (rombelRes.value.data.data || []).map(r => ({ id: r.id, nama_rombel: r.nama_rombel || r.nama, jenjang: r.jenjang }))
-          : [
-            { id: 1, nama_rombel: 'Kelas 1 Paket A', jenjang: 'paket_a' },
-            { id: 3, nama_rombel: 'Kelas 7-1 Paket B', jenjang: 'paket_b' },
-            { id: 7, nama_rombel: 'Kelas 10-1 Paket C', jenjang: 'paket_c' },
-          ];
+        const rawRombel = (loadedMeta?.rombel && loadedMeta.rombel.length > 0)
+          ? loadedMeta.rombel
+          : (rombelRes.status === 'fulfilled' && rombelRes.value.data?.success
+            ? (rombelRes.value.data.data || []).map(r => ({ id: r.id, nama_rombel: r.nama_rombel || r.nama, jenjang: r.jenjang }))
+            : [
+              { id: 1, nama_rombel: 'Kelas 1 Paket A', jenjang: 'paket_a' },
+              { id: 3, nama_rombel: 'Kelas 7-1 Paket B', jenjang: 'paket_b' },
+              { id: 7, nama_rombel: 'Kelas 10-1 Paket C', jenjang: 'paket_c' },
+            ]);
 
-        const rawMapel = mapelRes.status === 'fulfilled' && mapelRes.value.data?.success
-          ? (mapelRes.value.data.data || []).map(m => ({
-            id: m.id,
-            nama_mapel: m.nama || m.nama_mapel,
-            kode_mapel: m.kode || m.kode_mapel,
-            jenjang: m.jenjang || 'semua',
-            kkm: 75
-          }))
-          : [
-            { id: 1, nama_mapel: 'Pendidikan Agama & Budi Pekerti', kode_mapel: 'PAG-ALL', jenjang: 'semua', kkm: 75 },
-            { id: 2, nama_mapel: 'Bahasa Indonesia', kode_mapel: 'BIND-ALL', jenjang: 'semua', kkm: 75 },
-            { id: 3, nama_mapel: 'Matematika', kode_mapel: 'MTK-ALL', jenjang: 'semua', kkm: 75 },
-            { id: 4, nama_mapel: 'Ilmu Pengetahuan Alam', kode_mapel: 'IPA-ALL', jenjang: 'semua', kkm: 75 },
-            { id: 5, nama_mapel: 'Ilmu Pengetahuan Sosial', kode_mapel: 'IPS-ALL', jenjang: 'semua', kkm: 75 },
-            { id: 6, nama_mapel: 'Pendidikan Kewarganegaraan', kode_mapel: 'PKN-ALL', jenjang: 'semua', kkm: 75 },
-            { id: 7, nama_mapel: 'Bahasa Inggris', kode_mapel: 'BING-ALL', jenjang: 'semua', kkm: 75 },
-          ];
+        const rawMapel = (loadedMeta?.mata_pelajaran && loadedMeta.mata_pelajaran.length > 0)
+          ? loadedMeta.mata_pelajaran
+          : (mapelRes.status === 'fulfilled' && mapelRes.value.data?.success
+            ? (mapelRes.value.data.data || []).map(m => ({
+              id: m.id,
+              nama_mapel: m.nama || m.nama_mapel,
+              kode_mapel: m.kode || m.kode_mapel,
+              jenjang: m.jenjang || 'semua',
+              kkm: 75
+            }))
+            : [
+              { id: 1, nama_mapel: 'Pendidikan Agama & Budi Pekerti', kode_mapel: 'PAG-ALL', jenjang: 'semua', kkm: 75 },
+              { id: 2, nama_mapel: 'Bahasa Indonesia', kode_mapel: 'BIND-ALL', jenjang: 'semua', kkm: 75 },
+              { id: 3, nama_mapel: 'Matematika', kode_mapel: 'MTK-ALL', jenjang: 'semua', kkm: 75 },
+              { id: 4, nama_mapel: 'Ilmu Pengetahuan Alam', kode_mapel: 'IPA-ALL', jenjang: 'semua', kkm: 75 },
+              { id: 5, nama_mapel: 'Ilmu Pengetahuan Sosial', kode_mapel: 'IPS-ALL', jenjang: 'semua', kkm: 75 },
+              { id: 6, nama_mapel: 'Pendidikan Kewarganegaraan', kode_mapel: 'PKN-ALL', jenjang: 'semua', kkm: 75 },
+              { id: 7, nama_mapel: 'Bahasa Inggris', kode_mapel: 'BING-ALL', jenjang: 'semua', kkm: 75 },
+            ]);
 
         loadedMeta = {
-          tahun_ajaran: [
-            { id: 1, nama_tahun_ajaran: '2026/2027', is_aktif: 1 },
-            { id: 2, nama_tahun_ajaran: '2025/2026', is_aktif: 0 }
-          ],
+          tahun_ajaran: (loadedMeta?.tahun_ajaran && loadedMeta.tahun_ajaran.length > 0)
+            ? loadedMeta.tahun_ajaran
+            : [
+              { id: 1, nama_tahun_ajaran: '2026/2027', is_aktif: 1 },
+              { id: 2, nama_tahun_ajaran: '2025/2026', is_aktif: 0 }
+            ],
           rombel: rawRombel,
           mata_pelajaran: rawMapel,
           siswa: rawSiswa.map(s => ({
@@ -164,7 +170,7 @@ export default function RaporAdmin() {
         rombel_id: filterRombel || undefined,
         search: searchQuery || undefined
       });
-      if (res.data?.success && res.data.data?.length > 0) {
+      if (res.data?.success && Array.isArray(res.data.data)) {
         setRaporList(res.data.data);
         return;
       }

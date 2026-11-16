@@ -27,6 +27,7 @@ const RaporController = {
       return res.status(500).json({
         success: false,
         message: 'Gagal memuat data referensi rapor.',
+        error: err.message,
       });
     }
   },
@@ -57,6 +58,7 @@ const RaporController = {
       return res.status(500).json({
         success: false,
         message: 'Gagal memuat daftar rapor siswa.',
+        error: err.message,
       });
     }
   },
@@ -105,6 +107,7 @@ const RaporController = {
       return res.status(500).json({
         success: false,
         message: 'Gagal memuat rapor digital Anda.',
+        error: err.message,
       });
     }
   },
@@ -150,6 +153,7 @@ const RaporController = {
       return res.status(500).json({
         success: false,
         message: 'Gagal memuat detail rapor.',
+        error: err.message,
       });
     }
   },
