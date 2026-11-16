@@ -37,6 +37,7 @@ import BeritaSiswa from './pages/siswa/BeritaSiswa.jsx';
 import ModulBukuSiswa from './pages/siswa/ModulBukuSiswa.jsx';
 import KartuPelajarSiswa from './pages/siswa/KartuPelajarSiswa.jsx';
 import RaporSiswa from './pages/siswa/RaporSiswa.jsx';
+import KalenderAkademikPage from './pages/KalenderAkademikPage.jsx';
 
 // ── Halaman Admin TU & Keuangan ──────────────────────────────
 import DashboardAdmin from './pages/admin/DashboardAdmin.jsx';
@@ -169,6 +170,7 @@ function SeoMetaManager() {
       robots      = 'index, follow';
       description = 'Area dashboard internal PKBM Bina Mandiri.';
       if (path === '/dashboard/siswa')         title = 'Dashboard Siswa | PKBM Bina Mandiri';
+      else if (path.includes('kalender-akademik')) title = 'Kalender Akademik 1 Tahun | PKBM Bina Mandiri';
       else if (path === '/dashboard/siswa/kartu-pelajar' || path === '/dashboard/admin/siswa/kartu-pelajar') title = 'Kartu Pelajar Digital | PKBM Bina Mandiri';
       else if (path === '/dashboard/siswa/rapor') title = 'Rapor Siswa Digital | PKBM Bina Mandiri';
       else if (path === '/dashboard/admin/rapor') title = 'Kelola Rapor Siswa Digital | PKBM Bina Mandiri';
@@ -236,6 +238,8 @@ function App() {
         {/* ══ RUTE WARGA BELAJAR (LMS SISWA) ═══════════════════ */}
         <Route path="/dashboard/siswa"
           element={<ProtectedRoute allowedRoles={['warga_belajar']}><DashboardSiswa /></ProtectedRoute>} />
+        <Route path="/dashboard/siswa/kalender-akademik"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><KalenderAkademikPage /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/kartu-pelajar"
           element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><KartuPelajarSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/rapor"
@@ -266,6 +270,10 @@ function App() {
         {/* ══ RUTE SUPER ADMIN & ADMIN ═════════════════════════ */}
         <Route path="/dashboard/admin"
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><DashboardAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/kalender-akademik"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><KalenderAkademikPage /></ProtectedRoute>} />
+        <Route path="/dashboard/kalender-akademik"
+          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><KalenderAkademikPage /></ProtectedRoute>} />
         <Route path="/dashboard/admin/modul-buku"
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><ModulBukuAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/berita"

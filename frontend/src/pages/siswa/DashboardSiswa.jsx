@@ -373,6 +373,33 @@ function DashboardSiswa() {
             </div>
           </section>
 
+          {/* ── 3. SECTION KALENDER AKADEMIK 1 TAHUN ── */}
+          <section className="mt-8 p-6 bg-gradient-to-r from-[#181716] to-[#24211E] rounded-3xl border border-[#362923] shadow-xl flex items-center justify-between gap-6 flex-wrap text-white">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#FFE500]/15 border border-[#FFE500]/40 text-[#FFE500] flex items-center justify-center shrink-0">
+                <Calendar size={24} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black tracking-widest text-[#FFE500] uppercase font-mono px-2 py-0.5 rounded bg-[#FFE500]/10 border border-[#FFE500]/30">
+                    AGENDA RESMI
+                  </span>
+                  <h3 className="text-base font-bold text-white">Kalender Akademik 1 Tahun</h3>
+                </div>
+                <p className="text-xs text-[#A89284] mt-1">
+                  Lihat seluruh agenda KBM, jadwal asesmen modul, persiapan ujian, dan libur akademik PKBM Bina Mandiri.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/dashboard/siswa/kalender-akademik"
+              className="px-5 py-2.5 rounded-xl bg-[#FFE500] text-black font-bold text-xs hover:bg-[#FFF04D] transition-all flex items-center gap-2 shadow-[0_4px_14px_rgba(255,229,0,0.3)]"
+            >
+              <span>Lihat Kalender Akademik</span>
+              <ChevronRight size={15} />
+            </Link>
+          </section>
+
         </div>
       </main>
     </div>

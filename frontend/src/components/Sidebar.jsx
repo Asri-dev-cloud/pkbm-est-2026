@@ -202,6 +202,18 @@ function Sidebar({ user }) {
               </NavLink>
             </li>
 
+            {/* 2. Kalender Akademik 1 Tahun */}
+            <li>
+              <NavLink
+                to={isAdminRole ? '/dashboard/admin/kalender-akademik' : '/dashboard/siswa/kalender-akademik'}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) => `modern-menu-link ${isActive ? 'active-pill' : ''}`}
+              >
+                <Calendar size={18} className="menu-icon" />
+                <span className="menu-label">Kalender Akademik</span>
+              </NavLink>
+            </li>
+
             {/* Menu Admin & Super Admin */}
             {isAdminRole && (
               <>
