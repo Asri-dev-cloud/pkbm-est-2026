@@ -22,6 +22,7 @@ import periodeUjianRoutes from './routes/periodeUjianRoutes.js';
 import agendaRoutes from './routes/agendaRoutes.js';
 import beritaRoutes from './routes/beritaRoutes.js';
 import modulBukuRoutes from './routes/modulBukuRoutes.js';
+import raporRoutes from './routes/raporRoutes.js';
 
 dotenv.config();
 
@@ -214,6 +215,7 @@ const registerRoutes = (prefix = '') => {
   app.use(`${prefix}/agenda`, agendaRoutes);
   app.use(`${prefix}/berita`, beritaRoutes);
   app.use(`${prefix}/modul-buku`, modulBukuRoutes);
+  app.use(`${prefix}/rapor`, raporRoutes);
 };
 
 // Dukung akses standar /api/...

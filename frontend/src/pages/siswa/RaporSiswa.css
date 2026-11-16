@@ -1,0 +1,388 @@
+/* ============================================================
+   frontend/src/pages/siswa/RaporSiswa.css
+   Style Halaman Rapor Digital Siswa (Modern, Bersih, Eksekutif)
+   ============================================================ */
+
+.rapor-siswa-page {
+  padding: 24px 28px 60px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #0F172A;
+}
+
+/* ── Top Header ────────────────────────────────────────────── */
+.rapor-page-header {
+  margin-bottom: 24px;
+}
+
+.rapor-page-header h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.rapor-page-header p {
+  color: #64748B;
+  font-size: 0.94rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Student Profile Card (Modern & Elegan) ────────────────── */
+.student-profile-strip {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  flex-wrap: wrap;
+}
+
+.student-profile-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.student-profile-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  border: 1px solid #BFDBFE;
+  flex-shrink: 0;
+}
+
+.student-profile-details h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+}
+
+.student-profile-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.profile-pill {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid #E2E8F0;
+}
+
+.profile-pill.nis {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border-color: #BFDBFE;
+  font-family: monospace;
+}
+
+.profile-pill.school {
+  background: #F8FAFC;
+  color: #475569;
+}
+
+.rapor-btn-print {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #1D4ED8;
+  color: #FFFFFF;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.25);
+  transition: all 0.2s ease;
+}
+
+.rapor-btn-print:hover {
+  background: #1E40AF;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(29, 78, 216, 0.35);
+}
+
+/* ── Segmented Semester Tabs (Bersih Tanpa Ikon Aneh) ──────── */
+.semester-tabs-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 14px;
+}
+
+.semester-segmented-control {
+  display: inline-flex;
+  background: #F1F5F9;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+}
+
+.semester-tab-item {
+  padding: 8px 22px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #64748B;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.semester-tab-item:hover {
+  color: #0F172A;
+}
+
+.semester-tab-item.active {
+  background: #FFFFFF;
+  color: #1D4ED8;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.semester-ta-info {
+  font-size: 0.88rem;
+  color: #64748B;
+}
+
+.semester-ta-info strong {
+  color: #0F172A;
+}
+
+/* ── Empty State (Bersih, Rapi, Tanpa Ikon Norak) ──────────── */
+.rapor-clean-empty-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 56px 28px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+  margin-bottom: 24px;
+}
+
+.empty-status-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #F1F5F9;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+
+.rapor-clean-empty-card h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 10px 0;
+}
+
+.rapor-clean-empty-card p {
+  font-size: 0.92rem;
+  color: #64748B;
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ── Summary Stats Grid ────────────────────────────────────── */
+.rapor-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.rapor-stat-box {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.rapor-stat-box .box-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748B;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.rapor-stat-box .box-value {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.2;
+}
+
+.predikat-badge-lg {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: #FFFFFF;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.predikat-badge-lg.A { background: #10B981; }
+.predikat-badge-lg.B { background: #2563EB; }
+.predikat-badge-lg.C { background: #F59E0B; }
+.predikat-badge-lg.D { background: #EF4444; }
+
+/* ── Content Card & Table ──────────────────────────────────── */
+.rapor-section-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 22px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.rapor-section-card h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 16px 0;
+}
+
+.rapor-table-clean {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.rapor-table-clean th {
+  background: #F8FAFC;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 12px 14px;
+  border-bottom: 1px solid #E2E8F0;
+  border-top: 1px solid #E2E8F0;
+  white-space: nowrap;
+}
+
+.rapor-table-clean td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #F1F5F9;
+  color: #1E293B;
+  vertical-align: middle;
+}
+
+.rapor-table-clean tr:hover td {
+  background: #F8FAFC;
+}
+
+.pill-predikat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 0.76rem;
+  color: #FFFFFF;
+}
+
+.pill-predikat.A { background: #10B981; }
+.pill-predikat.B { background: #2563EB; }
+.pill-predikat.C { background: #F59E0B; }
+.pill-predikat.D { background: #EF4444; }
+
+/* ── Bottom Grid ───────────────────────────────────────────── */
+.rapor-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.absen-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.absen-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #F8FAFC;
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
+.absen-row.total {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  font-weight: 700;
+}
+
+.wali-note-quote {
+  background: #F8FAFC;
+  border-left: 3px solid #1D4ED8;
+  padding: 16px 20px;
+  border-radius: 0 10px 10px 0;
+  margin: 0;
+  font-style: italic;
+  color: #334155;
+  line-height: 1.6;
+  font-size: 0.92rem;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .rapor-siswa-page {
+    padding: 16px 14px 40px;
+  }
+  .student-profile-strip {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .rapor-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  .semester-tabs-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

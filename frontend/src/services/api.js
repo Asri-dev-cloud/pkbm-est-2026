@@ -768,5 +768,29 @@ export const ModulBukuAPI = {
   delete: (id) => apiClient.delete(`/modul-buku/${id}`),
 };
 
+// ── RAPOR SISWA DIGITAL (ADMIN CRUD & SISWA READ-ONLY) ─────────
+export const RaporAPI = {
+  // Ambil referensi meta (tahun ajaran, rombel, mapel, siswa)
+  getMeta: () => apiClient.get('/rapor/meta'),
+
+  // Admin: Ambil daftar seluruh rapor siswa (bisa filter tahun ajaran, semester, rombel, search)
+  getAll: (params) => apiClient.get('/rapor', { params }),
+
+  // Siswa: Ambil rapor milik siswa yang sedang login (Read-Only)
+  getMyRapor: (params) => apiClient.get('/rapor/siswa/me', { params }),
+
+  // Ambil detail satu rapor (header + detail nilai mata pelajaran)
+  getById: (id) => apiClient.get(`/rapor/${id}`),
+
+  // Admin: Buat rapor baru (Create)
+  create: (data) => apiClient.post('/rapor', data),
+
+  // Admin: Perbarui rapor (Update)
+  update: (id, data) => apiClient.put(`/rapor/${id}`, data),
+
+  // Admin: Hapus rapor (Delete)
+  delete: (id) => apiClient.delete(`/rapor/${id}`),
+};
+
 export default apiClient;
 
