@@ -56,8 +56,7 @@ const RaporModel = {
           PRIMARY KEY (\`id\`),
           UNIQUE KEY \`uq_rapor_mapel\` (\`rapor_id\`, \`mapel_id\`),
           KEY \`idx_rapor\` (\`rapor_id\`),
-          KEY \`idx_mapel\` (\`mapel_id\`),
-          CONSTRAINT \`fk_rapor_nilai_rapor\` FOREIGN KEY (\`rapor_id\`) REFERENCES \`rapor_periode\` (\`id\`) ON DELETE CASCADE
+          KEY \`idx_mapel\` (\`mapel_id\`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Detail nilai mapel per rapor';
       `);
 
@@ -76,23 +75,29 @@ const RaporModel = {
   getMeta: async () => {
     await RaporModel.ensureTables();
 
+    // 1. Tahun Ajaran
     const [tahunAjaran] = await pool.query(
       `SELECT id, nama_tahun_ajaran, is_aktif FROM tahun_ajaran ORDER BY is_aktif DESC, nama_tahun_ajaran DESC`
     );
 
+    // 2. Rombel
     const [rombel] = await pool.query(
       `SELECT id, nama_rombel, jenjang FROM rombel ORDER BY jenjang ASC, nama_rombel ASC`
     );
 
+    // 3. Mata Pelajaran (menggunakan kolom tabel DB: id, nama, kode, jenjang)
     const [mapel] = await pool.query(
-      `SELECT id, nama_mapel, kode_mapel, jenjang, kkm FROM mata_pelajaran WHERE is_active = 1 ORDER BY urutan ASC, nama_mapel ASC`
+      `SELECT id, nama AS nama_mapel, kode AS kode_mapel, jenjang, 75 AS kkm 
+       FROM mata_pelajaran 
+       WHERE is_active = 1 
+       ORDER BY id ASC, nama ASC`
     );
 
+    // 4. Daftar Seluruh Warga Belajar
     const [siswaList] = await pool.query(
       `SELECT wb.id, wb.nis, wb.jenjang, wb.rombel_id, wb.tahun_ajaran_id, u.nama_lengkap, u.email
        FROM warga_belajar wb
        JOIN users u ON wb.user_id = u.id
-       WHERE wb.is_aktif = 1
        ORDER BY u.nama_lengkap ASC`
     );
 
@@ -133,8 +138,8 @@ const RaporModel = {
         u.nama_lengkap,
         u.email,
         u.foto,
-        rb.nama_rombel,
-        ta.nama_tahun_ajaran,
+        COALESCE(rb.nama_rombel, UPPER(wb.jenjang)) AS nama_rombel,
+        COALESCE(ta.nama_tahun_ajaran, '2026/2027') AS nama_tahun_ajaran,
         COUNT(rn.id) AS total_mapel,
         ROUND(COALESCE(AVG(rn.nilai_akhir), 0), 1) AS rata_rata_nilai
       FROM rapor_periode r
@@ -209,8 +214,8 @@ const RaporModel = {
         u.nama_lengkap,
         u.email,
         u.foto,
-        rb.nama_rombel,
-        ta.nama_tahun_ajaran
+        COALESCE(rb.nama_rombel, UPPER(wb.jenjang)) AS nama_rombel,
+        COALESCE(ta.nama_tahun_ajaran, '2026/2027') AS nama_tahun_ajaran
       FROM rapor_periode r
       JOIN warga_belajar wb ON r.warga_belajar_id = wb.id
       JOIN users u ON wb.user_id = u.id
@@ -226,7 +231,7 @@ const RaporModel = {
 
     const header = headerRows[0];
 
-    // Ambil detail nilai
+    // Ambil detail nilai mapel
     const [nilaiRows] = await pool.query(
       `SELECT 
         rn.id,
@@ -238,20 +243,20 @@ const RaporModel = {
         rn.nilai_akhir,
         rn.predikat,
         rn.catatan,
-        mp.nama_mapel,
-        mp.kode_mapel,
-        mp.kkm,
-        mp.urutan
+        mp.nama AS nama_mapel,
+        mp.kode AS kode_mapel,
+        75 AS kkm,
+        mp.id AS urutan
       FROM rapor_nilai rn
       JOIN mata_pelajaran mp ON rn.mapel_id = mp.id
       WHERE rn.rapor_id = ?
-      ORDER BY mp.urutan ASC, mp.nama_mapel ASC`,
+      ORDER BY mp.id ASC, mp.nama ASC`,
       [id]
     );
 
     header.nilai = nilaiRows;
 
-    // Hitung rata-rata dan statistik ringkas
+    // Hitung rata-rata dan total nilai
     if (nilaiRows.length > 0) {
       const totalNilai = nilaiRows.reduce((acc, curr) => acc + Number(curr.nilai_akhir || 0), 0);
       header.total_nilai = Math.round(totalNilai * 100) / 100;
@@ -287,8 +292,8 @@ const RaporModel = {
         r.tanggal_cetak,
         r.created_at,
         r.updated_at,
-        rb.nama_rombel,
-        ta.nama_tahun_ajaran,
+        COALESCE(rb.nama_rombel, 'Kelas Terpadu') AS nama_rombel,
+        COALESCE(ta.nama_tahun_ajaran, '2026/2027') AS nama_tahun_ajaran,
         COUNT(rn.id) AS total_mapel,
         ROUND(COALESCE(AVG(rn.nilai_akhir), 0), 1) AS rata_rata_nilai
       FROM rapor_periode r
@@ -353,7 +358,6 @@ const RaporModel = {
       let raporId;
 
       if (existing.length > 0) {
-        // Update header jika sudah ada
         raporId = existing[0].id;
         await conn.execute(
           `UPDATE rapor_periode SET
@@ -378,7 +382,6 @@ const RaporModel = {
           ]
         );
       } else {
-        // Insert header baru
         const [insertRes] = await conn.execute(
           `INSERT INTO rapor_periode 
             (warga_belajar_id, rombel_id, tahun_ajaran_id, semester, total_hadir, total_izin, total_sakit, total_alpa, catatan_wali, status_rapor, created_at)
@@ -399,9 +402,8 @@ const RaporModel = {
         raporId = insertRes.insertId;
       }
 
-      // Simpan atau update detail nilai mata pelajaran
+      // Simpan nilai mata pelajaran
       if (Array.isArray(nilai) && nilai.length > 0) {
-        // Hapus nilai lama agar bersih saat update
         await conn.execute(`DELETE FROM rapor_nilai WHERE rapor_id = ?`, [raporId]);
 
         for (const item of nilai) {
@@ -411,12 +413,10 @@ const RaporModel = {
           const nUts   = Number(item.nilai_uts || 0);
           const nUas   = Number(item.nilai_uas || 0);
           
-          // Hitung nilai akhir jika belum diisi manual
           const nAkhir = item.nilai_akhir !== undefined && item.nilai_akhir !== null
             ? Number(item.nilai_akhir)
             : Math.round(((nTugas * 0.3) + (nUts * 0.3) + (nUas * 0.4)) * 10) / 10;
 
-          // Predikat
           let predikat = item.predikat;
           if (!predikat) {
             if (nAkhir >= 85) predikat = 'A';
@@ -476,7 +476,6 @@ const RaporModel = {
         nilai = [],
       } = data;
 
-      // 1. Update header
       await conn.execute(
         `UPDATE rapor_periode SET
           rombel_id = COALESCE(?, rombel_id),
@@ -500,7 +499,6 @@ const RaporModel = {
         ]
       );
 
-      // 2. Update detail nilai
       if (Array.isArray(nilai) && nilai.length > 0) {
         await conn.execute(`DELETE FROM rapor_nilai WHERE rapor_id = ?`, [id]);
 
@@ -554,14 +552,14 @@ const RaporModel = {
 
   // -----------------------------------------------------------
   // delete
-  // Menghapus data rapor beserta nilainya (cascade)
+  // Menghapus data rapor beserta nilainya
   // -----------------------------------------------------------
   delete: async (id) => {
     await RaporModel.ensureTables();
+    await pool.execute(`DELETE FROM rapor_nilai WHERE rapor_id = ?`, [id]);
     const [result] = await pool.execute(`DELETE FROM rapor_periode WHERE id = ?`, [id]);
     return result.affectedRows > 0;
   }
 };
 
 export default RaporModel;
-

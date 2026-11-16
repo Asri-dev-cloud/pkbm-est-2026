@@ -40,34 +40,6 @@
   justify-content: center;
 }
 
-.edutech-loader-box {
-  background: #0F172A;
-  color: #FFFFFF;
-  padding: 2.75rem 3.5rem;
-  border-radius: 24px;
-  border: 1px solid rgba(250, 204, 21, 0.4);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
-}
-
-.edutech-loader-title {
-  margin-top: 1.25rem;
-  font-family: var(--pkbm-font);
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: 0.08em;
-  color: #FACC15;
-}
-
-.edutech-loader-sub {
-  font-size: 0.85rem;
-  color: #94A3B8;
-  margin-top: 0.35rem;
-}
-
 .edutech-error-card {
   background: #FFFFFF;
   border: 1px solid #FECACA;

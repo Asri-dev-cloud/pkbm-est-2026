@@ -1,107 +1,45 @@
 /* ============================================================
    frontend/src/pages/siswa/RaporSiswa.css
-   Style Halaman Rapor Digital Siswa (Modern, Bersih, Eksekutif)
+   Style Lembar Rapor Digital Asli PKBM Bina Mandiri
    ============================================================ */
 
 .rapor-siswa-page {
   padding: 24px 28px 60px;
-  max-width: 1200px;
+  max-width: 1040px;
   width: 100%;
   margin: 0 auto;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   color: #0F172A;
 }
 
-/* ── Top Header ────────────────────────────────────────────── */
-.rapor-page-header {
-  margin-bottom: 24px;
-}
-
-.rapor-page-header h1 {
-  font-size: 1.85rem;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0 0 6px 0;
-  letter-spacing: -0.02em;
-}
-
-.rapor-page-header p {
-  color: #64748B;
-  font-size: 0.94rem;
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* ── Student Profile Card (Modern & Elegan) ────────────────── */
-.student-profile-strip {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 16px;
-  padding: 20px 24px;
-  margin-bottom: 24px;
+/* ── Top Header & Actions ──────────────────────────────────── */
+.rapor-top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  margin-bottom: 20px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
-.student-profile-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.student-profile-avatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: #EFF6FF;
-  color: #1D4ED8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  font-weight: 800;
-  border: 1px solid #BFDBFE;
-  flex-shrink: 0;
-}
-
-.student-profile-details h2 {
-  font-size: 1.25rem;
+.rapor-top-title h1 {
+  font-size: 1.65rem;
   font-weight: 800;
   color: #0F172A;
-  margin: 0 0 6px 0;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
 }
 
-.student-profile-pills {
+.rapor-top-title p {
+  color: #64748B;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.rapor-actions-group {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.profile-pill {
-  font-size: 0.78rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: #F1F5F9;
-  color: #334155;
-  border: 1px solid #E2E8F0;
-}
-
-.profile-pill.nis {
-  background: #EFF6FF;
-  color: #1D4ED8;
-  border-color: #BFDBFE;
-  font-family: monospace;
-}
-
-.profile-pill.school {
-  background: #F8FAFC;
-  color: #475569;
+  gap: 12px;
 }
 
 .rapor-btn-print {
@@ -110,10 +48,10 @@
   gap: 8px;
   background: #1D4ED8;
   color: #FFFFFF;
-  padding: 10px 20px;
+  padding: 10px 22px;
   border-radius: 10px;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(29, 78, 216, 0.25);
@@ -123,266 +61,313 @@
 .rapor-btn-print:hover {
   background: #1E40AF;
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(29, 78, 216, 0.35);
 }
 
-/* ── Segmented Semester Tabs (Bersih Tanpa Ikon Aneh) ──────── */
-.semester-tabs-wrapper {
+/* ── Segmented Semester Tabs (Murni Teks, Bersih) ─────────── */
+.rapor-semester-bar {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 22px;
-  gap: 16px;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 8px 14px;
+  margin-bottom: 24px;
+  gap: 14px;
   flex-wrap: wrap;
-  border-bottom: 1px solid #E2E8F0;
-  padding-bottom: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
 }
 
-.semester-segmented-control {
+.rapor-segmented-tabs {
   display: inline-flex;
   background: #F1F5F9;
   padding: 4px;
-  border-radius: 12px;
-  border: 1px solid #E2E8F0;
+  border-radius: 10px;
 }
 
-.semester-tab-item {
+.rapor-tab-button {
   padding: 8px 22px;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
   color: #64748B;
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
-.semester-tab-item:hover {
+.rapor-tab-button:hover {
   color: #0F172A;
 }
 
-.semester-tab-item.active {
+.rapor-tab-button.active {
   background: #FFFFFF;
   color: #1D4ED8;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 
-.semester-ta-info {
-  font-size: 0.88rem;
-  color: #64748B;
-}
-
-.semester-ta-info strong {
-  color: #0F172A;
-}
-
-/* ── Empty State (Bersih, Rapi, Tanpa Ikon Norak) ──────────── */
-.rapor-clean-empty-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 16px;
-  padding: 56px 28px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-  margin-bottom: 24px;
-}
-
-.empty-status-tag {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: #F1F5F9;
+.rapor-ta-badge {
+  font-size: 0.85rem;
   color: #475569;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 14px;
+  font-weight: 600;
 }
 
-.rapor-clean-empty-card h3 {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0 0 10px 0;
-}
-
-.rapor-clean-empty-card p {
-  font-size: 0.92rem;
-  color: #64748B;
-  max-width: 560px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-/* ── Summary Stats Grid ────────────────────────────────────── */
-.rapor-stats-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.rapor-stat-box {
+/* ── Lembar Rapor Asli (Authentic Indonesian Report Sheet) ─── */
+.rapor-paper-sheet {
   background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 14px;
-  padding: 18px 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  border: 1px solid #CBD5E1;
+  border-radius: 12px;
+  padding: 40px 48px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  font-family: 'Times New Roman', Times, serif;
+  color: #000000;
+  line-height: 1.45;
+  margin-bottom: 40px;
 }
 
-.rapor-stat-box .box-label {
-  font-size: 0.76rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #64748B;
-  letter-spacing: 0.04em;
-  margin-bottom: 4px;
-  display: block;
-}
-
-.rapor-stat-box .box-value {
-  font-size: 1.55rem;
-  font-weight: 800;
-  color: #0F172A;
-  line-height: 1.2;
-}
-
-.predikat-badge-lg {
-  display: inline-block;
-  font-size: 0.82rem;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 6px;
-  color: #FFFFFF;
-  margin-left: 8px;
-  vertical-align: middle;
-}
-
-.predikat-badge-lg.A { background: #10B981; }
-.predikat-badge-lg.B { background: #2563EB; }
-.predikat-badge-lg.C { background: #F59E0B; }
-.predikat-badge-lg.D { background: #EF4444; }
-
-/* ── Content Card & Table ──────────────────────────────────── */
-.rapor-section-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 16px;
-  padding: 24px;
+/* Kop Surat Raport */
+.rapor-kop-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 3px double #000000;
+  padding-bottom: 16px;
   margin-bottom: 22px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 
-.rapor-section-card h3 {
+.rapor-kop-logo {
+  width: 86px;
+  height: 86px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.rapor-kop-text {
+  flex: 1;
+  text-align: center;
+}
+
+.rapor-kop-text h3 {
   font-size: 1.05rem;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0 0 16px 0;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.rapor-table-clean {
+.rapor-kop-text h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 3px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.rapor-kop-text p {
+  font-size: 0.84rem;
+  margin: 2px 0 0 0;
+}
+
+/* Judul Rapor */
+.rapor-doc-title {
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  text-decoration: underline;
+  margin: 0 0 20px 0;
+  letter-spacing: 0.03em;
+}
+
+/* Tabel Identitas Raport Asli */
+.rapor-identity-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-bottom: 22px;
+}
+
+.rapor-identity-table td {
+  padding: 4px 6px;
+  vertical-align: top;
+}
+
+/* Tabel Nilai Raport Asli */
+.rapor-grades-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.88rem;
+  margin-bottom: 20px;
 }
 
-.rapor-table-clean th {
-  background: #F8FAFC;
-  color: #475569;
+.rapor-grades-table th,
+.rapor-grades-table td {
+  border: 1px solid #000000;
+  padding: 7px 9px;
+}
+
+.rapor-grades-table th {
+  background: #F1F5F9;
   font-weight: 700;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 12px 14px;
-  border-bottom: 1px solid #E2E8F0;
-  border-top: 1px solid #E2E8F0;
-  white-space: nowrap;
+  text-align: center;
 }
 
-.rapor-table-clean td {
-  padding: 13px 14px;
-  border-bottom: 1px solid #F1F5F9;
-  color: #1E293B;
-  vertical-align: middle;
+.rapor-grades-table td.center {
+  text-align: center;
 }
 
-.rapor-table-clean tr:hover td {
+.rapor-grades-table td.bold {
+  font-weight: 700;
+}
+
+.rapor-grades-table tr.summary-row {
   background: #F8FAFC;
+  font-weight: 700;
 }
 
-.pill-predikat {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  font-weight: 800;
-  font-size: 0.76rem;
-  color: #FFFFFF;
-}
-
-.pill-predikat.A { background: #10B981; }
-.pill-predikat.B { background: #2563EB; }
-.pill-predikat.C { background: #F59E0B; }
-.pill-predikat.D { background: #EF4444; }
-
-/* ── Bottom Grid ───────────────────────────────────────────── */
-.rapor-bottom-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.absen-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.absen-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: #F8FAFC;
-  border-radius: 8px;
+/* Tabel Absensi Raport Asli */
+.rapor-absen-table {
+  width: 340px;
+  border-collapse: collapse;
   font-size: 0.88rem;
+  margin-bottom: 20px;
 }
 
-.absen-row.total {
-  background: #EFF6FF;
-  color: #1D4ED8;
-  font-weight: 700;
+.rapor-absen-table th,
+.rapor-absen-table td {
+  border: 1px solid #000000;
+  padding: 5px 10px;
 }
 
-.wali-note-quote {
-  background: #F8FAFC;
-  border-left: 3px solid #1D4ED8;
-  padding: 16px 20px;
-  border-radius: 0 10px 10px 0;
+.rapor-absen-table th {
+  background: #F1F5F9;
+  text-align: left;
+}
+
+/* Box Catatan Wali Kelas */
+.rapor-notes-box {
+  border: 1px solid #000000;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  margin-bottom: 26px;
+  background: #FAFAFA;
+}
+
+.rapor-notes-box strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.rapor-notes-box p {
   margin: 0;
   font-style: italic;
-  color: #334155;
-  line-height: 1.6;
-  font-size: 0.92rem;
+  line-height: 1.5;
 }
 
-/* ── Responsive ────────────────────────────────────────────── */
+/* Kolom Tanda Tangan 3 Pihak */
+.rapor-signature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  text-align: center;
+  font-size: 0.88rem;
+  margin-top: 26px;
+  gap: 16px;
+}
+
+.signature-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 130px;
+}
+
+.signature-line {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.signature-img-wrap {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signature-img {
+  max-height: 48px;
+  filter: invert(1) grayscale(1);
+  opacity: 0.88;
+}
+
+/* ── Placeholder Rapor Belum Terbit (Tetap Format Dokumen) ─── */
+.rapor-notice-box {
+  border: 2px dashed #94A3B8;
+  background: #F8FAFC;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  margin: 20px 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.rapor-notice-box h4 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin: 0 0 6px 0;
+}
+
+.rapor-notice-box p {
+  font-size: 0.88rem;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Print Media Query ─────────────────────────────────────── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .modern-app-sidebar,
+  .modern-mobile-navbar,
+  .rapor-top-bar,
+  .rapor-semester-bar {
+    display: none !important;
+  }
+  .rapor-paper-sheet,
+  .rapor-paper-sheet * {
+    visibility: visible !important;
+  }
+  .rapor-paper-sheet {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+/* ── Responsive Mobile ─────────────────────────────────────── */
 @media (max-width: 768px) {
   .rapor-siswa-page {
-    padding: 16px 14px 40px;
+    padding: 16px 12px 40px;
   }
-  .student-profile-strip {
+  .rapor-paper-sheet {
+    padding: 24px 16px;
+    border-radius: 8px;
+  }
+  .rapor-kop-header {
     flex-direction: column;
-    align-items: flex-start;
+    text-align: center;
+    gap: 10px;
   }
-  .rapor-bottom-grid {
+  .rapor-signature-grid {
     grid-template-columns: 1fr;
-  }
-  .semester-tabs-wrapper {
-    flex-direction: column;
-    align-items: flex-start;
+    gap: 28px;
   }
 }

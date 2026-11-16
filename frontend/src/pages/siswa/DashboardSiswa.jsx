@@ -108,12 +108,9 @@ function DashboardSiswa() {
       <div className="app-layout">
         <Sidebar user={user} />
         <main className="app-main">
-          <div className="edutech-loading-screen">
-            <div className="edutech-loader-box">
-              <Sparkles size={40} color="#FACC15" />
-              <div className="edutech-loader-title">MEMUAT PORTAL WARGA BELAJAR</div>
-              <div className="edutech-loader-sub">Menghubungkan basis data akademik PKBM...</div>
-            </div>
+          <div className="loading-container" style={{ minHeight: '65vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="spinner"></div>
+            <p style={{ marginTop: '1rem', color: '#64748B', fontSize: '0.92rem', fontWeight: 600 }}>Memuat data warga belajar...</p>
           </div>
         </main>
       </div>
