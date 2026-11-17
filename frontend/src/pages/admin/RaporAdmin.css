@@ -947,13 +947,27 @@
     background: #FFFFFF !important;
     color: #000000 !important;
     font-size: 10.5pt !important;
+    height: auto !important;
+    min-height: 0 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  .app-layout,
+  .app-main {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background: #FFFFFF !important;
   }
 
   .modern-app-sidebar,
   .modern-sidebar,
   .modern-mobile-navbar,
+  .modern-sidebar-backdrop,
+  .rapor-admin-container,
   .rapor-header-section,
   .rapor-stats-grid,
   .rapor-filter-card,
@@ -964,15 +978,22 @@
   .btn-modal-close,
   button {
     display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .rapor-modal-backdrop {
     position: static !important;
     background: none !important;
     padding: 0 !important;
+    margin: 0 !important;
     inset: auto !important;
     display: block !important;
     overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
     z-index: auto !important;
   }
 
@@ -984,13 +1005,20 @@
     display: block !important;
     overflow: visible !important;
     border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
 
   .rapor-print-modal-body {
     background: none !important;
     padding: 0 !important;
+    margin: 0 !important;
     overflow: visible !important;
     display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
 
   .rapor-print-paper-wrapper {
@@ -998,6 +1026,8 @@
     overflow: visible !important;
     padding: 0 !important;
     margin: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
 
   .rapor-print-paper, .rapor-print-paper * {
@@ -1014,6 +1044,8 @@
     box-shadow: none !important;
     border-radius: 0 !important;
     line-height: 1.28 !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }

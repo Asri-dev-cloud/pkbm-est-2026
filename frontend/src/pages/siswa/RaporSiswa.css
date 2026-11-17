@@ -552,16 +552,33 @@
     background: #FFFFFF !important;
     color: #000000 !important;
     font-size: 10.5pt !important;
+    height: auto !important;
+    min-height: 0 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
+  .app-layout,
+  .app-main {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background: #FFFFFF !important;
+  }
+
   .modern-app-sidebar,
   .modern-mobile-navbar,
+  .modern-sidebar-backdrop,
   .rapor-top-bar,
   .rapor-semester-bar,
   button {
     display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   .rapor-paper-sheet,
   .rapor-paper-sheet * {
@@ -575,6 +592,8 @@
     border: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     line-height: 1.28 !important;

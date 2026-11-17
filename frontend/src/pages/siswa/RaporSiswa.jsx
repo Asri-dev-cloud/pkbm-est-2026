@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
 import { RaporAPI, SiswaAPI } from '../../services/api.js';
-import { Printer } from 'lucide-react';
+import { Printer, Download } from 'lucide-react';
 import { formatTanggal } from '../../utils/formatters.js';
 import './RaporSiswa.css';
 
@@ -199,10 +199,10 @@ export default function RaporSiswa() {
                 type="button"
                 className="rapor-btn-print"
                 onClick={handlePrintPdf}
-                title="Simpan dokumen sebagai PDF atau cetak ke kertas A4 / F4 (HVS)"
+                title="Download dokumen rapor sebagai file PDF"
               >
-                <Printer size={16} />
-                Simpan PDF / Cetak (A4/F4)
+                <Download size={16} />
+                Download PDF
               </button>
             </div>
           </div>

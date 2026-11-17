@@ -16,6 +16,7 @@ import {
   Edit2,
   Trash2,
   Printer,
+  Download,
   CheckCircle,
   Clock,
   Award,
@@ -1000,10 +1001,10 @@ export default function RaporAdmin() {
                       type="button"
                       className="rapor-btn-primary"
                       onClick={handlePrintPdf}
-                      title="Simpan dokumen sebagai PDF atau cetak ke kertas A4 / F4 (HVS)"
+                      title="Download dokumen rapor sebagai file PDF"
                     >
-                      <Printer size={16} />
-                      Simpan PDF / Cetak (A4/F4)
+                      <Download size={16} />
+                      Download PDF
                     </button>
                     <button
                       type="button"

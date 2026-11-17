@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Save,
   Printer,
+  Download,
   Plus,
   Trash2,
   CheckCircle,
@@ -592,9 +593,16 @@ export default function FormRaporPage() {
     }
   };
 
-  // ── Cetak Dokumen Langsung ──────────────────────────────────
+  // ── Download Dokumen Rapor PDF ─────────────────────────────
   const handlePrint = () => {
+    const oldTitle = document.title;
+    const cleanName = (selectedSiswa?.nama_lengkap || 'Warga_Belajar').replace(/[^a-zA-Z0-9]/g, '_');
+    const sem = headerForm.semester ? `Semester_${headerForm.semester}` : '';
+    document.title = `Rapor_PKBM_${cleanName}_${sem}`;
     window.print();
+    setTimeout(() => {
+      document.title = oldTitle;
+    }, 1200);
   };
 
   return (
@@ -635,10 +643,10 @@ export default function FormRaporPage() {
               type="button"
               className="btn-header-preview"
               onClick={() => setShowPrintModal(true)}
-              title="Pratinjau lembar cetak format resmi PKBM"
+              title="Pratinjau lembar rapor dan download PDF"
             >
-              <Eye size={16} />
-              <span>Pratinjau Cetak</span>
+              <Download size={16} />
+              <span>Download PDF</span>
             </button>
 
             <button
@@ -1372,8 +1380,8 @@ export default function FormRaporPage() {
                 className="btn-footer-preview"
                 onClick={() => setShowPrintModal(true)}
               >
-                <Printer size={16} />
-                <span>Pratinjau Lembar Cetak</span>
+                <Download size={16} />
+                <span>Pratinjau & Download PDF</span>
               </button>
 
               <button
@@ -1391,11 +1399,11 @@ export default function FormRaporPage() {
 
         {/* ── MODAL PRATINJAU CETAK RESMI PKBM BINA MANDIRI ──────── */}
         {showPrintModal && (
-          <div className="print-modal-backdrop no-print" onClick={() => setShowPrintModal(false)}>
+          <div className="print-modal-backdrop" onClick={() => setShowPrintModal(false)}>
             <div className="print-modal-window" onClick={(e) => e.stopPropagation()}>
-              <div className="print-modal-topbar">
+              <div className="print-modal-topbar no-print">
                 <div className="bar-title">
-                  <Printer size={18} color="#D97706" />
+                  <Download size={18} color="#D97706" />
                   <strong>Pratinjau Lembar Rapor Hasil Belajar (Standar A4/F4 PKBM Bina Mandiri)</strong>
                 </div>
                 <div className="bar-buttons">
@@ -1404,8 +1412,8 @@ export default function FormRaporPage() {
                     className="btn-print-now"
                     onClick={handlePrint}
                   >
-                    <Printer size={16} />
-                    <span>Cetak Lembar Rapor</span>
+                    <Download size={16} />
+                    <span>Download PDF</span>
                   </button>
                   <button
                     type="button"
