@@ -1235,7 +1235,7 @@ function RuangBelajarSiswa() {
 
   // Handler Masuk Kelas LMS
   const handleMasukKelas = (item) => {
-    navigate(`/dashboard/siswa/kelas/${item.id}?rombel_id=${item.rombel_id}`);
+    navigate(`/dashboard/siswa/kelas/${item.id}?rombel_id=${item.rombel_id}&nama_rombel=${encodeURIComponent(item.nama_rombel || '')}`);
   };
 
   return (
@@ -1294,7 +1294,7 @@ function RuangBelajarSiswa() {
                 }}
               >
                 <i className="bi bi-backpack-fill"></i>
-                <span>Paket A (Kelas 1 & 2)</span>
+                <span>Paket A</span>
                 <span className="tab-counter">6</span>
               </button>
 
@@ -1307,7 +1307,7 @@ function RuangBelajarSiswa() {
                 }}
               >
                 <i className="bi bi-book-half"></i>
-                <span>Paket B (Kelas 7-1, 7-2, 8-1)</span>
+                <span>Paket B</span>
                 <span className="tab-counter">30</span>
               </button>
 
@@ -1320,7 +1320,7 @@ function RuangBelajarSiswa() {
                 }}
               >
                 <i className="bi bi-mortarboard-fill"></i>
-                <span>Paket C (Kelas 10-1, 11-1, 11-2)</span>
+                <span>Paket C</span>
                 <span className="tab-counter">42</span>
               </button>
             </div>
@@ -1637,10 +1637,10 @@ function RuangBelajarSiswa() {
             <div className="rb-modal-body" style={{ padding: '1.5rem' }}>
               <div style={{
                 background: '#FFFFFF',
-                border: '2.5px solid #1E1B4B',
+                border: '2px solid #1E1B4B',
                 borderRadius: '16px',
                 padding: '1.5rem',
-                boxShadow: '4px 4px 0px #1E1B4B',
+                boxShadow: 'none',
                 marginBottom: '1.25rem'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>

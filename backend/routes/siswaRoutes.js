@@ -52,10 +52,10 @@ router.get(
   SiswaController.downloadKartuPelajarPdf
 );
 
-// GET /api/siswa/rombel/options — opsi rombel aktif untuk admin SPMB
+// GET /api/siswa/rombel/options — opsi rombel aktif untuk dropdown & ruang kelas
 router.get(
   '/rombel/options',
-  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TUTOR),
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TUTOR, ROLES.WARGA_BELAJAR, ROLES.PIMPINAN),
   SiswaController.getRombelOptions
 );
 

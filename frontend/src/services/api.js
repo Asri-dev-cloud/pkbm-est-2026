@@ -32,7 +32,7 @@ const baseURL = getBaseUrl();
 
 const apiClient = axios.create({
   baseURL,
-  timeout: 30000,
+  timeout: 12000,
 });
 
 // Helper universal untuk membuat URL file/asset yang aman untuk browser
@@ -119,6 +119,143 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+
+// ============================================================
+// ── 3B. SMART SWR CLIENT-SIDE CACHE & REQUEST DEDUPLICATION ──
+// Mempercepat navigasi hingga 0ms, menghilangkan spinner berulang,
+// dan mencegah error/blank saat berpindah antar-halaman.
+// ============================================================
+const CACHE_TTL_MS = 1000 * 60 * 5; // 5 menit
+const memoryCache = new Map();
+const inFlightRequests = new Map();
+
+export const clearApiCache = (pattern = null) => {
+  if (!pattern) {
+    memoryCache.clear();
+    try {
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith('pkbm_cache_')) sessionStorage.removeItem(key);
+      });
+    } catch {}
+    return;
+  }
+  for (const key of memoryCache.keys()) {
+    if (key.includes(pattern)) memoryCache.delete(key);
+  }
+  try {
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith('pkbm_cache_') && key.includes(pattern)) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  } catch {}
+};
+
+const getCachedData = (key) => {
+  const mem = memoryCache.get(key);
+  if (mem && Date.now() - mem.timestamp < CACHE_TTL_MS) {
+    return mem.data;
+  }
+  try {
+    const raw = sessionStorage.getItem(`pkbm_cache_${key}`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Date.now() - parsed.timestamp < CACHE_TTL_MS) {
+        memoryCache.set(key, parsed);
+        return parsed.data;
+      }
+    }
+  } catch {}
+  return null;
+};
+
+const setCachedData = (key, data) => {
+  if (!data || data.status >= 400 || (data.data && data.data.success === false)) return;
+  if (typeof Blob !== 'undefined' && data.data instanceof Blob) return;
+  if (typeof ArrayBuffer !== 'undefined' && data.data instanceof ArrayBuffer) return;
+
+  const entry = { data, timestamp: Date.now() };
+  memoryCache.set(key, entry);
+  try {
+    sessionStorage.setItem(`pkbm_cache_${key}`, JSON.stringify(entry));
+  } catch {}
+};
+
+const rawGet = apiClient.get.bind(apiClient);
+
+apiClient.get = async (url, config = {}) => {
+  if (config.noCache || config.responseType === 'blob' || config.responseType === 'arraybuffer') {
+    return rawGet(url, config);
+  }
+
+  const cacheKey = `${url}::${JSON.stringify(config.params || {})}`;
+
+  // 1. Deduplikasi request yang sedang berjalan bersamaan
+  if (inFlightRequests.has(cacheKey)) {
+    return inFlightRequests.get(cacheKey);
+  }
+
+  // 2. Cek Cache (SWR - Stale-While-Revalidate)
+  const cachedData = getCachedData(cacheKey);
+  if (cachedData) {
+    // Jalankan background revalidation secara senyap agar data selalu up-to-date
+    rawGet(url, config)
+      .then((fresh) => {
+        setCachedData(cacheKey, fresh);
+      })
+      .catch(() => {
+        // Abaikan error background revalidation agar UX pengguna tidak terganggu
+      });
+    return cachedData;
+  }
+
+  // 3. Fetch jika belum ada di cache, dengan auto-fallback jika server sementara sibuk
+  const fetchPromise = (async () => {
+    try {
+      const response = await rawGet(url, config);
+      setCachedData(cacheKey, response);
+      return response;
+    } catch (err) {
+      const stale = memoryCache.get(cacheKey)?.data;
+      if (stale) {
+        console.warn(`[SWR Fallback] Memakai data cache lokal untuk ${url}:`, err.message);
+        return stale;
+      }
+      throw err;
+    } finally {
+      inFlightRequests.delete(cacheKey);
+    }
+  })();
+
+  inFlightRequests.set(cacheKey, fetchPromise);
+  return fetchPromise;
+};
+
+// Invalidate cache secara otomatis saat ada mutasi data (POST / PUT / DELETE / PATCH)
+['post', 'put', 'patch', 'delete'].forEach((method) => {
+  const originalMethod = apiClient[method].bind(apiClient);
+  apiClient[method] = async (...args) => {
+    const res = await originalMethod(...args);
+    const url = String(args[0] || '');
+    if (url.includes('/siswa')) clearApiCache('/siswa');
+    if (url.includes('/auth')) clearApiCache('/auth');
+    if (url.includes('/akademik')) {
+      clearApiCache('/akademik');
+      clearApiCache('/siswa/mapel');
+    }
+    if (url.includes('/spmb')) clearApiCache('/spmb');
+    if (url.includes('/tagihan')) clearApiCache('/tagihan');
+    if (url.includes('/absensi')) clearApiCache('/absensi');
+    if (url.includes('/ujian')) clearApiCache('/ujian');
+    if (url.includes('/pertemuan')) clearApiCache('/pertemuan');
+    if (url.includes('/klub')) clearApiCache('/klub');
+    if (url.includes('/berita')) clearApiCache('/berita');
+    if (url.includes('/modul-buku')) clearApiCache('/modul-buku');
+    if (url.includes('/rapor')) clearApiCache('/rapor');
+    return res;
+  };
+});
 
 
 // ============================================================
@@ -669,6 +806,15 @@ export const AkademikAPI = {
 
   getTutorOptions: () =>
     apiClient.get('/akademik/options/tutor'),
+
+  // RPS (Rencana Pembelajaran Semester)
+  getRps: (rombelId, mapelId) =>
+    apiClient.get('/akademik/rps', { params: { rombel_id: rombelId, mapel_id: mapelId } }),
+
+  uploadRps: (formData) =>
+    apiClient.post('/akademik/rps', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 

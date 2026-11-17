@@ -104,12 +104,14 @@ function KelasTerpaduSiswa() {
     if (!rombelId || !mapelId) return;
     try {
       setLoadingRps(true);
-      const res = await AkademikAPI.getRps(rombelId, mapelId);
-      if (res.data && res.data.success) {
-        setRpsPath(res.data.data.rps_file_path);
+      if (typeof AkademikAPI?.getRps === 'function') {
+        const res = await AkademikAPI.getRps(rombelId, mapelId);
+        if (res.data && res.data.success) {
+          setRpsPath(res.data.data.rps_file_path);
+        }
       }
     } catch (e) {
-      console.warn('Gagal memuat RPS:', e);
+      // 404/not uploaded yet is expected before tutor uploads RPS, do not log noisy console errors
       setRpsPath(null);
     } finally {
       setLoadingRps(false);
@@ -223,9 +225,15 @@ function KelasTerpaduSiswa() {
         try {
           const rRes = await SiswaAPI.getRombelOptions();
           const foundR = (rRes.data?.data || []).find(r => String(r.id) === String(rombelId));
-          if (foundR) setRombelDetail(foundR);
-        } catch (e) {
-          console.warn('Gagal memuat info rombel:', e);
+          if (foundR) {
+            setRombelDetail(foundR);
+          } else {
+            const paramRombel = searchParams.get('nama_rombel') || user.nama_rombel;
+            if (paramRombel) setRombelDetail({ id: rombelId, nama_rombel: paramRombel, nama: paramRombel });
+          }
+        } catch {
+          const paramRombel = searchParams.get('nama_rombel') || user.nama_rombel;
+          if (paramRombel) setRombelDetail({ id: rombelId, nama_rombel: paramRombel, nama: paramRombel });
         }
 
         // Ambil info mapel spesifik dari daftar mapel

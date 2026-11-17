@@ -4,7 +4,15 @@
 // Laporan Hasil Penerimaan Siswa Baru PKBM Bina Mandiri
 // ============================================================
 
-import ExcelJS from 'exceljs';
+// Dynamic loading ExcelJS on-demand agar tidak memperlambat initial loading aplikasi
+let ExcelJSModule = null;
+async function getExcelJS() {
+  if (!ExcelJSModule) {
+    const mod = await import('exceljs');
+    ExcelJSModule = mod.default || mod;
+  }
+  return ExcelJSModule;
+}
 
 /**
  * Menghitung tahun ajaran real-time berdasarkan tanggal saat ini.
@@ -95,6 +103,7 @@ export async function generateLaporanSiswaExcel({
   const ta = tahunAjaran || getTahunAjaranRealTime();
   const logoBase64 = await getLogoBase64();
 
+  const ExcelJS = await getExcelJS();
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'PKBM Bina Mandiri - Sistem Informasi Akademik';
   workbook.lastModifiedBy = 'Admin TU PKBM Bina Mandiri';

@@ -19,8 +19,8 @@ router.put('/rombel-mapel/:id', checkRole(ROLES.SUPER_ADMIN), AkademikController
 router.patch('/rombel-mapel/:id/visibility', checkRole(ROLES.SUPER_ADMIN), AkademikController.updateRombelMapelVisibility);
 router.delete('/rombel-mapel/:id', checkRole(ROLES.SUPER_ADMIN), AkademikController.deleteRombelMapel);
 
-router.get('/options/rombel', checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN), AkademikController.getRombelOptions);
-router.get('/options/tutor', checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN), AkademikController.getTutorOptions);
+router.get('/options/rombel', checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TUTOR, ROLES.WARGA_BELAJAR, ROLES.PIMPINAN), AkademikController.getRombelOptions);
+router.get('/options/tutor', checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TUTOR, ROLES.WARGA_BELAJAR, ROLES.PIMPINAN), AkademikController.getTutorOptions);
 
 // ── RPS (Rencana Pembelajaran Semester) ──────────────────
 router.get('/rps', AkademikController.getRps);

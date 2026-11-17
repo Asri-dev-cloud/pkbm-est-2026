@@ -1,7 +1,7 @@
 /* ============================================================
-   RuangBelajar.css — Retro Pop Calendar Theme
+   RuangBelajar.css — Retro Pop Calendar Theme (Clean & No Hard Black Shadows)
    Inspired by cute spiral calendar flip cards
-   Thick comic borders, binder hooks, pop shadows & high interactivity
+   Crisp borders, binder hooks, vibrant palette, no black offset shadows
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Fredoka:wght@600;700;800;900&family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
@@ -9,10 +9,7 @@
 :root {
   --rb-dark-border: #1E1B4B;
   --rb-card-bg-top: #FFFDF8;
-  --rb-shadow: 5px 6px 0px #1E1B4B;
-  --rb-shadow-hover: 8px 10px 0px #1E1B4B;
-  --rb-shadow-sm: 3px 3px 0px #1E1B4B;
-  --rb-radius: 22px;
+  --rb-radius: 20px;
 }
 
 /* Page Container */
@@ -62,30 +59,30 @@
   gap: 10px;
 }
 
-/* ── Interactive Buttons ─────────────────────────────────────── */
+/* ── Interactive Buttons (No Black Shadow) ───────────────────── */
 .rb-btn-pop {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 16px;
+  padding: 9px 18px;
   border-radius: 12px;
   border: 2px solid var(--rb-dark-border);
   font-size: 0.86rem;
   font-weight: 800;
   cursor: pointer;
-  transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: var(--rb-shadow-sm);
+  transition: all 0.18s ease;
+  box-shadow: none;
   text-decoration: none;
 }
 
 .rb-btn-pop:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0px var(--rb-dark-border);
+  transform: translateY(-2px);
+  box-shadow: none;
 }
 
 .rb-btn-pop:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px var(--rb-dark-border);
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .rb-btn-pop.primary {
@@ -106,12 +103,12 @@
   background: #F8FAFC;
 }
 
-/* ── Filter & Search Bar ─────────────────────────────────────── */
+/* ── Filter & Search Bar (No Black Shadow) ───────────────────── */
 .rb-controls-bar {
   background: #FFFFFF;
-  border: 2.5px solid var(--rb-dark-border);
+  border: 2px solid var(--rb-dark-border);
   border-radius: 20px;
-  box-shadow: 4px 5px 0px var(--rb-dark-border);
+  box-shadow: none;
   padding: 1.25rem 1.5rem;
   margin-bottom: 2rem;
   display: flex;
@@ -135,7 +132,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.18s ease;
-  box-shadow: 2px 2px 0px var(--rb-dark-border);
+  box-shadow: none;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -154,7 +151,7 @@
   background: #1E1B4B;
   color: #FFFFFF;
   border-color: #1E1B4B;
-  box-shadow: 3px 3px 0px rgba(30, 27, 75, 0.4);
+  box-shadow: none;
 }
 
 .rb-tab-btn.active .tab-counter {
@@ -208,11 +205,13 @@
   color: #0F172A;
   outline: none;
   transition: all 0.2s ease;
+  box-shadow: none;
 }
 
 .rb-search-input:focus {
   background: #FFFFFF;
-  box-shadow: 3px 3px 0px var(--rb-dark-border);
+  border-color: #1E1B4B;
+  box-shadow: none;
 }
 
 .rb-search-clear {
@@ -248,6 +247,7 @@
   color: #334155;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: none;
 }
 
 .rb-rombel-pill:hover {
@@ -257,7 +257,7 @@
 .rb-rombel-pill.active {
   background: #FFE600;
   color: #1E1B4B;
-  box-shadow: 2px 2px 0px var(--rb-dark-border);
+  box-shadow: none;
 }
 
 /* ── Calendar Cards Grid ─────────────────────────────────────── */
@@ -268,23 +268,23 @@
   padding-top: 0.75rem;
 }
 
-/* ── The Retro Calendar Card ─────────────────────────────────── */
+/* ── The Retro Calendar Card (No Black Shadow) ───────────────── */
 .retro-cal-card {
   position: relative;
   background: var(--rb-card-bg-top);
-  border: 3px solid var(--rb-dark-border);
+  border: 2.5px solid var(--rb-dark-border);
   border-radius: var(--rb-radius);
-  box-shadow: var(--rb-shadow);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   overflow: visible;
-  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.24s ease;
+  transition: transform 0.2s ease;
   user-select: none;
 }
 
 .retro-cal-card:hover {
-  transform: translateY(-6px) scale(1.015);
-  box-shadow: var(--rb-shadow-hover);
+  transform: translateY(-5px);
+  box-shadow: none;
 }
 
 /* Double Spiral Binder Rings (Hanging Top Hooks) */
@@ -306,7 +306,7 @@
   background: #FFFFFF;
   border: 2.5px solid var(--rb-dark-border);
   border-radius: 9999px;
-  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: none;
   position: relative;
 }
 
@@ -325,9 +325,9 @@
 /* ── Card Header Section (Cream Top) ─────────────────────────── */
 .cal-card-header {
   background: var(--rb-card-bg-top);
-  border-top-left-radius: 19px;
-  border-top-right-radius: 19px;
-  border-bottom: 3px solid var(--rb-dark-border);
+  border-top-left-radius: 17px;
+  border-top-right-radius: 17px;
+  border-bottom: 2.5px solid var(--rb-dark-border);
   padding: 1rem 1.25rem 0.75rem 1.25rem;
   display: flex;
   align-items: center;
@@ -336,15 +336,14 @@
   min-height: 64px;
 }
 
-/* Indonesian Script Day (Sabtu / Minggu) */
+/* Indonesian Script Day (Sabtu / Minggu, Clean Tanpa Shadow) */
 .cal-script-day {
   font-family: 'Caveat', cursive;
-  font-size: 2rem;
+  font-size: 2.1rem;
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.02em;
-  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
-  -webkit-text-stroke: 1px var(--rb-dark-border);
+  text-shadow: none;
   transform: rotate(-2deg);
   display: inline-block;
 }
@@ -357,15 +356,15 @@
   font-size: 0.72rem;
   font-weight: 800;
   color: var(--rb-dark-border);
-  box-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+  box-shadow: none;
   letter-spacing: 0.03em;
   white-space: nowrap;
 }
 
 /* ── Card Body Section (Vibrant Colored Body) ─────────────────── */
 .cal-card-body {
-  border-bottom-left-radius: 19px;
-  border-bottom-right-radius: 19px;
+  border-bottom-left-radius: 17px;
+  border-bottom-right-radius: 17px;
   padding: 1.4rem 1.25rem 1.25rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -375,7 +374,7 @@
   transition: background 0.2s ease;
 }
 
-/* Chunky Retro Number (Tanpa Titik: "01", "02", dst) */
+/* Chunky Retro Number (Tanpa Titik: "01", "02", dst - No Shadow) */
 .cal-number-container {
   display: flex;
   align-items: center;
@@ -390,10 +389,10 @@
   line-height: 1;
   background: #FFFDF8;
   color: var(--rb-dark-border);
-  border: 3px solid var(--rb-dark-border);
+  border: 2.5px solid var(--rb-dark-border);
   border-radius: 16px;
   padding: 4px 22px 2px 22px;
-  box-shadow: 3.5px 4px 0px var(--rb-dark-border);
+  box-shadow: none;
   letter-spacing: -0.02em;
   display: inline-flex;
   align-items: center;
@@ -417,13 +416,13 @@
   min-height: 2.5rem;
 }
 
-/* Tutor Pill */
+/* Tutor Pill (No Shadow) */
 .cal-tutor-pill {
   background: #FFFDF8;
   border: 2px solid var(--rb-dark-border);
   border-radius: 9999px;
   padding: 5px 12px;
-  box-shadow: 2px 2px 0px var(--rb-dark-border);
+  box-shadow: none;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -454,7 +453,7 @@
   text-overflow: ellipsis;
 }
 
-/* Card Actions */
+/* Card Actions (No Shadow) */
 .cal-card-actions {
   margin-top: auto;
   display: flex;
@@ -465,7 +464,7 @@
   flex: 1;
   background: #FFFFFF;
   color: #1E1B4B;
-  border: 2.5px solid var(--rb-dark-border);
+  border: 2px solid var(--rb-dark-border);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 0.88rem;
@@ -474,21 +473,21 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 3px 3px 0px var(--rb-dark-border);
+  box-shadow: none;
   cursor: pointer;
-  transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.18s ease;
   text-decoration: none;
 }
 
 .cal-btn-enter:hover {
   background: #FFE600;
-  transform: translate(-1.5px, -1.5px);
-  box-shadow: 4px 4px 0px var(--rb-dark-border);
+  transform: translateY(-2px);
+  box-shadow: none;
 }
 
 .cal-btn-enter:active {
-  transform: translate(1.5px, 1.5px);
-  box-shadow: 1px 1px 0px var(--rb-dark-border);
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .cal-btn-info {
@@ -496,13 +495,13 @@
   height: 42px;
   background: #FFFFFF;
   color: #1E1B4B;
-  border: 2.5px solid var(--rb-dark-border);
+  border: 2px solid var(--rb-dark-border);
   border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
-  box-shadow: 3px 3px 0px var(--rb-dark-border);
+  box-shadow: none;
   cursor: pointer;
   transition: all 0.18s ease;
   flex-shrink: 0;
@@ -510,19 +509,19 @@
 
 .cal-btn-info:hover {
   background: #EFF6FF;
-  transform: translate(-1.5px, -1.5px);
-  box-shadow: 4px 4px 0px var(--rb-dark-border);
+  transform: translateY(-2px);
+  box-shadow: none;
 }
 
 .cal-btn-info:active {
-  transform: translate(1.5px, 1.5px);
-  box-shadow: 1px 1px 0px var(--rb-dark-border);
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
-/* ── Color Variations ────────────────────────────────────────── */
+/* ── Color Variations (Bersih Tanpa Text-Shadow) ─────────────── */
 /* 1. Yellow */
 .theme-yellow .cal-script-day {
-  color: #FFE600;
+  color: #D97706;
 }
 .theme-yellow .cal-card-body {
   background: #FFD200;
@@ -530,76 +529,77 @@
 
 /* 2. Coral */
 .theme-coral .cal-script-day {
-  color: #FF5252;
+  color: #E11D48;
 }
 .theme-coral .cal-card-body {
   background: #FF5555;
 }
 .theme-coral .cal-subject-title {
   color: #FFFFFF;
-  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+  text-shadow: none;
 }
 
 /* 3. Pink */
 .theme-pink .cal-script-day {
-  color: #F06292;
+  color: #DB2777;
 }
 .theme-pink .cal-card-body {
   background: #EC4899;
 }
 .theme-pink .cal-subject-title {
   color: #FFFFFF;
-  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+  text-shadow: none;
 }
 
 /* 4. Green */
 .theme-green .cal-script-day {
-  color: #00E676;
+  color: #059669;
 }
 .theme-green .cal-card-body {
   background: #10B981;
 }
 .theme-green .cal-subject-title {
   color: #FFFFFF;
-  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+  text-shadow: none;
 }
 
 /* 5. Blue */
 .theme-blue .cal-script-day {
-  color: #00D2FF;
+  color: #0284C7;
 }
 .theme-blue .cal-card-body {
   background: #06B6D4;
 }
 .theme-blue .cal-subject-title {
   color: #FFFFFF;
-  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+  text-shadow: none;
 }
 
 /* 6. Purple */
 .theme-purple .cal-script-day {
-  color: #C084FC;
+  color: #7C3AED;
 }
 .theme-purple .cal-card-body {
   background: #8B5CF6;
 }
 .theme-purple .cal-subject-title {
   color: #FFFFFF;
-  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+  text-shadow: none;
 }
 
 /* 7. Orange */
 .theme-orange .cal-script-day {
-  color: #FFA726;
+  color: #EA580C;
 }
 .theme-orange .cal-card-body {
   background: #F59E0B;
 }
 .theme-orange .cal-subject-title {
   color: #1E1B4B;
+  text-shadow: none;
 }
 
-/* ── Modal Styles ────────────────────────────────────────────── */
+/* ── Modal Styles (No Black Shadow) ──────────────────────────── */
 .rb-modal-overlay {
   position: fixed;
   inset: 0;
@@ -615,9 +615,9 @@
 
 .rb-modal-content {
   background: #FFFDF8;
-  border: 3.5px solid var(--rb-dark-border);
+  border: 3px solid var(--rb-dark-border);
   border-radius: 24px;
-  box-shadow: 8px 10px 0px var(--rb-dark-border);
+  box-shadow: none;
   width: 100%;
   max-width: 960px;
   max-height: 88vh;
@@ -629,7 +629,7 @@
 
 .rb-modal-header {
   background: #FFE600;
-  border-bottom: 3px solid var(--rb-dark-border);
+  border-bottom: 2.5px solid var(--rb-dark-border);
   padding: 1.25rem 1.75rem;
   display: flex;
   align-items: center;
@@ -655,7 +655,7 @@
   justify-content: center;
   cursor: pointer;
   font-weight: 800;
-  box-shadow: 2px 2px 0px var(--rb-dark-border);
+  box-shadow: none;
   transition: all 0.15s ease;
 }
 
@@ -673,10 +673,10 @@
 /* SK Document Paper */
 .sk-document-paper {
   background: #FFFFFF;
-  border: 2px solid #CBD5E1;
+  border: 1.5px solid #CBD5E1;
   border-radius: 16px;
   padding: 2rem 2.25rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .sk-header-text {
@@ -729,7 +729,7 @@
   text-align: center;
   padding: 3.5rem 2rem;
   background: #FFFDF8;
-  border: 3px dashed var(--rb-dark-border);
+  border: 2.5px dashed var(--rb-dark-border);
   border-radius: 24px;
   grid-column: 1 / -1;
 }

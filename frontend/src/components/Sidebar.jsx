@@ -44,8 +44,13 @@ import './Sidebar.css';
 
 function Sidebar({ user }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.foto_profil]);
 
   const role = user?.role || 'super_admin';
   const isAdminRole = role === 'super_admin' || role === 'admin';
@@ -380,11 +385,12 @@ function Sidebar({ user }) {
           {/* Card Info User */}
           <div className="modern-user-card">
             <div className="user-avatar-wrap">
-              {user?.foto_profil ? (
+              {user?.foto_profil && !avatarError ? (
                 <img
                   src={toAssetUrl(user.foto_profil)}
                   alt="Foto Profil"
                   className="user-avatar-img"
+                  onError={() => setAvatarError(true)}
                 />
               ) : (
                 <div className="user-avatar-placeholder">
