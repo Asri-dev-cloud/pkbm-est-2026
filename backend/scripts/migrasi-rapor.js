@@ -76,6 +76,16 @@ async function migrasiRapor() {
       // Abaikan jika index memang tidak ada
     }
 
+    // 5. Pastikan semua warga_belajar berstatus aktif (is_aktif = 1)
+    try {
+      const [upRes] = await conn.query(`UPDATE \`warga_belajar\` SET is_aktif = 1 WHERE is_aktif IS NULL OR is_aktif = 0`);
+      if (upRes.affectedRows > 0) {
+        console.log(`[+] Mengaktifkan ${upRes.affectedRows} warga belajar ke status aktif.`);
+      }
+    } catch (e) {
+      // Abaikan jika tidak ada
+    }
+
     conn.release();
 
     console.log('----------------------------------------------------');

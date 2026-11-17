@@ -21,6 +21,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { formatTanggal } from '../../utils/formatters.js';
+import { downloadElementAsPdf } from '../../utils/pdfExport.js';
 import './FormRapor.css';
 
 // Hitung predikat otomatis dari nilai akhir
@@ -99,6 +100,7 @@ export default function FormRaporPage() {
 
   // ── State Modal Pratinjau Cetak ────────────────────────────
   const [showPrintModal, setShowPrintModal] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   // ── Load Meta & Data Rapor (jika Edit) ──────────────────────
   useEffect(() => {
@@ -593,16 +595,21 @@ export default function FormRaporPage() {
     }
   };
 
-  // ── Download Dokumen Rapor PDF ─────────────────────────────
-  const handlePrint = () => {
-    const oldTitle = document.title;
+  // ── Unduh PDF Langsung Tanpa Dialog Cetak (Standar A4 / F4) ──
+  const handleDownloadPdf = async () => {
+    if (downloadingPdf) return;
     const cleanName = (selectedSiswa?.nama_lengkap || 'Warga_Belajar').replace(/[^a-zA-Z0-9]/g, '_');
     const sem = headerForm.semester ? `Semester_${headerForm.semester}` : '';
-    document.title = `Rapor_PKBM_${cleanName}_${sem}`;
-    window.print();
-    setTimeout(() => {
-      document.title = oldTitle;
-    }, 1200);
+    const filename = `Rapor_PKBM_${cleanName}_${sem}.pdf`;
+    setDownloadingPdf(true);
+    try {
+      await downloadElementAsPdf('rapor-form-document', filename, 'a4');
+    } catch (err) {
+      console.warn('Direct PDF export error, fallback to print:', err);
+      window.print();
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   return (
@@ -1410,10 +1417,11 @@ export default function FormRaporPage() {
                   <button
                     type="button"
                     className="btn-print-now"
-                    onClick={handlePrint}
+                    onClick={handleDownloadPdf}
+                    disabled={downloadingPdf}
                   >
                     <Download size={16} />
-                    <span>Download PDF</span>
+                    <span>{downloadingPdf ? 'Mengunduh PDF...' : 'Download PDF'}</span>
                   </button>
                   <button
                     type="button"
@@ -1426,7 +1434,7 @@ export default function FormRaporPage() {
               </div>
 
               <div className="print-modal-scroll-area">
-                <div className="paper-document-sheet">
+                <div id="rapor-form-document" className="paper-document-sheet">
                   {/* Kop Surat Resmi */}
                   <div className="kop-surat-box">
                     <img src="/images/logo new.png" alt="Logo PKBM" className="kop-logo-img" />

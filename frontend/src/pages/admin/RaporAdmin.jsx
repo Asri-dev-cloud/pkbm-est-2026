@@ -27,6 +27,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { formatTanggal } from '../../utils/formatters.js';
+import { downloadElementAsPdf } from '../../utils/pdfExport.js';
 import './RaporAdmin.css';
 
 const formatScore = (val) => {
@@ -80,6 +81,7 @@ export default function RaporAdmin() {
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printData, setPrintData] = useState(null);
   const [loadingPrint, setLoadingPrint] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   // ── Modal Delete State ─────────────────────────────────────
   const [deleteId, setDeleteId] = useState(null);
@@ -388,17 +390,21 @@ export default function RaporAdmin() {
     }
   };
 
-  // ── Handlers Print / Preview ───────────────────────────────
-  const handlePrintPdf = () => {
-    if (!printData) return;
-    const oldTitle = document.title;
+  // ── Unduh PDF Langsung Tanpa Dialog Cetak (Standar A4 / F4) ──
+  const handleDownloadPdf = async () => {
+    if (!printData || downloadingPdf) return;
     const cleanName = (printData.nama_lengkap || 'Warga_Belajar').replace(/[^a-zA-Z0-9]/g, '_');
     const sem = printData.semester ? `Semester_${printData.semester}` : '';
-    document.title = `Rapor_PKBM_${cleanName}_${sem}`;
-    window.print();
-    setTimeout(() => {
-      document.title = oldTitle;
-    }, 1000);
+    const filename = `Rapor_PKBM_${cleanName}_${sem}.pdf`;
+    setDownloadingPdf(true);
+    try {
+      await downloadElementAsPdf('rapor-admin-document', filename, 'a4');
+    } catch (err) {
+      console.warn('Direct PDF export error, fallback to print:', err);
+      window.print();
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   const handleOpenPrint = async (raporId) => {
@@ -1000,11 +1006,12 @@ export default function RaporAdmin() {
                     <button
                       type="button"
                       className="rapor-btn-primary"
-                      onClick={handlePrintPdf}
-                      title="Download dokumen rapor sebagai file PDF"
+                      onClick={handleDownloadPdf}
+                      disabled={downloadingPdf}
+                      title="Download dokumen rapor resmi sebagai file PDF langsung"
                     >
                       <Download size={16} />
-                      Download PDF
+                      {downloadingPdf ? 'Mengunduh PDF...' : 'Download PDF'}
                     </button>
                     <button
                       type="button"
@@ -1027,7 +1034,7 @@ export default function RaporAdmin() {
                         <span>💡 Geser lembar rapor ke samping untuk membaca seluruh tabel & nilai.</span>
                       </div>
                       <div className="rapor-print-paper-wrapper">
-                        <div className="rapor-print-paper">
+                        <div id="rapor-admin-document" className="rapor-print-paper">
                       {/* Kop Surat Resmi PKBM Bina Mandiri */}
                       <div className="print-kop-surat">
                         <img src="/images/logo new.png" alt="Logo PKBM" className="print-logo" />

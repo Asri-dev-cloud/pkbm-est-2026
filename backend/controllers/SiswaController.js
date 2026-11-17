@@ -8,6 +8,7 @@
 import SiswaModel from '../models/SiswaModel.js';
 import pool from '../config/db.js';
 import { buildKartuPelajarPdf } from '../utils/kartuPelajarPdf.js';
+import { ensureWargaBelajarAccount } from './SpmbController.js';
 
 const SiswaController = {
 
@@ -19,6 +20,20 @@ const SiswaController = {
   // -----------------------------------------------------------
   getAll: async (req, res) => {
     try {
+      // Auto-heal: Pastikan semua pendaftar SPMB berstatus 'diterima' otomatis aktif di warga_belajar
+      try {
+        const [unsynced] = await pool.query(
+          `SELECT id FROM pendaftar_spmb WHERE status = 'diterima' AND (warga_belajar_id IS NULL OR warga_belajar_id NOT IN (SELECT id FROM warga_belajar))`
+        );
+        if (unsynced && unsynced.length > 0) {
+          for (const u of unsynced) {
+            await ensureWargaBelajarAccount(u.id);
+          }
+        }
+      } catch (syncErr) {
+        console.warn('[SiswaController.getAll] Auto-sync SPMB noticed:', syncErr.message);
+      }
+
       // Ambil filter dari query string (opsional)
       const { jenjang, is_aktif } = req.query;
 

@@ -90,8 +90,8 @@ function SiswaAdmin() {
   // ── Filter Pencarian Lokal (di client) ───────────────────
   // Filter berdasarkan nama, NIS, NPSN, atau email — tidak hit API ulang
   const siswaFiltered = siswaList.filter(s => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
+    if (!search || !search.trim()) return true;
+    const q = search.trim().toLowerCase();
     return (
       s.nama_lengkap?.toLowerCase().includes(q) ||
       s.nis?.toLowerCase().includes(q) ||

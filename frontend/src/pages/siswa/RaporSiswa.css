@@ -113,32 +113,33 @@
   font-weight: 600;
 }
 
-/* ── Lembar Rapor Asli (Authentic Indonesian Report Sheet) ─── */
+/* ── Lembar Rapor Asli (Format Presisi 1 Lembar Utuh Standar A4 / F4) ─── */
 .rapor-paper-sheet {
   background: #FFFFFF;
   border: 1px solid #CBD5E1;
-  border-radius: 12px;
-  padding: 40px 48px;
+  border-radius: 8px;
+  max-width: 800px;
+  margin: 0 auto 30px auto;
+  padding: 20px 24px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   font-family: 'Times New Roman', Times, serif;
   color: #000000;
-  line-height: 1.45;
-  margin-bottom: 40px;
+  line-height: 1.35;
 }
 
 /* Kop Surat Raport */
 .rapor-kop-header {
   display: flex;
   align-items: center;
-  gap: 20px;
-  border-bottom: 3px double #000000;
-  padding-bottom: 16px;
-  margin-bottom: 22px;
+  gap: 12px;
+  border-bottom: 2.5px double #000000;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .rapor-kop-logo {
-  width: 86px;
-  height: 86px;
+  width: 62px;
+  height: 62px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -149,78 +150,78 @@
 }
 
 .rapor-kop-spacer {
-  width: 86px;
+  width: 62px;
   flex-shrink: 0;
 }
 
 .rapor-kop-yayasan {
-  font-size: 0.96rem;
+  font-size: 0.84rem;
   font-weight: 800;
   margin: 0;
   text-transform: uppercase;
   color: #000000;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
 .rapor-kop-pkbm {
-  font-size: 1.18rem;
+  font-size: 1.02rem;
   font-weight: 800;
-  margin: 2px 0 0 0;
+  margin: 1px 0 0 0;
+  text-transform: uppercase;
+  color: #2563EB;
+  letter-spacing: 0.02em;
+}
+
+.rapor-kop-brand {
+  font-size: 1.35rem;
+  font-weight: 900;
+  margin: 1px 0 2px 0;
   text-transform: uppercase;
   color: #2563EB;
   letter-spacing: 0.03em;
 }
 
-.rapor-kop-brand {
-  font-size: 1.6rem;
-  font-weight: 900;
-  margin: 1px 0 3px 0;
-  text-transform: uppercase;
-  color: #2563EB;
-  letter-spacing: 0.04em;
-}
-
 .rapor-kop-legal {
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  margin: 2px 0 1px 0;
+  margin: 1px 0;
   color: #000000;
 }
 
 .rapor-kop-address {
-  font-size: 0.76rem;
+  font-size: 0.69rem;
   margin: 1px 0;
   color: #000000;
-  line-height: 1.35;
+  line-height: 1.25;
 }
 
 .rapor-kop-contact {
-  font-size: 0.74rem;
+  font-size: 0.67rem;
   margin: 1px 0 0 0;
   color: #000000;
-  line-height: 1.35;
+  line-height: 1.25;
 }
 
 /* Judul Rapor */
 .rapor-doc-title {
   text-align: center;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 800;
   text-transform: uppercase;
   text-decoration: underline;
   text-underline-offset: 3px;
-  margin: 0 0 14px 0;
-  letter-spacing: 0.03em;
+  margin: 0 0 6px 0;
+  letter-spacing: 0.02em;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
 }
 
 .rapor-doc-subtitle {
-  font-size: 0.95rem;
+  font-size: 0.86rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-decoration: none;
 }
 
@@ -228,20 +229,20 @@
 .rapor-identity-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  font-size: 0.88rem;
-  margin-bottom: 18px;
+  gap: 12px;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
 }
 
 /* Tabel Identitas Raport Asli */
 .rapor-identity-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.88rem;
+  font-size: 0.8rem;
 }
 
 .rapor-identity-table td {
-  padding: 3px 0;
+  padding: 1.5px 0;
   vertical-align: top;
 }
 
@@ -249,14 +250,14 @@
 .rapor-grades-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.88rem;
-  margin-bottom: 20px;
+  font-size: 0.78rem;
+  margin-bottom: 6px;
 }
 
 .rapor-grades-table th,
 .rapor-grades-table td {
   border: 1px solid #000000;
-  padding: 7px 9px;
+  padding: 3px 5px;
 }
 
 .rapor-grades-table th {
@@ -282,16 +283,16 @@
 .print-evaluation-grid {
   display: grid;
   grid-template-columns: 1fr 1.35fr;
-  gap: 18px;
-  margin-top: 14px;
-  margin-bottom: 22px;
+  gap: 10px;
+  margin-top: 6px;
+  margin-bottom: 8px;
   page-break-inside: avoid;
 }
 
 .print-card-title {
   font-weight: 700;
-  font-size: 0.86rem;
-  margin-bottom: 6px;
+  font-size: 0.78rem;
+  margin-bottom: 3px;
   color: #000000;
 }
 
@@ -303,13 +304,13 @@
 .print-presensi-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.84rem;
+  font-size: 0.76rem;
   background: #FFFFFF;
 }
 
 .print-presensi-table td {
   border: 1px solid #000000;
-  padding: 5px 8px;
+  padding: 2.5px 6px;
 }
 
 .print-presensi-total {
@@ -325,18 +326,19 @@
 .print-catatan-body {
   flex: 1;
   border: 1px solid #000000;
-  padding: 10px 14px;
+  padding: 5px 8px;
   background: #FAFAFA;
   display: flex;
   align-items: center;
   box-sizing: border-box;
+  min-height: 48px;
 }
 
 .print-catatan-body p {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   font-style: italic;
-  line-height: 1.5;
+  line-height: 1.3;
   color: #000000;
 }
 
@@ -344,10 +346,10 @@
 .print-ttd-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
+  gap: 10px;
   text-align: center;
-  font-size: 0.88rem;
-  margin-top: 24px;
+  font-size: 0.78rem;
+  margin-top: 8px;
   page-break-inside: avoid;
 }
 
@@ -356,23 +358,23 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  min-height: 135px;
+  min-height: 82px;
 }
 
 .ttd-header {
-  height: 44px;
+  height: 28px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  line-height: 1.35;
-  font-size: 0.86rem;
+  line-height: 1.25;
+  font-size: 0.78rem;
   color: #000000;
 }
 
 .ttd-space {
   flex: 1;
-  min-height: 56px;
+  min-height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -389,8 +391,8 @@
   left: 50%;
   top: 50%;
   transform: translate(-65%, -50%) rotate(-6deg);
-  width: 86px;
-  height: 86px;
+  width: 58px;
+  height: 58px;
   object-fit: contain;
   opacity: 0.85;
   mix-blend-mode: multiply;
@@ -406,8 +408,8 @@
 }
 
 .ttd-img {
-  max-height: 48px;
-  max-width: 130px;
+  max-height: 36px;
+  max-width: 110px;
   object-fit: contain;
   filter: brightness(0);
   -webkit-print-color-adjust: exact !important;
@@ -415,7 +417,7 @@
 }
 
 .ttd-footer {
-  height: 26px;
+  height: 20px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -426,7 +428,7 @@
   font-weight: 600;
   color: #000000;
   letter-spacing: 0.05em;
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   white-space: nowrap;
 }
 

@@ -8,6 +8,7 @@ import Sidebar from '../../components/Sidebar.jsx';
 import { RaporAPI, SiswaAPI } from '../../services/api.js';
 import { Printer, Download } from 'lucide-react';
 import { formatTanggal } from '../../utils/formatters.js';
+import { downloadElementAsPdf } from '../../utils/pdfExport.js';
 import './RaporSiswa.css';
 
 export default function RaporSiswa() {
@@ -20,6 +21,7 @@ export default function RaporSiswa() {
 
   const [detailRapor, setDetailRapor] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   // ── Ambil Data Rapor Siswa ─────────────────────────────────
   const fetchMyRapor = async () => {
@@ -169,14 +171,21 @@ export default function RaporSiswa() {
   const studentName = profilSiswa?.nama_lengkap || user?.nama_lengkap || 'Warga Belajar';
   const studentRombel = profilSiswa?.nama_rombel || (profilSiswa?.jenjang ? profilSiswa.jenjang.toUpperCase() : 'Kelas Terpadu');
   const studentProgram = profilSiswa?.jenjang ? profilSiswa.jenjang.toUpperCase() : 'PAKET C';
-  const handlePrintPdf = () => {
-    const oldTitle = document.title;
-    const cleanName = (profilSiswa?.nama_lengkap || 'Siswa').replace(/[^a-zA-Z0-9]/g, '_');
-    document.title = `Rapor_PKBM_${cleanName}_Semester_${activeSemester}`;
-    window.print();
-    setTimeout(() => {
-      document.title = oldTitle;
-    }, 1000);
+
+  // ── Unduh PDF Langsung Tanpa Dialog Cetak (Standar A4 / F4) ──
+  const handleDownloadPdf = async () => {
+    if (downloadingPdf) return;
+    const cleanName = (profilSiswa?.nama_lengkap || user?.nama_lengkap || 'Siswa').replace(/[^a-zA-Z0-9]/g, '_');
+    const filename = `Rapor_PKBM_${cleanName}_Semester_${activeSemester}.pdf`;
+    setDownloadingPdf(true);
+    try {
+      await downloadElementAsPdf('rapor-siswa-document', filename, 'a4');
+    } catch (err) {
+      console.warn('Direct PDF export error, fallback to print:', err);
+      window.print();
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   const currentYear = new Date().getFullYear();
@@ -198,11 +207,12 @@ export default function RaporSiswa() {
               <button
                 type="button"
                 className="rapor-btn-print"
-                onClick={handlePrintPdf}
-                title="Download dokumen rapor sebagai file PDF"
+                onClick={handleDownloadPdf}
+                disabled={downloadingPdf}
+                title="Download dokumen rapor resmi sebagai file PDF langsung"
               >
                 <Download size={16} />
-                Download PDF
+                {downloadingPdf ? 'Mengunduh PDF...' : 'Download PDF'}
               </button>
             </div>
           </div>
@@ -231,7 +241,7 @@ export default function RaporSiswa() {
           </div>
 
           {/* ── LEMBAR RAPOR ASLI (TAMPILAN RESMI SEPERTI BUKU RAPOR) ── */}
-          <section className="rapor-paper-sheet">
+          <section id="rapor-siswa-document" className="rapor-paper-sheet">
 
             {/* Kop Surat Resmi PKBM Bina Mandiri */}
             <div className="rapor-kop-header">
