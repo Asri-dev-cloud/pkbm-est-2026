@@ -44,7 +44,9 @@ const RaporModel = {
         CREATE TABLE IF NOT EXISTS \`rapor_nilai\` (
           \`id\` INT UNSIGNED NOT NULL AUTO_INCREMENT,
           \`rapor_id\` INT UNSIGNED NOT NULL,
-          \`mapel_id\` INT UNSIGNED NOT NULL,
+          \`mapel_id\` INT UNSIGNED NULL,
+          \`kategori\` VARCHAR(50) NOT NULL DEFAULT 'umum',
+          \`nama_mapel_kustom\` VARCHAR(150) NULL,
           \`nilai_tugas\` DECIMAL(5,2) DEFAULT 0.00,
           \`nilai_uts\` DECIMAL(5,2) DEFAULT 0.00,
           \`nilai_uas\` DECIMAL(5,2) DEFAULT 0.00,
@@ -54,11 +56,27 @@ const RaporModel = {
           \`created_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
           \`updated_at\` DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (\`id\`),
-          UNIQUE KEY \`uq_rapor_mapel\` (\`rapor_id\`, \`mapel_id\`),
           KEY \`idx_rapor\` (\`rapor_id\`),
           KEY \`idx_mapel\` (\`mapel_id\`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Detail nilai mapel per rapor';
       `);
+
+      // Migrasi aman untuk kolom tambahan
+      const runSafeAlter = async (sql) => {
+        try {
+          await pool.query(sql);
+        } catch {
+          // Abaikan jika kolom atau index sudah termodifikasi
+        }
+      };
+
+      await runSafeAlter(`ALTER TABLE \`rapor_periode\` ADD COLUMN \`nama_wali_kelas\` VARCHAR(150) NULL`);
+      await runSafeAlter(`ALTER TABLE \`rapor_periode\` ADD COLUMN \`fase\` VARCHAR(20) NULL`);
+      await runSafeAlter(`ALTER TABLE \`rapor_periode\` ADD COLUMN \`data_kustom\` LONGTEXT NULL`);
+      await runSafeAlter(`ALTER TABLE \`rapor_nilai\` ADD COLUMN \`kategori\` VARCHAR(50) NOT NULL DEFAULT 'umum'`);
+      await runSafeAlter(`ALTER TABLE \`rapor_nilai\` ADD COLUMN \`nama_mapel_kustom\` VARCHAR(150) NULL`);
+      await runSafeAlter(`ALTER TABLE \`rapor_nilai\` MODIFY COLUMN \`mapel_id\` INT UNSIGNED NULL`);
+      await runSafeAlter(`ALTER TABLE \`rapor_nilai\` DROP INDEX \`uq_rapor_mapel\``);
 
       return true;
     } catch (err) {
@@ -176,6 +194,9 @@ const RaporModel = {
         r.rombel_id,
         r.tahun_ajaran_id,
         r.semester,
+        r.nama_wali_kelas,
+        r.fase,
+        r.data_kustom,
         r.total_hadir,
         r.total_izin,
         r.total_sakit,
@@ -257,6 +278,9 @@ const RaporModel = {
         r.rombel_id,
         r.tahun_ajaran_id,
         r.semester,
+        r.nama_wali_kelas,
+        r.fase,
+        r.data_kustom,
         r.total_hadir,
         r.total_izin,
         r.total_sakit,
@@ -293,6 +317,13 @@ const RaporModel = {
     }
 
     const header = headerRows[0];
+    if (header.data_kustom && typeof header.data_kustom === 'string') {
+      try {
+        header.data_kustom = JSON.parse(header.data_kustom);
+      } catch {
+        // Biarkan seperti semula jika bukan format JSON
+      }
+    }
 
     // Ambil detail nilai mapel
     const [nilaiRows] = await pool.query(
@@ -300,20 +331,24 @@ const RaporModel = {
         rn.id,
         rn.rapor_id,
         rn.mapel_id,
+        COALESCE(rn.kategori, 'umum') AS kategori,
+        rn.nama_mapel_kustom,
         rn.nilai_tugas,
         rn.nilai_uts,
         rn.nilai_uas,
         rn.nilai_akhir,
         rn.predikat,
         rn.catatan,
-        mp.nama AS nama_mapel,
-        mp.kode AS kode_mapel,
+        COALESCE(rn.nama_mapel_kustom, mp.nama, 'Mata Pelajaran') AS nama_mapel,
+        COALESCE(mp.kode, 'KUST') AS kode_mapel,
         75 AS kkm,
-        mp.id AS urutan
+        COALESCE(mp.id, 999) AS urutan
       FROM rapor_nilai rn
-      JOIN mata_pelajaran mp ON rn.mapel_id = mp.id
+      LEFT JOIN mata_pelajaran mp ON rn.mapel_id = mp.id
       WHERE rn.rapor_id = ?
-      ORDER BY mp.id ASC, mp.nama ASC`,
+      ORDER BY 
+        CASE WHEN rn.kategori = 'umum' THEN 1 WHEN rn.kategori = 'pemberdayaan' THEN 2 ELSE 3 END ASC,
+        rn.id ASC`,
       [id]
     );
 
@@ -346,6 +381,9 @@ const RaporModel = {
         r.rombel_id,
         r.tahun_ajaran_id,
         r.semester,
+        r.nama_wali_kelas,
+        r.fase,
+        r.data_kustom,
         r.total_hadir,
         r.total_izin,
         r.total_sakit,
@@ -409,6 +447,9 @@ const RaporModel = {
         rombel_id,
         tahun_ajaran_id,
         semester = '1',
+        nama_wali_kelas = '',
+        fase = '',
+        data_kustom = null,
         total_hadir = 0,
         total_izin = 0,
         total_sakit = 0,
@@ -417,6 +458,10 @@ const RaporModel = {
         status_rapor = 'draft',
         nilai = [],
       } = data;
+
+      const serializedDataKustom = typeof data_kustom === 'object' && data_kustom !== null
+        ? JSON.stringify(data_kustom)
+        : (data_kustom || null);
 
       // Cek apakah sudah ada rapor untuk WB di tahun ajaran & semester ini
       const [existing] = await conn.execute(
@@ -431,6 +476,9 @@ const RaporModel = {
         await conn.execute(
           `UPDATE rapor_periode SET
             rombel_id = ?,
+            nama_wali_kelas = ?,
+            fase = ?,
+            data_kustom = ?,
             total_hadir = ?,
             total_izin = ?,
             total_sakit = ?,
@@ -441,6 +489,9 @@ const RaporModel = {
           WHERE id = ?`,
           [
             rombel_id,
+            nama_wali_kelas || null,
+            fase || null,
+            serializedDataKustom,
             total_hadir,
             total_izin,
             total_sakit,
@@ -453,13 +504,16 @@ const RaporModel = {
       } else {
         const [insertRes] = await conn.execute(
           `INSERT INTO rapor_periode 
-            (warga_belajar_id, rombel_id, tahun_ajaran_id, semester, total_hadir, total_izin, total_sakit, total_alpa, catatan_wali, status_rapor, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+            (warga_belajar_id, rombel_id, tahun_ajaran_id, semester, nama_wali_kelas, fase, data_kustom, total_hadir, total_izin, total_sakit, total_alpa, catatan_wali, status_rapor, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
           [
             warga_belajar_id,
             rombel_id,
             tahun_ajaran_id,
             String(semester),
+            nama_wali_kelas || null,
+            fase || null,
+            serializedDataKustom,
             total_hadir,
             total_izin,
             total_sakit,
@@ -476,13 +530,21 @@ const RaporModel = {
         await conn.execute(`DELETE FROM rapor_nilai WHERE rapor_id = ?`, [raporId]);
 
         for (const item of nilai) {
-          if (!item.mapel_id) continue;
+          const namaMapel = item.nama_mapel || item.nama_mapel_kustom || '';
+          const mapelId = (item.mapel_id && !isNaN(Number(item.mapel_id)) && Number(item.mapel_id) > 0)
+            ? Number(item.mapel_id)
+            : null;
+
+          if (!mapelId && !namaMapel) continue;
+
+          const kategori = item.kategori || 'umum';
+          const namaKustom = mapelId ? (item.nama_mapel_kustom || null) : namaMapel;
 
           const nTugas = Number(item.nilai_tugas || 0);
           const nUts   = Number(item.nilai_uts || 0);
           const nUas   = Number(item.nilai_uas || 0);
           
-          const nAkhir = item.nilai_akhir !== undefined && item.nilai_akhir !== null
+          const nAkhir = item.nilai_akhir !== undefined && item.nilai_akhir !== null && item.nilai_akhir !== ''
             ? Number(item.nilai_akhir)
             : Math.round(((nTugas * 0.3) + (nUts * 0.3) + (nUas * 0.4)) * 10) / 10;
 
@@ -496,11 +558,13 @@ const RaporModel = {
 
           await conn.execute(
             `INSERT INTO rapor_nilai 
-              (rapor_id, mapel_id, nilai_tugas, nilai_uts, nilai_uas, nilai_akhir, predikat, catatan, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+              (rapor_id, mapel_id, kategori, nama_mapel_kustom, nilai_tugas, nilai_uts, nilai_uas, nilai_akhir, predikat, catatan, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
             [
               raporId,
-              item.mapel_id,
+              mapelId,
+              kategori,
+              namaKustom,
               nTugas,
               nUts,
               nUas,
@@ -536,6 +600,9 @@ const RaporModel = {
 
       const {
         rombel_id,
+        nama_wali_kelas,
+        fase,
+        data_kustom,
         total_hadir = 0,
         total_izin = 0,
         total_sakit = 0,
@@ -545,9 +612,16 @@ const RaporModel = {
         nilai = [],
       } = data;
 
+      const serializedDataKustom = data_kustom !== undefined
+        ? (typeof data_kustom === 'object' && data_kustom !== null ? JSON.stringify(data_kustom) : (data_kustom || null))
+        : undefined;
+
       await conn.execute(
         `UPDATE rapor_periode SET
           rombel_id = COALESCE(?, rombel_id),
+          nama_wali_kelas = COALESCE(?, nama_wali_kelas),
+          fase = COALESCE(?, fase),
+          data_kustom = COALESCE(?, data_kustom),
           total_hadir = ?,
           total_izin = ?,
           total_sakit = ?,
@@ -558,6 +632,9 @@ const RaporModel = {
         WHERE id = ?`,
         [
           rombel_id || null,
+          nama_wali_kelas !== undefined ? nama_wali_kelas : null,
+          fase !== undefined ? fase : null,
+          serializedDataKustom !== undefined ? serializedDataKustom : null,
           total_hadir,
           total_izin,
           total_sakit,
@@ -572,13 +649,21 @@ const RaporModel = {
         await conn.execute(`DELETE FROM rapor_nilai WHERE rapor_id = ?`, [id]);
 
         for (const item of nilai) {
-          if (!item.mapel_id) continue;
+          const namaMapel = item.nama_mapel || item.nama_mapel_kustom || '';
+          const mapelId = (item.mapel_id && !isNaN(Number(item.mapel_id)) && Number(item.mapel_id) > 0)
+            ? Number(item.mapel_id)
+            : null;
+
+          if (!mapelId && !namaMapel) continue;
+
+          const kategori = item.kategori || 'umum';
+          const namaKustom = mapelId ? (item.nama_mapel_kustom || null) : namaMapel;
 
           const nTugas = Number(item.nilai_tugas || 0);
           const nUts   = Number(item.nilai_uts || 0);
           const nUas   = Number(item.nilai_uas || 0);
           
-          const nAkhir = item.nilai_akhir !== undefined && item.nilai_akhir !== null
+          const nAkhir = item.nilai_akhir !== undefined && item.nilai_akhir !== null && item.nilai_akhir !== ''
             ? Number(item.nilai_akhir)
             : Math.round(((nTugas * 0.3) + (nUts * 0.3) + (nUas * 0.4)) * 10) / 10;
 
@@ -592,11 +677,13 @@ const RaporModel = {
 
           await conn.execute(
             `INSERT INTO rapor_nilai 
-              (rapor_id, mapel_id, nilai_tugas, nilai_uts, nilai_uas, nilai_akhir, predikat, catatan, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+              (rapor_id, mapel_id, kategori, nama_mapel_kustom, nilai_tugas, nilai_uts, nilai_uas, nilai_akhir, predikat, catatan, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
             [
               id,
-              item.mapel_id,
+              mapelId,
+              kategori,
+              namaKustom,
               nTugas,
               nUts,
               nUas,

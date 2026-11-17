@@ -44,6 +44,7 @@ import DashboardAdmin from './pages/admin/DashboardAdmin.jsx';
 import SpmbAdmin from './pages/admin/SpmbAdmin.jsx';
 import SiswaAdmin from './pages/admin/SiswaAdmin.jsx';
 import RaporAdmin from './pages/admin/RaporAdmin.jsx';
+import FormRaporPage from './pages/admin/FormRaporPage.jsx';
 import TagihanAdmin from './pages/admin/TagihanAdmin.jsx';
 import UserAdmin from './pages/admin/UserAdmin.jsx';
 import KlubAdmin from './pages/admin/KlubAdmin.jsx';
@@ -173,7 +174,7 @@ function SeoMetaManager() {
       else if (path.includes('kalender-akademik')) title = 'Kalender Akademik 1 Tahun | PKBM Bina Mandiri';
       else if (path === '/dashboard/siswa/kartu-pelajar' || path === '/dashboard/admin/siswa/kartu-pelajar') title = 'Kartu Pelajar Digital | PKBM Bina Mandiri';
       else if (path === '/dashboard/siswa/rapor') title = 'Rapor Siswa Digital | PKBM Bina Mandiri';
-      else if (path === '/dashboard/admin/rapor') title = 'Kelola Rapor Siswa Digital | PKBM Bina Mandiri';
+      else if (path.startsWith('/dashboard/admin/rapor')) title = 'Kelola Rapor Siswa Digital | PKBM Bina Mandiri';
       else if (path === '/dashboard/siswa/tugas' || path === '/dashboard/siswa/tugas-mingguan') title = 'Tugas Mingguan Siswa | LMS PKBM Bina Mandiri';
       else if (path === '/dashboard/siswa/modul-buku') title = 'Kumpulan Modul & Buku Digital | PKBM Bina Mandiri';
       else if (path === '/dashboard/admin/modul-buku') title = 'Kelola Modul & Buku Digital | PKBM Bina Mandiri';
@@ -288,6 +289,10 @@ function App() {
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><SiswaAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/rapor"
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><RaporAdmin /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/rapor/buat"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><FormRaporPage /></ProtectedRoute>} />
+        <Route path="/dashboard/admin/rapor/edit/:id"
+          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><FormRaporPage /></ProtectedRoute>} />
         <Route path="/dashboard/admin/siswa/kartu-pelajar"
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><KartuPelajarSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/admin/master-mapel"

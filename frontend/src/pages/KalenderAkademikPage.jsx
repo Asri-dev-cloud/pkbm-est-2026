@@ -57,13 +57,13 @@ const MONTHS_OPTIONS = [
 const YEARS_OPTIONS = [2024, 2025, 2026, 2027, 2028, 2029, 2030];
 
 const DAYS_HEADER_LIST = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
+  { full: 'Minggu', short: 'MIN' },
+  { full: 'Senin', short: 'SEN' },
+  { full: 'Selasa', short: 'SEL' },
+  { full: 'Rabu', short: 'RAB' },
+  { full: 'Kamis', short: 'KAM' },
+  { full: 'Jumat', short: 'JUM' },
+  { full: 'Sabtu', short: 'SAB' },
 ];
 
 export default function KalenderAkademikPage() {
@@ -849,11 +849,12 @@ export default function KalenderAkademikPage() {
 
               {/* Grid Kalender Retro 1 Bulan Penuh */}
               <div className="retro-calendar-wrapper">
-                {/* Header Hari: Sunday - Saturday */}
+                {/* Header Hari: Minggu - Sabtu */}
                 <div className="retro-days-header-row">
-                  {DAYS_HEADER_LIST.map((dayName) => (
-                    <div key={dayName} className="retro-day-name-cell">
-                      {dayName}
+                  {DAYS_HEADER_LIST.map((d) => (
+                    <div key={d.full} className="retro-day-name-cell">
+                      <span className="retro-day-name-full">{d.full}</span>
+                      <span className="retro-day-name-short">{d.short}</span>
                     </div>
                   ))}
                 </div>

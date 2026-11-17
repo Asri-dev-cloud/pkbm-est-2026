@@ -298,7 +298,7 @@ export default function RaporSiswa() {
                     <tr>
                       <td>Fase / Program</td>
                       <td>:</td>
-                      <td><strong>{studentProgram}</strong></td>
+                      <td><strong>{detailRapor?.fase ? `Fase ${detailRapor.fase}` : studentProgram}</strong></td>
                     </tr>
                     <tr>
                       <td>Semester</td>

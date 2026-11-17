@@ -350,6 +350,12 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.retro-day-name-full {
+  display: inline;
+}
+.retro-day-name-short {
+  display: none;
+}
 .retro-day-name-cell:first-child {
   color: #F87171; /* Sunday */
 }
@@ -843,287 +849,6 @@
 }
 
 /* ============================================================
-   RESPONSIVE DESIGN KHUSUS MOBILE (PHONE & TABLET KECIL)
-   ============================================================ */
-
-@media (max-width: 768px) {
-  .kalender-app-content {
-    padding: 10px 8px 32px !important;
-  }
-
-  .kalender-page-container {
-    padding: 0 !important;
-    gap: 12px;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .retro-agenda-section {
-    padding: 14px 10px 18px;
-    border-radius: 18px;
-    border: 1px solid #362923;
-    gap: 12px;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  }
-
-  /* 1. Top Bar: NOTE ★ & Realtime Clock */
-  .retro-agenda-top-bar {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    width: 100%;
-  }
-
-  .retro-note-badge {
-    font-size: 0.72rem;
-    padding: 4px 12px 4px 10px;
-    letter-spacing: 0.05em;
-    flex-shrink: 0;
-  }
-
-  .retro-top-clock {
-    font-size: 0.62rem;
-    padding: 4px 10px;
-    letter-spacing: 0.03em;
-    gap: 5px;
-    max-width: calc(100% - 85px);
-    border-radius: 9999px;
-    display: inline-flex;
-    align-items: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .retro-clock-desktop {
-    display: none;
-  }
-
-  .retro-clock-mobile {
-    display: inline;
-  }
-
-  /* 2. Judul AGENDA & Swash */
-  .retro-title-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    margin-top: 2px;
-    margin-bottom: 6px;
-  }
-
-  .retro-title-wrap {
-    align-items: flex-start;
-  }
-
-  .retro-main-title {
-    font-size: clamp(2.4rem, 9vw, 3rem);
-    line-height: 0.88;
-  }
-
-  .retro-title-swash-underline {
-    width: clamp(160px, 45vw, 210px);
-    margin-top: 2px;
-  }
-
-  .retro-title-sparkle {
-    width: 14px;
-    height: 14px;
-    top: -4px;
-    right: -8px;
-  }
-
-  /* 3. Controls Wrap: 2 Rows Sempurna Pas Layar */
-  .retro-controls-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-  }
-
-  .retro-controls-nav-group {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-    width: 100%;
-  }
-
-  .retro-controls-actions-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-  }
-
-  .retro-nav-arrow-btn {
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
-  }
-
-  .retro-select-input {
-    font-size: 0.74rem;
-    padding: 6px 6px;
-    min-width: 0;
-    text-align: center;
-  }
-
-  .retro-select-month {
-    flex: 1.8;
-    min-width: 110px;
-  }
-
-  .retro-select-year {
-    flex: 1;
-    max-width: 80px;
-    min-width: 65px;
-  }
-
-  .retro-today-btn {
-    flex: 1;
-    font-size: 0.75rem;
-    padding: 7px 12px;
-    height: 36px;
-    text-align: center;
-    justify-content: center;
-    display: inline-flex;
-    align-items: center;
-  }
-
-  .retro-add-btn {
-    flex: 1.4;
-    font-size: 0.76rem;
-    padding: 7px 14px;
-    height: 36px;
-    text-align: center;
-    justify-content: center;
-    display: inline-flex;
-    align-items: center;
-    white-space: nowrap;
-  }
-
-  .retro-read-only-badge {
-    flex: 1.4;
-    font-size: 0.72rem;
-    padding: 7px 10px;
-    height: 36px;
-    text-align: center;
-    justify-content: center;
-    display: inline-flex;
-    align-items: center;
-    white-space: nowrap;
-  }
-
-  /* 4. Petunjuk Geser di Mobile */
-  .retro-mobile-swipe-hint {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 4px 8px;
-    margin-bottom: 4px;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.62rem;
-    font-weight: 700;
-    color: #FFE500;
-    opacity: 0.9;
-    background: rgba(255, 229, 0, 0.08);
-    border: 1px dashed rgba(255, 229, 0, 0.3);
-    border-radius: 8px;
-    user-select: none;
-  }
-
-  /* 5. Calendar Grid Wrapper */
-  .retro-calendar-wrapper {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    border-radius: 14px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-x pan-y;
-  }
-
-  .retro-days-header-row {
-    grid-template-columns: repeat(7, minmax(100px, 1fr));
-    padding: 8px 0 6px;
-  }
-
-  .retro-day-name-cell {
-    font-size: 0.68rem;
-    letter-spacing: 0.04em;
-    padding: 0 4px;
-  }
-
-  .retro-month-grid {
-    grid-template-columns: repeat(7, minmax(100px, 1fr));
-  }
-
-  .retro-calendar-cell {
-    min-height: 96px;
-    padding: 6px 5px 6px;
-    gap: 4px;
-  }
-
-  .retro-cell-number {
-    font-size: 0.8rem;
-  }
-
-  .retro-calendar-cell.is-today .retro-cell-number {
-    width: 22px;
-    height: 22px;
-    font-size: 0.72rem;
-  }
-
-  .retro-cell-today-badge {
-    font-size: 0.5rem;
-    padding: 1px 4px;
-  }
-
-  /* 6. Journal Notes di Mobile */
-  .journal-note-sticky {
-    padding: 4px 5px 3px;
-    border-left-width: 2px;
-  }
-
-  .journal-sticky-pin {
-    width: 10px;
-    height: 4px;
-    top: -3px;
-  }
-
-  .journal-note-title {
-    font-size: 0.78rem !important;
-    line-height: 1.2 !important;
-  }
-
-  .journal-note-sub {
-    font-size: 0.65rem !important;
-    line-height: 1.15 !important;
-  }
-
-  .journal-note-time {
-    font-size: 0.58rem !important;
-    margin-top: 1px !important;
-  }
-
-  /* 7. Modal Responsiveness */
-  .kalender-modal-card {
-    width: 95vw !important;
-    max-width: 480px !important;
-    max-height: 88vh !important;
-    padding: 1.25rem 1rem !important;
-    border-radius: 18px !important;
-  }
-}
-
-/* ============================================================
    STICKY NOTES RESMI JENJANG (SD: MERAH, SMP: HIJAU, SMA: BIRU)
    100% SOLID PAPER — TIDAK TRANSPARAN
    ============================================================ */
@@ -1566,22 +1291,527 @@
   font-size: 0.75rem;
 }
 
+/* ============================================================
+   RESPONSIVE DESIGN KHUSUS MOBILE (PHONE & TABLET KECIL)
+   Didesain Rapi, Presisi, Ergonomis, & Anti-Overflow
+   ============================================================ */
+
 @media (max-width: 768px) {
-  .retro-color-legend-box {
-    padding: 16px 14px;
-    border-radius: 18px;
-    gap: 14px;
+  /* 1. Layout Container */
+  .kalender-app-content {
+    padding: 10px 8px 36px !important;
   }
 
-  .retro-legend-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+  .kalender-page-container {
+    padding: 0 !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .retro-agenda-section {
+    padding: 12px 10px 18px !important;
+    border-radius: 16px !important;
+    border: 1px solid #362923 !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+  }
+
+  /* 2. Top Bar: NOTE ★ & Realtime Clock */
+  .retro-agenda-top-bar {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .retro-note-badge {
+    font-size: 0.68rem !important;
+    padding: 4px 10px !important;
+    letter-spacing: 0.04em !important;
+    flex-shrink: 0 !important;
+  }
+
+  .retro-top-clock {
+    font-size: 0.62rem !important;
+    padding: 4px 8px !important;
+    letter-spacing: 0.02em !important;
+    gap: 5px !important;
+    max-width: calc(100% - 70px) !important;
+    border-radius: 9999px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .retro-clock-desktop {
+    display: none !important;
+  }
+
+  .retro-clock-mobile {
+    display: inline !important;
+  }
+
+  /* 3. Judul Besar AGENDA & Swash */
+  .retro-title-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    margin-top: 2px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .retro-title-wrap {
+    align-items: flex-start !important;
+  }
+
+  .retro-main-title {
+    font-size: clamp(2rem, 8vw, 2.6rem) !important;
+    line-height: 0.9 !important;
+  }
+
+  .retro-title-swash-underline {
+    width: clamp(140px, 40vw, 180px) !important;
+    margin-top: 2px !important;
+  }
+
+  .retro-title-sparkle {
+    width: 12px !important;
+    height: 12px !important;
+    top: -3px !important;
+    right: -6px !important;
+  }
+
+  /* 4. Controls: Navigasi Bulan & Tombol Aksi */
+  .retro-controls-wrap {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .retro-controls-nav-group {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 5px !important;
+    width: 100% !important;
+  }
+
+  .retro-nav-arrow-btn {
+    width: 34px !important;
+    height: 34px !important;
+    flex-shrink: 0 !important;
+    border-radius: 8px !important;
+  }
+
+  .retro-select-input {
+    font-size: 0.74rem !important;
+    padding: 4px 6px !important;
+    height: 34px !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+  }
+
+  .retro-select-month {
+    flex: 1.6 !important;
+    min-width: 95px !important;
+  }
+
+  .retro-select-year {
+    flex: 1 !important;
+    max-width: 74px !important;
+    min-width: 60px !important;
+  }
+
+  .retro-controls-actions-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .retro-today-btn {
+    flex: 1 !important;
+    font-size: 0.72rem !important;
+    padding: 0 8px !important;
+    height: 34px !important;
+    border-radius: 8px !important;
+    justify-content: center !important;
+  }
+
+  .retro-add-btn {
+    flex: 1.3 !important;
+    font-size: 0.72rem !important;
+    padding: 0 10px !important;
+    height: 34px !important;
+    border-radius: 8px !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+
+  .retro-read-only-badge {
+    flex: 1.3 !important;
+    font-size: 0.7rem !important;
+    padding: 0 8px !important;
+    height: 34px !important;
+    border-radius: 8px !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+
+  /* 5. Petunjuk Geser Kalender di Mobile */
+  .retro-mobile-swipe-hint {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 5px 8px !important;
+    margin-bottom: 2px !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 0.62rem !important;
+    font-weight: 700 !important;
+    color: #FFE500 !important;
+    opacity: 0.95 !important;
+    background: rgba(255, 229, 0, 0.08) !important;
+    border: 1px dashed rgba(255, 229, 0, 0.35) !important;
+    border-radius: 8px !important;
+    user-select: none !important;
+  }
+
+  /* 6. Filter Bar Jenjang: Scrollable Chips Horizontal */
+  .retro-filter-bar {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    padding: 6px 8px !important;
+    border-radius: 10px !important;
+    background: #171513 !important;
+    border: 1px solid #362923 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    margin-bottom: 2px !important;
+  }
+
+  .retro-filter-bar::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .retro-filter-label {
+    display: none !important;
+  }
+
+  .retro-filter-btn {
+    flex-shrink: 0 !important;
+    font-size: 0.7rem !important;
+    padding: 5px 11px !important;
+    border-radius: 9999px !important;
+  }
+
+  /* 7. Grid Kalender: Responsive Touch Scroll */
+  .retro-calendar-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    border-radius: 12px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x pan-y !important;
+    border: 1px solid #362923 !important;
+    box-sizing: border-box !important;
+  }
+
+  .retro-days-header-row {
+    grid-template-columns: repeat(7, minmax(84px, 1fr)) !important;
+    padding: 6px 0 !important;
+    background: #1C1917 !important;
+  }
+
+  .retro-day-name-cell {
+    font-size: 0.65rem !important;
+    letter-spacing: 0.03em !important;
+    padding: 0 2px !important;
+    text-align: center !important;
+  }
+
+  .retro-day-name-full {
+    display: none !important;
+  }
+
+  .retro-day-name-short {
+    display: inline !important;
+    font-weight: 800 !important;
+  }
+
+  .retro-month-grid {
+    grid-template-columns: repeat(7, minmax(84px, 1fr)) !important;
+  }
+
+  .retro-calendar-cell {
+    min-height: 82px !important;
+    padding: 4px 3px 5px !important;
+    gap: 2px !important;
+  }
+
+  .retro-cell-number-row {
+    margin-bottom: 2px !important;
+  }
+
+  .retro-cell-number {
+    font-size: 0.72rem !important;
+  }
+
+  .retro-calendar-cell.is-today .retro-cell-number {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 0.65rem !important;
+  }
+
+  .retro-cell-today-badge {
+    font-size: 0.46rem !important;
+    padding: 1px 3px !important;
+    border-radius: 2px !important;
+  }
+
+  .retro-cell-events-list {
+    gap: 2.5px !important;
+  }
+
+  /* 8. Sticky Notes di Dalam Sel (Kompak & Anti-Bloat) */
+  .kbm-sticky-cell {
+    padding: 3px 4px 3px !important;
+    border-radius: 4px !important;
+    gap: 1px !important;
+    margin-top: 2px !important;
+    transform: none !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .kbm-sticky-cell:hover {
+    transform: none !important;
+  }
+
+  .kbm-sticky-cell .journal-sticky-pin {
+    width: 8px !important;
+    height: 3px !important;
+    top: -2px !important;
+  }
+
+  .kbm-sticky-cell-header {
+    gap: 2px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .kbm-sticky-cell-tag {
+    font-size: 0.46rem !important;
+    padding: 0.5px 3px !important;
+  }
+
+  .kbm-sticky-cell-time {
+    font-size: 0.48rem !important;
+  }
+
+  .kbm-sticky-cell-title {
+    font-size: 0.68rem !important;
+    line-height: 1.15 !important;
+    margin-top: 0 !important;
+  }
+
+  .kbm-sticky-cell-sub {
+    font-size: 0.56rem !important;
+    line-height: 1.05 !important;
+  }
+
+  .journal-note-sticky {
+    padding: 3px 4px !important;
+    border-radius: 4px !important;
+    transform: none !important;
+    margin-top: 2px !important;
+    border-left-width: 2px !important;
+  }
+
+  .journal-note-sticky .journal-sticky-pin {
+    width: 8px !important;
+    height: 3px !important;
+    top: -2px !important;
+  }
+
+  .journal-note-title {
+    font-size: 0.68rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .journal-note-sub {
+    font-size: 0.56rem !important;
+    line-height: 1.05 !important;
+  }
+
+  .journal-note-time {
+    font-size: 0.5rem !important;
+    margin-top: 1px !important;
+  }
+
+  /* 9. Papan Catatan Keterangan Jadwal di Bawah Kalender */
+  .retro-board-legend-container {
+    padding: 14px 10px 18px !important;
+    border-radius: 14px !important;
+    margin-top: 14px !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .retro-board-legend-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .retro-board-legend-title {
+    font-size: 1.18rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .retro-board-legend-subtitle {
+    font-size: 0.72rem !important;
+    margin-top: 3px !important;
+    line-height: 1.35 !important;
+  }
+
+  .retro-board-legend-header button {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 8px 14px !important;
+    font-size: 0.76rem !important;
+    height: 38px !important;
+  }
+
+  .retro-board-stickies-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .retro-postit-note {
+    transform: none !important;
+    padding: 16px 14px 14px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  .retro-postit-note:hover {
+    transform: none !important;
+  }
+
+  .retro-postit-tape {
+    width: 60px !important;
+    height: 16px !important;
+    top: -8px !important;
+  }
+
+  .retro-postit-title {
+    font-size: 1.05rem !important;
+  }
+
+  .retro-postit-badge {
+    font-size: 0.62rem !important;
+    padding: 2px 6px !important;
+  }
+
+  .retro-postit-body {
+    font-size: 0.75rem !important;
+    gap: 6px !important;
+  }
+
+  .retro-postit-footer-btn {
+    width: 100% !important;
+    padding: 8px 12px !important;
+    font-size: 0.82rem !important;
+    margin-top: 10px !important;
+    height: 36px !important;
+  }
+
+  /* 10. Matriks Table di Bawah Kalender */
+  .retro-matrix-wrapper {
+    padding: 12px 10px 14px !important;
+    border-radius: 12px !important;
+    gap: 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .retro-matrix-nav-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    gap: 6px !important;
+    padding-bottom: 4px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .retro-matrix-nav-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .retro-matrix-tab {
+    flex-shrink: 0 !important;
+    padding: 6px 12px !important;
+    font-size: 0.72rem !important;
+    border-radius: 8px !important;
   }
 
   .retro-schedule-table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    white-space: nowrap !important;
+    font-size: 0.72rem !important;
+    border-radius: 8px !important;
+  }
+
+  .retro-schedule-table th {
+    padding: 8px 10px !important;
+    font-size: 0.66rem !important;
+  }
+
+  .retro-schedule-table td {
+    padding: 8px 10px !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* 11. Modals Pop-Up Mobile */
+  .kalender-modal-card {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    padding: 14px 12px !important;
+    border-radius: 16px !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .kalender-modal-header {
+    padding-bottom: 8px !important;
+    gap: 8px !important;
+  }
+
+  .detail-event-title {
+    font-size: 1.1rem !important;
+  }
+
+  .detail-event-subtitle {
+    font-size: 0.7rem !important;
   }
 }
 

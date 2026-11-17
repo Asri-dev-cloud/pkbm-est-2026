@@ -4,6 +4,7 @@
 // ============================================================
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
 import { RaporAPI, SiswaAPI, AkademikAPI } from '../../services/api.js';
 import {
@@ -35,6 +36,7 @@ const formatScore = (val) => {
 };
 
 export default function RaporAdmin() {
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
 
   // ── State Data & Filter ────────────────────────────────────
@@ -215,29 +217,9 @@ export default function RaporAdmin() {
     setSearchQuery('');
   };
 
-  // ── Handlers Form Create / Edit ────────────────────────────
+  // ── Handlers Form Create / Edit (Navigasi ke Halaman Penuh FormRaporPage) ───
   const handleOpenCreate = () => {
-    setIsEditing(false);
-    setEditingId(null);
-    setFormError('');
-
-    const defaultTa = meta.tahun_ajaran.find(ta => ta.is_aktif) || meta.tahun_ajaran[0];
-
-    setFormData({
-      warga_belajar_id: '',
-      rombel_id: '',
-      tahun_ajaran_id: defaultTa ? defaultTa.id : '',
-      semester: '1',
-      status_rapor: 'draft',
-      total_hadir: 0,
-      total_izin: 0,
-      total_sakit: 0,
-      total_alpa: 0,
-      catatan_wali: '',
-      nilai: []
-    });
-
-    setShowFormModal(true);
+    navigate('/dashboard/admin/rapor/buat');
   };
 
   const handleSelectSiswa = (wbId) => {
@@ -321,77 +303,8 @@ export default function RaporAdmin() {
     setFormData(prev => ({ ...prev, nilai: updated }));
   };
 
-  const handleOpenEdit = async (rapor) => {
-    try {
-      setLoading(true);
-      let d = rapor;
-      try {
-        const res = await RaporAPI.getById(rapor.id);
-        if (res.data?.success && res.data.data) {
-          d = res.data.data;
-        }
-      } catch (apiErr) {
-        console.warn('GetById server notice, menggunakan data rapor lokal/tabel:', apiErr.message);
-      }
-
-      setIsEditing(true);
-      setEditingId(rapor.id);
-      setFormError('');
-
-      // Susun list nilai secara aman
-      let listNilai = [];
-      if (Array.isArray(d.nilai) && d.nilai.length > 0) {
-        listNilai = d.nilai.map(n => ({
-          mapel_id: n.mapel_id || n.id,
-          nama_mapel: n.nama_mapel || n.nama || 'Mata Pelajaran',
-          kode_mapel: n.kode_mapel || n.kode || '',
-          kkm: n.kkm || 75,
-          nilai_tugas: n.nilai_tugas ?? 85,
-          nilai_uts: n.nilai_uts ?? 86,
-          nilai_uas: n.nilai_uas ?? 86,
-          nilai_akhir: n.nilai_akhir ?? 86,
-          predikat: n.predikat || 'A',
-          catatan: n.catatan || n.capaian_kompetensi || `Menunjukkan penguasaan sangat baik dalam capaian pembelajaran ${n.nama_mapel || n.nama || 'mata pelajaran ini'}.`
-        }));
-      } else if (meta.mata_pelajaran && meta.mata_pelajaran.length > 0) {
-        listNilai = meta.mata_pelajaran.map((m, i) => {
-          const baseScore = 84 + (i % 5);
-          return {
-            mapel_id: m.id,
-            nama_mapel: m.nama_mapel || m.nama || 'Mata Pelajaran',
-            kode_mapel: m.kode_mapel || m.kode || '',
-            kkm: m.kkm || 75,
-            nilai_tugas: baseScore,
-            nilai_uts: Math.min(96, baseScore + 2),
-            nilai_uas: Math.min(96, baseScore + 1),
-            nilai_akhir: baseScore,
-            predikat: baseScore >= 85 ? 'A' : 'B',
-            catatan: `Menunjukkan penguasaan sangat baik dalam capaian pembelajaran ${m.nama_mapel || m.nama}.`
-          };
-        });
-      }
-
-      setFormData({
-        warga_belajar_id: d.warga_belajar_id || '',
-        rombel_id: d.rombel_id || (meta.rombel[0] ? meta.rombel[0].id : ''),
-        tahun_ajaran_id: d.tahun_ajaran_id || (meta.tahun_ajaran[0] ? meta.tahun_ajaran[0].id : ''),
-        semester: String(d.semester || '1'),
-        status_rapor: d.status_rapor || 'final',
-        total_hadir: d.total_hadir !== undefined ? d.total_hadir : 80,
-        total_izin: d.total_izin !== undefined ? d.total_izin : 2,
-        total_sakit: d.total_sakit !== undefined ? d.total_sakit : 1,
-        total_alpa: d.total_alpa !== undefined ? d.total_alpa : 0,
-        catatan_wali: d.catatan_wali || `Ananda ${d.nama_lengkap || 'Warga Belajar'} menunjukkan kemajuan belajar yang sangat positif, aktif berpartisipasi, dan memiliki kedisiplinan yang baik. Pertahankan prestasimu!`,
-        nilai: listNilai
-      });
-
-      setShowFormModal(true);
-    } catch (err) {
-      console.error('Error opening edit modal:', err);
-      alert('Gagal membuka form edit: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+  const handleOpenEdit = (rapor) => {
+    navigate(`/dashboard/admin/rapor/edit/${rapor.id}`);
   };
 
   const handleSubmitForm = async (e) => {
@@ -1201,9 +1114,9 @@ export default function RaporAdmin() {
                                 <td>{printData.nama_rombel || '-'}</td>
                               </tr>
                               <tr>
-                                <td>Fase / Program</td>
+                                <td>Fase</td>
                                 <td>:</td>
-                                <td><strong>{(printData.jenjang || '-').replace('_', ' ').toUpperCase()}</strong></td>
+                                <td><strong>{printData.fase ? `Fase ${printData.fase}` : (printData.jenjang || '-').replace('_', ' ').toUpperCase()}</strong></td>
                               </tr>
                               <tr>
                                 <td>Semester</td>

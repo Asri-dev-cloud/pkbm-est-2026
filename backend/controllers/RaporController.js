@@ -170,6 +170,9 @@ const RaporController = {
         rombel_id,
         tahun_ajaran_id,
         semester,
+        nama_wali_kelas,
+        fase,
+        data_kustom,
         total_hadir,
         total_izin,
         total_sakit,
@@ -191,6 +194,9 @@ const RaporController = {
         rombel_id: rombel_id ? parseInt(rombel_id) : 1,
         tahun_ajaran_id: parseInt(tahun_ajaran_id),
         semester: String(semester),
+        nama_wali_kelas: nama_wali_kelas || null,
+        fase: fase || null,
+        data_kustom: data_kustom || null,
         total_hadir: parseInt(total_hadir) || 0,
         total_izin: parseInt(total_izin) || 0,
         total_sakit: parseInt(total_sakit) || 0,
@@ -226,6 +232,9 @@ const RaporController = {
       const { id } = req.params;
       const {
         rombel_id,
+        nama_wali_kelas,
+        fase,
+        data_kustom,
         total_hadir,
         total_izin,
         total_sakit,
@@ -245,6 +254,9 @@ const RaporController = {
 
       await RaporModel.update(id, {
         rombel_id: rombel_id ? parseInt(rombel_id) : existing.rombel_id,
+        nama_wali_kelas: nama_wali_kelas !== undefined ? nama_wali_kelas : existing.nama_wali_kelas,
+        fase: fase !== undefined ? fase : existing.fase,
+        data_kustom: data_kustom !== undefined ? data_kustom : existing.data_kustom,
         total_hadir: total_hadir !== undefined ? parseInt(total_hadir) : existing.total_hadir,
         total_izin: total_izin !== undefined ? parseInt(total_izin) : existing.total_izin,
         total_sakit: total_sakit !== undefined ? parseInt(total_sakit) : existing.total_sakit,
