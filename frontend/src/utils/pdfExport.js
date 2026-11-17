@@ -7,7 +7,7 @@
 import html2pdf from 'html2pdf.js';
 
 /**
- * Unduh elemen HTML langsung sebagai file PDF resmi 1 lembar utuh
+ * Unduh elemen HTML langsung sebagai file PDF
  * @param {HTMLElement|string} targetEl - Elemen atau ID elemen yang akan diunduh
  * @param {string} filename - Nama file hasil unduhan (.pdf)
  * @param {string} paperSize - Ukuran kertas: 'a4' (default) atau 'f4'
@@ -25,28 +25,8 @@ export const downloadElementAsPdf = async (targetEl, filename = 'Rapor_PKBM_Bina
   const isF4 = String(paperSize).toLowerCase() === 'f4';
   const formatOption = isF4 ? [215, 330] : 'a4';
 
-  // Simpan inline styles asli sebelum optimasi tangkapan
-  const originalWidth = el.style.width;
-  const originalMaxWidth = el.style.maxWidth;
-  const originalBoxShadow = el.style.boxShadow;
-  const originalBorder = el.style.border;
-  const originalBorderRadius = el.style.borderRadius;
-  const originalBackground = el.style.backgroundColor;
-  const originalMargin = el.style.margin;
-  const originalPadding = el.style.padding;
-
-  // Terapkan penyesuaian khusus capture PDF agar 100% pas dalam 1 lembar
-  el.style.width = '790px';
-  el.style.maxWidth = '790px';
-  el.style.boxShadow = 'none';
-  el.style.border = 'none';
-  el.style.borderRadius = '0';
-  el.style.backgroundColor = '#ffffff';
-  el.style.margin = '0';
-  el.style.padding = '8px 14px';
-
   const opt = {
-    margin: [4, 6, 4, 6], // margin tipis (mm) [atas, kiri, bawah, kanan]
+    margin: [4, 6, 4, 6], // margin [atas, kiri, bawah, kanan] dalam mm
     filename: finalFilename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
@@ -54,9 +34,7 @@ export const downloadElementAsPdf = async (targetEl, filename = 'Rapor_PKBM_Bina
       useCORS: true,
       logging: false,
       scrollY: 0,
-      scrollX: 0,
-      windowWidth: 800,
-      backgroundColor: '#ffffff',
+      windowWidth: el.scrollWidth || 800,
     },
     jsPDF: {
       unit: 'mm',
@@ -69,21 +47,6 @@ export const downloadElementAsPdf = async (targetEl, filename = 'Rapor_PKBM_Bina
     },
   };
 
-  try {
-    await html2pdf().set(opt).from(el).save();
-    return true;
-  } catch (error) {
-    console.error('[pdfExport] Gagal mengekspor PDF:', error);
-    throw error;
-  } finally {
-    // Kembalikan style elemen ke tampilan layar awal
-    el.style.width = originalWidth;
-    el.style.maxWidth = originalMaxWidth;
-    el.style.boxShadow = originalBoxShadow;
-    el.style.border = originalBorder;
-    el.style.borderRadius = originalBorderRadius;
-    el.style.backgroundColor = originalBackground;
-    el.style.margin = originalMargin;
-    el.style.padding = originalPadding;
-  }
+  return html2pdf().set(opt).from(el).save();
 };
+
