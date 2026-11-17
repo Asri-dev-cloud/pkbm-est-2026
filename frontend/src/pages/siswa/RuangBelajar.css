@@ -349,15 +349,15 @@
 }
 
 .cal-class-tag {
-  background: #FFFFFF;
-  border: 1.5px solid var(--rb-dark-border);
-  padding: 4px 10px;
+  background: #F8FAFC;
+  border: 1.5px solid #94A3B8;
+  padding: 4px 12px;
   border-radius: 9999px;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 800;
-  color: var(--rb-dark-border);
-  box-shadow: none;
-  letter-spacing: 0.03em;
+  color: #0F172A;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
@@ -374,7 +374,7 @@
   transition: background 0.2s ease;
 }
 
-/* Chunky Retro Number (Tanpa Titik: "01", "02", dst - No Shadow) */
+/* Chunky Retro Number (Tanpa Titik: "01", "02", dst - Jelas terlihat, bukan abu-abu) */
 .cal-number-container {
   display: flex;
   align-items: center;
@@ -384,15 +384,15 @@
 
 .cal-retro-number {
   font-family: 'Outfit', 'Fredoka', sans-serif;
-  font-size: 3.2rem;
+  font-size: 3rem;
   font-weight: 900;
   line-height: 1;
-  background: #FFFDF8;
-  color: var(--rb-dark-border);
-  border: 2.5px solid var(--rb-dark-border);
+  background: #FFFFFF;
+  color: #0F172A;
+  border: 2.5px solid #0F172A;
   border-radius: 16px;
   padding: 4px 22px 2px 22px;
-  box-shadow: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   letter-spacing: -0.02em;
   display: inline-flex;
   align-items: center;

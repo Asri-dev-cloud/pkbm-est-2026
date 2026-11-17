@@ -1605,26 +1605,24 @@ export default function FormRaporPage() {
                   <div className="print-bottom-evaluation-grid">
                     <div className="presensi-side-box">
                       <div className="sub-box-title">Rekapitulasi Kehadiran Siswa:</div>
-                      <table className="presensi-mini-table">
-                        <tbody>
-                          <tr>
-                            <td>1. Sakit</td>
-                            <td className="center">{headerForm.total_sakit || 0} hari</td>
-                          </tr>
-                          <tr>
-                            <td>2. Izin</td>
-                            <td className="center">{headerForm.total_izin || 0} hari</td>
-                          </tr>
-                          <tr>
-                            <td>3. Tanpa Keterangan (Alpa)</td>
-                            <td className="center">{headerForm.total_alpa || 0} hari</td>
-                          </tr>
-                          <tr className="highlight-row">
-                            <td>Total Kehadiran Belajar</td>
-                            <td className="center bold">{headerForm.total_hadir || 0} hari</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                      <div className="print-presensi-box">
+                        <div className="presensi-row">
+                          <span className="presensi-lbl">1. Sakit</span>
+                          <span className="presensi-val">{headerForm.total_sakit || 0} hari</span>
+                        </div>
+                        <div className="presensi-row">
+                          <span className="presensi-lbl">2. Izin</span>
+                          <span className="presensi-val">{headerForm.total_izin || 0} hari</span>
+                        </div>
+                        <div className="presensi-row">
+                          <span className="presensi-lbl">3. Tanpa Keterangan (Alpa)</span>
+                          <span className="presensi-val">{headerForm.total_alpa || 0} hari</span>
+                        </div>
+                        <div className="presensi-row presensi-total-row">
+                          <span className="presensi-lbl"><strong>Total Kehadiran Belajar</strong></span>
+                          <span className="presensi-val"><strong>{headerForm.total_hadir || 0} hari</strong></span>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="catatan-side-box">

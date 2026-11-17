@@ -583,8 +583,8 @@ export const AbsensiAPI = {
 export const LmsAPI = {
 
   // MATERI
-  getMateriByRombel: (rombelId) =>
-    apiClient.get(`/lms/materi/rombel/${rombelId}`),
+  getMateriByRombel: (rombelId, params = {}) =>
+    apiClient.get(`/lms/materi/rombel/${rombelId}`, { params }),
 
   getMateriById: (id) =>
     apiClient.get(`/lms/materi/${id}`),
@@ -601,8 +601,8 @@ export const LmsAPI = {
     apiClient.put(`/lms/materi/${id}/selesai`),
 
   // TUGAS
-  getTugasByRombel: (rombelId) =>
-    apiClient.get(`/lms/tugas/rombel/${rombelId}`),
+  getTugasByRombel: (rombelId, params = {}) =>
+    apiClient.get(`/lms/tugas/rombel/${rombelId}`, { params }),
 
   getTugasById: (id) =>
     apiClient.get(`/lms/tugas/${id}`),

@@ -120,11 +120,12 @@
   border-radius: 8px;
   max-width: 800px;
   margin: 0 auto 30px auto;
-  padding: 20px 24px;
+  padding: 18px 22px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   font-family: 'Times New Roman', Times, serif;
   color: #000000;
-  line-height: 1.35;
+  line-height: 1.3;
+  box-sizing: border-box;
 }
 
 /* Kop Surat Raport */
@@ -133,13 +134,13 @@
   align-items: center;
   gap: 12px;
   border-bottom: 2.5px double #000000;
-  padding-bottom: 6px;
-  margin-bottom: 10px;
+  padding-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .rapor-kop-logo {
-  width: 62px;
-  height: 62px;
+  width: 58px;
+  height: 58px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -150,120 +151,138 @@
 }
 
 .rapor-kop-spacer {
-  width: 62px;
+  width: 58px;
   flex-shrink: 0;
 }
 
 .rapor-kop-yayasan {
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 800;
   margin: 0;
   text-transform: uppercase;
   color: #000000;
   letter-spacing: 0.01em;
+  line-height: 1.2;
 }
 
 .rapor-kop-pkbm {
-  font-size: 1.02rem;
+  font-size: 0.98rem;
   font-weight: 800;
   margin: 1px 0 0 0;
   text-transform: uppercase;
   color: #2563EB;
   letter-spacing: 0.02em;
+  line-height: 1.2;
 }
 
 .rapor-kop-brand {
-  font-size: 1.35rem;
+  font-size: 1.28rem;
   font-weight: 900;
   margin: 1px 0 2px 0;
   text-transform: uppercase;
   color: #2563EB;
   letter-spacing: 0.03em;
+  line-height: 1.2;
 }
 
 .rapor-kop-legal {
-  font-size: 0.72rem;
+  font-size: 0.70rem;
   font-weight: 700;
   margin: 1px 0;
   color: #000000;
+  line-height: 1.2;
 }
 
 .rapor-kop-address {
-  font-size: 0.69rem;
+  font-size: 0.67rem;
   margin: 1px 0;
   color: #000000;
-  line-height: 1.25;
+  line-height: 1.22;
 }
 
 .rapor-kop-contact {
-  font-size: 0.67rem;
+  font-size: 0.65rem;
   margin: 1px 0 0 0;
   color: #000000;
-  line-height: 1.25;
+  line-height: 1.22;
 }
 
 /* Judul Rapor */
 .rapor-doc-title {
   text-align: center;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 800;
   text-transform: uppercase;
   text-decoration: underline;
   text-underline-offset: 3px;
-  margin: 0 0 6px 0;
+  margin: 0 0 5px 0;
   letter-spacing: 0.02em;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1px;
+  line-height: 1.25;
 }
 
 .rapor-doc-subtitle {
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-decoration: none;
 }
 
-/* Grid Identitas Siswa Standar Kemdikbud */
+/* Grid Identitas Siswa Standar Kemdikbud (Flexbox untuk stabilitas canvas) */
 .rapor-identity-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  font-size: 0.8rem;
-  margin-bottom: 8px;
+  display: flex;
+  gap: 14px;
+  font-size: 0.78rem;
+  margin-bottom: 6px;
+}
+
+.rapor-identity-grid > div {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Tabel Identitas Raport Asli */
 .rapor-identity-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .rapor-identity-table td {
-  padding: 1.5px 0;
+  padding: 1.2px 0;
   vertical-align: top;
+  line-height: 1.25;
 }
 
-/* Tabel Nilai Raport Asli */
+/* Tabel Nilai Raport Asli (border-collapse separate agar garis border TIDAK menimpa teks) */
 .rapor-grades-table {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.78rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  font-size: 0.76rem;
   margin-bottom: 6px;
 }
 
 .rapor-grades-table th,
 .rapor-grades-table td {
-  border: 1px solid #000000;
-  padding: 3px 5px;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  padding: 4.5px 6px;
+  vertical-align: middle;
+  line-height: 1.35;
+  box-sizing: border-box;
 }
 
 .rapor-grades-table th {
   background: #F1F5F9;
   font-weight: 700;
   text-align: center;
+  font-size: 0.76rem;
 }
 
 .rapor-grades-table td.center {
@@ -274,51 +293,98 @@
   font-weight: 700;
 }
 
-.rapor-grades-table tr.summary-row {
+.rapor-grades-table tr.summary-row td {
   background: #F8FAFC;
   font-weight: 700;
 }
 
-/* ── Evaluation Grid (Rekap Presensi & Catatan Wali Kelas Side-by-Side) ── */
+/* ── Evaluation Grid (Rekap Presensi & Catatan Wali Kelas Side-by-Side Flex) ── */
 .print-evaluation-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.35fr;
+  display: flex;
   gap: 10px;
-  margin-top: 6px;
-  margin-bottom: 8px;
+  margin-top: 5px;
+  margin-bottom: 6px;
+  align-items: stretch;
   page-break-inside: avoid;
 }
 
 .print-card-title {
   font-weight: 700;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   margin-bottom: 3px;
   color: #000000;
 }
 
 .print-presensi-card {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
+/* Kotak Presensi Div-Based (Bebas dari glitch border table html2canvas) */
+.print-presensi-box {
+  width: 100%;
+  border: 1px solid #000000;
+  background: #FFFFFF;
+  font-size: 0.75rem;
+  box-sizing: border-box;
+}
+
+.presensi-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #000000;
+  line-height: 1.3;
+}
+
+.presensi-row:last-child {
+  border-bottom: none;
+}
+
+.presensi-lbl {
+  flex: 1;
+  padding: 3.5px 7px;
+}
+
+.presensi-val {
+  width: 75px;
+  text-align: center;
+  padding: 3.5px 6px;
+  border-left: 1px solid #000000;
+}
+
+.presensi-total-row {
+  background: #F8FAFC;
+}
+
 .print-presensi-table {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.76rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  font-size: 0.75rem;
   background: #FFFFFF;
 }
 
 .print-presensi-table td {
-  border: 1px solid #000000;
-  padding: 2.5px 6px;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  padding: 3px 6px;
+  vertical-align: middle;
+  line-height: 1.3;
+  box-sizing: border-box;
 }
 
-.print-presensi-total {
+.print-presensi-total td {
   background: #F8FAFC;
   font-weight: 700;
 }
 
 .print-catatan-card {
+  flex: 1.35;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -331,50 +397,52 @@
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  min-height: 48px;
+  min-height: 44px;
 }
 
 .print-catatan-body p {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-style: italic;
-  line-height: 1.3;
+  line-height: 1.25;
   color: #000000;
 }
 
-/* ── Kolom Tanda Tangan 3 Pihak (Presisi & Seimbang) ──────── */
+/* ── Kolom Tanda Tangan 3 Pihak (Flexbox Seimbang & Presisi) ──────── */
 .print-ttd-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  display: flex;
+  justify-content: space-between;
   gap: 10px;
   text-align: center;
-  font-size: 0.78rem;
-  margin-top: 8px;
+  font-size: 0.76rem;
+  margin-top: 6px;
   page-break-inside: avoid;
 }
 
 .ttd-box {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  min-height: 82px;
+  min-height: 76px;
 }
 
 .ttd-header {
-  height: 28px;
+  height: 26px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  line-height: 1.25;
-  font-size: 0.78rem;
+  line-height: 1.2;
+  font-size: 0.76rem;
   color: #000000;
 }
 
 .ttd-space {
   flex: 1;
-  min-height: 34px;
+  min-height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -391,8 +459,8 @@
   left: 50%;
   top: 50%;
   transform: translate(-65%, -50%) rotate(-6deg);
-  width: 58px;
-  height: 58px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
   opacity: 0.85;
   mix-blend-mode: multiply;
@@ -408,8 +476,8 @@
 }
 
 .ttd-img {
-  max-height: 36px;
-  max-width: 110px;
+  max-height: 32px;
+  max-width: 100px;
   object-fit: contain;
   filter: brightness(0);
   -webkit-print-color-adjust: exact !important;
@@ -417,7 +485,7 @@
 }
 
 .ttd-footer {
-  height: 20px;
+  height: 18px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -427,8 +495,8 @@
 .ttd-name-line {
   font-weight: 600;
   color: #000000;
-  letter-spacing: 0.05em;
-  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  font-size: 0.76rem;
   white-space: nowrap;
 }
 
@@ -437,7 +505,7 @@
   color: #000000;
   text-decoration: underline;
   text-underline-offset: 3px;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
@@ -670,25 +738,40 @@
   }
 
   .rapor-identity-grid {
-    gap: 16px !important;
-    margin-bottom: 8px !important;
-    font-size: 0.8rem !important;
+    display: flex !important;
+    gap: 14px !important;
+    margin-bottom: 6px !important;
+    font-size: 0.78rem !important;
+  }
+  .rapor-identity-grid > div {
+    flex: 1 !important;
+    min-width: 0 !important;
   }
   .rapor-identity-table {
     margin-bottom: 0 !important;
-    font-size: 0.8rem !important;
+    font-size: 0.78rem !important;
   }
   .rapor-identity-table td {
-    padding: 1.5px 0 !important;
+    padding: 1.2px 0 !important;
+    line-height: 1.25 !important;
   }
 
   .rapor-grades-table {
-    margin-bottom: 8px !important;
-    font-size: 0.78rem !important;
+    margin-bottom: 6px !important;
+    font-size: 0.76rem !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border-top: 1px solid #000000 !important;
+    border-left: 1px solid #000000 !important;
   }
   .rapor-grades-table th, .rapor-grades-table td {
-    padding: 3px 5px !important;
-    border: 1px solid #000000 !important;
+    padding: 4.5px 6px !important;
+    border: none !important;
+    border-right: 1px solid #000000 !important;
+    border-bottom: 1px solid #000000 !important;
+    vertical-align: middle !important;
+    line-height: 1.35 !important;
+    box-sizing: border-box !important;
   }
   .rapor-grades-table th {
     background: #F1F5F9 !important;
@@ -697,51 +780,94 @@
   }
 
   .print-evaluation-grid {
-    gap: 14px !important;
-    margin-top: 6px !important;
-    margin-bottom: 10px !important;
+    display: flex !important;
+    gap: 10px !important;
+    margin-top: 5px !important;
+    margin-bottom: 6px !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
   .print-card-title {
-    font-size: 0.8rem !important;
-    margin-bottom: 4px !important;
+    font-size: 0.76rem !important;
+    margin-bottom: 3px !important;
+  }
+  .print-presensi-box {
+    width: 100% !important;
+    border: 1px solid #000000 !important;
+    background: #FFFFFF !important;
+    font-size: 0.75rem !important;
+    box-sizing: border-box !important;
+  }
+  .presensi-row {
+    display: flex !important;
+    align-items: center !important;
+    border-bottom: 1px solid #000000 !important;
+    line-height: 1.3 !important;
+  }
+  .presensi-row:last-child {
+    border-bottom: none !important;
+  }
+  .presensi-lbl {
+    flex: 1 !important;
+    padding: 3.5px 7px !important;
+  }
+  .presensi-val {
+    width: 75px !important;
+    text-align: center !important;
+    padding: 3.5px 6px !important;
+    border-left: 1px solid #000000 !important;
+  }
+  .presensi-total-row {
+    background: #F8FAFC !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .print-presensi-table {
-    font-size: 0.78rem !important;
+    font-size: 0.75rem !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border-top: 1px solid #000000 !important;
+    border-left: 1px solid #000000 !important;
   }
   .print-presensi-table td {
     padding: 2.5px 6px !important;
-    border: 1px solid #000000 !important;
+    border: none !important;
+    border-right: 1px solid #000000 !important;
+    border-bottom: 1px solid #000000 !important;
+    vertical-align: middle !important;
+    line-height: 1.25 !important;
+    box-sizing: border-box !important;
   }
   .print-catatan-body {
-    padding: 6px 10px !important;
+    padding: 5px 8px !important;
     border: 1px solid #000000 !important;
     background: #FAFAFA !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
   .print-catatan-body p {
-    font-size: 0.78rem !important;
-    line-height: 1.35 !important;
+    font-size: 0.76rem !important;
+    line-height: 1.25 !important;
   }
 
   .print-ttd-grid {
-    margin-top: 8px !important;
-    gap: 12px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-top: 6px !important;
+    gap: 10px !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
   .ttd-box {
-    min-height: 98px !important;
+    min-height: 76px !important;
   }
   .ttd-header {
-    height: 34px !important;
-    font-size: 0.8rem !important;
-    line-height: 1.25 !important;
+    height: 26px !important;
+    font-size: 0.76rem !important;
+    line-height: 1.2 !important;
   }
   .ttd-space {
-    min-height: 42px !important;
+    min-height: 32px !important;
   }
   .ttd-stamp-wrap {
     position: relative !important;
@@ -752,8 +878,8 @@
     left: 50% !important;
     top: 50% !important;
     transform: translate(-65%, -50%) rotate(-6deg) !important;
-    width: 76px !important;
-    height: 76px !important;
+    width: 56px !important;
+    height: 56px !important;
     object-fit: contain !important;
     opacity: 0.88 !important;
     mix-blend-mode: multiply !important;
@@ -767,21 +893,21 @@
     z-index: 2 !important;
   }
   .ttd-img {
-    max-height: 42px !important;
-    max-width: 120px !important;
+    max-height: 34px !important;
+    max-width: 105px !important;
     filter: brightness(0) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     display: block !important;
   }
   .ttd-footer {
-    height: 22px !important;
+    height: 18px !important;
   }
   .ttd-name-line {
-    font-size: 0.8rem !important;
+    font-size: 0.76rem !important;
   }
   .ttd-name-official {
-    font-size: 0.84rem !important;
+    font-size: 0.82rem !important;
   }
 }
 

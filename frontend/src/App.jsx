@@ -3,7 +3,7 @@
 // ============================================================
 
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 
 // ── Direct Import Semua Halaman (Anti-Blank & Navigasi Instan 0ms) ──
 // Menghilangkan React.lazy per-halaman yang menjadi penyebab utama
@@ -249,12 +249,13 @@ function App() {
           element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><RuangBelajarSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/kelas/:mapelId"
           element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><KelasTerpaduSiswa /></ProtectedRoute>} />
+        {/* Redirect halaman terpisah lama ke Ruang Belajar (semua materi, tugas, modul kini terpadu per kelas) */}
         <Route path="/dashboard/siswa/materi"
-          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><MateriSiswa /></ProtectedRoute>} />
+          element={<Navigate to="/dashboard/siswa/ruang-belajar" replace />} />
         <Route path="/dashboard/siswa/tugas"
-          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><TugasSiswa /></ProtectedRoute>} />
+          element={<Navigate to="/dashboard/siswa/ruang-belajar" replace />} />
         <Route path="/dashboard/siswa/tugas-mingguan"
-          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><TugasSiswa /></ProtectedRoute>} />
+          element={<Navigate to="/dashboard/siswa/ruang-belajar" replace />} />
         <Route path="/dashboard/siswa/absensi"
           element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><AbsensiSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/ujian"
@@ -266,7 +267,7 @@ function App() {
         <Route path="/dashboard/siswa/berita"
           element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><BeritaSiswa /></ProtectedRoute>} />
         <Route path="/dashboard/siswa/modul-buku"
-          element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><ModulBukuSiswa /></ProtectedRoute>} />
+          element={<Navigate to="/dashboard/siswa/ruang-belajar" replace />} />
 
         {/* ══ RUTE SUPER ADMIN & ADMIN ═════════════════════════ */}
         <Route path="/dashboard/admin"
@@ -276,7 +277,7 @@ function App() {
         <Route path="/dashboard/kalender-akademik"
           element={<ProtectedRoute allowedRoles={['warga_belajar','super_admin','admin']}><KalenderAkademikPage /></ProtectedRoute>} />
         <Route path="/dashboard/admin/modul-buku"
-          element={<ProtectedRoute allowedRoles={['super_admin','admin']}><ModulBukuAdmin /></ProtectedRoute>} />
+          element={<Navigate to="/dashboard/siswa/ruang-belajar" replace />} />
         <Route path="/dashboard/admin/berita"
           element={<ProtectedRoute allowedRoles={['super_admin','admin']}><BeritaAdmin /></ProtectedRoute>} />
         <Route path="/dashboard/admin/spmb"

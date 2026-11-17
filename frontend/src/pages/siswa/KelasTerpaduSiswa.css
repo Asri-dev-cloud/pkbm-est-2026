@@ -1,0 +1,2067 @@
+/* ============================================================
+   KelasTerpaduSiswa.css — Professional Retro Scrapbook & Folder Tabs
+   Inspired by Boutique Editorial Design (Robin aesthetic, 
+   colored physical folder dividers, crisp paper cards, washi tape)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800;12..96,900&family=Caveat:wght@600;700&family=Fredoka:wght@600;700;800;900&family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Space+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@700;800&display=swap');
+
+:root {
+  --kt-dark: #0F172A;
+  --kt-dark-border: rgba(15, 23, 42, 0.12); /* Clean, soft, elegant border — no heavy black */
+  --rb-paper-bg: #FAF8F5;
+  --rb-paper-line: rgba(203, 213, 225, 0.45);
+  --rb-tape-blue: rgba(186, 230, 253, 0.9);
+  --rb-tape-yellow: rgba(254, 240, 138, 0.9);
+  --rb-tape-pink: rgba(251, 207, 232, 0.9);
+  --rb-tape-mint: rgba(187, 247, 208, 0.9);
+  --rb-tape-white: rgba(255, 255, 255, 0.88);
+
+  /* 4 Room Themes (User Specified Duotone Themes)
+     Room 1: Pink + Coklat (Sampled #FC60AA + Deep Rich Chocolate #3E1810)
+     Room 2: Hijau + Hitam (Sampled #A5A84D + Solid Jet Black #090B06)
+     Room 3: Kuning + Coklat (Warm Honey Gold #FBBF24 + Espresso Chocolate #451A03)
+     Room 4: Biru + Hitam/Navy (Vivid Sky Blue #38BDF8 + Midnight Black/Navy #0F172A) */
+  --room1-pink:   #FC60AA;
+  --room1-tab-bg: #E5458F;
+  --room1-surface: #FFF0F6;
+  --room1-accent: #3E1810;
+
+  --room2-green:  #A5A84D;
+  --room2-tab-bg: #8C8F38;
+  --room2-surface: #F5F6E8;
+  --room2-accent: #090B06;
+
+  --room3-yellow: #FBBF24;
+  --room3-tab-bg: #E5A817;
+  --room3-surface: #FFFBEB;
+  --room3-accent: #451A03;
+
+  --room4-blue:   #38BDF8;
+  --room4-tab-bg: #0EA5E9;
+  --room4-surface: #F0F9FF;
+  --room4-accent: #0F172A;
+}
+
+/* ── Reset Layout Main Padding for Edge-to-Edge Sheet (0 Space on Mobile) ── */
+.app-main.kelas-page-main {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-bottom: 0 !important;
+  margin-left: 0 !important;
+  background-color: var(--rb-paper-bg) !important;
+}
+
+@media (min-width: 1024px) {
+  .app-main.kelas-page-main {
+    margin-left: 250px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-main.kelas-page-main {
+    padding-top: 64px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
+
+/* ── Container with Lined Notebook Paper Background (Full Width) ── */
+.kelas-notebook-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--rb-paper-bg);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 31px,
+    var(--rb-paper-line) 31px,
+    var(--rb-paper-line) 32px
+  );
+  background-attachment: local;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #1E293B;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Top Section: Notebook Paper, Back Button & Hero Showcase ── */
+.kelas-top-section {
+  position: relative;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 2rem 2rem;
+  box-sizing: border-box;
+}
+
+/* Notebook Margin Line on Left */
+.kelas-top-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 24px;
+  width: 2px;
+  background: rgba(248, 113, 113, 0.28);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .kelas-top-section {
+    padding: 1rem 0.85rem 1.25rem 0.85rem;
+  }
+  .kelas-top-section::before {
+    display: none;
+  }
+}
+
+/* ── Top Bar: Back Button & Cute Nav Capsules ───────────────── */
+.kelas-top-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  position: relative;
+  z-index: 10;
+}
+
+.kelas-nav-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  color: #1E293B;
+  border: 1.5px solid rgba(15, 23, 42, 0.12);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.kelas-nav-back-link:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+  border-color: rgba(15, 23, 42, 0.25);
+  transform: translateX(-3px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.kelas-nav-back-link:active {
+  transform: translateY(1px);
+}
+
+.kelas-nav-back-link i {
+  font-size: 1.05rem;
+  color: #3B82F6;
+  transition: transform 0.2s ease;
+}
+
+.kelas-nav-back-link:hover i {
+  transform: scale(1.15);
+}
+
+/* Cute Nav Capsules (Replaces cluttered breadcrumb text) */
+.kelas-nav-breadcrumb-capsules {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.cute-nav-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: transform 0.15s ease;
+}
+
+.cute-nav-capsule:hover {
+  transform: translateY(-1px);
+}
+
+.cute-nav-capsule.brand {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border-color: #BFDBFE;
+}
+
+.cute-nav-capsule.brand i {
+  color: #2563EB;
+}
+
+.cute-nav-capsule.rombel {
+  background: #F0FDF4;
+  color: #15803D;
+  border-color: #BBF7D0;
+}
+
+.cute-nav-capsule.rombel i {
+  color: #16A34A;
+}
+
+.cute-nav-capsule.sem {
+  background: #FFF7ED;
+  color: #C2410C;
+  border-color: #FED7AA;
+}
+
+.cute-nav-capsule.sem i {
+  color: #EA580C;
+}
+
+@media (max-width: 768px) {
+  .kelas-top-navigation {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .kelas-nav-breadcrumb-capsules {
+    gap: 6px;
+    width: 100%;
+  }
+  .cute-nav-capsule {
+    font-size: 0.72rem;
+    padding: 4px 10px;
+  }
+}
+
+/* Legacy Tag Pills (Refined & Softened for inner card badges) */
+.retro-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.retro-tag-pill.yellow { background: #FEF08A; color: #713F12; }
+.retro-tag-pill.mint   { background: #DCFCE7; color: #166534; }
+.retro-tag-pill.pink   { background: #FFE4E6; color: #9F1239; }
+.retro-tag-pill.blue   { background: #E0F2FE; color: #075985; }
+.retro-tag-pill.peach  { background: #FFEDD5; color: #9A3412; }
+
+/* ── Hero Showcase (Clean, Box-free Editorial Header) ───────── */
+.kelas-hero-showcase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 5;
+}
+
+.kelas-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #475569;
+  margin-bottom: 0.35rem;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.kelas-hero-eyebrow i {
+  font-size: 0.95rem;
+  color: #F59E0B;
+}
+
+.kelas-hero-title {
+  font-family: 'Bricolage Grotesque', 'Outfit', sans-serif;
+  font-size: 2.35rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #0F172A;
+  margin: 0.35rem 0 0.75rem 0;
+  line-height: 1.18;
+  max-width: 880px;
+}
+
+@media (max-width: 768px) {
+  .kelas-hero-title {
+    font-size: 1.55rem;
+    line-height: 1.25;
+    margin: 0.25rem 0 0.5rem 0;
+  }
+}
+
+.kelas-hero-desc {
+  font-size: 0.92rem;
+  color: #475569;
+  max-width: 680px;
+  line-height: 1.6;
+  margin: 0 0 1.5rem 0;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .kelas-hero-desc {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    margin-bottom: 1.15rem;
+  }
+  .kelas-hero-showcase {
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* ── Unified Cute Meta Bar (Yellow, Mint & Lavender Harmony) ── */
+.kelas-hero-meta-bar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  background: #FFFFFF;
+  border: 1.5px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 0.75rem 1.85rem;
+  box-shadow: 0 8px 25px -4px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02);
+  max-width: 100%;
+}
+
+.hero-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.hero-meta-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.hero-meta-avatar.yellow {
+  background: #FEF08A;
+  color: #713F12;
+}
+
+.hero-meta-avatar.mint {
+  background: #DCFCE7;
+  color: #15803D;
+}
+
+.hero-meta-avatar.lavender {
+  background: #EDE9FE;
+  color: #6D28D9;
+}
+
+.hero-meta-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-meta-label {
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #64748B;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.hero-meta-val {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0F172A;
+  line-height: 1.3;
+}
+
+.hero-meta-val.bold {
+  font-weight: 800;
+}
+
+.hero-meta-val strong {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #0F172A;
+}
+
+.hero-meta-sub {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.hero-meta-divider {
+  width: 1.5px;
+  height: 34px;
+  background: rgba(15, 23, 42, 0.08);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .kelas-hero-meta-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    padding: 0.95rem 1.15rem;
+    gap: 0.75rem;
+    box-sizing: border-box;
+    border-radius: 18px;
+  }
+  .hero-meta-divider {
+    width: 100%;
+    height: 1px;
+    background: rgba(15, 23, 42, 0.08);
+  }
+  .hero-meta-item {
+    gap: 12px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CUTE CUSTOM SELECT DROPDOWN COMPONENT STYLES
+   ════════════════════════════════════════════════════════════════ */
+.cute-select-wrapper {
+  position: relative;
+  width: 100%;
+  user-select: none;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+.cute-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #FFFFFF;
+  border: 2px solid rgba(15, 23, 42, 0.1);
+  border-radius: 16px;
+  padding: 10px 14px 10px 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.cute-select-trigger:hover {
+  border-color: rgba(15, 23, 42, 0.25);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.cute-select-trigger.open {
+  border-color: var(--select-accent, #FF5A79);
+  box-shadow: 0 0 0 4px var(--select-ring, rgba(255, 90, 121, 0.18)), 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.cute-select-trigger-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.cute-select-main-icon {
+  font-size: 1.15rem;
+  color: var(--select-accent, #FF5A79);
+  flex-shrink: 0;
+}
+
+.cute-select-value-text {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cute-select-mini-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: var(--select-pill-bg, #FFE4E6);
+  color: var(--select-accent, #E11D48);
+  flex-shrink: 0;
+}
+
+.cute-select-arrow-pill {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #F1F5F9;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.cute-select-trigger:hover .cute-select-arrow-pill,
+.cute-select-trigger.open .cute-select-arrow-pill {
+  background: var(--select-accent, #FF5A79);
+  color: #FFFFFF;
+}
+
+/* Floating Cute Dropdown Menu */
+.cute-select-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 2px solid var(--select-border, rgba(15, 23, 42, 0.08));
+  box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.16), 0 6px 14px rgba(0, 0, 0, 0.06);
+  padding: 8px;
+  animation: cuteMenuPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: top center;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+@keyframes cuteMenuPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(-6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.cute-select-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 8px 12px;
+  border-bottom: 1px dashed rgba(15, 23, 42, 0.08);
+  margin-bottom: 6px;
+}
+
+.cute-select-menu-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cute-select-menu-title i {
+  color: var(--select-accent, #FF5A79);
+}
+
+.cute-select-menu-count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94A3B8;
+}
+
+.cute-select-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cute-select-option-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: #1E293B;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: left;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.cute-select-option-item:hover {
+  background: var(--select-hover-bg, #FFF1F3);
+  color: var(--select-accent, #BE123C);
+  transform: translateX(3px);
+}
+
+.cute-select-option-item.selected {
+  background: var(--select-active-bg, #FFE4E6);
+  color: var(--select-accent, #9F1239);
+  font-weight: 800;
+}
+
+.option-label-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.option-icon {
+  font-size: 1rem;
+  color: var(--select-accent, #FF5A79);
+  flex-shrink: 0;
+}
+
+.option-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.option-extra-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.cute-option-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.cute-select-option-item.selected .cute-option-badge {
+  background: #FFFFFF;
+  color: var(--select-accent, #9F1239);
+}
+
+.option-check-icon {
+  font-size: 1rem;
+  color: var(--select-accent, #FF5A79);
+}
+
+/* Theme Variations: Pink+Coklat, Hijau+Hitam, Kuning+Coklat, Biru+Hitam/Navy */
+.cute-select-wrapper.theme-pink {
+  --select-accent: #3E1810;
+  --select-ring: rgba(62, 24, 16, 0.2);
+  --select-pill-bg: #FFE4E8;
+  --select-hover-bg: #FFF0F6;
+  --select-active-bg: #FCE7F3;
+  --select-border: rgba(62, 24, 16, 0.18);
+}
+
+.cute-select-wrapper.theme-green {
+  --select-accent: #090B06;
+  --select-ring: rgba(9, 11, 6, 0.2);
+  --select-pill-bg: #E8EACB;
+  --select-hover-bg: #F5F6E8;
+  --select-active-bg: #E0E3B8;
+  --select-border: rgba(9, 11, 6, 0.18);
+}
+
+.cute-select-wrapper.theme-yellow {
+  --select-accent: #451A03;
+  --select-ring: rgba(69, 26, 3, 0.2);
+  --select-pill-bg: #FEF3C7;
+  --select-hover-bg: #FFFBEB;
+  --select-active-bg: #FDE68A;
+  --select-border: rgba(69, 26, 3, 0.18);
+}
+
+.cute-select-wrapper.theme-blue {
+  --select-accent: #0F172A;
+  --select-ring: rgba(15, 23, 42, 0.2);
+  --select-pill-bg: #E0F2FE;
+  --select-hover-bg: #F0F9FF;
+  --select-active-bg: #BAE6FD;
+  --select-border: rgba(15, 23, 42, 0.18);
+}
+
+/* ── Washi Tape Decorator ──────────────────────────────────── */
+.retro-washi-tape {
+  position: absolute;
+  height: 16px;
+  width: 54px;
+  background: var(--rb-tape-yellow);
+  opacity: 0.9;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.retro-washi-tape.top-left {
+  top: -8px;
+  left: 14px;
+  transform: rotate(-10deg);
+}
+
+.retro-washi-tape.top-right {
+  top: -8px;
+  right: 14px;
+  transform: rotate(10deg);
+}
+
+.retro-washi-tape.top-center {
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 70px;
+}
+
+.retro-washi-tape.blue   { background: var(--rb-tape-blue); }
+.retro-washi-tape.pink   { background: var(--rb-tape-pink); }
+.retro-washi-tape.mint   { background: var(--rb-tape-mint); }
+.retro-washi-tape.yellow { background: var(--rb-tape-yellow); }
+.retro-washi-tape.white  { background: var(--rb-tape-white); }
+
+
+/* ══ 5. FULL-BLEED SHEET SECTION (FULL SPACE KANAN, KIRI, BAWAH) ══ */
+.kelas-sheet-section {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+/* ── Chamfered Folder Tabs Bar (Setiap Pembatas Memiliki Warna Sendiri) ── */
+.retro-sheet-tabs-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 0 2rem;
+  margin-bottom: -1px;
+  position: relative;
+  z-index: 15;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.retro-sheet-tabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .retro-sheet-tabs-bar {
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    width: 100% !important;
+  }
+}
+
+/* Individual Chamfered Tab */
+.retro-sheet-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 22px 10px 16px;
+  font-family: 'Space Grotesk', 'Outfit', monospace, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  /* Chamfered angled top-right cut */
+  clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 100%, 0 100%);
+  transition: all 0.16s ease;
+  white-space: nowrap;
+  position: relative;
+  color: #FFFFFF;
+  opacity: 0.88;
+  transform: translateY(3px);
+  filter: brightness(0.92);
+}
+
+.retro-sheet-tab:hover {
+  opacity: 0.98;
+  filter: brightness(1.02);
+  transform: translateY(1px);
+}
+
+/* Setiap Pembatas (Tab) Memiliki Warnanya Masing-Masing Sesuai Duotone Theme */
+.retro-sheet-tab.tab-room1 {
+  background: var(--room1-tab-bg) !important;
+  color: var(--room1-accent) !important;
+}
+.retro-sheet-tab.tab-room2 {
+  background: var(--room2-tab-bg) !important;
+  color: var(--room2-accent) !important;
+}
+.retro-sheet-tab.tab-room3 {
+  background: var(--room3-tab-bg) !important;
+  color: var(--room3-accent) !important;
+}
+.retro-sheet-tab.tab-room4 {
+  background: var(--room4-tab-bg) !important;
+  color: var(--room4-accent) !important;
+}
+
+/* Active Tab: Seamless connection with the sheet container below! */
+.retro-sheet-tab.active {
+  opacity: 1 !important;
+  filter: brightness(1) !important;
+  transform: translateY(0) !important;
+  padding-top: 15px;
+  padding-bottom: 12px;
+  z-index: 20;
+  box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.retro-sheet-tab.tab-room1.active {
+  background: var(--room1-pink) !important;
+  color: var(--room1-accent) !important;
+}
+
+.retro-sheet-tab.tab-room2.active {
+  background: var(--room2-green) !important;
+  color: var(--room2-accent) !important;
+}
+
+.retro-sheet-tab.tab-room3.active {
+  background: var(--room3-yellow) !important;
+  color: var(--room3-accent) !important;
+}
+
+.retro-sheet-tab.tab-room4.active {
+  background: var(--room4-blue) !important;
+  color: var(--room4-accent) !important;
+}
+
+@media (max-width: 768px) {
+  .retro-sheet-tab {
+    padding: 10px 4px 8px 4px;
+    font-size: 0.72rem;
+    letter-spacing: 0.2px;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 100%, 0 100%);
+    gap: 3px;
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+  }
+  .retro-sheet-tab.active {
+    padding-top: 12px;
+    padding-bottom: 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .retro-sheet-tab {
+    padding: 9px 3px 7px 3px;
+    font-size: 0.68rem;
+    letter-spacing: 0.1px;
+    clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 100%, 0 100%);
+    gap: 2px;
+  }
+  .sheet-tab-dot {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+.sheet-tab-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  opacity: 0.95;
+}
+
+
+/* ══ 6. MAIN SHEET CONTAINER (FULL SPACE: 0 SPACE KANAN, KIRI, BAWAH) ══ */
+.retro-sheet-container {
+  width: 100% !important;
+  flex: 1;
+  min-height: calc(100vh - 240px);
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  margin: 0 !important;
+  padding: 2.5rem 2rem 5rem 2rem;
+  color: var(--rb-dark);
+  position: relative;
+  z-index: 5;
+  transition: background-color 0.22s ease;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .retro-sheet-container {
+    padding: 1.25rem 0.85rem 4rem 0.85rem !important;
+    margin: 0 !important;
+    width: 100% !important;
+    min-height: calc(100vh - 200px) !important;
+  }
+}
+
+/* 4 Distinct Theme Colors for the Full Page */
+.retro-sheet-container.sheet-theme-pertemuan {
+  background: var(--room1-pink);
+}
+
+.retro-sheet-container.sheet-theme-materi {
+  background: var(--room2-green);
+}
+
+.retro-sheet-container.sheet-theme-modul {
+  background: var(--room3-yellow);
+}
+
+.retro-sheet-container.sheet-theme-tugas {
+  background: var(--room4-blue);
+}
+
+/* Inner Centered Content Wrapper for Large Monitors */
+.sheet-inner-content {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ── Section Header inside Colored Sheet ───────────────────── */
+.sheet-header-pill {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-family: 'Space Grotesk', monospace, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.sheet-header-title {
+  font-family: 'Bricolage Grotesque', 'Space Grotesk', system-ui, sans-serif;
+  font-size: 2.15rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 2px 0 6px 0;
+  line-height: 1.18;
+}
+
+@media (max-width: 768px) {
+  .sheet-header-title {
+    font-size: 1.45rem;
+    line-height: 1.25;
+  }
+}
+
+.sheet-header-subtitle {
+  font-size: 0.92rem;
+  margin: 0;
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+/* Room 1: Pink + Coklat (Strawberry Chocolate) */
+.sheet-theme-pertemuan .sheet-header-title {
+  color: #3E1810;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+.sheet-theme-pertemuan .sheet-header-pill {
+  background: rgba(62, 24, 16, 0.14);
+  color: #3E1810;
+  border: 1.5px solid rgba(62, 24, 16, 0.28);
+}
+.sheet-theme-pertemuan .sheet-header-subtitle {
+  color: #5D2A18;
+}
+
+/* Room 2: Hijau + Hitam (Olive Matcha + Solid Black) */
+.sheet-theme-materi .sheet-header-title {
+  color: #090B06;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+.sheet-theme-materi .sheet-header-pill {
+  background: rgba(9, 11, 6, 0.14);
+  color: #090B06;
+  border: 1.5px solid rgba(9, 11, 6, 0.35);
+}
+.sheet-theme-materi .sheet-header-subtitle {
+  color: #1A1D10;
+}
+
+/* Room 3: Kuning + Coklat (Honey Gold + Espresso Chocolate) */
+.sheet-theme-modul .sheet-header-title {
+  color: #451A03;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.35);
+}
+.sheet-theme-modul .sheet-header-pill {
+  background: rgba(69, 26, 3, 0.14);
+  color: #451A03;
+  border: 1.5px solid rgba(69, 26, 3, 0.28);
+}
+.sheet-theme-modul .sheet-header-subtitle {
+  color: #5C2809;
+}
+
+/* Room 4: Biru + Hitam/Navy (Sky Blue + Midnight Black) */
+.sheet-theme-tugas .sheet-header-title {
+  color: #0F172A;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+.sheet-theme-tugas .sheet-header-pill {
+  background: rgba(15, 23, 42, 0.14);
+  color: #0F172A;
+  border: 1.5px solid rgba(15, 23, 42, 0.28);
+}
+.sheet-theme-tugas .sheet-header-subtitle {
+  color: #1E293B;
+}
+
+/* ── Modern Soft Search Input on Colored Sheets ── */
+.sheet-search-input {
+  background: #FFFFFF;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  color: var(--rb-dark);
+  padding: 10px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  outline: none;
+  width: 250px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.18s ease;
+}
+
+.sheet-search-input::placeholder {
+  color: #94A3B8;
+}
+
+.sheet-search-input:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+@media (max-width: 600px) {
+  .sheet-search-input {
+    width: 100% !important;
+  }
+}
+
+/* Action button on colored sheets */
+.sheet-btn-cta {
+  background: #FFFFFF;
+  color: var(--rb-dark);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 999px;
+  padding: 9px 20px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 800;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.sheet-btn-cta:hover {
+  background: #FFFDF8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.sheet-btn-cta:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 600px) {
+  .sheet-btn-cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Modern Dropdown Selectors (Anti-Terpotong & Jelas Bisa Dipilih) ── */
+.sheet-filter-dropdown-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.sheet-filter-dropdown-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.sheet-theme-pertemuan .sheet-filter-dropdown-label {
+  color: #3E1810;
+}
+.sheet-theme-materi .sheet-filter-dropdown-label {
+  color: #090B06;
+}
+.sheet-theme-modul .sheet-filter-dropdown-label {
+  color: #451A03;
+}
+.sheet-theme-tugas .sheet-filter-dropdown-label {
+  color: #0F172A;
+}
+
+.sheet-filter-dropdown-hint {
+  font-size: 0.74rem;
+  font-weight: 600;
+  opacity: 0.85;
+  font-style: italic;
+}
+
+.sheet-select-custom-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.sheet-filter-select-input {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: #FFFFFF;
+  color: #0F172A;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  padding: 11px 40px 11px 16px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.18s ease;
+}
+
+.sheet-filter-select-input:hover {
+  border-color: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.sheet-filter-select-input:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.sheet-select-arrow {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+  color: #64748B;
+  font-size: 0.88rem;
+  transition: transform 0.18s ease;
+}
+
+
+/* ── Sub-tabs for Sesi Pertemuan (Inside Sheet) ─────────────── */
+.sesi-pills-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sesi-pills-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.sesi-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.sesi-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  color: #FFFFFF;
+}
+
+.sesi-pill-btn.active {
+  background: #FFFFFF;
+  color: var(--kt-dark, #0F172A);
+  border: 2px solid var(--kt-dark-border);
+  font-weight: 900;
+  box-shadow: 2px 3px 0 var(--kt-dark-border);
+  transform: translateY(-1px);
+}
+
+.sesi-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FEF08A;
+  color: #713F12;
+  border: 2px solid #CA8A04;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 #CA8A04;
+  transition: all 0.15s ease;
+}
+
+.sesi-add-btn:hover {
+  background: #FDE047;
+  transform: translateY(-1px);
+}
+
+
+/* ── Content Grid Inside Sheet (Sesi Pertemuan) ─────────────── */
+.sheet-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .sheet-content-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+/* ── Crisp White Cards Inside Colored Sheet (Ultra Professional) ── */
+.sheet-taped-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  padding: 1.6rem;
+  position: relative;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  color: var(--rb-dark);
+}
+
+.sheet-taped-card:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 600px) {
+  .sheet-taped-card {
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.sheet-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1.15rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1.5px dashed #E2E8F0;
+}
+
+/* Wavy badges inside white card */
+.retro-badge-wavy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--rb-dark);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  letter-spacing: 0.2px;
+}
+
+.retro-badge-wavy.yellow { background: #FEF08A; color: #713F12; }
+.retro-badge-wavy.mint   { background: #BBF7D0; color: #14532D; }
+.retro-badge-wavy.pink   { background: #FBCFE8; color: #831843; }
+.retro-badge-wavy.blue   { background: #BAE6FD; color: #0C4A6E; }
+.retro-badge-wavy.coral  { background: #FED7AA; color: #7C2D12; }
+.retro-badge-wavy.purple { background: #E9D5FF; color: #581C87; }
+
+
+/* ── Action Buttons (Clean, Modern & Tactile) ──────────────── */
+.retro-btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.16s ease;
+  text-decoration: none;
+}
+
+.retro-btn-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.retro-btn-action:active {
+  transform: translateY(1px);
+}
+
+.retro-btn-action.primary { background: #2563EB; color: white; border-color: #1D4ED8; }
+.retro-btn-action.yellow  { background: #FEF08A; color: #713F12; border-color: #EAB308; }
+.retro-btn-action.mint    { background: #BBF7D0; color: #14532D; border-color: #22C55E; }
+.retro-btn-action.danger  { background: #FECDD3; color: #9F1239; border-color: #F43F5E; }
+.retro-btn-action.neutral { background: #FFFFFF; color: var(--rb-dark); }
+.retro-btn-action.glass   { background: #F8FAFC; color: #475569; border-color: #E2E8F0; }
+
+/* Room-Themed Harmonious Primary Action Buttons (Pink+Coklat, Hijau+Hitam, Kuning+Coklat, Biru+Hitam/Navy) */
+.sheet-theme-pertemuan .retro-btn-action.primary {
+  background: #3E1810 !important;
+  color: #FFE4E8 !important;
+  border-color: #2E0F07 !important;
+  box-shadow: 0 4px 12px rgba(62, 24, 16, 0.25) !important;
+}
+.sheet-theme-pertemuan .retro-btn-action.primary:hover {
+  background: #2E0F07 !important;
+  color: #FFFFFF !important;
+}
+
+.sheet-theme-materi .retro-btn-action.primary {
+  background: #090B06 !important;
+  color: #FFFFFF !important;
+  border-color: #000000 !important;
+  box-shadow: 0 4px 12px rgba(9, 11, 6, 0.25) !important;
+}
+.sheet-theme-materi .retro-btn-action.primary:hover {
+  background: #1F2414 !important;
+  color: #A5A84D !important;
+}
+
+.sheet-theme-modul .retro-btn-action.primary {
+  background: #451A03 !important;
+  color: #FEF9C3 !important;
+  border-color: #2E0F02 !important;
+  box-shadow: 0 4px 12px rgba(69, 26, 3, 0.25) !important;
+}
+.sheet-theme-modul .retro-btn-action.primary:hover {
+  background: #2E0F02 !important;
+  color: #FFFFFF !important;
+}
+
+.sheet-theme-tugas .retro-btn-action.primary {
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  border-color: #020617 !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25) !important;
+}
+.sheet-theme-tugas .retro-btn-action.primary:hover {
+  background: #1E293B !important;
+  color: #BAE6FD !important;
+}
+
+
+/* ── Empty State Card in Room 1 (Comprehensive & Professional) ─ */
+.sheet-empty-state-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 22px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.empty-state-icon-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: #FEE2E2;
+  color: #E11D48;
+  border: 1.5px solid rgba(225, 29, 72, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.85rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.15);
+}
+
+.empty-state-title {
+  font-family: 'Bricolage Grotesque', 'Outfit', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--rb-dark);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state-desc {
+  font-size: 0.9rem;
+  color: #64748B;
+  max-width: 580px;
+  margin: 0 auto 1.5rem auto;
+  line-height: 1.55;
+}
+
+.empty-state-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  text-align: left;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1.5px dashed #E2E8F0;
+}
+
+@media (max-width: 768px) {
+  .empty-state-features-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+}
+
+.empty-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.empty-feature-item strong {
+  display: block;
+  font-size: 0.84rem;
+  color: var(--rb-dark);
+  margin-bottom: 2px;
+}
+
+.empty-feature-item span {
+  display: block;
+  font-size: 0.74rem;
+  color: #64748B;
+  line-height: 1.4;
+}
+
+.empty-feature-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.empty-feature-icon.mint   { background: #DCFCE7; color: #15803D; }
+.empty-feature-icon.blue   { background: #DBEAFE; color: #1D4ED8; }
+.empty-feature-icon.yellow { background: #FEF3C7; color: #B45309; }
+
+
+/* ── Tab 2: Materi Belajar Grid inside Colored Sheet ───────── */
+.sheet-materi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.materi-card-item {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  color: var(--rb-dark);
+  transition: all 0.2s ease;
+}
+
+.materi-card-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px -6px rgba(0, 0, 0, 0.12), 0 6px 12px -2px rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 600px) {
+  .sheet-materi-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+
+/* ── Tab 3: Modul & Buku Grid inside Colored Sheet ────────── */
+.sheet-modul-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.modul-card-item {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  color: var(--rb-dark);
+  transition: all 0.2s ease;
+}
+
+.modul-card-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px -6px rgba(0, 0, 0, 0.12), 0 6px 12px -2px rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 600px) {
+  .sheet-modul-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+
+/* ── Tab 4: Tugas Mingguan Grid inside Colored Sheet ──────── */
+.sheet-tugas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.25rem;
+}
+
+.tugas-card-sheet {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  padding: 1.6rem;
+  position: relative;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  color: var(--rb-dark);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.tugas-card-sheet:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px -6px rgba(0, 0, 0, 0.12), 0 6px 12px -2px rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 600px) {
+  .sheet-tugas-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* ── Discussion Forum inside Sesi Pertemuan ───────────────── */
+.forum-thread-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 6px;
+  margin-bottom: 1rem;
+}
+
+.forum-comment-card {
+  display: flex;
+  gap: 12px;
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.forum-comment-card.my-comment {
+  background: #EFF6FF;
+  border-color: #BFDBFE;
+}
+
+.comment-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  background: #FEF08A;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.comment-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+
+/* ── Post-it note for announcements ────────────────────────── */
+.postit-note-dark {
+  background: #FEF9C3;
+  color: #713F12;
+  border: 1.5px solid #EAB308;
+  border-radius: 16px;
+  padding: 1.25rem;
+  position: relative;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.25rem;
+}
+
+.postit-pin {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #EF4444;
+  border: 2px solid #DC2626;
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+}
+
+
+/* ── Retro Pop Modals ──────────────────────────────────────── */
+.retro-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 1.25rem;
+}
+
+.retro-modal-box {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.retro-modal-header {
+  background: #FEF08A;
+  border-bottom: 1.5px solid #EAB308;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.retro-modal-header h3 {
+  font-family: 'Bricolage Grotesque', 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #713F12;
+  margin: 0;
+}
+
+
+/* ═════════════════════════════════════════════════════════════ */
+/* TUGAS MULTI-TIPE (UPLOAD, PILIHAN GANDA, ESSAY)               */
+/* ═════════════════════════════════════════════════════════════ */
+
+.retro-tag-pill.purple {
+  background: #F3E8FF;
+  color: #6B21A8;
+  border-color: #DDD6FE;
+}
+
+.tugas-type-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.85rem;
+}
+
+.tugas-type-select-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 2px solid #E2E8F0;
+  background: #FFFFFF;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.tugas-type-select-card:hover {
+  border-color: #94A3B8;
+  transform: translateY(-2px);
+}
+
+.tugas-type-select-card.active {
+  border-color: #2563EB;
+  background: #EFF6FF;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+}
+
+.tugas-type-select-card .type-title {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #0F172A;
+  font-family: 'Outfit', sans-serif;
+}
+
+.tugas-type-select-card .type-desc {
+  font-size: 0.74rem;
+  color: #64748B;
+  line-height: 1.4;
+}
+
+/* ── Soal Builder (Modal Buat Tugas) ───────────────────────── */
+.soal-builder-section {
+  background: #F8FAFC;
+  border: 1.5px dashed #CBD5E1;
+  border-radius: 12px;
+  padding: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.soal-builder-card {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.soal-builder-label {
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: #0F172A;
+  background: #F1F5F9;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.btn-trash-soal {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-trash-soal:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+.pg-builder-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.65rem;
+}
+
+.pg-builder-opt-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pg-builder-opt-item .opt-prefix {
+  font-weight: 800;
+  font-size: 0.78rem;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F1F5F9;
+  border-radius: 6px;
+  color: #475569;
+  flex-shrink: 0;
+}
+
+.pg-builder-opt-item .opt-input {
+  flex: 1;
+  font-size: 0.84rem;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1.5px solid #CBD5E1;
+}
+
+/* ── Answering Pilihan Ganda (Siswa) ───────────────────────── */
+.pg-quiz-card {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.85rem;
+  transition: border-color 0.2s ease;
+}
+
+.pg-quiz-card:hover {
+  border-color: #CBD5E1;
+}
+
+.pg-quiz-question {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.pg-number-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #7C3AED;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pg-options-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.pg-option-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.pg-option-item:hover {
+  border-color: #A78BFA;
+  background: #FAF5FF;
+}
+
+.pg-option-item.selected {
+  border-color: #7C3AED;
+  background: #F5F3FF;
+  box-shadow: 0 0 0 1px #7C3AED;
+}
+
+.pg-option-letter {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: #F1F5F9;
+  color: #475569;
+  font-weight: 800;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+}
+
+.pg-option-item.selected .pg-option-letter {
+  background: #7C3AED;
+  color: #FFFFFF;
+}
+
+.pg-option-text {
+  font-size: 0.88rem;
+  color: #1E293B;
+  font-weight: 600;
+}
+
+/* ── Answering Essay (Siswa) ───────────────────────────────── */
+.essay-question-item {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.essay-question-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #1E293B;
+  line-height: 1.5;
+  margin-bottom: 0.65rem;
+}
+
+.essay-number-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: #2563EB;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Upload Area Lembar Kerja ──────────────────────────────── */
+.tugas-upload-zone {
+  background: #F8FAFC;
+  border: 2px dashed #93C5FD;
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tugas-upload-zone:hover {
+  background: #EFF6FF;
+  border-color: #3B82F6;
+}
+
+.tugas-file-selected-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #EFF6FF;
+  border: 1.5px solid #BFDBFE;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.65rem;
+}
+
+/* ── Modal Grading Pengumpulan Siswa ───────────────────────── */
+.grading-student-card {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.grading-student-card:hover {
+  border-color: #CBD5E1;
+}

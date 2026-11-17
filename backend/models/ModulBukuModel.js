@@ -110,6 +110,20 @@ export const ensureModulBukuTable = async () => {
       `);
     }
 
+    // Pastikan kolom rombel_id dan mapel_id ada untuk filter per ruang belajar
+    try {
+      const [cols] = await pool.query(`SHOW COLUMNS FROM modul_buku LIKE 'rombel_id'`);
+      if (cols.length === 0) {
+        await pool.query(`ALTER TABLE modul_buku ADD COLUMN rombel_id INT UNSIGNED NULL AFTER mapel`);
+      }
+    } catch {}
+    try {
+      const [cols] = await pool.query(`SHOW COLUMNS FROM modul_buku LIKE 'mapel_id'`);
+      if (cols.length === 0) {
+        await pool.query(`ALTER TABLE modul_buku ADD COLUMN mapel_id INT UNSIGNED NULL AFTER rombel_id`);
+      }
+    } catch {}
+
     tableChecked = true;
   } catch (err) {
     console.error('Error ensuring modul_buku table:', err.message);
@@ -118,10 +132,20 @@ export const ensureModulBukuTable = async () => {
 
 const ModulBukuModel = {
   // Ambil semua modul untuk siswa (hanya published)
-  findPublished: async ({ search = '', kategori = '', mapel = '', tipe = '', limit = 50, offset = 0 } = {}) => {
+  findPublished: async ({ search = '', kategori = '', mapel = '', tipe = '', rombel_id = null, mapel_id = null, limit = 50, offset = 0 } = {}) => {
     await ensureModulBukuTable();
     let query = `SELECT * FROM modul_buku WHERE is_published = 1`;
     const params = [];
+
+    if (rombel_id || mapel_id) {
+      query += ` AND (
+        (rombel_id = ? AND mapel_id = ?)
+        OR (rombel_id = ? AND mapel_id IS NULL)
+        OR (rombel_id IS NULL AND mapel_id = ?)
+        OR (rombel_id IS NULL AND mapel_id IS NULL)
+      )`;
+      params.push(rombel_id || 0, mapel_id || 0, rombel_id || 0, mapel_id || 0);
+    }
 
     if (search && search.trim()) {
       query += ` AND (judul LIKE ? OR deskripsi LIKE ? OR mapel LIKE ? OR penulis LIKE ?)`;
@@ -152,10 +176,20 @@ const ModulBukuModel = {
   },
 
   // Hitung total untuk pagination / siswa
-  countPublished: async ({ search = '', kategori = '', tipe = '' } = {}) => {
+  countPublished: async ({ search = '', kategori = '', tipe = '', rombel_id = null, mapel_id = null } = {}) => {
     await ensureModulBukuTable();
     let query = `SELECT COUNT(*) as total FROM modul_buku WHERE is_published = 1`;
     const params = [];
+
+    if (rombel_id || mapel_id) {
+      query += ` AND (
+        (rombel_id = ? AND mapel_id = ?)
+        OR (rombel_id = ? AND mapel_id IS NULL)
+        OR (rombel_id IS NULL AND mapel_id = ?)
+        OR (rombel_id IS NULL AND mapel_id IS NULL)
+      )`;
+      params.push(rombel_id || 0, mapel_id || 0, rombel_id || 0, mapel_id || 0);
+    }
 
     if (search && search.trim()) {
       query += ` AND (judul LIKE ? OR deskripsi LIKE ? OR mapel LIKE ? OR penulis LIKE ?)`;
@@ -253,8 +287,8 @@ const ModulBukuModel = {
         judul, deskripsi, kategori, mapel, tipe,
         file_path, file_nama_asli, file_size, file_type,
         cover_image, url_eksternal, penulis, semester, tahun_ajaran,
-        is_published, created_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        is_published, created_by, rombel_id, mapel_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [result] = await pool.query(sql, [
@@ -274,6 +308,8 @@ const ModulBukuModel = {
       data.tahun_ajaran || '2025/2026',
       data.is_published !== undefined ? data.is_published : 1,
       data.created_by || null,
+      data.rombel_id ? parseInt(data.rombel_id) : null,
+      data.mapel_id ? parseInt(data.mapel_id) : null
     ]);
 
     return result.insertId;
@@ -289,7 +325,7 @@ const ModulBukuModel = {
       'judul', 'deskripsi', 'kategori', 'mapel', 'tipe',
       'file_path', 'file_nama_asli', 'file_size', 'file_type',
       'cover_image', 'url_eksternal', 'penulis', 'semester', 'tahun_ajaran',
-      'is_published'
+      'is_published', 'rombel_id', 'mapel_id'
     ];
 
     for (const key of allowed) {

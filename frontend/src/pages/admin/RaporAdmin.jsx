@@ -1161,26 +1161,24 @@ export default function RaporAdmin() {
                       <div className="print-evaluation-grid">
                         <div className="print-presensi-card">
                           <div className="print-card-title">Rekapitulasi Kehadiran Siswa:</div>
-                          <table className="print-presensi-table">
-                            <tbody>
-                              <tr>
-                                <td style={{ width: '60%' }}>1. Sakit</td>
-                                <td style={{ width: '40%', textAlign: 'center' }}>{printData.total_sakit || 0} hari</td>
-                              </tr>
-                              <tr>
-                                <td>2. Izin</td>
-                                <td style={{ textAlign: 'center' }}>{printData.total_izin || 0} hari</td>
-                              </tr>
-                              <tr>
-                                <td>3. Tanpa Keterangan (Alpa)</td>
-                                <td style={{ textAlign: 'center' }}>{printData.total_alpa || 0} hari</td>
-                              </tr>
-                              <tr className="print-presensi-total">
-                                <td>Total Kehadiran Belajar</td>
-                                <td style={{ textAlign: 'center' }}>{printData.total_hadir || 0} hari</td>
-                              </tr>
-                            </tbody>
-                          </table>
+                          <div className="print-presensi-box">
+                            <div className="presensi-row">
+                              <span className="presensi-lbl">1. Sakit</span>
+                              <span className="presensi-val">{printData.total_sakit || 0} hari</span>
+                            </div>
+                            <div className="presensi-row">
+                              <span className="presensi-lbl">2. Izin</span>
+                              <span className="presensi-val">{printData.total_izin || 0} hari</span>
+                            </div>
+                            <div className="presensi-row">
+                              <span className="presensi-lbl">3. Tanpa Keterangan (Alpa)</span>
+                              <span className="presensi-val">{printData.total_alpa || 0} hari</span>
+                            </div>
+                            <div className="presensi-row presensi-total-row">
+                              <span className="presensi-lbl"><strong>Total Kehadiran Belajar</strong></span>
+                              <span className="presensi-val"><strong>{printData.total_hadir || 0} hari</strong></span>
+                            </div>
+                          </div>
                         </div>
 
                         <div className="print-catatan-card">

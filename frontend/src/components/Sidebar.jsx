@@ -33,7 +33,6 @@ import {
   FileQuestion,
   Receipt,
   Newspaper,
-  Library,
   IdCard,
   FileText,
   Menu,
@@ -59,8 +58,6 @@ function Sidebar({ user }) {
   const adminLmsItems = [
     { path: '/dashboard/siswa/ruang-belajar', icon: BookOpen, label: 'Ruang Belajar' },
     { path: '/dashboard/admin/absensi', icon: CalendarCheck, label: 'Rekap Presensi LMS' },
-    { path: '/dashboard/admin/modul-buku', icon: Library, label: 'Modul & Buku' },
-    { path: '/dashboard/siswa/tugas', icon: ClipboardCheck, label: 'Tugas Mingguan' },
     { path: '/dashboard/admin/periode-ujian', icon: Calendar, label: 'Periode Ujian' },
     { path: '/dashboard/admin/peserta-ujian', icon: ClipboardCheck, label: 'Peserta Ujian' },
     { path: '/dashboard/admin/master-mapel', icon: BookMarked, label: 'Master Mapel' },
@@ -80,10 +77,6 @@ function Sidebar({ user }) {
   const studentLmsPaths = [
     '/dashboard/siswa/ruang-belajar',
     '/dashboard/siswa/kelas',
-    '/dashboard/siswa/materi',
-    '/dashboard/siswa/modul-buku',
-    '/dashboard/siswa/tugas',
-    '/dashboard/siswa/tugas-mingguan',
     '/dashboard/siswa/absensi',
     '/dashboard/siswa/ujian',
     '/dashboard/siswa/klub',
@@ -340,9 +333,6 @@ function Sidebar({ user }) {
                   {lmsOpen && (
                     <ul className="modern-submenu-list">
                       <li><NavLink to="/dashboard/siswa/ruang-belajar" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><BookOpen size={15} /><span>Ruang Belajar</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/materi" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><BookMarked size={15} /><span>Materi Belajar</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/modul-buku" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><Library size={15} /><span>Modul & Buku</span></NavLink></li>
-                      <li><NavLink to="/dashboard/siswa/tugas" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><ClipboardCheck size={15} /><span>Tugas Mingguan</span></NavLink></li>
                       <li><NavLink to="/dashboard/siswa/absensi" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><Calendar size={15} /><span>Absensi Saya</span></NavLink></li>
                       <li><NavLink to="/dashboard/siswa/ujian" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><FileQuestion size={15} /><span>Ujian</span></NavLink></li>
                       <li><NavLink to="/dashboard/siswa/klub" onClick={() => setMobileOpen(false)} className={({ isActive }) => `modern-sub-link ${isActive ? 'active' : ''}`}><Trophy size={15} /><span>Klub Minat</span></NavLink></li>

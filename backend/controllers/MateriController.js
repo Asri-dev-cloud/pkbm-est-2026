@@ -18,7 +18,18 @@ export const MateriController = {
     try {
       const { rombelId } = req.params;
       const { mapel_id } = req.query;
-      const materi = await MateriModel.findByRombel(parseInt(rombelId), mapel_id ? parseInt(mapel_id) : null);
+      let wargaBelajarId = null;
+
+      if (req.user && req.user.role === 'warga_belajar') {
+        const wb = await SiswaModel.findByUserId(req.user.id);
+        if (wb) wargaBelajarId = wb.id;
+      }
+
+      const materi = await MateriModel.findByRombel(
+        parseInt(rombelId),
+        mapel_id ? parseInt(mapel_id) : null,
+        { warga_belajar_id: wargaBelajarId }
+      );
       return res.status(200).json({ success: true, data: materi });
     } catch (error) {
       console.error('[MateriController.getByRombel]', error);

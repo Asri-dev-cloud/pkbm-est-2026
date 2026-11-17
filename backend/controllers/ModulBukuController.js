@@ -32,17 +32,25 @@ const ModulBukuController = {
   // GET /api/modul-buku — Daftar modul terbit
   getPublished: async (req, res) => {
     try {
-      const { search, kategori, mapel, tipe, limit = 50, offset = 0 } = req.query;
+      const { search, kategori, mapel, mapel_id, rombel_id, tipe, limit = 50, offset = 0 } = req.query;
       const rows = await ModulBukuModel.findPublished({
         search,
         kategori,
         mapel,
+        mapel_id: mapel_id ? parseInt(mapel_id) : null,
+        rombel_id: rombel_id ? parseInt(rombel_id) : null,
         tipe,
         limit: Number(limit) || 50,
         offset: Number(offset) || 0,
       });
 
-      const total = await ModulBukuModel.countPublished({ search, kategori, tipe });
+      const total = await ModulBukuModel.countPublished({
+        search,
+        kategori,
+        tipe,
+        mapel_id: mapel_id ? parseInt(mapel_id) : null,
+        rombel_id: rombel_id ? parseInt(rombel_id) : null,
+      });
 
       return res.json({
         success: true,
@@ -148,6 +156,8 @@ const ModulBukuController = {
         deskripsi,
         kategori,
         mapel,
+        rombel_id,
+        mapel_id,
         tipe = 'modul_upload',
         url_eksternal,
         penulis,
@@ -187,6 +197,8 @@ const ModulBukuController = {
         deskripsi: deskripsi?.trim() || null,
         kategori: kategori || 'Semua Jenjang',
         mapel: mapel?.trim() || null,
+        rombel_id: rombel_id ? parseInt(rombel_id) : null,
+        mapel_id: mapel_id ? parseInt(mapel_id) : null,
         tipe,
         file_path: filePath,
         file_nama_asli: fileNamaAsli,
@@ -240,6 +252,8 @@ const ModulBukuController = {
         deskripsi,
         kategori,
         mapel,
+        rombel_id,
+        mapel_id,
         tipe,
         url_eksternal,
         penulis,
@@ -253,6 +267,8 @@ const ModulBukuController = {
       if (deskripsi !== undefined) updateData.deskripsi = deskripsi?.trim() || null;
       if (kategori !== undefined) updateData.kategori = kategori;
       if (mapel !== undefined) updateData.mapel = mapel?.trim() || null;
+      if (rombel_id !== undefined) updateData.rombel_id = rombel_id ? parseInt(rombel_id) : null;
+      if (mapel_id !== undefined) updateData.mapel_id = mapel_id ? parseInt(mapel_id) : null;
       if (tipe !== undefined) updateData.tipe = tipe;
       if (url_eksternal !== undefined) updateData.url_eksternal = url_eksternal?.trim() || null;
       if (penulis !== undefined) updateData.penulis = penulis?.trim() || null;

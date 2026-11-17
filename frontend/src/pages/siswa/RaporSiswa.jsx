@@ -344,9 +344,9 @@ export default function RaporSiswa() {
                 <table className="rapor-grades-table">
                   <thead>
                     <tr>
-                      <th style={{ width: 35 }}>No</th>
-                      <th style={{ textAlign: 'left' }}>Mata Pelajaran</th>
-                      <th style={{ width: 90, textAlign: 'center' }}>Nilai Akhir</th>
+                      <th style={{ width: 32, textAlign: 'center' }}>No</th>
+                      <th style={{ width: 210, textAlign: 'left' }}>Mata Pelajaran</th>
+                      <th style={{ width: 75, textAlign: 'center' }}>Nilai Akhir</th>
                       <th>Capaian Kompetensi / Catatan Pembelajaran</th>
                     </tr>
                   </thead>
@@ -356,13 +356,13 @@ export default function RaporSiswa() {
                         <tr key={n.id || idx}>
                           <td className="center">{idx + 1}</td>
                           <td className="bold">{n.nama_mapel}</td>
-                          <td className="center bold" style={{ fontSize: '0.94rem' }}>{n.nilai_akhir}</td>
-                          <td style={{ fontSize: '0.84rem' }}>{n.catatan || 'Tuntas mencapai kriteria ketuntasan tujuan pembelajaran.'}</td>
+                          <td className="center bold">{n.nilai_akhir}</td>
+                          <td>{n.catatan || 'Tuntas mencapai kriteria ketuntasan tujuan pembelajaran.'}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>
+                        <td colSpan="4" style={{ textAlign: 'center', padding: '16px' }}>
                           Belum ada nilai yang dimasukkan.
                         </td>
                       </tr>
@@ -371,10 +371,10 @@ export default function RaporSiswa() {
                       <td colSpan="2" style={{ textAlign: 'right', paddingRight: 14 }}>
                         RATA-RATA NILAI KESELURUHAN:
                       </td>
-                      <td className="center bold" style={{ fontSize: '0.98rem' }}>
+                      <td className="center bold">
                         {detailRapor.rata_rata || detailRapor.rata_rata_nilai || '0'}
                       </td>
-                      <td style={{ fontSize: '0.84rem', fontStyle: 'italic', color: '#475569' }}>
+                      <td style={{ fontStyle: 'italic', color: '#475569' }}>
                         {Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 85 ? 'Capaian Sangat Baik' : Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 75 ? 'Capaian Baik' : Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 60 ? 'Cukup' : 'Perlu Bimbingan'}
                       </td>
                     </tr>
@@ -385,26 +385,24 @@ export default function RaporSiswa() {
                 <div className="print-evaluation-grid">
                   <div className="print-presensi-card">
                     <div className="print-card-title">Rekapitulasi Kehadiran Siswa:</div>
-                    <table className="print-presensi-table">
-                      <tbody>
-                        <tr>
-                          <td style={{ width: '60%' }}>1. Sakit</td>
-                          <td style={{ width: '40%', textAlign: 'center' }}>{detailRapor.total_sakit || 0} hari</td>
-                        </tr>
-                        <tr>
-                          <td>2. Izin</td>
-                          <td style={{ textAlign: 'center' }}>{detailRapor.total_izin || 0} hari</td>
-                        </tr>
-                        <tr>
-                          <td>3. Tanpa Keterangan (Alpa)</td>
-                          <td style={{ textAlign: 'center' }}>{detailRapor.total_alpa || 0} hari</td>
-                        </tr>
-                        <tr className="print-presensi-total">
-                          <td>Total Kehadiran Belajar</td>
-                          <td style={{ textAlign: 'center' }}>{detailRapor.total_hadir || 0} hari</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    <div className="print-presensi-box">
+                      <div className="presensi-row">
+                        <span className="presensi-lbl">1. Sakit</span>
+                        <span className="presensi-val">{detailRapor.total_sakit || 0} hari</span>
+                      </div>
+                      <div className="presensi-row">
+                        <span className="presensi-lbl">2. Izin</span>
+                        <span className="presensi-val">{detailRapor.total_izin || 0} hari</span>
+                      </div>
+                      <div className="presensi-row">
+                        <span className="presensi-lbl">3. Tanpa Keterangan (Alpa)</span>
+                        <span className="presensi-val">{detailRapor.total_alpa || 0} hari</span>
+                      </div>
+                      <div className="presensi-row presensi-total-row">
+                        <span className="presensi-lbl"><strong>Total Kehadiran Belajar</strong></span>
+                        <span className="presensi-val"><strong>{detailRapor.total_hadir || 0} hari</strong></span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="print-catatan-card">

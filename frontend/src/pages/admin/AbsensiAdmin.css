@@ -1,0 +1,949 @@
+/* ============================================================
+   src/pages/admin/AbsensiAdmin.css — Rekapitulasi Presensi Admin
+   PKBM Bina Mandiri — Desain Elegan, Modern, & Profesional
+   Tema: Sapphire Obsidian & Clean Modern EdTech Dashboard
+   Jadwal KBM Khusus: Setiap Hari Sabtu & Minggu
+   ============================================================ */
+
+.absensi-admin-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #F8FAFC;
+  padding: 1.5rem 2rem 4rem 2rem;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #0F172A;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .absensi-admin-wrapper {
+    padding: 1rem 0.85rem 3.5rem 0.85rem;
+  }
+}
+
+.absensi-admin-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── 1. Sapphire & Obsidian Hero Banner ─────────────────────── */
+.admin-hero-banner {
+  position: relative;
+  background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 55%, #1D4ED8 100%);
+  border-radius: 20px;
+  padding: 2rem 2.25rem;
+  color: #FFFFFF;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.admin-hero-banner::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.admin-hero-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.admin-hero-left {
+  max-width: 700px;
+}
+
+.admin-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  color: #FDE047;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin-bottom: 10px;
+  backdrop-filter: blur(8px);
+}
+
+.admin-hero-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.admin-hero-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 400;
+}
+
+.admin-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-hero-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.admin-hero-btn.glass {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+.admin-hero-btn.glass:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.admin-hero-btn.gold {
+  background: #FACC15;
+  color: #0F172A;
+  border: 1px solid #EAB308;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.3);
+}
+
+.admin-hero-btn.gold:hover {
+  background: #FDE047;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(234, 179, 8, 0.45);
+}
+
+/* ── 2. Weekend Notice Capsule ─────────────────────────────── */
+.admin-weekend-strip {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  border: 1px solid #FDE68A;
+  border-radius: 14px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.06);
+}
+
+.admin-weekend-strip-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.88rem;
+  color: #78350F;
+}
+
+.admin-weekend-strip-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #FDE047;
+  color: #713F12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.admin-weekend-strip-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-weekend-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid #FCD34D;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #78350F;
+}
+
+.admin-weekend-tag.sabtu {
+  color: #1D4ED8;
+  border-color: #BFDBFE;
+  background: #EFF6FF;
+}
+
+.admin-weekend-tag.minggu {
+  color: #C2410C;
+  border-color: #FED7AA;
+  background: #FFF7ED;
+}
+
+/* ── 3. Filter Card & Segmented Control ────────────────────── */
+.admin-filter-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 1.25rem 1.6rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.admin-filter-jenjang-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.admin-jenjang-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-jenjang-segmented {
+  display: inline-flex;
+  background: #F1F5F9;
+  padding: 4px;
+  border-radius: 10px;
+  gap: 4px;
+}
+
+.admin-jenjang-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #64748B;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.admin-jenjang-btn:hover {
+  color: #0F172A;
+}
+
+.admin-jenjang-btn.active {
+  background: #1D4ED8;
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(29, 78, 216, 0.25);
+}
+
+.admin-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.admin-filter-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-filter-field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.admin-filter-select,
+.admin-filter-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 9px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0F172A;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.18s ease;
+}
+
+.admin-filter-select:focus,
+.admin-filter-input:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* ── 4. Vibrant & Professional Metric Cards ────────────────── */
+.admin-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.admin-metric-card {
+  border-radius: 16px;
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.admin-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.admin-metric-card.card-blue {
+  background: linear-gradient(180deg, #F0F9FF 0%, #FFFFFF 65%);
+  border-color: #BAE6FD;
+}
+
+.admin-metric-card.card-green {
+  background: linear-gradient(180deg, #ECFDF5 0%, #FFFFFF 65%);
+  border-color: #A7F3D0;
+}
+
+.admin-metric-card.card-indigo {
+  background: linear-gradient(180deg, #EEF2FF 0%, #FFFFFF 65%);
+  border-color: #C7D2FE;
+}
+
+.admin-metric-card.card-rose {
+  background: linear-gradient(180deg, #FFF1F2 0%, #FFFFFF 65%);
+  border-color: #FECDD3;
+}
+
+.admin-metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.admin-metric-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.admin-metric-icon-box.blue {
+  background: #DBEAFE;
+  color: #1D4ED8;
+}
+
+.admin-metric-icon-box.green {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.admin-metric-icon-box.indigo {
+  background: #E0E7FF;
+  color: #4338CA;
+}
+
+.admin-metric-icon-box.rose {
+  background: #FFE4E6;
+  color: #E11D48;
+}
+
+.admin-metric-badge {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.admin-metric-badge.blue   { color: #0369A1; }
+.admin-metric-badge.green  { color: #047857; }
+.admin-metric-badge.indigo { color: #4338CA; }
+.admin-metric-badge.rose   { color: #BE123C; }
+
+.admin-metric-val {
+  font-size: 2.1rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #0F172A;
+  margin-bottom: 4px;
+}
+
+.admin-metric-val span {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.admin-metric-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748B;
+}
+
+/* ── 5. Active Session Running Alert ───────────────────────── */
+.admin-active-session-banner {
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border: 1px solid #93C5FD;
+  border-radius: 14px;
+  padding: 1.15rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-broadcast-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-broadcast-radar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #1D4ED8;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+
+.admin-broadcast-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: #DCFCE7;
+  color: #15803D;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.admin-broadcast-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-top: 4px;
+}
+
+/* ── 6. Matriks Presensi Table (The Clean Ledger) ──────────── */
+.admin-ledger-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.admin-ledger-header {
+  padding: 1.15rem 1.5rem;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.admin-ledger-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-ledger-title-group i {
+  font-size: 1.25rem;
+  color: #2563EB;
+}
+
+.admin-ledger-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.admin-ledger-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.admin-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.admin-legend-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.admin-legend-badge.hadir { background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; }
+.admin-legend-badge.izin  { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+.admin-legend-badge.sakit { background: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+.admin-legend-badge.alpa  { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+.admin-legend-badge.empty { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
+
+/* Table Elements */
+.admin-matrix-scroll-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.admin-matrix-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: center;
+  font-size: 0.86rem;
+}
+
+.admin-matrix-table thead th {
+  background: #F8FAFC;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 12px 10px;
+  border-bottom: 1px solid #CBD5E1;
+  border-right: 1px solid #E2E8F0;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.admin-matrix-table thead th.sticky-col-no {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: #F8FAFC;
+  width: 48px;
+  border-right: 1px solid #CBD5E1;
+}
+
+.admin-matrix-table thead th.sticky-col-nis {
+  position: sticky;
+  left: 48px;
+  z-index: 10;
+  background: #F8FAFC;
+  width: 125px;
+  border-right: 1px solid #CBD5E1;
+}
+
+.admin-matrix-table thead th.sticky-col-name {
+  position: sticky;
+  left: 173px;
+  z-index: 10;
+  background: #F8FAFC;
+  min-width: 220px;
+  text-align: left;
+  border-right: 2px solid #CBD5E1;
+}
+
+/* Sesi Weekend Column Header */
+.header-sesi-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.header-sesi-p-tag {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: #0F172A;
+}
+
+.header-sesi-day-tag {
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.header-sesi-day-tag.sabtu {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+}
+
+.header-sesi-day-tag.minggu {
+  background: #FFF7ED;
+  color: #C2410C;
+  border: 1px solid #FED7AA;
+}
+
+.header-sesi-date-tag {
+  font-size: 0.7rem;
+  color: #64748B;
+  font-weight: 600;
+}
+
+/* Table Body */
+.admin-matrix-table tbody td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #F1F5F9;
+  border-right: 1px solid #F1F5F9;
+  vertical-align: middle;
+  background: #FFFFFF;
+}
+
+.admin-matrix-table tbody tr:hover td {
+  background: #F8FAFC;
+}
+
+.admin-matrix-table tbody td.sticky-col-no {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: #FFFFFF;
+  border-right: 1px solid #CBD5E1;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.admin-matrix-table tbody tr:hover td.sticky-col-no {
+  background: #F8FAFC;
+}
+
+.admin-matrix-table tbody td.sticky-col-nis {
+  position: sticky;
+  left: 48px;
+  z-index: 5;
+  background: #FFFFFF;
+  border-right: 1px solid #CBD5E1;
+  font-family: monospace;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.admin-matrix-table tbody tr:hover td.sticky-col-nis {
+  background: #F8FAFC;
+}
+
+.admin-matrix-table tbody td.sticky-col-name {
+  position: sticky;
+  left: 173px;
+  z-index: 5;
+  background: #FFFFFF;
+  text-align: left;
+  border-right: 2px solid #CBD5E1;
+}
+
+.admin-matrix-table tbody tr:hover td.sticky-col-name {
+  background: #F8FAFC;
+}
+
+.admin-student-name-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-student-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.admin-student-fullname {
+  font-weight: 600;
+  color: #0F172A;
+  white-space: nowrap;
+}
+
+/* Micro-Interactive Attendance Badges */
+.cell-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  font-weight: 800;
+  font-size: 0.86rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.cell-badge-btn:hover {
+  transform: scale(1.15);
+}
+
+.cell-badge-btn.hadir {
+  background: #DCFCE7;
+  color: #15803D;
+  border-color: #86EFAC;
+}
+
+.cell-badge-btn.izin {
+  background: #FEF3C7;
+  color: #92400E;
+  border-color: #FDE68A;
+}
+
+.cell-badge-btn.sakit {
+  background: #DBEAFE;
+  color: #1E40AF;
+  border-color: #BFDBFE;
+}
+
+.cell-badge-btn.alpa {
+  background: #FEE2E2;
+  color: #991B1B;
+  border-color: #FECACA;
+}
+
+.cell-badge-btn.empty {
+  background: #F1F5F9;
+  color: #94A3B8;
+  border-color: #E2E8F0;
+}
+
+.admin-percent-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-percent-badge.lulus {
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #A7F3D0;
+}
+
+.admin-percent-badge.kritis {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+/* ── 7. Modals ─────────────────────────────────────────────── */
+.admin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 1.25rem;
+}
+
+.admin-modal-box {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-modal-header {
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  padding: 1.15rem 1.4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-modal-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.admin-modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.15rem;
+  color: #64748B;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.admin-modal-close-btn:hover {
+  color: #0F172A;
+}
+
+.admin-modal-body {
+  padding: 1.4rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.admin-modal-footer {
+  padding: 1rem 1.4rem;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.quick-weekend-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-weekend-btn:hover {
+  background: #EFF6FF;
+  border-color: #93C5FD;
+  color: #1D4ED8;
+}
+
+.weekend-quick-pickers {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-empty-state-box {
+  padding: 3.5rem 2rem;
+  text-align: center;
+}
+
+.admin-empty-icon {
+  font-size: 2.8rem;
+  color: #CBD5E1;
+  margin-bottom: 10px;
+}
+
+.admin-empty-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+}
+
+.admin-empty-desc {
+  font-size: 0.88rem;
+  color: #64748B;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+/* ── Print Media Styles ────────────────────────────────────── */
+@media print {
+  .app-layout Sidebar,
+  .admin-hero-banner,
+  .admin-weekend-strip,
+  .admin-filter-card,
+  .admin-active-session-banner,
+  .admin-metric-grid {
+    display: none !important;
+  }
+
+  .absensi-admin-wrapper {
+    padding: 0 !important;
+    background: #FFFFFF !important;
+  }
+
+  .admin-ledger-card {
+    border: none !important;
+    box-shadow: none !important;
+  }
+}

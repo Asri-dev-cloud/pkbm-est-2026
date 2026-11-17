@@ -1377,18 +1377,9 @@ function RuangBelajarSiswa() {
           {/* ══ 3. CARDS GRID (RETRO POP CALENDAR) ══════════════ */}
           <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ 
-                background: '#1E1B4B', 
-                color: '#FFE600', 
-                fontSize: '0.78rem', 
-                fontWeight: 800, 
-                padding: '4px 10px', 
-                borderRadius: '8px' 
-              }}>
-                TOTAL {filteredItems.length} MAPEL
-              </span>
-              <span style={{ color: '#64748B', fontSize: '0.86rem', fontWeight: 600 }}>
-                Jadwal KBM Tatap Muka & Tutorial LMS (Sabtu & Minggu)
+              <span style={{ color: '#0F172A', fontSize: '0.92rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <i className="bi bi-calendar2-week-fill" style={{ color: '#2563EB' }}></i>
+                <span>Jadwal KBM Tatap Muka & Tutorial LMS (Sabtu & Minggu)</span>
               </span>
             </div>
           </div>

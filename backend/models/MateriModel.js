@@ -28,15 +28,19 @@ export const MateriModel = {
     return rows[0]?.next_urutan || 1;
   },
 
-  findByRombel: async (rombel_id, mapel_id = null) => {
+  findByRombel: async (rombel_id, mapel_id = null, { warga_belajar_id = null } = {}) => {
     let sql = `
-      SELECT m.*, mp.nama AS nama_mapel, u.nama_lengkap AS nama_tutor
+      SELECT m.*, mp.nama AS nama_mapel, u.nama_lengkap AS nama_tutor,
+        pb.pertemuan_ke, pb.judul AS judul_pertemuan,
+        IF(pm.status = 'selesai', 1, 0) AS sudah_selesai
       FROM materi_pembelajaran m
       JOIN mata_pelajaran mp ON mp.id = m.mapel_id
       JOIN users u ON u.id = m.tutor_id
+      LEFT JOIN pertemuan_belajar pb ON pb.id = m.pertemuan_id
+      LEFT JOIN progres_materi pm ON pm.materi_id = m.id ${warga_belajar_id ? 'AND pm.warga_belajar_id = ?' : 'AND 1=0'}
       WHERE m.rombel_id = ?
     `;
-    const params = [rombel_id];
+    const params = warga_belajar_id ? [warga_belajar_id, rombel_id] : [rombel_id];
     if (mapel_id) { sql += ` AND m.mapel_id = ?`; params.push(mapel_id); }
     sql += ` ORDER BY m.urutan ASC, m.created_at ASC`;
     const [rows] = await pool.execute(sql, params);
@@ -112,16 +116,9 @@ export const TugasModel = {
       LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
       LEFT JOIN users u ON u.id = t.tutor_id
       LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
-      WHERE (
-        t.rombel_id = ?
-        OR t.rombel_id IN (
-          SELECT r2.id FROM rombel r2 WHERE r2.jenjang = (
-            SELECT COALESCE(r1.jenjang, '') FROM rombel r1 WHERE r1.id = ? LIMIT 1
-          )
-        )
-      )
+      WHERE t.rombel_id = ?
     `;
-    const params = [rombel_id, rombel_id];
+    const params = [rombel_id];
     if (mapel_id) { sql += ` AND t.mapel_id = ?`; params.push(mapel_id); }
     sql += ` ORDER BY t.id DESC, t.deadline ASC`;
     const [rows] = await pool.execute(sql, params);
