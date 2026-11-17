@@ -336,12 +336,7 @@ export default function RaporSiswa() {
                     <tr>
                       <th style={{ width: 35 }}>No</th>
                       <th style={{ textAlign: 'left' }}>Mata Pelajaran</th>
-                      <th style={{ width: 50 }}>KKM</th>
-                      <th style={{ width: 60 }}>Tugas</th>
-                      <th style={{ width: 60 }}>UTS</th>
-                      <th style={{ width: 60 }}>UAS</th>
-                      <th style={{ width: 75 }}>Nilai Akhir</th>
-                      <th style={{ width: 60 }}>Predikat</th>
+                      <th style={{ width: 90, textAlign: 'center' }}>Nilai Akhir</th>
                       <th>Capaian Kompetensi / Catatan Pembelajaran</th>
                     </tr>
                   </thead>
@@ -351,33 +346,27 @@ export default function RaporSiswa() {
                         <tr key={n.id || idx}>
                           <td className="center">{idx + 1}</td>
                           <td className="bold">{n.nama_mapel}</td>
-                          <td className="center">{n.kkm || 75}</td>
-                          <td className="center">{n.nilai_tugas}</td>
-                          <td className="center">{n.nilai_uts}</td>
-                          <td className="center">{n.nilai_uas}</td>
                           <td className="center bold" style={{ fontSize: '0.94rem' }}>{n.nilai_akhir}</td>
-                          <td className="center bold">{n.predikat}</td>
                           <td style={{ fontSize: '0.84rem' }}>{n.catatan || 'Tuntas mencapai kriteria ketuntasan tujuan pembelajaran.'}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>
+                        <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>
                           Belum ada nilai yang dimasukkan.
                         </td>
                       </tr>
                     )}
                     <tr className="summary-row">
-                      <td colSpan="6" style={{ textAlign: 'right', paddingRight: 14 }}>
+                      <td colSpan="2" style={{ textAlign: 'right', paddingRight: 14 }}>
                         RATA-RATA NILAI KESELURUHAN:
                       </td>
                       <td className="center bold" style={{ fontSize: '0.98rem' }}>
                         {detailRapor.rata_rata || detailRapor.rata_rata_nilai || '0'}
                       </td>
-                      <td className="center bold">
-                        {Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 85 ? 'A' : Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 75 ? 'B' : Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 60 ? 'C' : 'D'}
+                      <td style={{ fontSize: '0.84rem', fontStyle: 'italic', color: '#475569' }}>
+                        {Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 85 ? 'Capaian Sangat Baik' : Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 75 ? 'Capaian Baik' : Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 60 ? 'Cukup' : 'Perlu Bimbingan'}
                       </td>
-                      <td></td>
                     </tr>
                   </tbody>
                 </table>

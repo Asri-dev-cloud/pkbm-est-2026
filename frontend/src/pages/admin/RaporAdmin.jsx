@@ -280,18 +280,26 @@ export default function RaporAdmin() {
     const item = { ...updated[index] };
     item[field] = value === '' ? '' : Number(value);
 
-    // Hitung otomatis Nilai Akhir: (Tugas*0.3) + (UTS*0.3) + (UAS*0.4)
-    const nTugas = Number(item.nilai_tugas || 0);
-    const nUts = Number(item.nilai_uts || 0);
-    const nUas = Number(item.nilai_uas || 0);
-    const calculatedAkhir = Math.round(((nTugas * 0.3) + (nUts * 0.3) + (nUas * 0.4)) * 10) / 10;
-    item.nilai_akhir = calculatedAkhir;
+    if (field === 'nilai_akhir') {
+      const calculatedAkhir = Number(item.nilai_akhir || 0);
+      if (calculatedAkhir >= 85) item.predikat = 'A';
+      else if (calculatedAkhir >= 75) item.predikat = 'B';
+      else if (calculatedAkhir >= 60) item.predikat = 'C';
+      else item.predikat = 'D';
+    } else {
+      // Hitung otomatis Nilai Akhir: (Tugas*0.3) + (UTS*0.3) + (UAS*0.4)
+      const nTugas = Number(item.nilai_tugas || 0);
+      const nUts = Number(item.nilai_uts || 0);
+      const nUas = Number(item.nilai_uas || 0);
+      const calculatedAkhir = Math.round(((nTugas * 0.3) + (nUts * 0.3) + (nUas * 0.4)) * 10) / 10;
+      item.nilai_akhir = calculatedAkhir;
 
-    // Predikat otomatis
-    if (calculatedAkhir >= 85) item.predikat = 'A';
-    else if (calculatedAkhir >= 75) item.predikat = 'B';
-    else if (calculatedAkhir >= 60) item.predikat = 'C';
-    else item.predikat = 'D';
+      // Predikat otomatis
+      if (calculatedAkhir >= 85) item.predikat = 'A';
+      else if (calculatedAkhir >= 75) item.predikat = 'B';
+      else if (calculatedAkhir >= 60) item.predikat = 'C';
+      else item.predikat = 'D';
+    }
 
     updated[index] = item;
     setFormData(prev => ({ ...prev, nilai: updated }));
@@ -887,13 +895,8 @@ export default function RaporAdmin() {
                             <tr>
                               <th style={{ width: 40 }}>No</th>
                               <th style={{ textAlign: 'left' }}>Mata Pelajaran</th>
-                              <th>KKM</th>
-                              <th>Tugas (30%)</th>
-                              <th>UTS (30%)</th>
-                              <th>UAS (40%)</th>
-                              <th>Nilai Akhir</th>
-                              <th>Predikat</th>
-                              <th style={{ width: 220 }}>Catatan Capaian Belajar</th>
+                              <th style={{ width: 120, textAlign: 'center' }}>Nilai Akhir</th>
+                              <th>Catatan Capaian Belajar</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -908,44 +911,16 @@ export default function RaporAdmin() {
                                     Kode: {n.kode_mapel || '-'}
                                   </span>
                                 </td>
-                                <td style={{ textAlign: 'center', fontWeight: 600 }}>{n.kkm || 75}</td>
                                 <td style={{ textAlign: 'center' }}>
                                   <input
                                     type="number"
                                     min="0"
                                     max="100"
                                     className="input-score-sm"
-                                    value={n.nilai_tugas}
-                                    onChange={(e) => handleScoreChange(idx, 'nilai_tugas', e.target.value)}
+                                    style={{ width: '80px', fontWeight: 'bold', textAlign: 'center', fontSize: '0.95rem' }}
+                                    value={n.nilai_akhir}
+                                    onChange={(e) => handleScoreChange(idx, 'nilai_akhir', e.target.value)}
                                   />
-                                </td>
-                                <td style={{ textAlign: 'center' }}>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    className="input-score-sm"
-                                    value={n.nilai_uts}
-                                    onChange={(e) => handleScoreChange(idx, 'nilai_uts', e.target.value)}
-                                  />
-                                </td>
-                                <td style={{ textAlign: 'center' }}>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    className="input-score-sm"
-                                    value={n.nilai_uas}
-                                    onChange={(e) => handleScoreChange(idx, 'nilai_uas', e.target.value)}
-                                  />
-                                </td>
-                                <td style={{ textAlign: 'center', fontWeight: 800, color: '#1D4ED8', fontSize: '0.95rem' }}>
-                                  {n.nilai_akhir}
-                                </td>
-                                <td style={{ textAlign: 'center' }}>
-                                  <span className={`predikat-pill ${n.predikat}`}>
-                                    {n.predikat}
-                                  </span>
                                 </td>
                                 <td>
                                   <input
@@ -1139,12 +1114,7 @@ export default function RaporAdmin() {
                           <tr>
                             <th style={{ width: 35 }}>No</th>
                             <th style={{ textAlign: 'left' }}>Mata Pelajaran</th>
-                            <th style={{ width: 50 }}>KKM</th>
-                            <th style={{ width: 55 }}>Tugas</th>
-                            <th style={{ width: 55 }}>UTS</th>
-                            <th style={{ width: 55 }}>UAS</th>
-                            <th style={{ width: 75 }}>Nilai Akhir</th>
-                            <th style={{ width: 65 }}>Predikat</th>
+                            <th style={{ width: 90, textAlign: 'center' }}>Nilai Akhir</th>
                             <th>Capaian Kompetensi / Catatan Pembelajaran</th>
                           </tr>
                         </thead>
@@ -1154,31 +1124,23 @@ export default function RaporAdmin() {
                               <tr key={n.id || idx}>
                                 <td style={{ textAlign: 'center' }}>{idx + 1}</td>
                                 <td><strong>{n.nama_mapel}</strong></td>
-                                <td style={{ textAlign: 'center' }}>{n.kkm || 75}</td>
-                                <td style={{ textAlign: 'center' }}>{formatScore(n.nilai_tugas)}</td>
-                                <td style={{ textAlign: 'center' }}>{formatScore(n.nilai_uts)}</td>
-                                <td style={{ textAlign: 'center' }}>{formatScore(n.nilai_uas)}</td>
-                                <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{formatScore(n.nilai_akhir)}</td>
-                                <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{n.predikat}</td>
+                                <td style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '0.95rem' }}>{formatScore(n.nilai_akhir)}</td>
                                 <td style={{ fontSize: '0.82rem', lineHeight: 1.35 }}>{n.catatan || '-'}</td>
                               </tr>
                             ))
                           ) : (
                             <tr>
-                              <td colSpan="9" style={{ textAlign: 'center', padding: '16px' }}>
+                              <td colSpan="4" style={{ textAlign: 'center', padding: '16px' }}>
                                 Belum ada nilai yang dimasukkan.
                               </td>
                             </tr>
                           )}
                           <tr style={{ background: '#F8FAFC', fontWeight: 'bold' }}>
-                            <td colSpan="6" style={{ textAlign: 'right', paddingRight: '12px' }}>
+                            <td colSpan="2" style={{ textAlign: 'right', paddingRight: '12px' }}>
                               RATA-RATA NILAI KESELURUHAN:
                             </td>
                             <td style={{ textAlign: 'center', fontSize: '0.95rem', fontWeight: 'bold' }}>
                               {formatScore(printData.rata_rata || printData.rata_rata_nilai || '0')}
-                            </td>
-                            <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
-                              {Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 85 ? 'A' : Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 75 ? 'B' : Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 60 ? 'C' : 'D'}
                             </td>
                             <td style={{ fontSize: '0.8rem', fontStyle: 'italic', color: '#334155' }}>
                               {Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 85 ? 'Capaian Sangat Baik' : Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 75 ? 'Capaian Baik' : Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 60 ? 'Cukup' : 'Perlu Bimbingan'}
