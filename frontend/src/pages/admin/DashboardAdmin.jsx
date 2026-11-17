@@ -177,13 +177,13 @@ function DashboardAdmin() {
               <div className="ribbon-marquee-track">
                 <span className="ribbon-text-item">★ PUSAT KEGIATAN BELAJAR MASYARAKAT (PKBM) BINA MANDIRI</span>
                 <span className="ribbon-text-item">✦ PENDIDIKAN KESETARAAN PAKET A, B & C</span>
-                <span className="ribbon-text-item">★ FLEKSIBEL, RESMI & TERAKREDITASI BAN PNF</span>
+                <span className="ribbon-text-item">★ FLEKSIBEL & RESMI KEMENDIKBUD</span>
                 <span className="ribbon-text-item">✦ MEMBINA KEMANDIRIAN MERAIH MASA DEPAN</span>
                 <span className="ribbon-text-item">★ EKOSISTEM BELAJAR DIGITAL INKLUSIF</span>
                 <span className="ribbon-text-item">✦ EST. 2026</span>
                 <span className="ribbon-text-item">★ PUSAT KEGIATAN BELAJAR MASYARAKAT (PKBM) BINA MANDIRI</span>
                 <span className="ribbon-text-item">✦ PENDIDIKAN KESETARAAN PAKET A, B & C</span>
-                <span className="ribbon-text-item">★ FLEKSIBEL, RESMI & TERAKREDITASI BAN PNF</span>
+                <span className="ribbon-text-item">★ FLEKSIBEL & RESMI KEMENDIKBUD</span>
                 <span className="ribbon-text-item">✦ MEMBINA KEMANDIRIAN MERAIH MASA DEPAN</span>
                 <span className="ribbon-text-item">★ EKOSISTEM BELAJAR DIGITAL INKLUSIF</span>
                 <span className="ribbon-text-item">✦ EST. 2026</span>

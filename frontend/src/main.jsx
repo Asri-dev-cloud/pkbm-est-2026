@@ -72,7 +72,7 @@ if (typeof window !== 'undefined') {
 // BrowserRouter: membungkus App agar semua komponen bisa pakai useNavigate, Link, dll.
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <App />
     </BrowserRouter>
   </React.StrictMode>

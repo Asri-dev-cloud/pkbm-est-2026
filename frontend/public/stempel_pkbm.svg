@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <!-- Path untuk teks melingkar atas -->
+    <path id="textPathTop" d="M 28,100 A 72,72 0 1,1 172,100" fill="none" />
+    <!-- Path untuk teks melingkar bawah -->
+    <path id="textPathBottom" d="M 172,100 A 72,72 0 0,1 28,100" fill="none" />
+  </defs>
+
+  <!-- Lingkaran Luar Tebal (Warna Tinta Stempel Basah Biru Keunguan) -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#253E90" stroke-width="3.5" />
+  
+  <!-- Lingkaran Luar Tipis -->
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#253E90" stroke-width="1.5" />
+
+  <!-- Teks Melingkar Atas -->
+  <text font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#253E90" letter-spacing="1.2">
+    <textPath href="#textPathTop" startOffset="50%" text-anchor="middle">
+      PKBM BINA MANDIRI
+    </textPath>
+  </text>
+
+  <!-- Teks Melingkar Bawah -->
+  <text font-family="'Times New Roman', Times, serif" font-size="11" font-weight="bold" fill="#253E90" letter-spacing="1.5">
+    <textPath href="#textPathBottom" startOffset="50%" text-anchor="middle">
+      ★ KABUPATEN SUMEDANG ★
+    </textPath>
+  </text>
+
+  <!-- Garis Pemisah Tengah Ganda -->
+  <line x1="24" y1="76" x2="176" y2="76" stroke="#253E90" stroke-width="1.8" />
+  <line x1="24" y1="124" x2="176" y2="124" stroke="#253E90" stroke-width="1.8" />
+
+  <!-- Lingkaran Dalam Putus-putus -->
+  <circle cx="100" cy="100" r="54" fill="none" stroke="#253E90" stroke-width="1.2" stroke-dasharray="4,2.5" />
+
+  <!-- Konten Tengah Stempel -->
+  <text x="100" y="94" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#253E90" text-anchor="middle" letter-spacing="1">
+    SUMEDANG
+  </text>
+  <text x="100" y="112" font-family="'Times New Roman', Times, serif" font-size="10.5" font-weight="bold" fill="#253E90" text-anchor="middle" letter-spacing="0.5">
+    NPSN: P9962854
+  </text>
+</svg>

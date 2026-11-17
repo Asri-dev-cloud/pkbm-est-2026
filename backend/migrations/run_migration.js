@@ -57,6 +57,25 @@ async function run() {
       console.warn('⚠️ Warning on update_classes_rombel:', err3.message);
     }
 
+    // Migration 4: Update Ruang Belajar (SK Baru 2026/2027)
+    try {
+      const sql4 = fs.readFileSync(path.join(__dirname, 'update_ruang_belajar_2026.sql'), 'utf8');
+      // Eksekusi tiap statement agar kompatibel tanpa multipleStatements flag
+      const statements = sql4
+        .split(/;\s*[\r\n]+/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0 && !s.startsWith('--'));
+
+      for (const stmt of statements) {
+        if (stmt) {
+          await pool.query(stmt);
+        }
+      }
+      console.log('✅ Migration update_ruang_belajar_2026 completed!');
+    } catch (err4) {
+      console.warn('⚠️ Warning on update_ruang_belajar_2026:', err4.message);
+    }
+
     console.log('All migrations completed!');
   } catch (err) {
     console.error('Migration failed:', err);

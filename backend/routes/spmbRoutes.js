@@ -127,4 +127,12 @@ router.put(
   SpmbController.batalkanPenerimaan
 );
 
+// PUT /api/spmb/:id — Update data pendaftar oleh Admin TU (nama ayah, nama ibu, wali, dll)
+router.put(
+  '/:id',
+  verifyToken,
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  SpmbController.updatePendaftar
+);
+
 export default router;

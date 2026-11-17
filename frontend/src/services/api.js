@@ -337,6 +337,10 @@ export const SpmbAPI = {
   buatKeputusan: (id, payload) =>
     apiClient.put(`/spmb/${id}/keputusan`, payload),
 
+  // PUT /api/spmb/:id - Update data pendaftar (Admin)
+  update: (id, payload) =>
+    apiClient.put(`/spmb/${id}`, payload),
+
   // PUT /api/spmb/:id/batal-terima - Batalkan penerimaan calon siswa & kembalikan ke pending (Admin)
   batalkanPenerimaan: (id, payload = {}) =>
     apiClient.put(`/spmb/${id}/batal-terima`, payload),

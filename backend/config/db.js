@@ -52,16 +52,24 @@ export const testConnection = async () => {
       }
     }
 
-    // Otomatis pastikan kolom Dapodik tersedia di pendaftar_spmb & warga_belajar
+    // Otomatis pastikan kolom Dapodik & NPSN tersedia di pendaftar_spmb & warga_belajar
     const dapodikColumns = [
       { table: 'pendaftar_spmb', col: 'jarak_rumah_km', def: 'DECIMAL(5,1) NULL DEFAULT NULL COMMENT "Jarak rumah ke sekolah (km)"' },
       { table: 'pendaftar_spmb', col: 'tinggi_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Tinggi badan (cm)"' },
       { table: 'pendaftar_spmb', col: 'berat_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Berat badan (kg)"' },
       { table: 'pendaftar_spmb', col: 'jumlah_saudara_kandung', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Jumlah saudara kandung"' },
+      { table: 'pendaftar_spmb', col: 'npsn', def: 'VARCHAR(20) NULL DEFAULT "P9962854" COMMENT "NPSN Lembaga/Sekolah"' },
+      { table: 'pendaftar_spmb', col: 'nisn', def: 'VARCHAR(20) NULL DEFAULT NULL COMMENT "NISN Siswa"' },
+      { table: 'pendaftar_spmb', col: 'nama_ayah', def: 'VARCHAR(100) NULL DEFAULT NULL COMMENT "Nama Ayah / Bapak Kandung"' },
+      { table: 'pendaftar_spmb', col: 'nama_ibu', def: 'VARCHAR(100) NULL DEFAULT NULL COMMENT "Nama Ibu Kandung"' },
       { table: 'warga_belajar', col: 'jarak_rumah_km', def: 'DECIMAL(5,1) NULL DEFAULT NULL COMMENT "Jarak rumah ke sekolah (km)"' },
       { table: 'warga_belajar', col: 'tinggi_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Tinggi badan (cm)"' },
       { table: 'warga_belajar', col: 'berat_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Berat badan (kg)"' },
       { table: 'warga_belajar', col: 'jumlah_saudara_kandung', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Jumlah saudara kandung"' },
+      { table: 'warga_belajar', col: 'npsn', def: 'VARCHAR(20) NULL DEFAULT "P9962854" COMMENT "NPSN Lembaga/Sekolah"' },
+      { table: 'warga_belajar', col: 'nisn', def: 'VARCHAR(20) NULL DEFAULT NULL COMMENT "NISN Siswa"' },
+      { table: 'warga_belajar', col: 'nama_ayah', def: 'VARCHAR(100) NULL DEFAULT NULL COMMENT "Nama Ayah / Bapak Kandung"' },
+      { table: 'warga_belajar', col: 'nama_ibu', def: 'VARCHAR(100) NULL DEFAULT NULL COMMENT "Nama Ibu Kandung"' },
       { table: 'rekaman_kehadiran', col: 'catatan', def: 'VARCHAR(255) NULL DEFAULT NULL COMMENT "Keterangan alasan izin/sakit/presensi"' },
       { table: 'sesi_absensi', col: 'pertemuan_ke', def: 'INT UNSIGNED NULL DEFAULT 1 COMMENT "Nomor pertemuan belajar (1-16)"' },
     ];
@@ -75,6 +83,11 @@ export const testConnection = async () => {
         }
       }
     }
+
+    // Otomatis sinkronisasi nilai default npsn jika ada baris siswa yang masih null
+    try {
+      await pool.query('UPDATE warga_belajar SET npsn = "P9962854" WHERE npsn IS NULL OR npsn = ""');
+    } catch (_) {}
 
     // Otomatis pastikan kolom jenis_berkas di berkas_spmb fleksibel & aman (VARCHAR 50) untuk KK, Akta, KTP, Ijazah, Foto
     try {

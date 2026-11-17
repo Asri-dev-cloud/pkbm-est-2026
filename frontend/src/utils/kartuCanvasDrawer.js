@@ -37,6 +37,9 @@ const badgeJenjangText = {
   paket_c: 'PAKET C',
 };
 
+// Motif Batik Ceplok Kasumedangan Geometris (Base64 SVG - Aman & Valid di Semua Mesin Canvas)
+const BATIK_SVG_DATA_URI = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCAzMiAzMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSdNIDE2IDAgTCAzMiAxNiBMIDE2IDMyIEwgMCAxNiBaJyBzdHJva2U9JyMwRjJCNjknIHN0cm9rZS13aWR0aD0nMS4yJyBzdHJva2Utb3BhY2l0eT0nMC40NScnIGZpbGw9J25vbmUnLz48cGF0aCBkPSdNIDE2IDQgTCAyOCAxNiBMIDE2IDI4IEwgNCAxNiBaJyBzdHJva2U9JyNENTlFMEInIHN0cm9rZS13aWR0aD0nMS4xJyBzdHJva2Utb3BhY2l0eT0nMC41NScnIGZpbGw9J25vbmUnLz48cGF0aCBkPSdNIDE2IDggTCAyNCAxNiBMIDE2IDI0IEwgOCAxNiBaJyBzdHJva2U9JyMxRDRFRDgnIHN0cm9rZS13aWR0aD0nMC45JyBzdHJva2Utb3BhY2l0eT0nMC40MCcgZmlsbD0nbm9uZScvPjxwYXRoIGQ9J00gMjEuMCAxNi4wIEwgMTcuOCAxNy44IEwgMTYuMCAyMS4wIEwgMTQuMiAxNy44IEwgMTEuMCAxNi4wIEwgMTQuMiAxNC4yIEwgMTYuMCAxMS4wIEwgMTcuOCAxNC4yIFonIHN0cm9rZT0nI0Q5NzcwNicgc3Ryb2tlLXdpZHRoPScxLjAnIHN0cm9rZS1vcGFjaXR5PScwLjY1JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMTYnIGN5PScxNicgcj0nMS4zJyBmaWxsPScjRjU5RTBCJyBmaWxsLW9wYWNpdHk9JzAuNzUnLz48Y2lyY2xlIGN4PScwJyBjeT0nMCcgcj0nMycgc3Ryb2tlPScjMEYyQjY5JyBzdHJva2Utd2lkdGg9JzAuOScgc3Ryb2tlLW9wYWNpdHk9JzAuNDAnIGZpbGw9J25vbmUnLz48Y2lyY2xlIGN4PScwJyBjeT0nMCcgcj0nMS4yJyBmaWxsPScjMUQ0RUQ4JyBmaWxsLW9wYWNpdHk9JzAuNTAnLz48Y2lyY2xlIGN4PSczMicgY3k9JzAnIHI9JzMnIHN0cm9rZT0nIzBGMkI2OScgc3Ryb2tlLXdpZHRoPScwLjknIHN0cm9rZS1vcGFjaXR5PScwLjQwJyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMzInIGN5PScwJyByPScxLjInIGZpbGw9JyMxRDRFRDgnIGZpbGwtb3BhY2l0eT0nMC41MCcvPjxjaXJjbGUgY3g9JzAnIGN5PSczMicgcj0nMycgc3Ryb2tlPScjMEYyQjY5JyBzdHJva2Utd2lkdGg9JzAuOScgc3Ryb2tlLW9wYWNpdHk9JzAuNDAnIGZpbGw9J25vbmUnLz48Y2lyY2xlIGN4PScwJyBjeT0nMzInIHI9JzEuMicgZmlsbD0nIzFENEVEOCcgZmlsbC1vcGFjaXR5PScwLjUwJy8+PGNpcmNsZSBjeD0nMzInIGN5PSczMicgcj0nMycgc3Ryb2tlPScjMEYyQjY5JyBzdHJva2Utd2lkdGg9JzAuOScgc3Ryb2tlLW9wYWNpdHk9JzAuNDAnIGZpbGw9J25vbmUnLz48Y2lyY2xlIGN4PSczMicgY3k9JzMyJyByPScxLjInIGZpbGw9JyMxRDRFRDgnIGZpbGwtb3BhY2l0eT0nMC41MCcvPjwvc3ZnPg==";
+
 // Helper: Menggambar rounded rectangle
 function drawRoundedRect(ctx, x, y, width, height, radius) {
   ctx.beginPath();
@@ -52,14 +55,107 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
   ctx.closePath();
 }
 
-// Helper: Memuat gambar asinkron
+// Helper: Membuat tile pattern Batik Ceplok Kasumedangan langsung di Canvas (100% Bebas Bug SVG Browser)
+function createBatikTileCanvas() {
+  const S = 64;
+  const half = 32;
+  const canvas = document.createElement('canvas');
+  canvas.width = S;
+  canvas.height = S;
+  const ctx = canvas.getContext('2d');
+
+  // Outer Diamond in Navy
+  ctx.beginPath();
+  ctx.moveTo(half, 0);
+  ctx.lineTo(S, half);
+  ctx.lineTo(half, S);
+  ctx.lineTo(0, half);
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(15, 43, 105, 0.45)';
+  ctx.lineWidth = 2.4;
+  ctx.stroke();
+
+  // Middle Diamond in Amber Gold
+  ctx.beginPath();
+  ctx.moveTo(half, 8);
+  ctx.lineTo(S - 8, half);
+  ctx.lineTo(half, S - 8);
+  ctx.lineTo(8, half);
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(245, 158, 11, 0.55)';
+  ctx.lineWidth = 2.2;
+  ctx.stroke();
+
+  // Innermost Diamond in Royal Blue
+  ctx.beginPath();
+  ctx.moveTo(half, 16);
+  ctx.lineTo(S - 16, half);
+  ctx.lineTo(half, S - 16);
+  ctx.lineTo(16, half);
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(29, 78, 216, 0.40)';
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+
+  // Center 8-pointed star in Gold
+  const rL = 10, rS = 5;
+  ctx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4;
+    const r = (i % 2 === 0) ? rL : rS;
+    const x = half + Math.cos(a) * r;
+    const y = half + Math.sin(a) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.65)';
+  ctx.lineWidth = 2.0;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(half, half, 2.6, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(245, 158, 11, 0.75)';
+  ctx.fill();
+
+  // Corner Florets
+  const corners = [[0, 0], [S, 0], [0, S], [S, S]];
+  for (const [cx, cy] of corners) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(15, 43, 105, 0.40)';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 2.4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(29, 78, 216, 0.50)';
+    ctx.fill();
+  }
+
+  return canvas;
+}
+
+// Helper: Memuat gambar asinkron dengan penanganan CORS & data URI yang aman
 function loadImage(src) {
   return new Promise((resolve) => {
     if (!src) return resolve(null);
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    if (!src.startsWith('data:') && !src.startsWith('blob:')) {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);
+    img.onerror = () => {
+      // Fallback tanpa crossOrigin jika browser memblokir CORS
+      if (img.crossOrigin) {
+        const fallback = new Image();
+        fallback.onload = () => resolve(fallback);
+        fallback.onerror = () => resolve(null);
+        fallback.src = src;
+      } else {
+        resolve(null);
+      }
+    };
     img.src = src;
   });
 }
@@ -332,7 +428,7 @@ function drawQrCodeOnCanvas(ctx, text, x, y, size) {
   }
 }
 
-// ── Menggambar Sisi Depan Kartu (Canvas 300 DPI) ──
+// ── Menggambar Sisi Depan Kartu (Canvas 300 DPI - Standar Resmi PVC) ──
 export async function drawCardFront(ctx, siswa, offsetX = 0, offsetY = 0) {
   ctx.save();
   ctx.translate(offsetX, offsetY);
@@ -341,184 +437,309 @@ export async function drawCardFront(ctx, siswa, offsetX = 0, offsetY = 0) {
   drawRoundedRect(ctx, 0, 0, CARD_WIDTH, CARD_HEIGHT, BORDER_RADIUS);
   ctx.clip();
 
-  // 2. Background Gradient Midnight Navy Mewah
-  const bgGrad = ctx.createRadialGradient(
-    CARD_WIDTH * 0.9, CARD_HEIGHT * 0.1, 50,
-    CARD_WIDTH * 0.5, CARD_HEIGHT * 0.5, CARD_WIDTH * 0.8
-  );
-  bgGrad.addColorStop(0, '#1e3a8a');
-  bgGrad.addColorStop(0.6, '#0d1b33');
-  bgGrad.addColorStop(1, '#070e1c');
-  ctx.fillStyle = bgGrad;
+  // 2. Background Bawah: Gradient Biru Royal ke Midnight Blue yang Elegan
+  const kopH = 136;
+  const titleBarH = 28;
+  const bodyGrad = ctx.createLinearGradient(0, kopH + titleBarH, CARD_WIDTH, CARD_HEIGHT);
+  bodyGrad.addColorStop(0, '#1D4ED8');
+  bodyGrad.addColorStop(0.35, '#1E3A8A');
+  bodyGrad.addColorStop(0.70, '#172554');
+  bodyGrad.addColorStop(1, '#0B1120');
+  ctx.fillStyle = bodyGrad;
   ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
 
-  // Aksen Ambient Glow Emas di pojok kanan atas
-  const glowGrad = ctx.createRadialGradient(CARD_WIDTH, 0, 10, CARD_WIDTH, 0, 400);
-  glowGrad.addColorStop(0, 'rgba(245, 158, 11, 0.15)');
-  glowGrad.addColorStop(1, 'transparent');
-  ctx.fillStyle = glowGrad;
-  ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-
-  // 3. Kop Lembaga
-  const logo = await loadImage('/images/logo new.png');
-  const logoSize = 72;
-  const kopY = 32;
-
-  // Badge lingkaran logo
-  ctx.beginPath();
-  ctx.arc(36 + logoSize / 2, kopY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
+  // 3. Kop Lembaga: Header PUTIH Bersih + Motif Batik Ceplok Kasumedangan Geometris
   ctx.fillStyle = '#FFFFFF';
-  ctx.fill();
+  ctx.fillRect(0, 0, CARD_WIDTH, kopH);
 
-  if (logo) {
-    ctx.drawImage(logo, 40, kopY + 4, logoSize - 8, logoSize - 8);
-  } else {
-    ctx.fillStyle = '#1D4ED8';
-    ctx.font = 'bold 24px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('BM', 36 + logoSize / 2, kopY + logoSize / 2 + 8);
+  // Terapkan Motif Batik Kasumedangan Langsung via Canvas Pattern Tile (Instan & 100% Reliable)
+  try {
+    const tileCanvas = createBatikTileCanvas();
+    const pattern = ctx.createPattern(tileCanvas, 'repeat');
+    if (pattern) {
+      ctx.save();
+      ctx.fillStyle = pattern;
+      ctx.fillRect(0, 0, CARD_WIDTH, kopH);
+      ctx.restore();
+    }
+  } catch (err) {
+    console.warn('[KartuPelajar] Gagal membuat pattern tile kop depan:', err);
   }
 
-  // Teks Kop
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#94A3B8';
-  ctx.font = '800 15px "Outfit", "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('KEMENTERIAN PENDIDIKAN & KEBUDAYAAN', 124, kopY + 18);
+  // Garis Emas Pembatas Kop
+  ctx.fillStyle = '#F59E0B';
+  ctx.fillRect(0, kopH - 3.5, CARD_WIDTH, 3.5);
 
+  // Logo PKBM dalam Lingkaran Halus di Kop Putih
+  const logo = await loadImage('/images/logo new.png');
+  const logoSize = 76;
+  const logoX = 36;
+  const logoY = 28;
+
+  ctx.beginPath();
+  ctx.arc(logoX + logoSize / 2, logoY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = '900 28px "Outfit", sans-serif';
-  ctx.fillText('PKBM BINA MANDIRI', 124, kopY + 47);
-
-  ctx.fillStyle = '#FCD34D';
-  ctx.font = '700 15px "Outfit", "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('NPSN: P9962854 • TERAKREDITASI RESMI', 124, kopY + 70);
-
-  // Badge Jenjang Kanan
-  const jenjangBadge = badgeJenjangText[siswa.jenjang] || 'WARGA BELAJAR';
-  ctx.font = '800 16px "Outfit", sans-serif';
-  const badgeWidth = ctx.measureText(jenjangBadge).width + 30;
-  const badgeX = CARD_WIDTH - badgeWidth - 36;
-  drawRoundedRect(ctx, badgeX, kopY + 18, badgeWidth, 36, 10);
-  ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
   ctx.fill();
-  ctx.strokeStyle = '#F59E0B';
+  ctx.strokeStyle = '#E2E8F0';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  ctx.fillStyle = '#FDE68A';
+  if (logo) {
+    ctx.drawImage(logo, logoX + 4, logoY + 4, logoSize - 8, logoSize - 8);
+  }
+
+  // Teks Kop Resmi di atas Header Putih
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#475569';
+  ctx.font = '700 13px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET & TEKNOLOGI', 130, 44);
+
+  ctx.fillStyle = '#0F2B69';
+  ctx.font = '900 28px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('PKBM BINA MANDIRI SUMEDANG', 130, 78);
+
+  ctx.fillStyle = '#0284C7';
+  ctx.font = '700 14px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(`NPSN: ${siswa.npsn || 'P9962854'}`, 130, 104);
+
+  // Badge Jenjang Kanan Kop (Pill Biru Navy dengan Huruf Emas)
+  const jenjangBadge = badgeJenjangText[siswa.jenjang] || 'WARGA BELAJAR';
+  ctx.font = '900 16px "Plus Jakarta Sans", sans-serif';
+  const badgeW = ctx.measureText(jenjangBadge).width + 32;
+  const badgeH = 36;
+  const badgeX = CARD_WIDTH - badgeW - 36;
+  const badgeY = 50;
+
+  drawRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 6);
+  ctx.fillStyle = '#0F2B69';
+  ctx.fill();
+
+  ctx.fillStyle = '#FCD34D';
   ctx.textAlign = 'center';
-  ctx.fillText(jenjangBadge, badgeX + badgeWidth / 2, kopY + 42);
+  ctx.fillText(jenjangBadge, badgeX + badgeW / 2, badgeY + 23);
 
-  // Garis Emas Pembatas Kop
-  const goldLineY = kopY + 86;
-  const lineGrad = ctx.createLinearGradient(36, goldLineY, CARD_WIDTH - 36, goldLineY);
-  lineGrad.addColorStop(0, 'rgba(245, 158, 11, 0.8)');
-  lineGrad.addColorStop(0.5, 'rgba(245, 158, 11, 0.4)');
-  lineGrad.addColorStop(1, 'rgba(245, 158, 11, 0.1)');
-  ctx.strokeStyle = lineGrad;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(36, goldLineY);
-  ctx.lineTo(CARD_WIDTH - 36, goldLineY);
-  ctx.stroke();
+  // 4. Baris Judul Kartu Tanda Pelajar (Pita Emas Megah)
+  const titleBarY = kopH;
+  const goldGrad = ctx.createLinearGradient(0, titleBarY, CARD_WIDTH, titleBarY);
+  goldGrad.addColorStop(0, '#FDE68A');
+  goldGrad.addColorStop(0.5, '#F59E0B');
+  goldGrad.addColorStop(1, '#FDE68A');
+  ctx.fillStyle = goldGrad;
+  ctx.fillRect(0, titleBarY, CARD_WIDTH, titleBarH);
 
-  // 4. Foto Portrait Siswa (Kiri)
-  const photoX = 36;
-  const photoY = goldLineY + 24;
+  ctx.fillStyle = '#78350F';
+  ctx.font = '900 14px "Plus Jakarta Sans", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('KARTU TANDA PELAJAR', CARD_WIDTH / 2, titleBarY + 19);
+
+  ctx.fillStyle = 'rgba(245, 158, 11, 0.6)';
+  ctx.fillRect(0, titleBarY + titleBarH - 1.5, CARD_WIDTH, 1.5);
+
+  // 5. Watermark Logo PKBM di Kanan Bawah (Jelas, Terang & Menyala Anggun di atas Biru Gradient)
+  if (logo) {
+    ctx.save();
+    ctx.globalAlpha = 0.36;
+    ctx.globalCompositeOperation = 'screen';
+    const wmSize = 310;
+    const wmX = CARD_WIDTH - wmSize - 16;
+    const wmY = CARD_HEIGHT - wmSize - 36;
+    ctx.drawImage(logo, wmX, wmY, wmSize, wmSize);
+    ctx.restore();
+  }
+
+  // 6. Pas Foto Siswa Resmi (3x4) dengan Border Putih Tegas
+  const photoX = 40;
+  const photoY = titleBarY + titleBarH + 20;
   const photoW = 180;
   const photoH = 240;
-  const photoRadius = 20;
+  const photoRadius = 6;
+
+  // Muat foto siswa dengan multi-strategy failover
+  let photoImg = null;
+
+  // 1. Coba dari photoDataUrl jika sudah berhasil diekstrak di client
+  if (siswa.photoDataUrl && siswa.photoDataUrl.startsWith('data:')) {
+    photoImg = await loadImage(siswa.photoDataUrl);
+  }
+
+  // 2. Coba dari elemen DOM langsung jika tersedia
+  if (!photoImg && typeof document !== 'undefined') {
+    const domImg = document.querySelector('.student-official-photo');
+    if (domImg && domImg.complete && domImg.naturalWidth > 0) {
+      photoImg = domImg;
+    }
+  }
+
+  // 3. Coba dari daftar URL kandidat foto
+  if (!photoImg) {
+    const rawList = [
+      siswa.fotoUrl,
+      ...(Array.isArray(siswa.photoCandidates) ? siswa.photoCandidates : []),
+      siswa.foto_pendaftaran,
+      siswa.pas_foto,
+      siswa.foto_profil,
+      siswa.foto,
+    ].filter(Boolean);
+
+    const candidates = [];
+    for (const raw of rawList) {
+      if (typeof raw !== 'string') continue;
+      if (raw.startsWith('data:') || raw.startsWith('blob:')) {
+        candidates.push(raw);
+        continue;
+      }
+      if (/^https?:\/\//i.test(raw)) {
+        candidates.push(raw);
+      } else {
+        const clean = raw.replace(/\\/g, '/').replace(/^\/+/, '');
+        const sub = clean.replace(/^uploads\//, '');
+        candidates.push(`/api/uploads/${sub}`);
+        candidates.push(`/uploads/${sub}`);
+        candidates.push(`https://pkbmbinamandiri.sch.id/uploads/${sub}`);
+        candidates.push(`https://pkbmbinamandiri.sch.id/api/uploads/${sub}`);
+        candidates.push(`/${clean}`);
+      }
+    }
+
+    if (siswa.berkas_foto_id) {
+      candidates.push(`/api/spmb/berkas/${siswa.berkas_foto_id}/file`);
+      candidates.push(`https://pkbmbinamandiri.sch.id/api/spmb/berkas/${siswa.berkas_foto_id}/file`);
+    }
+
+    const uniqueCandidates = [...new Set(candidates.filter(Boolean))];
+
+    for (const src of uniqueCandidates) {
+      const loaded = await loadImage(src);
+      if (loaded && loaded.naturalWidth > 0) {
+        photoImg = loaded;
+        break;
+      }
+    }
+  }
 
   ctx.save();
   drawRoundedRect(ctx, photoX, photoY, photoW, photoH, photoRadius);
   ctx.clip();
 
-  const rawFoto = siswa.foto_pendaftaran || siswa.pas_foto || siswa.foto_profil;
-  const fotoSrc = rawFoto ? toAssetUrl(rawFoto, siswa.berkas_foto_id) : null;
-  const photoImg = fotoSrc ? await loadImage(fotoSrc) : null;
+  if (photoImg && (photoImg.naturalWidth > 0 || photoImg.width > 0)) {
+    // Terapkan object-fit: cover agar foto siswa tidak gepeng/terdistorsi
+    const imgW = photoImg.naturalWidth || photoImg.width;
+    const imgH = photoImg.naturalHeight || photoImg.height;
+    const imgRatio = imgW / imgH;
+    const targetRatio = photoW / photoH;
 
-  if (photoImg) {
-    ctx.drawImage(photoImg, photoX, photoY, photoW, photoH);
+    let sx = 0, sy = 0, sw = imgW, sh = imgH;
+    if (imgRatio > targetRatio) {
+      sw = imgH * targetRatio;
+      sx = (imgW - sw) / 2;
+    } else {
+      sh = imgW / targetRatio;
+      sy = (imgH - sh) / 2;
+    }
+
+    ctx.drawImage(photoImg, sx, sy, sw, sh, photoX, photoY, photoW, photoH);
   } else {
-    const photoGrad = ctx.createLinearGradient(photoX, photoY, photoX + photoW, photoY + photoH);
-    photoGrad.addColorStop(0, '#1E40AF');
-    photoGrad.addColorStop(1, '#0F172A');
-    ctx.fillStyle = photoGrad;
+    // Fallback inisial jika foto belum ada
+    ctx.fillStyle = '#0F2B69';
     ctx.fillRect(photoX, photoY, photoW, photoH);
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 80px "Outfit", "Plus Jakarta Sans", sans-serif';
+    ctx.font = '900 80px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText((siswa.nama_lengkap || 'W').charAt(0).toUpperCase(), photoX + photoW / 2, photoY + photoH / 2 + 28);
   }
   ctx.restore();
 
-  // Border Foto
+  // Border Foto Putih Tegas
   drawRoundedRect(ctx, photoX, photoY, photoW, photoH, photoRadius);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.strokeStyle = '#FFFFFF';
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // 5. Data Siswa Typographic (Kanan)
+  // 7. Tabel Identitas Siswa di atas Gradient Biru
   const dataX = photoX + photoW + 36;
-  let textCursorY = photoY + 34;
+  const nameY = photoY + 28;
 
-  // Nama Siswa
+  // Nama Lengkap Siswa (Putih Terang)
   ctx.textAlign = 'left';
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = '900 32px "Outfit", "Plus Jakarta Sans", sans-serif';
+  ctx.font = '900 28px "Plus Jakarta Sans", sans-serif';
   const rawNama = (siswa.nama_lengkap || 'WARGA BELAJAR').toUpperCase();
-  const namaDisplay = rawNama.length > 22 ? rawNama.substring(0, 20) + '...' : rawNama;
-  ctx.fillText(namaDisplay, dataX, textCursorY);
+  const namaDisplay = rawNama.length > 25 ? rawNama.substring(0, 23) + '...' : rawNama;
+  ctx.fillText(namaDisplay, dataX, nameY);
 
-  // NIS Subline
-  textCursorY += 36;
-  ctx.fillStyle = '#FCD34D';
-  ctx.font = '800 18px "Outfit", sans-serif';
-  ctx.fillText('NIS:', dataX, textCursorY);
-
+  // Baris Data Identitas Terstruktur
   const displayNis = (siswa.nis || '').replace('PKBM-2025-', 'PKBM-2026-') || 'DALAM PENETAPAN';
-  ctx.fillStyle = '#F8FAFC';
-  ctx.font = '800 24px "Space Mono", monospace';
-  ctx.fillText(displayNis, dataX + 54, textCursorY);
-
-  // Rincian Data Key-Value Bersih (NIK Penuh Tanpa Sensor)
   const metaItems = [
-    ['NIK', siswa.nik || '—'],
-    ['TTL', `${siswa.tempat_lahir || 'Sumedang'}, ${formatTanggalIndo(siswa.tanggal_lahir)}`],
-    ['Program', labelJenjang[siswa.jenjang] || siswa.jenjang || 'Paket C'],
-    ['Rombel', siswa.nama_rombel || 'Dalam Penetapan'],
+    ['NIS', displayNis, true],
+    ['NIK', siswa.nik || '—', false],
+    ['TTL', `${siswa.tempat_lahir || 'Sumedang'}, ${formatTanggalIndo(siswa.tanggal_lahir)}`, false],
+    ['Program', labelJenjang[siswa.jenjang] || siswa.jenjang || 'Paket C (Setara SMA)', false],
+    ['Rombel', siswa.nama_rombel || 'Dalam Penetapan', false],
+    ['Masa Berlaku', 'Selama Menjadi Warga Belajar', false],
   ];
 
-  metaItems.forEach(([label, value]) => {
-    textCursorY += 33;
-    ctx.fillStyle = '#94A3B8';
-    ctx.font = '700 18px "Outfit", "Plus Jakarta Sans", sans-serif';
-    ctx.fillText(label, dataX, textCursorY);
+  let metaY = nameY + 12;
+  metaItems.forEach(([label, value, isNis]) => {
+    metaY += 31;
+    ctx.fillStyle = '#93C5FD';
+    ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText(label, dataX, metaY);
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '700 18px "Outfit", "Plus Jakarta Sans", sans-serif';
-    ctx.fillText(`:  ${value}`, dataX + 105, textCursorY);
+    ctx.fillStyle = '#93C5FD';
+    ctx.fillText(':', dataX + 150, metaY);
+
+    if (isNis) {
+      ctx.fillStyle = '#FCD34D';
+      ctx.font = '800 20px "Space Mono", monospace';
+    } else {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '600 16px "Plus Jakarta Sans", sans-serif';
+    }
+    const valDisplay = value.length > 32 ? value.substring(0, 30) + '...' : value;
+    ctx.fillText(valDisplay, dataX + 172, metaY);
   });
 
-  // 6. Footer Kartu Depan (Tanpa QR Code)
-  const footerY = CARD_HEIGHT - 90;
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-  ctx.lineWidth = 1;
+  // 8. Footer Kartu Depan
+  const footerY = CARD_HEIGHT - 66;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.20)';
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(36, footerY);
   ctx.lineTo(CARD_WIDTH - 36, footerY);
   ctx.stroke();
 
-  // Teks Otentikasi & Barcode
-  ctx.fillStyle = '#94A3B8';
-  ctx.font = '700 13px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('AUTHENTIC STUDENT IDENTIFICATION • SISTEM INFORMASI AKADEMIK', 36, footerY + 34);
+  // Barcode Putih di atas Gradient Biru (Presisi Lurus Sempurna dengan Teks NIS)
+  ctx.save();
+  ctx.fillStyle = '#CBD5E1';
+  ctx.font = '700 12px "Space Mono", monospace';
+  const nisWidth = ctx.measureText(displayNis).width;
+  ctx.fillText(displayNis, 40, footerY + 50);
+
+  ctx.fillStyle = '#FFFFFF';
+  const pattern = [2, 1, 3, 1, 2, 3, 1, 2, 1, 1, 3, 2, 1, 2, 3, 1, 1, 2, 3, 2, 1, 3, 1, 2, 2, 1, 3, 1];
+  const totalUnits = pattern.reduce((a, b) => a + b, 0);
+  const barUnitW = nisWidth / totalUnits;
+  let curX = 40;
+  for (let i = 0; i < pattern.length; i++) {
+    const barW = pattern[i] * barUnitW;
+    if (i % 2 === 0) {
+      ctx.fillRect(curX, footerY + 12, barW, 26);
+    }
+    curX += barW;
+  }
+  ctx.restore();
+
+  // Teks Resmi di Kanan Footer
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#93C5FD';
+  ctx.font = '800 13px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('PKBM BINA MANDIRI • KABUPATEN SUMEDANG', CARD_WIDTH - 40, footerY + 32);
 
   ctx.restore();
 }
 
-// ── Menggambar Sisi Belakang Kartu (Canvas 300 DPI - Tanpa QR Code) ──
+// ── Menggambar Sisi Belakang Kartu (Canvas 300 DPI - Standar Resmi PVC) ──
 export async function drawCardBack(ctx, siswa, offsetX = 0, offsetY = 0) {
   ctx.save();
   ctx.translate(offsetX, offsetY);
@@ -527,108 +748,146 @@ export async function drawCardBack(ctx, siswa, offsetX = 0, offsetY = 0) {
   drawRoundedRect(ctx, 0, 0, CARD_WIDTH, CARD_HEIGHT, BORDER_RADIUS);
   ctx.clip();
 
-  // 2. Background Gradient Midnight Navy Mewah
-  const bgGrad = ctx.createRadialGradient(
-    CARD_WIDTH * 0.1, CARD_HEIGHT * 0.9, 50,
-    CARD_WIDTH * 0.5, CARD_HEIGHT * 0.5, CARD_WIDTH * 0.8
-  );
-  bgGrad.addColorStop(0, '#1e3a8a');
-  bgGrad.addColorStop(0.6, '#0d1b33');
-  bgGrad.addColorStop(1, '#070e1c');
-  ctx.fillStyle = bgGrad;
+  // 2. Background Bawah: Gradient Biru Pekat Elegan
+  const backHeaderH = 62;
+  const bodyGrad = ctx.createLinearGradient(0, backHeaderH, CARD_WIDTH, CARD_HEIGHT);
+  bodyGrad.addColorStop(0, '#133B85');
+  bodyGrad.addColorStop(0.25, '#0C265E');
+  bodyGrad.addColorStop(0.55, '#071940');
+  bodyGrad.addColorStop(1, '#030C22');
+  ctx.fillStyle = bodyGrad;
   ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
 
-  // 3. Header Ketentuan
+  // 3. Header Sisi Belakang: PUTIH Bersih + Motif Batik Ceplok Kasumedangan & Garis Emas
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, CARD_WIDTH, backHeaderH);
+
+  // Terapkan Motif Batik Kasumedangan Langsung via Canvas Pattern Tile
+  try {
+    const tileCanvas = createBatikTileCanvas();
+    const pattern = ctx.createPattern(tileCanvas, 'repeat');
+    if (pattern) {
+      ctx.save();
+      ctx.fillStyle = pattern;
+      ctx.fillRect(0, 0, CARD_WIDTH, backHeaderH);
+      ctx.restore();
+    }
+  } catch (err) {
+    console.warn('[KartuPelajar] Gagal membuat pattern tile kop belakang:', err);
+  }
+
+  ctx.fillStyle = '#F59E0B';
+  ctx.fillRect(0, backHeaderH - 3, CARD_WIDTH, 3);
+
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#FCD34D';
-  ctx.font = '900 20px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('KETENTUAN PENGGUNAAN KARTU PELAJAR', CARD_WIDTH / 2, 54);
+  ctx.fillStyle = '#0F2B69';
+  ctx.font = '900 18px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('KETENTUAN PENGGUNAAN KARTU PELAJAR', CARD_WIDTH / 2, 39);
 
-  // Garis Emas
-  ctx.strokeStyle = 'rgba(245, 158, 11, 0.45)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(40, 74);
-  ctx.lineTo(CARD_WIDTH - 40, 74);
-  ctx.stroke();
+  // 4. Sisi Belakang Tanpa Logo Watermark di Bawah Kanan (Sesuai Permintaan)
 
-  // 4. 4 Butir Ketentuan
+  // 5. 4 Butir Ketentuan
   const clauses = [
-    '1. Kartu ini adalah identitas resmi Warga Belajar PKBM Bina Mandiri.',
-    '2. Wajib dibawa saat tutorial tatap muka, asesmen, dan ujian evaluasi pembelajaran.',
-    '3. Kartu ini tidak dapat dipinjamkan atau dipindahtangankan kepada orang lain.',
-    '4. Bila kartu ini hilang, harap segera melapor ke Sekretariat TU PKBM Bina Mandiri.'
+    '1. Kartu ini adalah tanda bukti identitas sah Warga Belajar PKBM Bina Mandiri yang diakui.',
+    '2. Wajib dibawa saat mengikuti tutorial tatap muka, asesmen sumatif, dan ujian evaluasi pembelajaran.',
+    '3. Kartu ini tidak dapat dipinjamkan, digandakan, atau dipindahtangankan kepada orang lain.',
+    '4. Bila kartu ini hilang atau rusak, segera melapor ke Sekretariat TU PKBM Bina Mandiri.'
   ];
 
   ctx.textAlign = 'left';
-  ctx.fillStyle = '#E2E8F0';
+  ctx.fillStyle = '#F1F5F9';
   ctx.font = '600 16px "Plus Jakarta Sans", sans-serif';
-  let clauseY = 114;
+  let clauseY = 118;
   clauses.forEach((text) => {
     ctx.fillText(text, 50, clauseY);
-    clauseY += 34;
+    clauseY += 44;
   });
 
+  // 6. Cluster Identitas Lembaga & Pengesahan Kepala Lembaga (Tepat di Bawah, Selaras Web)
+  const bottomY = CARD_HEIGHT - 148;
+  const clusterLineY = bottomY - 18;
+
   // Garis Pembatas Cluster
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(40, clauseY + 12);
-  ctx.lineTo(CARD_WIDTH - 40, clauseY + 12);
+  ctx.moveTo(40, clusterLineY);
+  ctx.lineTo(CARD_WIDTH - 40, clusterLineY);
   ctx.stroke();
 
-  // 5. Identitas Lembaga (Kiri Bawah - Menggantikan QR)
-  const qrY = clauseY + 40;
-  ctx.fillStyle = '#94A3B8';
-  ctx.font = '700 13px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('LEMBAGA PENDIDIKAN KESETARAAN', 50, qrY + 20);
+  // Lembaga Info (Kiri Bawah)
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#93C5FD';
+  ctx.font = '700 12px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('PUSAT KEGIATAN BELAJAR MASYARAKAT', 50, bottomY + 16);
 
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = '900 22px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('PKBM BINA MANDIRI', 50, qrY + 50);
+  ctx.font = '900 24px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('PKBM BINA MANDIRI', 50, bottomY + 44);
 
   ctx.fillStyle = '#FCD34D';
-  ctx.font = '700 14px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('NPSN: P9962854 • SUMEDANG', 50, qrY + 76);
+  ctx.font = '700 13px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(`NPSN: ${siswa.npsn || 'P9962854'}`, 50, bottomY + 68);
 
-  // 6. Blok Pengesahan Kepala PKBM (Kanan Bawah)
-  const endorseX = CARD_WIDTH - 240;
-  ctx.textAlign = 'center';
   ctx.fillStyle = '#CBD5E1';
-  ctx.font = '500 14px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(`Sumedang, ${new Date().getFullYear()}`, endorseX, qrY + 10);
+  ctx.font = '500 12px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('Dusun Cikondang RT 02/02, Desa Cikondang, Kec. Ganeas, Kab. Sumedang', 50, bottomY + 88);
 
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('Kepala PKBM Bina Mandiri', endorseX, qrY + 36);
+  ctx.fillStyle = '#93C5FD';
+  ctx.font = '700 12px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('Laman Resmi: pkbmbinamandiri.sch.id', 50, bottomY + 108);
 
-  // Gambar Tanda Tangan Resmi (ttd.png)
+  // Blok Pengesahan (Kanan Bawah - Posisi Selaras Web)
+  const endorseX = CARD_WIDTH - 200;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#93C5FD';
+  ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(`Sumedang, ${new Date().getFullYear()}`, endorseX, bottomY + 10);
+
+  ctx.fillStyle = '#F1F5F9';
+  ctx.font = '800 14px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('Kepala PKBM Bina Mandiri,', endorseX, bottomY + 30);
+
+  // Gambar Tanda Tangan Resmi (ttd.png) dibuat putih bersih agar kontras sempurna di atas gradient biru
   const ttdImg = (await loadImage('/images/ttd.png')) || (await loadImage('/ttd.png'));
   if (ttdImg) {
     const ttdW = 140;
-    const ttdH = 68;
-    ctx.drawImage(ttdImg, endorseX - ttdW / 2, qrY + 41, ttdW, ttdH);
+    const ttdH = 65;
+    try {
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = ttdW;
+      offCanvas.height = ttdH;
+      const offCtx = offCanvas.getContext('2d');
+      offCtx.drawImage(ttdImg, 0, 0, ttdW, ttdH);
+      const imgData = offCtx.getImageData(0, 0, ttdW, ttdH);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] > 20) {
+          d[i] = 255;
+          d[i + 1] = 255;
+          d[i + 2] = 255;
+        }
+      }
+      offCtx.putImageData(imgData, 0, 0);
+      ctx.drawImage(offCanvas, endorseX - ttdW / 2, bottomY + 34);
+    } catch {
+      ctx.drawImage(ttdImg, endorseX - ttdW / 2, bottomY + 34, ttdW, ttdH);
+    }
   }
 
   // Nama Pimpinan Resmi: Indrayani, S.S.,M.Pd.
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = '800 18px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('Indrayani, S.S.,M.Pd.', endorseX, qrY + 114);
+  ctx.font = '900 16px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('Indrayani, S.S.,M.Pd.', endorseX, bottomY + 108);
 
-  // Garis bawah nama
+  // Garis bawah nama (Aksen Emas)
   const nameWidth = ctx.measureText('Indrayani, S.S.,M.Pd.').width;
-  ctx.strokeStyle = '#FFFFFF';
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#F59E0B';
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(endorseX - nameWidth / 2, qrY + 119);
-  ctx.lineTo(endorseX + nameWidth / 2, qrY + 119);
+  ctx.moveTo(endorseX - nameWidth / 2, bottomY + 114);
+  ctx.lineTo(endorseX + nameWidth / 2, bottomY + 114);
   ctx.stroke();
-
-  // 7. Footer Alamat
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#64748B';
-  ctx.font = '500 12px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('Sekretariat: PKBM Bina Mandiri, Sumedang • Laman Resmi: pkbmbinamandiri.sch.id', CARD_WIDTH / 2, CARD_HEIGHT - 22);
 
   ctx.restore();
 }

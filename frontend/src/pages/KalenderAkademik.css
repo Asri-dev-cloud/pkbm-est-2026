@@ -226,6 +226,14 @@
   transition: all 0.2s ease;
 }
 
+.retro-select-month {
+  min-width: 140px;
+}
+
+.retro-select-year {
+  min-width: 85px;
+}
+
 .retro-select-input:hover, .retro-select-input:focus {
   border-color: #FFE500;
   box-shadow: 0 0 10px rgba(255, 229, 0, 0.25);
@@ -667,7 +675,7 @@
 .kalender-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -960,11 +968,21 @@
   }
 
   .retro-select-input {
-    font-size: 0.72rem;
-    padding: 6px 8px;
-    flex: 1;
+    font-size: 0.74rem;
+    padding: 6px 6px;
     min-width: 0;
     text-align: center;
+  }
+
+  .retro-select-month {
+    flex: 1.8;
+    min-width: 110px;
+  }
+
+  .retro-select-year {
+    flex: 1;
+    max-width: 80px;
+    min-width: 65px;
   }
 
   .retro-today-btn {
@@ -1104,3 +1122,466 @@
     border-radius: 18px !important;
   }
 }
+
+/* ============================================================
+   STICKY NOTES RESMI JENJANG (SD: MERAH, SMP: HIJAU, SMA: BIRU)
+   100% SOLID PAPER — TIDAK TRANSPARAN
+   ============================================================ */
+
+/* ── Filter Bar Jenjang ── */
+.retro-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: #1D1A18;
+  border: 1px solid #362923;
+  border-radius: 12px;
+}
+
+.retro-filter-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #A89284;
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+
+.retro-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid #382A24;
+  background: #24211E;
+  color: #D7C4B7;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retro-filter-btn:hover {
+  background: #2E2A26;
+  color: #FFFFFF;
+}
+
+.retro-filter-btn.is-active {
+  background: #FFE500;
+  color: #111111;
+  border-color: #FFE500;
+}
+
+.retro-filter-btn.is-active.btn-sd {
+  background: #DC2626;
+  color: #FFFFFF;
+  border-color: #DC2626;
+}
+
+.retro-filter-btn.is-active.btn-smp {
+  background: #16A34A;
+  color: #FFFFFF;
+  border-color: #16A34A;
+}
+
+.retro-filter-btn.is-active.btn-sma {
+  background: #2563EB;
+  color: #FFFFFF;
+  border-color: #2563EB;
+}
+
+/* ── 1. Sticky Note di Dalam Sel Kalender (Solid Kertas Asli) ── */
+.kbm-sticky-cell {
+  position: relative;
+  border-radius: 4px;
+  padding: 8px 8px 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+  overflow: visible;
+}
+
+.kbm-sticky-cell:hover {
+  transform: rotate(0deg) scale(1.03) !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.65);
+  z-index: 25;
+}
+
+.kbm-sticky-cell .journal-sticky-pin {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 5px;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* 🔴 SD - Sticky Note Merah Solid */
+.kbm-sticky-cell.is-sd {
+  background: #DC2626 !important;
+  color: #FFFFFF !important;
+  border-left: 3.5px solid #991B1B;
+  transform: rotate(-1.2deg);
+}
+.kbm-sticky-cell.is-sd .journal-sticky-pin {
+  background: #991B1B;
+}
+
+/* 🟢 SMP - Sticky Note Hijau Solid */
+.kbm-sticky-cell.is-smp {
+  background: #16A34A !important;
+  color: #FFFFFF !important;
+  border-left: 3.5px solid #14532D;
+  transform: rotate(0.8deg);
+}
+.kbm-sticky-cell.is-smp .journal-sticky-pin {
+  background: #14532D;
+}
+
+/* 🔵 SMA - Sticky Note Biru Solid */
+.kbm-sticky-cell.is-sma {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  border-left: 3.5px solid #1E3A8A;
+  transform: rotate(-0.7deg);
+}
+.kbm-sticky-cell.is-sma .journal-sticky-pin {
+  background: #1E3A8A;
+}
+
+.kbm-sticky-cell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  line-height: 1;
+}
+
+.kbm-sticky-cell-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.25);
+  color: #FFFFFF;
+  text-transform: uppercase;
+}
+
+.kbm-sticky-cell-time {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.kbm-sticky-cell-title {
+  font-family: 'Patrick Hand', 'Caveat', cursive, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #FFFFFF !important;
+  margin-top: 1px;
+}
+
+.kbm-sticky-cell-sub {
+  font-family: 'Patrick Hand', 'Caveat', cursive, sans-serif;
+  font-size: 0.74rem;
+  line-height: 1.15;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ── 2. Papan Catatan Keterangan di Bawah Kalender (Notice Board Sticky Notes) ── */
+.retro-board-legend-container {
+  background: #191816;
+  border: 1.5px solid #362923;
+  border-radius: 20px;
+  padding: 24px 26px 28px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+
+.retro-board-legend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  border-bottom: 1.5px solid #362923;
+}
+
+.retro-board-legend-title {
+  font-family: 'Bebas Neue', 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: #FFE500;
+  margin: 0;
+  line-height: 1;
+}
+
+.retro-board-legend-subtitle {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.78rem;
+  color: #D7C4B7;
+  margin: 4px 0 0;
+}
+
+/* 3 Sticky Notes Besar di Papan */
+.retro-board-stickies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+  align-items: stretch;
+}
+
+.retro-postit-note {
+  position: relative;
+  border-radius: 4px;
+  padding: 20px 20px 18px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  color: #FFFFFF;
+  overflow: visible;
+}
+
+.retro-postit-note:hover {
+  transform: rotate(0deg) scale(1.02) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+}
+
+.retro-postit-tape {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 14px;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  opacity: 0.9;
+}
+
+/* 🔴 Post-It Merah - SD */
+.retro-postit-note.is-sd {
+  background: #DC2626 !important;
+  border-left: 5px solid #991B1B;
+  transform: rotate(-1.5deg);
+}
+.retro-postit-note.is-sd .retro-postit-tape {
+  background: #991B1B;
+}
+
+/* 🟢 Post-It Hijau - SMP */
+.retro-postit-note.is-smp {
+  background: #16A34A !important;
+  border-left: 5px solid #14532D;
+  transform: rotate(1.2deg);
+}
+.retro-postit-note.is-smp .retro-postit-tape {
+  background: #14532D;
+}
+
+/* 🔵 Post-It Biru - SMA */
+.retro-postit-note.is-sma {
+  background: #2563EB !important;
+  border-left: 5px solid #1E3A8A;
+  transform: rotate(-1deg);
+}
+.retro-postit-note.is-sma .retro-postit-tape {
+  background: #1E3A8A;
+}
+
+.retro-postit-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.4);
+}
+
+.retro-postit-title {
+  font-family: 'Patrick Hand', 'Caveat', cursive, sans-serif;
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.retro-postit-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.28);
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+.retro-postit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.82rem;
+  color: #FFFFFF;
+  line-height: 1.35;
+}
+
+.retro-postit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.retro-postit-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.retro-postit-footer-btn {
+  margin-top: auto;
+  padding: 7px 12px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  color: #FFFFFF;
+  font-family: 'Patrick Hand', cursive, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.retro-postit-footer-btn:hover {
+  background: #FFFFFF;
+  color: #111111;
+  border-color: #FFFFFF;
+}
+
+/* ── Matriks Jadwal Tatap Muka Table Container ── */
+.retro-matrix-wrapper {
+  background: #151413;
+  border: 1px solid #362923;
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.retro-matrix-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.retro-matrix-tab {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #24211E;
+  border: 1px solid #382A24;
+  color: #D7C4B7;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retro-matrix-tab.is-active {
+  background: #FFE500;
+  color: #111111;
+  border-color: #FFE500;
+}
+
+.retro-schedule-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #382A24;
+  font-size: 0.82rem;
+}
+
+.retro-schedule-table th {
+  background: #23201D;
+  color: #FFE500;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1.5px solid #382A24;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.retro-schedule-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #2B2623;
+  color: #E2E8F0;
+  background: #181716;
+}
+
+.retro-schedule-table tr:hover td {
+  background: #22201D;
+}
+
+.retro-schedule-table tr.is-break td {
+  background: rgba(255, 229, 0, 0.06);
+  color: #FACC15;
+  font-weight: 700;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .retro-color-legend-box {
+    padding: 16px 14px;
+    border-radius: 18px;
+    gap: 14px;
+  }
+
+  .retro-legend-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .retro-schedule-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+

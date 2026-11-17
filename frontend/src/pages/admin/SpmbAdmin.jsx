@@ -56,16 +56,60 @@ function SpmbAdmin() {
     tinggi_badan: '160',
     berat_badan: '55',
     jumlah_saudara_kandung: '0',
+    nama_ayah: '',
+    nama_ibu: '',
     nama_wali: '',
     password: 'Password123!',
   };
   const [formTambah, setFormTambah] = useState(initialFormTambah);
   const [filesTambah, setFilesTambah] = useState({ kk: null, akta: null, ktp: null, ijazah: null, foto: null });
 
+  // ── State Edit Pendaftar oleh Admin ─────────────────────────
+  const [editingPendaftar, setEditingPendaftar] = useState(null);
+  const [formEditPendaftar, setFormEditPendaftar] = useState({});
+  const [savingEditPendaftar, setSavingEditPendaftar] = useState(false);
+
+  const handleBukaEditPendaftar = (pendaftar) => {
+    setEditingPendaftar(pendaftar);
+    setFormEditPendaftar({
+      nama_lengkap: pendaftar.nama_lengkap || '',
+      nik: pendaftar.nik || '',
+      no_telp: pendaftar.no_telp || '',
+      alamat: pendaftar.alamat || '',
+      nama_ayah: pendaftar.nama_ayah || '',
+      nama_ibu: pendaftar.nama_ibu || '',
+      nama_wali: pendaftar.nama_wali || '',
+      jarak_rumah_km: pendaftar.jarak_rumah_km ?? '',
+      tinggi_badan: pendaftar.tinggi_badan ?? '',
+      berat_badan: pendaftar.berat_badan ?? '',
+      jumlah_saudara_kandung: pendaftar.jumlah_saudara_kandung ?? '',
+    });
+  };
+
+  const handleSimpanEditPendaftar = async (e) => {
+    e.preventDefault();
+    setSavingEditPendaftar(true);
+    try {
+      await SpmbAPI.update(editingPendaftar.id, formEditPendaftar);
+      alert('Data pendaftar berhasil diperbarui.');
+      if (detail && detail.id === editingPendaftar.id) {
+        setDetail((prev) => ({ ...prev, ...formEditPendaftar }));
+      }
+      setPendaftarList((prev) =>
+        prev.map((p) => (p.id === editingPendaftar.id ? { ...p, ...formEditPendaftar } : p))
+      );
+      setEditingPendaftar(null);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal memperbarui data pendaftar.');
+    } finally {
+      setSavingEditPendaftar(false);
+    }
+  };
+
   const handleSimpanPendaftarManual = async (e) => {
     e.preventDefault();
-    if (!formTambah.nama_lengkap || !formTambah.email || !formTambah.no_telp || !formTambah.tanggal_lahir || !formTambah.alamat || !formTambah.nama_wali) {
-      alert('Mohon lengkapi semua data wajib bertanda (*).');
+    if (!formTambah.nama_lengkap || !formTambah.email || !formTambah.no_telp || !formTambah.tanggal_lahir || !formTambah.alamat || (!formTambah.nama_ayah && !formTambah.nama_ibu && !formTambah.nama_wali)) {
+      alert('Mohon lengkapi semua data wajib bertanda (*), termasuk Nama Ayah dan Nama Ibu.');
       return;
     }
 
@@ -770,13 +814,33 @@ function SpmbAdmin() {
                           <div style={{ fontSize: '0.8rem', color: '#64748B' }}>ID Registrasi SPMB: #{detail.id}</div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => setDetail(null)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', fontSize: '1.1rem' }}
-                        aria-label="Tutup"
-                      >
-                        <i className="bi bi-x-lg"></i>
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button
+                          type="button"
+                          onClick={() => handleBukaEditPendaftar(detail)}
+                          className="btn btn-outline-primary btn-sm"
+                          style={{
+                            padding: '5px 11px',
+                            fontSize: '0.78rem',
+                            fontWeight: 700,
+                            borderRadius: 6,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4
+                          }}
+                          title="Edit data pendaftar (Nama Ayah, Nama Ibu, data pribadi, dll)"
+                        >
+                          <i className="bi bi-pencil-square"></i>
+                          <span>Edit Data</span>
+                        </button>
+                        <button
+                          onClick={() => setDetail(null)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', fontSize: '1.1rem' }}
+                          aria-label="Tutup"
+                        >
+                          <i className="bi bi-x-lg"></i>
+                        </button>
+                      </div>
                     </div>
 
                     <div style={{ padding: '1.25rem 1.5rem', maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
@@ -786,7 +850,9 @@ function SpmbAdmin() {
                           { label: 'Pilihan Jenjang', value: labelJenjang[detail.jenjang_daftar] || detail.jenjang_daftar, icon: 'bi-mortarboard' },
                           { label: 'Tanggal Lahir', value: formatTanggal(detail.tanggal_lahir), icon: 'bi-calendar3' },
                           { label: 'Jenis Kelamin', value: detail.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan', icon: 'bi-gender-ambiguous' },
-                          { label: 'Nama Orang Tua / Wali', value: detail.nama_wali || '—', icon: 'bi-people' },
+                          { label: 'Nama Ayah / Bapak', value: detail.nama_ayah || '—', icon: 'bi-person-badge' },
+                          { label: 'Nama Ibu Kandung', value: detail.nama_ibu || '—', icon: 'bi-person-heart' },
+                          { label: 'Nama Wali', value: detail.nama_wali || '—', icon: 'bi-people' },
                           { label: 'Nomor WhatsApp / HP', value: detail.no_telp || '—', icon: 'bi-whatsapp' },
                           { label: 'Alamat Tinggal', value: detail.alamat || '—', icon: 'bi-geo-alt' },
                         ].map((item) => (
@@ -1553,12 +1619,39 @@ function SpmbAdmin() {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
-                      Nama Orang Tua / Wali <span style={{ color: '#DC2626' }}>*</span>
+                      Nama Ayah / Bapak <span style={{ color: '#DC2626' }}>*</span>
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Nama orang tua/wali"
+                      placeholder="Nama lengkap ayah/bapak"
+                      value={formTambah.nama_ayah}
+                      onChange={(e) => setFormTambah({ ...formTambah, nama_ayah: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Nama Ibu Kandung <span style={{ color: '#DC2626' }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nama lengkap ibu kandung"
+                      value={formTambah.nama_ibu}
+                      onChange={(e) => setFormTambah({ ...formTambah, nama_ibu: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Nama Wali <span style={{ fontSize: '0.72rem', color: '#64748B' }}>(Opsional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Nama wali murid (jika ada)"
                       value={formTambah.nama_wali}
                       onChange={(e) => setFormTambah({ ...formTambah, nama_wali: e.target.value })}
                       style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
@@ -1907,6 +2000,298 @@ function SpmbAdmin() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Edit Data Pendaftar SPMB oleh Admin ────────────── */}
+      {editingPendaftar && (
+        <div
+          className="modal-backdrop-custom"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+          }}
+          onClick={() => setEditingPendaftar(null)}
+        >
+          <div
+            className="modal-dialog-custom card"
+            style={{
+              width: '100%',
+              maxWidth: 680,
+              maxHeight: '90vh',
+              background: '#FFFFFF',
+              borderRadius: 14,
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header Modal */}
+            <div
+              style={{
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid #E2E8F0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: '#F8FAFC',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 8,
+                    background: '#EFF6FF',
+                    color: '#1D4ED8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.1rem',
+                  }}
+                >
+                  <i className="bi bi-pencil-square" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0F172A' }}>
+                    Edit Data Pendaftar
+                  </h3>
+                  <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                    {editingPendaftar.nama_lengkap} (ID: #{editingPendaftar.id})
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingPendaftar(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', fontSize: '1.2rem' }}
+                aria-label="Tutup"
+              >
+                <i className="bi bi-x-lg" />
+              </button>
+            </div>
+
+            {/* Form Edit */}
+            <form onSubmit={handleSimpanEditPendaftar} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+              <div style={{ padding: '1.25rem 1.5rem', overflowY: 'auto', flex: 1 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem', marginBottom: '0.875rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Nama Lengkap Siswa *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formEditPendaftar.nama_lengkap}
+                      onChange={(e) => setFormEditPendaftar({ ...formEditPendaftar, nama_lengkap: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      NIK (Nomor Induk Kependudukan)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="16 digit NIK"
+                      value={formEditPendaftar.nik}
+                      onChange={(e) => setFormEditPendaftar({ ...formEditPendaftar, nik: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Data Orang Tua: Nama Ayah, Nama Ibu, Nama Wali */}
+                <div style={{
+                  padding: '1rem',
+                  background: '#F0FDF4',
+                  borderRadius: 10,
+                  border: '1px solid #BBF7D0',
+                  marginBottom: '1rem'
+                }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#166534', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <i className="bi bi-people-fill" />
+                    <span>Identitas Orang Tua & Wali Siswa</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem', marginBottom: '0.75rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#166534', marginBottom: 4 }}>
+                        Nama Ayah / Bapak Kandung
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Nama lengkap ayah/bapak"
+                        value={formEditPendaftar.nama_ayah}
+                        onChange={(e) => setFormEditPendaftar({ ...formEditPendaftar, nama_ayah: e.target.value })}
+                        style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #86EFAC', fontSize: '0.85rem', background: '#FFFFFF' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#166534', marginBottom: 4 }}>
+                        Nama Ibu Kandung
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Nama lengkap ibu kandung"
+                        value={formEditPendaftar.nama_ibu}
+                        onChange={(e) => setFormEditPendaftar({ ...formEditPendaftar, nama_ibu: e.target.value })}
+                        style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #86EFAC', fontSize: '0.85rem', background: '#FFFFFF' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#166534', marginBottom: 4 }}>
+                      Nama Wali Siswa <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#4ADE80' }}>(Opsional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Nama wali jika diasuh oleh wali..."
+                      value={formEditPendaftar.nama_wali}
+                      onChange={(e) => setFormEditPendaftar({ ...formEditPendaftar, nama_wali: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #86EFAC', fontSize: '0.85rem', background: '#FFFFFF' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.875rem', marginBottom: '0.875rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Nomor Telepon / WhatsApp
+                    </label>
+                    <input
+                      type="tel"
+                      value={formEditPendaftar.no_telp}
+                      onChange={(e) => setFormEditPendaftar({ ...formEditPendaftar, no_telp: e.target.value })}
+                      style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Alamat Lengkap
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={formEditPendaftar.alamat}
+                      onChange={(e) => setFormEditPendaftar({ ...formEditPendaftar, alamat: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Periodik Dapodik */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Jarak (km)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={formEditPendaftar.jarak_rumah_km}
+                      onChange={(e) => setFormEditPendaftar({ ...formEditPendaftar, jarak_rumah_km: e.target.value })}
+                      style={{ width: '100%', height: 36, padding: '0 8px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Tinggi (cm)
+                    </label>
+                    <input
+                      type="number"
+                      value={formEditPendaftar.tinggi_badan}
+                      onChange={(e) => setFormEditPendaftar({ ...formEditPendaftar, tinggi_badan: e.target.value })}
+                      style={{ width: '100%', height: 36, padding: '0 8px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Berat (kg)
+                    </label>
+                    <input
+                      type="number"
+                      value={formEditPendaftar.berat_badan}
+                      onChange={(e) => setFormEditPendaftar({ ...formEditPendaftar, berat_badan: e.target.value })}
+                      style={{ width: '100%', height: 36, padding: '0 8px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                      Saudara
+                    </label>
+                    <input
+                      type="number"
+                      value={formEditPendaftar.jumlah_saudara_kandung}
+                      onChange={(e) => setFormEditPendaftar({ ...formEditPendaftar, jumlah_saudara_kandung: e.target.value })}
+                      style={{ width: '100%', height: 36, padding: '0 8px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Modal Edit */}
+              <div
+                style={{
+                  padding: '1rem 1.5rem',
+                  borderTop: '1px solid #F1F5F9',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: 10,
+                  background: '#F8FAFC',
+                }}
+              >
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setEditingPendaftar(null)}
+                  disabled={savingEditPendaftar}
+                  style={{ padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600 }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEditPendaftar}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 20px',
+                    borderRadius: 8,
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    color: '#FFFFFF',
+                    backgroundColor: '#1D4ED8',
+                    border: 'none',
+                    cursor: savingEditPendaftar ? 'not-allowed' : 'pointer',
+                    opacity: savingEditPendaftar ? 0.75 : 1,
+                  }}
+                >
+                  {savingEditPendaftar ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm" style={{ width: 14, height: 14 }} />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-check-lg" />
+                      <span>Simpan Perubahan</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -268,6 +268,8 @@ const RaporModel = {
         r.updated_at,
         wb.nis,
         wb.nik,
+        COALESCE(wb.npsn, 'P2970848') AS npsn,
+        wb.nisn,
         wb.jenjang,
         wb.tanggal_lahir,
         wb.alamat,

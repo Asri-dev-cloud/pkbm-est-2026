@@ -187,6 +187,8 @@ function DaftarSpmbPage() {
     tinggi_badan: '',
     berat_badan: '',
     jumlah_saudara_kandung: '',
+    nama_ayah: '',
+    nama_ibu: '',
     nama_wali: ''
   });
 
@@ -266,7 +268,7 @@ function DaftarSpmbPage() {
       'nama_lengkap', 'email', 'no_telp', 'password',
       'konfirmasi_password', 'tanggal_lahir', 'jenjang_daftar',
       'alamat', 'jarak_rumah_km', 'tinggi_badan', 'berat_badan',
-      'jumlah_saudara_kandung', 'nama_wali'
+      'jumlah_saudara_kandung', 'nama_ayah', 'nama_ibu'
     ];
 
     for (const field of wajib) {
@@ -336,9 +338,15 @@ function DaftarSpmbPage() {
 
     try {
       const fd = new FormData();
+      // Pastikan nama_wali terisi (fallback ke nama_ibu / nama_ayah jika wali tidak diisi terpisah)
+      const submitForm = {
+        ...form,
+        nama_wali: form.nama_wali?.trim() || form.nama_ibu?.trim() || form.nama_ayah?.trim() || 'Orang Tua / Wali'
+      };
+
       // Tambahkan seluruh data diri
-      Object.keys(form).forEach(key => {
-        const val = form[key];
+      Object.keys(submitForm).forEach(key => {
+        const val = submitForm[key];
         if (val !== undefined && val !== null && String(val).trim() !== '') {
           fd.append(key, String(val).trim());
         }
@@ -452,7 +460,7 @@ function DaftarSpmbPage() {
           </div>
           <h1 className="spmb-hero-title">Formulir Pendaftaran Online</h1>
           <p className="spmb-hero-subtitle">
-            Pendidikan Kesetaraan Inklusif & Terakreditasi Resmi Kemendikbud: Paket A (SD), Paket B (SMP), dan Paket C (SMA).
+            Pendidikan Kesetaraan Inklusif & Resmi Kemendikbud: Paket A (SD), Paket B (SMP), dan Paket C (SMA).
           </p>
         </div>
       </section>
@@ -853,10 +861,55 @@ function DaftarSpmbPage() {
                 </div>
               </div>
 
-              {/* Row 7: Nama Orang Tua / Wali */}
+              {/* Row 7: Data Orang Tua (Nama Ayah/Bapak & Ibu Kandung) */}
+              <div className="spmb-form-row">
+                <div className="spmb-form-group">
+                  <label className="spmb-label">
+                    Nama Ayah / Bapak Kandung <span className="spmb-label-req">*</span>
+                  </label>
+                  <div className="spmb-input-wrapper">
+                    <User size={18} className="spmb-input-icon" />
+                    <input
+                      type="text"
+                      name="nama_ayah"
+                      value={form.nama_ayah}
+                      onChange={handleChange}
+                      required
+                      placeholder="Nama lengkap ayah/bapak kandung"
+                      className="spmb-input"
+                    />
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: 4 }}>
+                    Sesuai nama di Kartu Keluarga (KK).
+                  </div>
+                </div>
+
+                <div className="spmb-form-group">
+                  <label className="spmb-label">
+                    Nama Ibu Kandung <span className="spmb-label-req">*</span>
+                  </label>
+                  <div className="spmb-input-wrapper">
+                    <User size={18} className="spmb-input-icon" />
+                    <input
+                      type="text"
+                      name="nama_ibu"
+                      value={form.nama_ibu}
+                      onChange={handleChange}
+                      required
+                      placeholder="Nama lengkap ibu kandung"
+                      className="spmb-input"
+                    />
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: 4 }}>
+                    Nama ibu kandung (wajib untuk Dapodik Kemdikbud).
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 8: Nama Wali Siswa (Opsional jika diasuh wali) */}
               <div className="spmb-form-group">
                 <label className="spmb-label">
-                  Nama Orang Tua / Wali <span className="spmb-label-req">*</span>
+                  Nama Wali Siswa <span style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 500 }}>(Opsional — isi hanya bila diasuh wali selain orang tua)</span>
                 </label>
                 <div className="spmb-input-wrapper">
                   <User size={18} className="spmb-input-icon" />
@@ -865,8 +918,7 @@ function DaftarSpmbPage() {
                     name="nama_wali"
                     value={form.nama_wali}
                     onChange={handleChange}
-                    required
-                    placeholder="Nama lengkap orang tua / wali siswa"
+                    placeholder="Nama lengkap wali murid (jika ada)"
                     className="spmb-input"
                   />
                 </div>

@@ -11,7 +11,6 @@ import {
   Download,
   AlertTriangle,
   Users,
-  Image as ImageIcon,
   RotateCw,
   Sparkles,
   FileText
@@ -20,7 +19,6 @@ import Sidebar from '../../components/Sidebar.jsx';
 import { SiswaAPI, toAssetUrl } from '../../services/api.js';
 import { QrCodeView, BarcodeView, getKartuVerificationUrl } from '../../utils/qrCode.jsx';
 import { triggerDownloadKartuPelajarPdf } from '../../utils/kartuPelajarPdfClient.js';
-import { downloadCardImage } from '../../utils/kartuCanvasDrawer.js';
 import './KartuPelajarSiswa.css';
 
 function KartuPelajarSiswa() {
@@ -35,7 +33,6 @@ function KartuPelajarSiswa() {
   const [error, setError] = useState('');
   const [isFlipped, setIsFlipped] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const [downloadingImg, setDownloadingImg] = useState(false);
 
   // State khusus Admin & Foto Siswa
   const [siswaList, setSiswaList] = useState([]);
@@ -148,31 +145,46 @@ function KartuPelajarSiswa() {
     }
   };
 
-  // Unduh Dokumen PDF Resmi Presisi 300 DPI
+  // Helper: Ekstraksi data foto yang sudah sukses tampil di layar
+  const getPreparedSiswaData = () => {
+    if (!cleanProfil) return null;
+    let photoDataUrl = null;
+    try {
+      const domImg = document.querySelector('.student-official-photo');
+      if (domImg && domImg.complete && domImg.naturalWidth > 0) {
+        const c = document.createElement('canvas');
+        c.width = domImg.naturalWidth;
+        c.height = domImg.naturalHeight;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(domImg, 0, 0);
+        photoDataUrl = c.toDataURL('image/jpeg', 0.95);
+      }
+    } catch (e) {
+      console.warn('[KartuPelajar] Gagal mengambil data URL dari DOM foto:', e);
+    }
+
+    const workingPhotoUrl = photoCandidates[activePhotoIdx] || null;
+
+    return {
+      ...cleanProfil,
+      photoDataUrl,
+      fotoUrl: workingPhotoUrl,
+      photoCandidates,
+    };
+  };
+
+  // Unduh Dokumen PDF Resmi Presisi 300 DPI (Standar Cetak CR-80 2 Halaman)
   const handleDownloadPdf = async () => {
-    if (!cleanProfil) return;
+    const data = getPreparedSiswaData();
+    if (!data) return;
     setDownloadingPdf(true);
     try {
-      await triggerDownloadKartuPelajarPdf(cleanProfil);
+      await triggerDownloadKartuPelajarPdf(data);
     } catch (err) {
       console.error('[KartuPelajar] Gagal mengunduh PDF:', err);
       alert('Gagal mengunduh file PDF Kartu Pelajar. Silakan coba kembali.');
     } finally {
       setTimeout(() => setDownloadingPdf(false), 600);
-    }
-  };
-
-  // Unduh Gambar Kartu Pelajar (PNG HD 300 DPI)
-  const handleDownloadImage = async () => {
-    if (!cleanProfil) return;
-    setDownloadingImg(true);
-    try {
-      await downloadCardImage(cleanProfil, 'both');
-    } catch (err) {
-      console.error('[KartuPelajar] Gagal mengunduh gambar:', err);
-      alert('Gagal mengunduh gambar kartu pelajar.');
-    } finally {
-      setTimeout(() => setDownloadingImg(false), 600);
     }
   };
 
@@ -218,37 +230,17 @@ function KartuPelajarSiswa() {
                 <span>Kartu Pelajar Digital</span>
               </h1>
               <p>
-                Identitas resmi Warga Belajar PKBM Bina Mandiri. Sentuh atau klik kartu untuk membalik sisi, dan langsung unduh kartunya dalam format PDF maupun Gambar HD siap pakai.
+                Identitas resmi Warga Belajar PKBM Bina Mandiri. Sentuh atau klik kartu untuk membalik sisi, dan langsung unduh dokumen kartu dalam format PDF standar cetak (2 halaman depan &amp; belakang).
               </p>
             </div>
 
             <div className="kartu-pelajar-actions-bar">
               <button
                 type="button"
-                className="btn-kartu-action btn-kartu-image"
-                onClick={handleDownloadImage}
-                disabled={loading || !profil || downloadingImg}
-                title="Langsung unduh kartu dalam format Gambar PNG HD"
-              >
-                {downloadingImg ? (
-                  <>
-                    <div className="spinner-mini" />
-                    <span>Menyiapkan...</span>
-                  </>
-                ) : (
-                  <>
-                    <ImageIcon size={16} />
-                    <span>Unduh Gambar (PNG)</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
                 className="btn-kartu-action btn-kartu-download"
                 onClick={handleDownloadPdf}
                 disabled={loading || !profil || downloadingPdf}
-                title="Langsung unduh kartu pelajar dalam format PDF rapih siap cetak"
+                title="Langsung unduh kartu pelajar dalam format PDF rapih siap cetak (Depan & Belakang)"
               >
                 {downloadingPdf ? (
                   <>
@@ -349,129 +341,154 @@ function KartuPelajarSiswa() {
                   title="Klik atau sentuh kartu ini untuk membalik sisi"
                 >
 
-                  {/* ══ SISI DEPAN (FRONT FACE) ════════════════════ */}
-                  <div className="id-card-face id-card-front-sleek">
-                    <div className="card-ambient-glow" />
-                    <div className="card-watermark-crest" />
+                  {/* ══ SISI DEPAN (FRONT FACE - KARTU RESMI PVC) ════════════════════ */}
+                  <div className="id-card-face id-card-front-official">
+                    {/* Watermark Logo PKBM di Kanan Bawah (Asli, Jelas, & Transparan Elegan) */}
+                    <div className="card-watermark-official">
+                      <img
+                        src="/images/logo new.png"
+                        alt=""
+                        className="watermark-official-img"
+                        onError={(e) => { e.target.src = '/favicon.svg'; }}
+                      />
+                    </div>
 
-                    {/* Kop Kartu Sleek */}
-                    <div className="card-top-kop">
-                      <div className="kop-brand-group">
-                        <div className="kop-logo-wrapper">
+                    {/* Kop Kartu Resmi Pemerintah & Lembaga */}
+                    <div className="card-official-kop">
+                      <div className="kop-brand-area">
+                        <div className="kop-logo-box">
                           <img
                             src="/images/logo new.png"
                             alt="Logo PKBM"
                             onError={(e) => { e.target.src = '/favicon.svg'; }}
                           />
                         </div>
-                        <div className="kop-titles">
-                          <span className="kop-subhead">KEMENTERIAN PENDIDIKAN & KEBUDAYAAN</span>
-                          <h2 className="kop-school-name">PKBM BINA MANDIRI</h2>
-                          <span className="kop-accreditation">NPSN: P9962854 • TERAKREDITASI RESMI</span>
+                        <div className="kop-text-area">
+                          <span className="kop-ministry-text">KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET & TEKNOLOGI</span>
+                          <h2 className="kop-school-title">PKBM BINA MANDIRI SUMEDANG</h2>
+                          <span className="kop-npsn-akred">NPSN: {cleanProfil?.npsn || 'P9962854'}</span>
                         </div>
                       </div>
-                      <div className="kop-jenjang-tag">
+                      <div className="kop-badge-jenjang">
                         {badgeJenjangText[profil.jenjang] || 'WARGA BELAJAR'}
                       </div>
                     </div>
 
-                    {/* Badan Depan (Foto & Typographic Flow Bersih Tanpa Kotak-Kotak) */}
-                    <div className="card-main-content">
-                      <div className="card-photo-portrait">
+                    {/* Baris Judul Kartu Tanda Pelajar */}
+                    <div className="card-official-title-bar">
+                      <span>KARTU TANDA PELAJAR</span>
+                    </div>
+
+                    {/* Badan Depan (Foto Resmi & Tabel Identitas Siswa) */}
+                    <div className="card-official-body">
+                      <div className="card-photo-box">
                         {photoCandidates.length > 0 && activePhotoIdx < photoCandidates.length ? (
                           <img
                             key={photoCandidates[activePhotoIdx]}
                             src={photoCandidates[activePhotoIdx]}
                             alt={profil.nama_lengkap}
-                            className="student-portrait-img"
+                            className="student-official-photo"
+                            crossOrigin="anonymous"
                             onError={handlePhotoError}
                           />
                         ) : (
-                          <div className="student-portrait-fallback">
+                          <div className="student-photo-placeholder">
                             <span>{profil.nama_lengkap?.charAt(0)?.toUpperCase() || 'W'}</span>
                           </div>
                         )}
                       </div>
 
-                      <div className="card-details-flow">
-                        <div className="student-name-prominent" title={profil.nama_lengkap}>
+                      <div className="card-identity-table">
+                        <div className="student-fullname" title={profil.nama_lengkap}>
                           {profil.nama_lengkap}
                         </div>
 
-                        <div className="student-nis-subline">
-                          <span className="nis-tag">NIS</span>
-                          <span className="nis-number">{cleanProfil.nis || 'DALAM PENETAPAN'}</span>
-                        </div>
-
-                        <div className="student-meta-list">
-                          <div className="meta-item">
-                            <span className="meta-lbl">NIK</span>
-                            <span className="meta-val">{profil.nik || '—'}</span>
+                        <div className="identity-rows">
+                          <div className="id-row">
+                            <span className="id-label">NIS</span>
+                            <span className="id-colon">:</span>
+                            <span className="id-value id-nis">{cleanProfil.nis || 'DALAM PENETAPAN'}</span>
                           </div>
-                          <div className="meta-item">
-                            <span className="meta-lbl">TTL</span>
-                            <span className="meta-val">{formatTanggalLahir(profil.tanggal_lahir)}</span>
+                          <div className="id-row">
+                            <span className="id-label">NIK</span>
+                            <span className="id-colon">:</span>
+                            <span className="id-value">{profil.nik || '—'}</span>
                           </div>
-                          <div className="meta-item">
-                            <span className="meta-lbl">Program</span>
-                            <span className="meta-val">{labelJenjang[profil.jenjang] || profil.jenjang}</span>
+                          <div className="id-row">
+                            <span className="id-label">TTL</span>
+                            <span className="id-colon">:</span>
+                            <span className="id-value">{formatTanggalLahir(profil.tanggal_lahir)}</span>
                           </div>
-                          <div className="meta-item">
-                            <span className="meta-lbl">Rombel</span>
-                            <span className="meta-val">{profil.nama_rombel || 'Dalam Penetapan'}</span>
+                          <div className="id-row">
+                            <span className="id-label">Program</span>
+                            <span className="id-colon">:</span>
+                            <span className="id-value">{labelJenjang[profil.jenjang] || profil.jenjang}</span>
+                          </div>
+                          <div className="id-row">
+                            <span className="id-label">Rombel</span>
+                            <span className="id-colon">:</span>
+                            <span className="id-value">{profil.nama_rombel || 'Dalam Penetapan'}</span>
+                          </div>
+                          <div className="id-row">
+                            <span className="id-label">Masa Berlaku</span>
+                            <span className="id-colon">:</span>
+                            <span className="id-value">Selama Menjadi Warga Belajar</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Footer Kartu Sleek (Tanpa QR Code & Kotak TA Dihapus) */}
-                    <div className="card-bottom-bar">
-                      <div className="card-auth-code">
+                    {/* Footer Kartu Resmi (Barcode & Identitas Lembaga) */}
+                    <div className="card-official-footer">
+                      <div className="footer-barcode-wrap">
                         <BarcodeView
                           value={cleanProfil.nis || 'PKBM-BINA-MANDIRI'}
-                          width={140}
-                          height={18}
+                          width={112}
+                          height={17}
                           color="#FFFFFF"
                           showText={false}
                         />
-                        <span className="auth-code-text">AUTHENTIC STUDENT IDENTIFICATION</span>
+                        <span className="barcode-nis-text">{cleanProfil.nis || 'PKBM-2026-0401'}</span>
+                      </div>
+                      <div className="footer-meta-wrap">
+                        <span className="footer-school-text">PKBM BINA MANDIRI • KABUPATEN SUMEDANG</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* ══ SISI BELAKANG (BACK FACE - TANPA QR CODE) ══════════════════ */}
-                  <div className="id-card-face id-card-back-sleek">
-                    <div className="card-ambient-glow" />
-
-                    <div>
-                      <div className="back-title-banner">
-                        <span>KETENTUAN PENGGUNAAN KARTU PELAJAR</span>
-                      </div>
-
-                      <ul className="back-clauses-list">
-                        <li>Kartu ini adalah identitas resmi Warga Belajar PKBM Bina Mandiri.</li>
-                        <li>Wajib dibawa saat tutorial tatap muka, asesmen, dan ujian evaluasi pembelajaran.</li>
-                        <li>Kartu ini tidak dapat dipinjamkan atau dipindahtangankan kepada orang lain.</li>
-                        <li>Bila kartu ini hilang, harap segera melapor ke Sekretariat TU PKBM Bina Mandiri.</li>
-                      </ul>
+                  {/* ══ SISI BELAKANG (BACK FACE - KETENTUAN RESMI) ══════════════════ */}
+                  <div className="id-card-face id-card-back-official">
+                    <div className="card-official-kop back-kop">
+                      <div className="back-kop-title">KETENTUAN PENGGUNAAN KARTU PELAJAR</div>
                     </div>
 
-                    {/* Pengesahan Kepala PKBM Bina Mandiri */}
-                    <div className="back-signature-cluster">
-                      <div className="back-institution-info">
-                        <div className="inst-sub">LEMBAGA PENDIDIKAN KESETARAAN</div>
-                        <div className="inst-name">PKBM BINA MANDIRI</div>
-                        <div className="inst-npsn">NPSN: P9962854 • SUMEDANG</div>
+                    <div className="back-clauses-wrapper">
+                      <ol className="official-rules-list">
+                        <li><span className="rule-num">1.</span><span>Kartu ini adalah tanda bukti identitas sah Warga Belajar PKBM Bina Mandiri yang diakui.</span></li>
+                        <li><span className="rule-num">2.</span><span>Wajib dibawa saat mengikuti tutorial tatap muka, asesmen sumatif, dan ujian evaluasi pembelajaran.</span></li>
+                        <li><span className="rule-num">3.</span><span>Kartu ini tidak dapat dipinjamkan, digandakan, atau dipindahtangankan kepada orang lain.</span></li>
+                        <li><span className="rule-num">4.</span><span>Bila kartu ini hilang atau rusak, segera melapor ke Sekretariat TU PKBM Bina Mandiri.</span></li>
+                      </ol>
+                    </div>
+
+                    {/* Pengesahan Kepala PKBM & Info Sekretariat */}
+                    <div className="back-official-cluster">
+                      <div className="back-inst-details">
+                        <div className="back-inst-title">PUSAT KEGIATAN BELAJAR MASYARAKAT</div>
+                        <div className="back-inst-name">PKBM BINA MANDIRI</div>
+                        <div className="back-inst-meta">NPSN: {cleanProfil?.npsn || 'P9962854'}</div>
+                        <div className="back-inst-addr">Dusun Cikondang RT 02/02, Desa Cikondang, Kec. Ganeas, Kab. Sumedang</div>
+                        <div className="back-inst-web">Laman Resmi: pkbmbinamandiri.sch.id</div>
                       </div>
 
-                      <div className="back-official-endorsement">
-                        <div className="sig-place-date">Sumedang, {new Date().getFullYear()}</div>
-                        <div className="sig-office-title">Kepala PKBM Bina Mandiri</div>
-                        <div className="sig-image-wrapper">
+                      <div className="back-signature-box">
+                        <div className="sig-date-text">Sumedang, {new Date().getFullYear()}</div>
+                        <div className="sig-role-text">Kepala PKBM Bina Mandiri,</div>
+                        <div className="sig-photo-wrap">
                           <img
                             src="/images/ttd.png"
                             alt="Tanda Tangan Kepala PKBM"
-                            className="sig-image"
+                            className="sig-photo-img"
                             onError={(e) => {
                               if (!e.target.dataset.triedRoot) {
                                 e.target.dataset.triedRoot = '1';
@@ -480,13 +497,8 @@ function KartuPelajarSiswa() {
                             }}
                           />
                         </div>
-                        {/* Nama pimpinan resmi: Indrayani, S.S.,M.Pd. */}
-                        <div className="sig-principal-name">Indrayani, S.S.,M.Pd.</div>
+                        <div className="sig-name-underline">Indrayani, S.S.,M.Pd.</div>
                       </div>
-                    </div>
-
-                    <div className="back-legal-footer">
-                      Sekretariat PKBM Bina Mandiri, Sumedang • Web: pkbmbinamandiri.sch.id
                     </div>
                   </div>
 

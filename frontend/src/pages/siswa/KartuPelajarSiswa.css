@@ -66,20 +66,6 @@
   text-decoration: none;
 }
 
-.btn-kartu-image {
-  background: #FFFFFF;
-  color: #1E293B;
-  border: 1.5px solid #CBD5E1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.btn-kartu-image:hover:not(:disabled) {
-  background: #F8FAFC;
-  border-color: #94A3B8;
-  color: #0F172A;
-  transform: translateY(-1px);
-}
-
 .btn-kartu-download {
   background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%);
   color: #FFFFFF;
@@ -92,8 +78,7 @@
   box-shadow: 0 6px 20px rgba(29, 78, 216, 0.45);
 }
 
-.btn-kartu-download:disabled,
-.btn-kartu-image:disabled {
+.btn-kartu-download:disabled {
   opacity: 0.65;
   cursor: not-allowed;
   transform: none;
@@ -230,7 +215,7 @@
   transform: rotateY(180deg);
 }
 
-/* Wajah Kartu (Front & Back) */
+/* Wajah Kartu (Front & Back) Berstandar Resmi CR-80 PVC Card */
 .id-card-face {
   position: absolute;
   inset: 0;
@@ -240,418 +225,463 @@
   -webkit-backface-visibility: hidden;
   transform: translate3d(0, 0, 1px);
   -webkit-transform: translate3d(0, 0, 1px);
-  border-radius: 18px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 18px 40px -10px rgba(11, 24, 44, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.14) inset;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16), 0 0 0 1px #CBD5E1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 16px 20px;
-  color: #FFFFFF;
+  padding: 0;
   box-sizing: border-box;
-  font-family: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  user-select: none;
 }
 
-.id-card-front-sleek {
-  background: radial-gradient(circle at 90% 10%, #1e3a8a 0%, #0d1b33 60%, #070e1c 100%);
+/* Sisi Depan Kartu Resmi: Header Putih + Bawah Gradient Biru Menawan */
+.id-card-front-official {
+  background: radial-gradient(circle at 85% 20%, rgba(96, 165, 250, 0.28) 0%, transparent 55%),
+              linear-gradient(145deg, #1D4ED8 0%, #1E3A8A 35%, #172554 70%, #0B1120 100%);
+  color: #FFFFFF;
 }
 
-.id-card-back-sleek {
-  background: radial-gradient(circle at 10% 90%, #1e3a8a 0%, #0d1b33 60%, #070e1c 100%);
+/* Sisi Belakang Kartu Resmi: Header Putih Pattern + Bawah Gradient Biru Pekat Elegan */
+.id-card-back-official {
+  background: linear-gradient(155deg, #133B85 0%, #0C265E 25%, #071940 55%, #030C22 100%);
+  color: #FFFFFF;
   transform: rotateY(180deg) translate3d(0, 0, 1px);
   -webkit-transform: rotateY(180deg) translate3d(0, 0, 1px);
 }
 
-/* Ambient glow & watermark */
-.card-ambient-glow {
+/* Watermark Logo PKBM Asli di Kanan Bawah Sisi Depan (Jelas, Tajam, Menyala Anggun) */
+.card-watermark-official {
   position: absolute;
-  top: -50px;
-  right: -50px;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
+  right: 6px;
+  bottom: 6px;
+  width: 195px;
+  height: 195px;
   pointer-events: none;
-}
-
-.card-watermark-crest {
-  position: absolute;
-  right: -20px;
-  bottom: -20px;
-  width: 220px;
-  height: 220px;
-  opacity: 0.04;
-  pointer-events: none;
-  background: url('/images/logo new.png') no-repeat center center;
-  background-size: contain;
-}
-
-/* ── Kop Lembaga Bersih (Clean Header) ── */
-.card-top-kop {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1.5px solid rgba(245, 158, 11, 0.45);
-}
-
-.kop-brand-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.kop-logo-wrapper {
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: #FFFFFF;
-  padding: 2.5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+  opacity: 0.38;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.55)) brightness(1.22) contrast(1.15);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.kop-logo-wrapper img {
+.card-watermark-official .watermark-official-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ── Kop Kartu Resmi Pemerintah & Lembaga (Header Putih Bersih + Motif Neo-Batik Bauhaus Sesuai Referensi) ── */
+.card-official-kop {
+  background-color: #FFFFFF;
+  background-image: 
+    radial-gradient(circle at 100% 150%, rgba(30, 64, 175, 0.05) 0%, transparent 60%),
+    radial-gradient(circle at 0% -50%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%27M%2016%200%20L%2032%2016%20L%2016%2032%20L%200%2016%20Z%27%20stroke%3D%27%230F2B69%27%20stroke-width%3D%271.2%27%20stroke-opacity%3D%270.45%27%20fill%3D%27none%27%2F%3E%3Cpath%20d%3D%27M%2016%204%20L%2028%2016%20L%2016%2028%20L%204%2016%20Z%27%20stroke%3D%27%23F59E0B%27%20stroke-width%3D%271.1%27%20stroke-opacity%3D%270.55%27%20fill%3D%27none%27%2F%3E%3Cpath%20d%3D%27M%2016%208%20L%2024%2016%20L%2016%2024%20L%208%2016%20Z%27%20stroke%3D%27%231D4ED8%27%20stroke-width%3D%270.9%27%20stroke-opacity%3D%270.40%27%20fill%3D%27none%27%2F%3E%3Cpath%20d%3D%27M%2021.0%2016.0%20L%2017.8%2017.8%20L%2016.0%2021.0%20L%2014.2%2017.8%20L%2011.0%2016.0%20L%2014.2%2014.2%20L%2016.0%2011.0%20L%2017.8%2014.2%20Z%27%20stroke%3D%27%23D97706%27%20stroke-width%3D%271.0%27%20stroke-opacity%3D%270.65%27%20fill%3D%27none%27%2F%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%271.3%27%20fill%3D%27%23F59E0B%27%20fill-opacity%3D%270.75%27%2F%3E%3Ccircle%20cx%3D%270%27%20cy%3D%270%27%20r%3D%273%27%20stroke%3D%27%230F2B69%27%20stroke-width%3D%270.9%27%20stroke-opacity%3D%270.40%27%20fill%3D%27none%27%2F%3E%3Ccircle%20cx%3D%270%27%20cy%3D%270%27%20r%3D%271.2%27%20fill%3D%27%231D4ED8%27%20fill-opacity%3D%270.50%27%2F%3E%3Ccircle%20cx%3D%2732%27%20cy%3D%270%27%20r%3D%273%27%20stroke%3D%27%230F2B69%27%20stroke-width%3D%270.9%27%20stroke-opacity%3D%270.40%27%20fill%3D%27none%27%2F%3E%3Ccircle%20cx%3D%2732%27%20cy%3D%270%27%20r%3D%271.2%27%20fill%3D%27%231D4ED8%27%20fill-opacity%3D%270.50%27%2F%3E%3Ccircle%20cx%3D%270%27%20cy%3D%2732%27%20r%3D%273%27%20stroke%3D%27%230F2B69%27%20stroke-width%3D%270.9%27%20stroke-opacity%3D%270.40%27%20fill%3D%27none%27%2F%3E%3Ccircle%20cx%3D%270%27%20cy%3D%2732%27%20r%3D%271.2%27%20fill%3D%27%231D4ED8%27%20fill-opacity%3D%270.50%27%2F%3E%3Ccircle%20cx%3D%2732%27%20cy%3D%2732%27%20r%3D%273%27%20stroke%3D%27%230F2B69%27%20stroke-width%3D%270.9%27%20stroke-opacity%3D%270.40%27%20fill%3D%27none%27%2F%3E%3Ccircle%20cx%3D%2732%27%20cy%3D%2732%27%20r%3D%271.2%27%20fill%3D%27%231D4ED8%27%20fill-opacity%3D%270.50%27%2F%3E%3C%2Fsvg%3E");
+  background-size: auto, auto, 32px 32px;
+  color: #0F172A;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2.5px solid #F59E0B;
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+.kop-brand-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.kop-logo-box {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #FFFFFF;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(15, 43, 105, 0.15);
+  border: 1px solid #E2E8F0;
+}
+
+.kop-logo-box img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-.kop-titles {
+.kop-text-area {
   display: flex;
   flex-direction: column;
+  text-align: left;
 }
 
-.kop-subhead {
-  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.64rem;
-  letter-spacing: 0.08em;
-  color: #94A3B8;
+.kop-ministry-text {
+  font-size: 0.52rem;
   font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #475569;
   text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.kop-school-title {
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #0F2B69;
+  margin: 1px 0;
   line-height: 1.15;
 }
 
-.kop-school-name {
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.16rem;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  color: #FFFFFF;
-  margin: 1px 0;
-  line-height: 1.2;
-}
-
-.kop-accreditation {
-  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.62rem;
-  color: #FCD34D;
+.kop-npsn-akred {
+  font-size: 0.54rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  color: #0284C7;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
 }
 
-.kop-jenjang-tag {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+.kop-badge-jenjang {
   padding: 4px 10px;
-  border-radius: 8px;
-  background: rgba(245, 158, 11, 0.22);
-  border: 1.5px solid #F59E0B;
-  color: #FDE68A;
+  border-radius: 6px;
+  background: #0F2B69;
+  color: #FCD34D;
+  font-weight: 900;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(15, 43, 105, 0.25);
   white-space: nowrap;
 }
 
-/* ── Badan Depan: Foto & Typography Tanpa Kotak Bertingkat ── */
-.card-main-content {
+/* Baris Judul Kartu Tanda Pelajar (Pita Emas Megah) */
+.card-official-title-bar {
+  background: linear-gradient(90deg, #FDE68A 0%, #F59E0B 50%, #FDE68A 100%);
+  color: #78350F;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-align: center;
+  padding: 3.5px 0;
+  border-bottom: 1.5px solid rgba(245, 158, 11, 0.5);
   position: relative;
   z-index: 2;
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  margin-top: 10px;
-  flex: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-/* Foto Portrait Siswa (Sleek Rounded Frame) */
-.card-photo-portrait {
+/* ── Badan Depan: Foto Pas Resmi & Tabel Identitas di atas Gradient Biru ── */
+.card-official-body {
+  padding: 10px 16px 6px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  flex: 1;
   position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+/* Pas Foto Portrait Resmi Siswa (3x4) */
+.card-photo-box {
   width: 96px;
   height: 128px;
   flex-shrink: 0;
-  border-radius: 12px;
+  border-radius: 6px;
+  border: 2px solid #FFFFFF;
   overflow: hidden;
-  background: #111E38;
-  border: 2.5px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+  background: #1E293B;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
-.student-portrait-img {
+.student-official-photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.student-portrait-fallback {
+.student-photo-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1E40AF 0%, #0F172A 100%);
+  background: #0F2B69;
   color: #FFFFFF;
-  font-size: 2.2rem;
+  font-size: 2rem;
   font-weight: 900;
-  font-family: 'Outfit', sans-serif;
 }
 
-
-.student-status-badge {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(16, 185, 129, 0.95);
-  color: #FFFFFF;
-  font-size: 0.52rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  padding: 3px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.student-status-badge .status-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #FFFFFF;
-}
-
-/* Alur Data Typographic (Clean & Seamless Tanpa Kotak) */
-.card-details-flow {
+/* Tabel Data Identitas Rapi */
+.card-identity-table {
   flex: 1;
   min-width: 0;
+  text-align: left;
 }
 
-.student-name-prominent {
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.35rem;
+.student-fullname {
+  font-size: 1.12rem;
   font-weight: 900;
   color: #FFFFFF;
-  line-height: 1.2;
-  margin-bottom: 2px;
   text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: 0.03em;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
-.student-nis-subline {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.student-nis-subline .nis-tag {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: #FCD34D;
-  letter-spacing: 0.08em;
-}
-
-.student-nis-subline .nis-number {
-  font-family: 'Space Mono', monospace;
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #F8FAFC;
-  letter-spacing: 0.06em;
-}
-
-/* Rincian Typographic Tanpa Garis Tabel */
-.student-meta-list {
+.identity-rows {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3.5px;
 }
 
-.meta-item {
+.id-row {
   display: flex;
   align-items: baseline;
-  font-size: 0.85rem;
-  line-height: 1.45;
+  font-size: 0.76rem;
+  line-height: 1.35;
 }
 
-.meta-item .meta-lbl {
-  width: 78px;
+.id-label {
+  width: 98px;
   flex-shrink: 0;
-  color: #94A3B8;
-  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  color: #93C5FD;
   font-weight: 700;
 }
 
-.meta-item .meta-val {
-  color: #FFFFFF;
-  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+.id-colon {
+  width: 10px;
+  flex-shrink: 0;
+  color: #93C5FD;
   font-weight: 700;
+}
+
+.id-value {
+  color: #FFFFFF;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* ── Footer Kartu Depan (Barcode & QR Code) ── */
-.card-bottom-bar {
+.id-value.id-nis {
+  font-weight: 800;
+  font-family: 'Space Mono', monospace;
+  color: #FCD34D;
+  text-shadow: 0 0 8px rgba(252, 211, 77, 0.35);
+}
+
+/* ── Footer Kartu Depan (Barcode Putih & Identitas Lembaga) ── */
+.card-official-footer {
+  padding: 5px 16px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   position: relative;
   z-index: 2;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+  background: transparent;
 }
 
-.card-auth-code {
+.footer-barcode-wrap {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: flex-start;
+  gap: 3px;
+  width: 112px;
 }
 
-.auth-code-text {
-  font-size: 0.44rem;
-  letter-spacing: 0.08em;
-  color: #64748B;
+.barcode-nis-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.52rem;
+  color: #CBD5E1;
   font-weight: 700;
+  letter-spacing: 0.05em;
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
 }
 
-/* ── Sisi Belakang (Back Face Sleek) ── */
-.back-title-banner {
-  text-align: center;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.88rem;
-  font-weight: 900;
-  color: #FCD34D;
-  letter-spacing: 0.08em;
-  padding-bottom: 7px;
-  border-bottom: 1.5px solid rgba(245, 158, 11, 0.45);
+.footer-meta-wrap {
+  text-align: right;
 }
 
-.back-clauses-list {
-  margin: 10px 0;
-  padding-left: 18px;
-  font-size: 0.76rem;
-  line-height: 1.5;
-  color: #E2E8F0;
-  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
-}
-
-.back-clauses-list li {
-  margin-bottom: 5px;
-}
-
-/* Signature Cluster Belakang */
-.back-signature-cluster {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  margin-top: 4px;
-}
-
-.back-institution-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.back-institution-info .inst-sub {
-  font-size: 0.54rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #94A3B8;
-  text-transform: uppercase;
-  font-family: 'Outfit', sans-serif;
-}
-
-.back-institution-info .inst-name {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 900;
-  color: #FFFFFF;
+.footer-school-text {
+  font-size: 0.56rem;
+  font-weight: 800;
+  color: #93C5FD;
   letter-spacing: 0.04em;
 }
 
-.back-institution-info .inst-npsn {
-  font-size: 0.58rem;
-  color: #FCD34D;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  font-family: 'Outfit', sans-serif;
-}
-
-.back-official-endorsement {
+/* ── Sisi Belakang Kartu Resmi (Header Putih Motif Neo-Batik Bauhaus Sesuai Referensi) ── */
+.card-official-kop.back-kop {
+  background-color: #FFFFFF;
+  background-image: 
+    radial-gradient(circle at 100% 150%, rgba(30, 64, 175, 0.05) 0%, transparent 60%),
+    radial-gradient(circle at 0% -50%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%27M%2016%200%20L%2032%2016%20L%2016%2032%20L%200%2016%20Z%27%20stroke%3D%27%230F2B69%27%20stroke-width%3D%271.2%27%20stroke-opacity%3D%270.45%27%20fill%3D%27none%27%2F%3E%3Cpath%20d%3D%27M%2016%204%20L%2028%2016%20L%2016%2028%20L%204%2016%20Z%27%20stroke%3D%27%23F59E0B%27%20stroke-width%3D%271.1%27%20stroke-opacity%3D%270.55%27%20fill%3D%27none%27%2F%3E%3Cpath%20d%3D%27M%2016%208%20L%2024%2016%20L%2016%2024%20L%208%2016%20Z%27%20stroke%3D%27%231D4ED8%27%20stroke-width%3D%270.9%27%20stroke-opacity%3D%270.40%27%20fill%3D%27none%27%2F%3E%3Cpath%20d%3D%27M%2021.0%2016.0%20L%2017.8%2017.8%20L%2016.0%2021.0%20L%2014.2%2017.8%20L%2011.0%2016.0%20L%2014.2%2014.2%20L%2016.0%2011.0%20L%2017.8%2014.2%20Z%27%20stroke%3D%27%23D97706%27%20stroke-width%3D%271.0%27%20stroke-opacity%3D%270.65%27%20fill%3D%27none%27%2F%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%271.3%27%20fill%3D%27%23F59E0B%27%20fill-opacity%3D%270.75%27%2F%3E%3Ccircle%20cx%3D%270%27%20cy%3D%270%27%20r%3D%273%27%20stroke%3D%27%230F2B69%27%20stroke-width%3D%270.9%27%20stroke-opacity%3D%270.40%27%20fill%3D%27none%27%2F%3E%3Ccircle%20cx%3D%270%27%20cy%3D%270%27%20r%3D%271.2%27%20fill%3D%27%231D4ED8%27%20fill-opacity%3D%270.50%27%2F%3E%3Ccircle%20cx%3D%2732%27%20cy%3D%270%27%20r%3D%273%27%20stroke%3D%27%230F2B69%27%20stroke-width%3D%270.9%27%20stroke-opacity%3D%270.40%27%20fill%3D%27none%27%2F%3E%3Ccircle%20cx%3D%2732%27%20cy%3D%270%27%20r%3D%271.2%27%20fill%3D%27%231D4ED8%27%20fill-opacity%3D%270.50%27%2F%3E%3Ccircle%20cx%3D%270%27%20cy%3D%2732%27%20r%3D%273%27%20stroke%3D%27%230F2B69%27%20stroke-width%3D%270.9%27%20stroke-opacity%3D%270.40%27%20fill%3D%27none%27%2F%3E%3Ccircle%20cx%3D%270%27%20cy%3D%2732%27%20r%3D%271.2%27%20fill%3D%27%231D4ED8%27%20fill-opacity%3D%270.50%27%2F%3E%3Ccircle%20cx%3D%2732%27%20cy%3D%2732%27%20r%3D%273%27%20stroke%3D%27%230F2B69%27%20stroke-width%3D%270.9%27%20stroke-opacity%3D%270.40%27%20fill%3D%27none%27%2F%3E%3Ccircle%20cx%3D%2732%27%20cy%3D%2732%27%20r%3D%271.2%27%20fill%3D%27%231D4ED8%27%20fill-opacity%3D%270.50%27%2F%3E%3C%2Fsvg%3E");
+  background-size: auto, auto, 32px 32px;
+  color: #0F2B69;
+  padding: 9px 14px;
   text-align: center;
-  width: 180px;
+  border-bottom: 2.5px solid #F59E0B;
+  display: block;
 }
 
-.sig-place-date {
-  font-size: 0.68rem;
+.back-kop-title {
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #0F2B69;
+  text-align: center;
+  width: 100%;
+}
+
+.back-clauses-wrapper {
+  padding: 10px 16px 4px;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.official-rules-list {
+  margin: 0;
+  padding: 0;
+  list-style: none !important;
+  font-size: 0.70rem;
+  line-height: 1.48;
+  color: #F1F5F9;
+  text-align: left;
+}
+
+.official-rules-list li {
+  margin-bottom: 5px;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: #F1F5F9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.rule-num {
+  font-weight: 800;
+  color: #FCD34D;
+  flex-shrink: 0;
+  min-width: 14px;
+}
+
+/* Cluster Pengesahan Pimpinan & Info Sekretariat (Tanpa Layer Hitam Transparan) */
+.back-official-cluster {
+  padding: 8px 16px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+.back-inst-details {
+  text-align: left;
+  font-size: 0.50rem;
   color: #CBD5E1;
-  font-family: 'Outfit', sans-serif;
+  line-height: 1.35;
 }
 
-.sig-office-title {
-  font-size: 0.72rem;
+.back-inst-title {
+  font-size: 0.48rem;
   font-weight: 700;
-  color: #F8FAFC;
-  font-family: 'Outfit', sans-serif;
+  color: #93C5FD;
 }
 
-.sig-image-wrapper {
-  height: 48px;
+.back-inst-name {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #FFFFFF;
+  margin: 1px 0;
+}
+
+.back-inst-meta {
+  font-weight: 700;
+  color: #FCD34D;
+  font-size: 0.52rem;
+}
+
+.back-inst-addr {
+  color: #CBD5E1;
+  font-size: 0.50rem;
+}
+
+.back-inst-web {
+  color: #93C5FD;
+  font-weight: 700;
+  font-size: 0.50rem;
+}
+
+.back-signature-box {
+  text-align: center;
+  width: 160px;
+}
+
+.sig-date-text {
+  font-size: 0.58rem;
+  color: #93C5FD;
+}
+
+.sig-role-text {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #F1F5F9;
+}
+
+.sig-photo-wrap {
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 2px 0 3px;
-  position: relative;
+  margin: 1px 0;
 }
 
-.sig-image {
+.sig-photo-img {
   max-height: 100%;
-  max-width: 125px;
-  width: auto;
+  max-width: 110px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+  filter: brightness(0) invert(1) drop-shadow(0 0 2px rgba(255, 255, 255, 0.7));
 }
 
-.sig-principal-name {
-  font-size: 0.82rem;
-  font-weight: 800;
+.sig-name-underline {
+  font-size: 0.72rem;
+  font-weight: 900;
   color: #FFFFFF;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  letter-spacing: 0.02em;
-  font-family: 'Outfit', sans-serif;
-}
-
-.back-legal-footer {
-  font-size: 0.48rem;
-  color: #64748B;
-  text-align: center;
-  margin-top: 4px;
+  border-bottom: 1.5px solid #F59E0B;
+  display: inline-block;
+  padding-bottom: 1px;
 }
 
 /* ── Bar Petunjuk Flip ── */

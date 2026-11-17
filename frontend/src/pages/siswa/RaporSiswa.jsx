@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
 import { RaporAPI, SiswaAPI } from '../../services/api.js';
 import { Printer } from 'lucide-react';
+import { formatTanggal } from '../../utils/formatters.js';
 import './RaporSiswa.css';
 
 export default function RaporSiswa() {
@@ -168,6 +169,16 @@ export default function RaporSiswa() {
   const studentName = profilSiswa?.nama_lengkap || user?.nama_lengkap || 'Warga Belajar';
   const studentRombel = profilSiswa?.nama_rombel || (profilSiswa?.jenjang ? profilSiswa.jenjang.toUpperCase() : 'Kelas Terpadu');
   const studentProgram = profilSiswa?.jenjang ? profilSiswa.jenjang.toUpperCase() : 'PAKET C';
+  const handlePrintPdf = () => {
+    const oldTitle = document.title;
+    const cleanName = (profilSiswa?.nama_lengkap || 'Siswa').replace(/[^a-zA-Z0-9]/g, '_');
+    document.title = `Rapor_PKBM_${cleanName}_Semester_${activeSemester}`;
+    window.print();
+    setTimeout(() => {
+      document.title = oldTitle;
+    }, 1000);
+  };
+
   const currentYear = new Date().getFullYear();
 
   return (
@@ -187,10 +198,11 @@ export default function RaporSiswa() {
               <button
                 type="button"
                 className="rapor-btn-print"
-                onClick={() => window.print()}
+                onClick={handlePrintPdf}
+                title="Simpan dokumen sebagai PDF atau cetak ke kertas A4 / F4 (HVS)"
               >
                 <Printer size={16} />
-                Cetak / Simpan PDF
+                Simpan PDF / Cetak (A4/F4)
               </button>
             </div>
           </div>
@@ -221,59 +233,87 @@ export default function RaporSiswa() {
           {/* ── LEMBAR RAPOR ASLI (TAMPILAN RESMI SEPERTI BUKU RAPOR) ── */}
           <section className="rapor-paper-sheet">
 
-            {/* Kop Surat Resmi */}
+            {/* Kop Surat Resmi PKBM Bina Mandiri */}
             <div className="rapor-kop-header">
               <img src="/images/logo new.png" alt="Logo PKBM" className="rapor-kop-logo" />
               <div className="rapor-kop-text">
-                <h3>KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</h3>
-                <h2>PKBM BINA MANDIRI SUMEDANG</h2>
-                <p><strong>NPSN: P9962854 • Terakreditasi Resmi</strong></p>
-                <p>Sekretariat: Sumedang, Jawa Barat | Website: pkbmbinamandiri.sch.id</p>
+                <h3 className="rapor-kop-yayasan">YAYASAN AMAL BINA INSANI DARULHUDA SUMEDANG</h3>
+                <h2 className="rapor-kop-pkbm">PUSAT KEGIATAN BELAJAR MASYARAKAT (PKBM)</h2>
+                <h1 className="rapor-kop-brand">BINA MANDIRI</h1>
+                <p className="rapor-kop-legal">
+                  <strong>No. SK Izin Operasional: 1190 Tahun 2025 | Tanggal: 08-08-2025 | NPSN: {detailRapor?.npsn || profilSiswa?.npsn || 'P2970848'}</strong>
+                </p>
+                <p className="rapor-kop-address">
+                  Alamat: Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab.Sumedang Prov. Jawa Barat Kode Pos 45381
+                </p>
+                <p className="rapor-kop-contact">
+                  Telp. 0823-1838-3605 | e-mail: pkbmbinamandiripaseh@gmail.com | website: pkbmbinamandiri.sch.id
+                </p>
+              </div>
+              <div className="rapor-kop-spacer"></div>
+            </div>
+
+            {/* Judul Dokumen Standar Rapor Indonesia */}
+            <div className="rapor-doc-title">
+              LAPORAN HASIL BELAJAR PESERTA DIDIK
+              <span className="rapor-doc-subtitle">(RAPOR)</span>
+            </div>
+
+            {/* Identitas Peserta Didik (Format Standar Rapor Indonesia) */}
+            <div className="rapor-identity-grid">
+              <div>
+                <table className="rapor-identity-table">
+                  <tbody>
+                    <tr>
+                      <td style={{ width: 145 }}>Nama Peserta Didik</td>
+                      <td style={{ width: 10 }}>:</td>
+                      <td><strong>{studentName}</strong></td>
+                    </tr>
+                    <tr>
+                      <td>NISN / NIS</td>
+                      <td>:</td>
+                      <td>{detailRapor?.nisn || profilSiswa?.nisn || '-'} / {displayNis || '-'}</td>
+                    </tr>
+                    <tr>
+                      <td>Nama Satuan Pendidikan</td>
+                      <td>:</td>
+                      <td>PKBM BINA MANDIRI</td>
+                    </tr>
+                    <tr>
+                      <td>Alamat Satuan Pendidikan</td>
+                      <td>:</td>
+                      <td>Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <table className="rapor-identity-table">
+                  <tbody>
+                    <tr>
+                      <td style={{ width: 125 }}>Kelas / Rombel</td>
+                      <td style={{ width: 10 }}>:</td>
+                      <td>{detailRapor?.nama_rombel || studentRombel}</td>
+                    </tr>
+                    <tr>
+                      <td>Fase / Program</td>
+                      <td>:</td>
+                      <td><strong>{studentProgram}</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Semester</td>
+                      <td>:</td>
+                      <td>{activeSemester} ({activeSemester === '1' ? 'Ganjil' : 'Genap'})</td>
+                    </tr>
+                    <tr>
+                      <td>Tahun Pelajaran</td>
+                      <td>:</td>
+                      <td>{detailRapor?.nama_tahun_ajaran || '2026/2027'}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
-
-            {/* Judul Dokumen */}
-            <div className="rapor-doc-title">
-              LAPORAN HASIL BELAJAR PESERTA DIDIK (RAPOR)
-            </div>
-
-            {/* Tabel Identitas Peserta Didik */}
-            <table className="rapor-identity-table">
-              <tbody>
-                <tr>
-                  <td style={{ width: 180 }}>Nama Peserta Didik</td>
-                  <td style={{ width: 10 }}>:</td>
-                  <td style={{ width: '42%' }}><strong>{studentName}</strong></td>
-                  <td style={{ width: 150 }}>Kelas / Rombel</td>
-                  <td style={{ width: 10 }}>:</td>
-                  <td>{detailRapor?.nama_rombel || studentRombel}</td>
-                </tr>
-                <tr>
-                  <td>Nomor Induk Siswa (NIS)</td>
-                  <td>:</td>
-                  <td><strong>{displayNis || '-'}</strong></td>
-                  <td>Semester</td>
-                  <td>:</td>
-                  <td>{activeSemester} ({activeSemester === '1' ? 'Ganjil' : 'Genap'})</td>
-                </tr>
-                <tr>
-                  <td>Nomor Induk Kependudukan</td>
-                  <td>:</td>
-                  <td>{detailRapor?.nik || profilSiswa?.nik || '-'}</td>
-                  <td>Tahun Pelajaran</td>
-                  <td>:</td>
-                  <td>{detailRapor?.nama_tahun_ajaran || '2026/2027'}</td>
-                </tr>
-                <tr>
-                  <td>Program Pendidikan</td>
-                  <td>:</td>
-                  <td>{studentProgram}</td>
-                  <td>Status Raport</td>
-                  <td>:</td>
-                  <td>{detailRapor?.status_rapor === 'final' ? 'Resmi / Sah' : 'Draf Salinan'}</td>
-                </tr>
-              </tbody>
-            </table>
 
             {/* Konten Nilai Rapor */}
             {loading || loadingDetail ? (
@@ -342,69 +382,102 @@ export default function RaporSiswa() {
                   </tbody>
                 </table>
 
-                {/* Rekapitulasi Ketidakhadiran */}
-                <div style={{ marginTop: 14 }}>
-                  <strong style={{ fontSize: '0.9rem', display: 'block', marginBottom: 4 }}>
-                    Rekapitulasi Ketidakhadiran:
-                  </strong>
-                  <table className="rapor-absen-table">
-                    <tbody>
-                      <tr>
-                        <td style={{ width: 160 }}>1. Sakit</td>
-                        <td>: {detailRapor.total_sakit || 0} hari</td>
-                      </tr>
-                      <tr>
-                        <td>2. Izin</td>
-                        <td>: {detailRapor.total_izin || 0} hari</td>
-                      </tr>
-                      <tr>
-                        <td>3. Tanpa Keterangan</td>
-                        <td>: {detailRapor.total_alpa || 0} hari</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Total Hari Hadir Belajar</strong></td>
-                        <td>: <strong>{detailRapor.total_hadir || 0} hari</strong></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                {/* Rekap Kehadiran & Catatan Wali Kelas (Side-by-Side Grid) */}
+                <div className="print-evaluation-grid">
+                  <div className="print-presensi-card">
+                    <div className="print-card-title">Rekapitulasi Kehadiran Siswa:</div>
+                    <table className="print-presensi-table">
+                      <tbody>
+                        <tr>
+                          <td style={{ width: '60%' }}>1. Sakit</td>
+                          <td style={{ width: '40%', textAlign: 'center' }}>{detailRapor.total_sakit || 0} hari</td>
+                        </tr>
+                        <tr>
+                          <td>2. Izin</td>
+                          <td style={{ textAlign: 'center' }}>{detailRapor.total_izin || 0} hari</td>
+                        </tr>
+                        <tr>
+                          <td>3. Tanpa Keterangan (Alpa)</td>
+                          <td style={{ textAlign: 'center' }}>{detailRapor.total_alpa || 0} hari</td>
+                        </tr>
+                        <tr className="print-presensi-total">
+                          <td>Total Kehadiran Belajar</td>
+                          <td style={{ textAlign: 'center' }}>{detailRapor.total_hadir || 0} hari</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
-                {/* Catatan Wali Kelas */}
-                <div className="rapor-notes-box">
-                  <strong>Catatan Wali Kelas / Tutor Pembimbing:</strong>
-                  <p>
-                    "{detailRapor.catatan_wali || 'Pertahankan semangat belajar dan terus tingkatkan kedisiplinan serta partisipasi aktif dalam pembelajaran mandiri dan tatap muka.'}"
-                  </p>
+                  <div className="print-catatan-card">
+                    <div className="print-card-title">Catatan Wali Kelas / Pembimbing:</div>
+                    <div className="print-catatan-body">
+                      <p>
+                        "{detailRapor.catatan_wali || 'Ananda menunjukkan kemajuan belajar yang sangat positif, aktif berpartisipasi, dan memiliki kedisiplinan yang baik. Pertahankan prestasimu!'}"
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </>
             )}
 
             {/* Kolom Tanda Tangan 3 Pihak */}
-            <div className="rapor-signature-grid">
-              <div className="signature-column">
-                <span>Mengetahui,<br />Orang Tua / Wali Peserta Didik</span>
-                <span className="signature-line">................................................</span>
+            <div className="print-ttd-grid">
+              <div className="ttd-box">
+                <div className="ttd-header">
+                  <div>Mengetahui,</div>
+                  <div>Orang Tua / Wali Peserta Didik</div>
+                </div>
+                <div className="ttd-space"></div>
+                <div className="ttd-footer">
+                  <span className="ttd-name-line">( .................................................... )</span>
+                </div>
               </div>
 
-              <div className="signature-column">
-                <span><br />Tutor Pembimbing / Wali Kelas</span>
-                <span className="signature-line">................................................</span>
+              <div className="ttd-box">
+                <div className="ttd-header">
+                  <div>Mengetahui / Mengesahkan,</div>
+                  <div>Wali Kelas / Tutor Pembimbing</div>
+                </div>
+                <div className="ttd-space"></div>
+                <div className="ttd-footer">
+                  <span className="ttd-name-line">
+                    {detailRapor?.nama_wali_kelas || '( .................................................... )'}
+                  </span>
+                </div>
               </div>
 
-              <div className="signature-column">
-                <span>
-                  Sumedang, {currentYear}<br />
-                  <strong>Kepala PKBM Bina Mandiri</strong>
-                </span>
-                <div className="signature-img-wrap">
+              <div className="ttd-box">
+                <div className="ttd-header">
+                  <div>Sumedang, {formatTanggal(detailRapor?.tanggal_rapor || detailRapor?.created_at || new Date().toISOString())}</div>
+                  <div><strong>Kepala PKBM Bina Mandiri</strong></div>
+                </div>
+                <div className="ttd-space ttd-stamp-wrap">
+                  {/* Stempel Resmi PKBM Bina Mandiri */}
                   <img
-                    src="/ttd.png"
-                    alt="Tanda Tangan"
-                    className="signature-img"
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    src="/stempel_pkbm.svg"
+                    alt="Stempel Resmi PKBM"
+                    className="ttd-stamp-img"
+                    onError={(e) => {
+                      if (!e.currentTarget.src.includes('images/stempel_pkbm.svg')) {
+                        e.currentTarget.src = '/images/stempel_pkbm.svg';
+                      }
+                    }}
+                  />
+                  {/* Tanda Tangan Resmi Kepala Lembaga */}
+                  <img
+                    src="/ttd_black.png"
+                    alt="Tanda Tangan Resmi Kepala PKBM"
+                    className="ttd-img"
+                    onError={(e) => {
+                      if (!e.currentTarget.src.includes('ttd.png')) {
+                        e.currentTarget.src = '/ttd.png';
+                      }
+                    }}
                   />
                 </div>
-                <span className="signature-line">Indrayani, S.S.,M.Pd.</span>
+                <div className="ttd-footer">
+                  <span className="ttd-name-official">Indrayani, S.S., M.Pd.</span>
+                </div>
               </div>
             </div>
 

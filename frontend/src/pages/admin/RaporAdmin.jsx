@@ -24,7 +24,15 @@ import {
   Save,
   AlertCircle
 } from 'lucide-react';
+import { formatTanggal } from '../../utils/formatters.js';
 import './RaporAdmin.css';
+
+const formatScore = (val) => {
+  if (val === null || val === undefined || val === '') return '-';
+  const num = Number(val);
+  if (isNaN(num)) return val;
+  return num % 1 === 0 ? num.toString() : num.toFixed(1);
+};
 
 export default function RaporAdmin() {
   const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
@@ -459,6 +467,18 @@ export default function RaporAdmin() {
   };
 
   // ── Handlers Print / Preview ───────────────────────────────
+  const handlePrintPdf = () => {
+    if (!printData) return;
+    const oldTitle = document.title;
+    const cleanName = (printData.nama_lengkap || 'Warga_Belajar').replace(/[^a-zA-Z0-9]/g, '_');
+    const sem = printData.semester ? `Semester_${printData.semester}` : '';
+    document.title = `Rapor_PKBM_${cleanName}_${sem}`;
+    window.print();
+    setTimeout(() => {
+      document.title = oldTitle;
+    }, 1000);
+  };
+
   const handleOpenPrint = async (raporId) => {
     try {
       setLoadingPrint(true);
@@ -1091,10 +1111,11 @@ export default function RaporAdmin() {
                     <button
                       type="button"
                       className="rapor-btn-primary"
-                      onClick={() => window.print()}
+                      onClick={handlePrintPdf}
+                      title="Simpan dokumen sebagai PDF atau cetak ke kertas A4 / F4 (HVS)"
                     >
                       <Printer size={16} />
-                      Cetak / Simpan PDF
+                      Simpan PDF / Cetak (A4/F4)
                     </button>
                     <button
                       type="button"
@@ -1106,70 +1127,93 @@ export default function RaporAdmin() {
                   </div>
                 </div>
 
-                <div className="rapor-modal-body" style={{ background: '#525659', padding: '24px 20px' }}>
+                <div className="rapor-modal-body rapor-print-modal-body">
                   {loadingPrint || !printData ? (
                     <div style={{ background: '#FFFFFF', padding: '60px', textAlign: 'center', borderRadius: 8 }}>
                       Memuat dokumen rapor...
                     </div>
                   ) : (
-                    <div className="rapor-print-paper">
+                    <>
+                      <div className="mobile-scroll-hint">
+                        <span>💡 Geser lembar rapor ke samping untuk membaca seluruh tabel & nilai.</span>
+                      </div>
+                      <div className="rapor-print-paper-wrapper">
+                        <div className="rapor-print-paper">
                       {/* Kop Surat Resmi PKBM Bina Mandiri */}
                       <div className="print-kop-surat">
                         <img src="/images/logo new.png" alt="Logo PKBM" className="print-logo" />
                         <div className="print-kop-text">
-                          <h2>KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</h2>
-                          <h1>PKBM BINA MANDIRI SUMEDANG</h1>
-                          <p><strong>NPSN: P9962854 • Terakreditasi Resmi</strong></p>
-                          <p>Sekretariat: Sumedang, Jawa Barat | Website: pkbmbinamandiri.sch.id</p>
+                          <h3 className="print-kop-yayasan">YAYASAN AMAL BINA INSANI DARULHUDA SUMEDANG</h3>
+                          <h2 className="print-kop-pkbm">PUSAT KEGIATAN BELAJAR MASYARAKAT (PKBM)</h2>
+                          <h1 className="print-kop-brand">BINA MANDIRI</h1>
+                          <p className="print-kop-legal">
+                            <strong>No. SK Izin Operasional: 1190 Tahun 2025 | Tanggal: 08-08-2025 | NPSN: {printData?.npsn || 'P2970848'}</strong>
+                          </p>
+                          <p className="print-kop-address">
+                            Alamat: Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab.Sumedang Prov. Jawa Barat Kode Pos 45381
+                          </p>
+                          <p className="print-kop-contact">
+                            Telp. 0823-1838-3605 | e-mail: pkbmbinamandiripaseh@gmail.com | website: pkbmbinamandiri.sch.id
+                          </p>
                         </div>
+                        <div className="print-kop-spacer"></div>
                       </div>
 
                       <div className="print-title">
-                        LAPORAN HASIL BELAJAR PESERTA DIDIK (RAPOR DIGITAL)
+                        LAPORAN HASIL BELAJAR PESERTA DIDIK
+                        <span className="print-subtitle">(RAPOR)</span>
                       </div>
 
-                      {/* Identitas Peserta Didik */}
+                      {/* Identitas Peserta Didik (Format Standar Rapor Indonesia) */}
                       <div className="print-identitas-grid">
                         <div>
-                          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                          <table className="print-identitas-table">
                             <tbody>
                               <tr>
-                                <td style={{ width: 140, padding: '3px 0' }}>Nama Warga Belajar</td>
-                                <td>: <strong>{printData.nama_lengkap}</strong></td>
+                                <td style={{ width: 145 }}>Nama Peserta Didik</td>
+                                <td style={{ width: 10 }}>:</td>
+                                <td><strong>{printData.nama_lengkap}</strong></td>
                               </tr>
                               <tr>
-                                <td style={{ padding: '3px 0' }}>Nomor Induk Siswa (NIS)</td>
-                                <td>: {(printData.nis || '').replace('PKBM-2025-', 'PKBM-2026-') || '-'}</td>
+                                <td>NISN / NIS</td>
+                                <td>:</td>
+                                <td>{printData.nisn || '-'} / {(printData.nis || '').replace('PKBM-2025-', 'PKBM-2026-') || '-'}</td>
                               </tr>
                               <tr>
-                                <td style={{ padding: '3px 0' }}>NIK Siswa</td>
-                                <td>: {printData.nik || '-'}</td>
+                                <td>Nama Satuan Pendidikan</td>
+                                <td>:</td>
+                                <td>PKBM BINA MANDIRI</td>
                               </tr>
                               <tr>
-                                <td style={{ padding: '3px 0' }}>Program Pendidikan</td>
-                                <td>: {printData.jenjang ? printData.jenjang.toUpperCase() : '-'}</td>
+                                <td>Alamat Satuan Pendidikan</td>
+                                <td>:</td>
+                                <td>Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang</td>
                               </tr>
                             </tbody>
                           </table>
                         </div>
                         <div>
-                          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                          <table className="print-identitas-table">
                             <tbody>
                               <tr>
-                                <td style={{ width: 120, padding: '3px 0' }}>Kelas / Rombel</td>
-                                <td>: {printData.nama_rombel || '-'}</td>
+                                <td style={{ width: 125 }}>Kelas / Rombel</td>
+                                <td style={{ width: 10 }}>:</td>
+                                <td>{printData.nama_rombel || '-'}</td>
                               </tr>
                               <tr>
-                                <td style={{ padding: '3px 0' }}>Semester</td>
-                                <td>: {printData.semester} ({printData.semester === '1' ? 'Ganjil' : 'Genap'})</td>
+                                <td>Fase / Program</td>
+                                <td>:</td>
+                                <td><strong>{(printData.jenjang || '-').replace('_', ' ').toUpperCase()}</strong></td>
                               </tr>
                               <tr>
-                                <td style={{ padding: '3px 0' }}>Tahun Pelajaran</td>
-                                <td>: {printData.nama_tahun_ajaran || '-'}</td>
+                                <td>Semester</td>
+                                <td>:</td>
+                                <td>{printData.semester} ({printData.semester === '1' ? 'Ganjil' : 'Genap'})</td>
                               </tr>
                               <tr>
-                                <td style={{ padding: '3px 0' }}>Status Dokumen</td>
-                                <td>: {printData.status_rapor === 'final' ? 'Resmi / Sah' : 'Draf Salinan'}</td>
+                                <td>Tahun Pelajaran</td>
+                                <td>:</td>
+                                <td>{printData.nama_tahun_ajaran || '2026/2027'}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -1183,12 +1227,12 @@ export default function RaporAdmin() {
                             <th style={{ width: 35 }}>No</th>
                             <th style={{ textAlign: 'left' }}>Mata Pelajaran</th>
                             <th style={{ width: 50 }}>KKM</th>
-                            <th style={{ width: 60 }}>Tugas</th>
-                            <th style={{ width: 60 }}>UTS</th>
-                            <th style={{ width: 60 }}>UAS</th>
+                            <th style={{ width: 55 }}>Tugas</th>
+                            <th style={{ width: 55 }}>UTS</th>
+                            <th style={{ width: 55 }}>UAS</th>
                             <th style={{ width: 75 }}>Nilai Akhir</th>
                             <th style={{ width: 65 }}>Predikat</th>
-                            <th>Capaian Kompetensi / Catatan</th>
+                            <th>Capaian Kompetensi / Catatan Pembelajaran</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1198,12 +1242,12 @@ export default function RaporAdmin() {
                                 <td style={{ textAlign: 'center' }}>{idx + 1}</td>
                                 <td><strong>{n.nama_mapel}</strong></td>
                                 <td style={{ textAlign: 'center' }}>{n.kkm || 75}</td>
-                                <td style={{ textAlign: 'center' }}>{n.nilai_tugas}</td>
-                                <td style={{ textAlign: 'center' }}>{n.nilai_uts}</td>
-                                <td style={{ textAlign: 'center' }}>{n.nilai_uas}</td>
-                                <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{n.nilai_akhir}</td>
+                                <td style={{ textAlign: 'center' }}>{formatScore(n.nilai_tugas)}</td>
+                                <td style={{ textAlign: 'center' }}>{formatScore(n.nilai_uts)}</td>
+                                <td style={{ textAlign: 'center' }}>{formatScore(n.nilai_uas)}</td>
+                                <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{formatScore(n.nilai_akhir)}</td>
                                 <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{n.predikat}</td>
-                                <td style={{ fontSize: '0.8rem' }}>{n.catatan || '-'}</td>
+                                <td style={{ fontSize: '0.82rem', lineHeight: 1.35 }}>{n.catatan || '-'}</td>
                               </tr>
                             ))
                           ) : (
@@ -1217,85 +1261,120 @@ export default function RaporAdmin() {
                             <td colSpan="6" style={{ textAlign: 'right', paddingRight: '12px' }}>
                               RATA-RATA NILAI KESELURUHAN:
                             </td>
-                            <td style={{ textAlign: 'center', fontSize: '0.95rem' }}>
-                              {printData.rata_rata || printData.rata_rata_nilai || '0'}
+                            <td style={{ textAlign: 'center', fontSize: '0.95rem', fontWeight: 'bold' }}>
+                              {formatScore(printData.rata_rata || printData.rata_rata_nilai || '0')}
                             </td>
-                            <td style={{ textAlign: 'center' }}>
+                            <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
                               {Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 85 ? 'A' : Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 75 ? 'B' : Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 60 ? 'C' : 'D'}
                             </td>
-                            <td></td>
+                            <td style={{ fontSize: '0.8rem', fontStyle: 'italic', color: '#334155' }}>
+                              {Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 85 ? 'Capaian Sangat Baik' : Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 75 ? 'Capaian Baik' : Number(printData.rata_rata || printData.rata_rata_nilai || 0) >= 60 ? 'Cukup' : 'Perlu Bimbingan'}
+                            </td>
                           </tr>
                         </tbody>
                       </table>
 
-                      {/* Rekap Kehadiran */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 14 }}>
-                        <div>
-                          <strong style={{ fontSize: '0.88rem', display: 'block', marginBottom: 4 }}>
-                            Rekapitulasi Ketidakhadiran:
-                          </strong>
-                          <table className="print-absen-box">
+                      {/* Rekap Kehadiran & Catatan Wali Kelas (Side-by-Side Grid) */}
+                      <div className="print-evaluation-grid">
+                        <div className="print-presensi-card">
+                          <div className="print-card-title">Rekapitulasi Kehadiran Siswa:</div>
+                          <table className="print-presensi-table">
                             <tbody>
                               <tr>
-                                <td style={{ width: 140 }}>1. Sakit</td>
-                                <td>: {printData.total_sakit || 0} hari</td>
+                                <td style={{ width: '60%' }}>1. Sakit</td>
+                                <td style={{ width: '40%', textAlign: 'center' }}>{printData.total_sakit || 0} hari</td>
                               </tr>
                               <tr>
                                 <td>2. Izin</td>
-                                <td>: {printData.total_izin || 0} hari</td>
+                                <td style={{ textAlign: 'center' }}>{printData.total_izin || 0} hari</td>
                               </tr>
                               <tr>
-                                <td>3. Tanpa Keterangan</td>
-                                <td>: {printData.total_alpa || 0} hari</td>
+                                <td>3. Tanpa Keterangan (Alpa)</td>
+                                <td style={{ textAlign: 'center' }}>{printData.total_alpa || 0} hari</td>
                               </tr>
-                              <tr>
-                                <td><strong>Total Kehadiran</strong></td>
-                                <td>: <strong>{printData.total_hadir || 0} hari</strong></td>
+                              <tr className="print-presensi-total">
+                                <td>Total Kehadiran Belajar</td>
+                                <td style={{ textAlign: 'center' }}>{printData.total_hadir || 0} hari</td>
                               </tr>
                             </tbody>
                           </table>
                         </div>
+
+                        <div className="print-catatan-card">
+                          <div className="print-card-title">Catatan Wali Kelas / Pembimbing:</div>
+                          <div className="print-catatan-body">
+                            <p>
+                              "{printData.catatan_wali || 'Ananda menunjukkan kemajuan belajar yang sangat positif, aktif berpartisipasi, dan memiliki kedisiplinan yang baik. Pertahankan prestasimu!'}"
+                            </p>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Catatan Wali Kelas */}
-                      <div className="print-catatan-box">
-                        <strong>Catatan Wali Kelas / Pembimbing:</strong>
-                        <p style={{ margin: '6px 0 0 0', fontStyle: 'italic' }}>
-                          "{printData.catatan_wali || 'Pertahankan semangat belajar dan terus kembangkan bakat serta potensi diri.'}"
-                        </p>
-                      </div>
-
-                      {/* Kolom Tanda Tangan */}
+                      {/* Kolom Tanda Tangan 3 Pihak */}
                       <div className="print-ttd-grid">
                         <div className="ttd-box">
-                          <span>Mengetahui,<br />Orang Tua / Wali Siswa</span>
-                          <span className="ttd-line">................................................</span>
+                          <div className="ttd-header">
+                            <div>Mengetahui,</div>
+                            <div>Orang Tua / Wali Peserta Didik</div>
+                          </div>
+                          <div className="ttd-space"></div>
+                          <div className="ttd-footer">
+                            <span className="ttd-name-line">( .................................................... )</span>
+                          </div>
                         </div>
 
                         <div className="ttd-box">
-                          <span><br />Tutor Pembimbing / Wali Kelas</span>
-                          <span className="ttd-line">................................................</span>
+                          <div className="ttd-header">
+                            <div>Mengetahui / Mengesahkan,</div>
+                            <div>Wali Kelas / Tutor Pembimbing</div>
+                          </div>
+                          <div className="ttd-space"></div>
+                          <div className="ttd-footer">
+                            <span className="ttd-name-line">
+                              {printData.nama_wali_kelas || '( .................................................... )'}
+                            </span>
+                          </div>
                         </div>
 
                         <div className="ttd-box">
-                          <span>
-                            Sumedang, {new Date().getFullYear()}<br />
-                            <strong>Kepala PKBM Bina Mandiri</strong>
-                          </span>
-                          <div style={{ margin: '4px 0' }}>
+                          <div className="ttd-header">
+                            <div>Sumedang, {formatTanggal(printData.tanggal_rapor || printData.created_at || new Date().toISOString())}</div>
+                            <div><strong>Kepala PKBM Bina Mandiri</strong></div>
+                          </div>
+                          <div className="ttd-space ttd-stamp-wrap">
+                            {/* Stempel Resmi PKBM Bina Mandiri */}
                             <img
-                              src="/ttd.png"
-                              alt="Tanda Tangan"
-                              style={{ height: 48, filter: 'invert(1) grayscale(1)', opacity: 0.85 }}
-                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              src="/stempel_pkbm.svg"
+                              alt="Stempel Resmi PKBM"
+                              className="ttd-stamp-img"
+                              onError={(e) => {
+                                if (!e.currentTarget.src.includes('images/stempel_pkbm.svg')) {
+                                  e.currentTarget.src = '/images/stempel_pkbm.svg';
+                                }
+                              }}
+                            />
+                            {/* Tanda Tangan Resmi Kepala Lembaga */}
+                            <img
+                              src="/ttd_black.png"
+                              alt="Tanda Tangan Resmi Kepala PKBM"
+                              className="ttd-img"
+                              onError={(e) => {
+                                if (!e.currentTarget.src.includes('ttd.png')) {
+                                  e.currentTarget.src = '/ttd.png';
+                                }
+                              }}
                             />
                           </div>
-                          <span className="ttd-line">Indrayani, S.S.,M.Pd.</span>
+                          <div className="ttd-footer">
+                            <span className="ttd-name-official">Indrayani, S.S., M.Pd.</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                </>
+              )}
+            </div>
               </div>
             </div>
           )}

@@ -3718,7 +3718,7 @@ export default function HomePage() {
                 </div>
               </div>
               <p style={{ fontSize: "0.84rem", lineHeight: 1.7, color: "rgba(255, 255, 255, 0.7)" }}>
-                Penyelenggara Resmi Pendidikan Kesetaraan Paket A, B, dan C. Terakreditasi dan dibina oleh Dinas Pendidikan Kabupaten Sumedang di bawah naungan Yayasan Amal Bina Insani Darulhuda.
+                Penyelenggara Resmi Pendidikan Kesetaraan Paket A, B, dan C. Dibina oleh Dinas Pendidikan Kabupaten Sumedang di bawah naungan Yayasan Amal Bina Insani Darulhuda.
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14 }}>
                 <a

@@ -24,14 +24,14 @@ const SpmbModel = {
     nama_lengkap, email, nik, no_telp, jenjang_daftar,
     tanggal_lahir, jenis_kelamin, alamat,
     jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
-    nama_wali, password_hash, tahun_ajaran_id
+    nama_ayah, nama_ibu, nama_wali, password_hash, tahun_ajaran_id
   }) => {
     const sql = `
       INSERT INTO pendaftar_spmb
         (nama_lengkap, email, nik, password_hash, no_telp, jenjang_daftar, tanggal_lahir,
          jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
-         nama_wali, tahun_ajaran_id, status, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
+         nama_ayah, nama_ibu, nama_wali, tahun_ajaran_id, status, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
     `;
     const params = [
       nama_lengkap, email, nik || null, password_hash, no_telp, jenjang_daftar,
@@ -40,7 +40,7 @@ const SpmbModel = {
       tinggi_badan !== undefined && tinggi_badan !== '' && tinggi_badan !== null ? tinggi_badan : null,
       berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? berat_badan : null,
       jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' && jumlah_saudara_kandung !== null ? jumlah_saudara_kandung : null,
-      nama_wali, tahun_ajaran_id
+      nama_ayah || null, nama_ibu || null, nama_wali || nama_ibu || nama_ayah || null, tahun_ajaran_id
     ];
     const [result] = await pool.execute(sql, params);
     return result.insertId;
@@ -66,6 +66,8 @@ const SpmbModel = {
         ps.tinggi_badan,
         ps.berat_badan,
         ps.jumlah_saudara_kandung,
+        ps.nama_ayah,
+        ps.nama_ibu,
         ps.nama_wali,
         ps.status,
         ps.catatan_verifikasi,
@@ -118,6 +120,8 @@ const SpmbModel = {
         ps.tinggi_badan,
         ps.berat_badan,
         ps.jumlah_saudara_kandung,
+        ps.nama_ayah,
+        ps.nama_ibu,
         ps.nama_wali,
         ps.status,
         ps.catatan_verifikasi,
@@ -221,6 +225,82 @@ const SpmbModel = {
       WHERE id = ?
     `;
     const [result] = await pool.execute(sql, [status_verifikasi, catatan || null, berkas_id]);
+    return result.affectedRows;
+  },
+
+  // -----------------------------------------------------------
+  // Update data pendaftar (oleh Admin TU: nama ayah, nama ibu, dll)
+  // -----------------------------------------------------------
+  update: async (id, data = {}) => {
+    const fields = [];
+    const params = [];
+
+    if (data.nama_lengkap !== undefined) {
+      fields.push('nama_lengkap = ?');
+      params.push(data.nama_lengkap);
+    }
+    if (data.email !== undefined) {
+      fields.push('email = ?');
+      params.push(data.email);
+    }
+    if (data.nik !== undefined) {
+      fields.push('nik = ?');
+      params.push(data.nik || null);
+    }
+    if (data.no_telp !== undefined) {
+      fields.push('no_telp = ?');
+      params.push(data.no_telp);
+    }
+    if (data.jenjang_daftar !== undefined) {
+      fields.push('jenjang_daftar = ?');
+      params.push(data.jenjang_daftar);
+    }
+    if (data.tanggal_lahir !== undefined) {
+      fields.push('tanggal_lahir = ?');
+      params.push(data.tanggal_lahir);
+    }
+    if (data.jenis_kelamin !== undefined) {
+      fields.push('jenis_kelamin = ?');
+      params.push(data.jenis_kelamin);
+    }
+    if (data.alamat !== undefined) {
+      fields.push('alamat = ?');
+      params.push(data.alamat);
+    }
+    if (data.jarak_rumah_km !== undefined) {
+      fields.push('jarak_rumah_km = ?');
+      params.push(data.jarak_rumah_km !== '' && data.jarak_rumah_km !== null ? parseFloat(data.jarak_rumah_km) : null);
+    }
+    if (data.tinggi_badan !== undefined) {
+      fields.push('tinggi_badan = ?');
+      params.push(data.tinggi_badan !== '' && data.tinggi_badan !== null ? parseInt(data.tinggi_badan, 10) : null);
+    }
+    if (data.berat_badan !== undefined) {
+      fields.push('berat_badan = ?');
+      params.push(data.berat_badan !== '' && data.berat_badan !== null ? parseFloat(data.berat_badan) : null);
+    }
+    if (data.jumlah_saudara_kandung !== undefined) {
+      fields.push('jumlah_saudara_kandung = ?');
+      params.push(data.jumlah_saudara_kandung !== '' && data.jumlah_saudara_kandung !== null ? parseInt(data.jumlah_saudara_kandung, 10) : null);
+    }
+    if (data.nama_ayah !== undefined) {
+      fields.push('nama_ayah = ?');
+      params.push(data.nama_ayah || null);
+    }
+    if (data.nama_ibu !== undefined) {
+      fields.push('nama_ibu = ?');
+      params.push(data.nama_ibu || null);
+    }
+    if (data.nama_wali !== undefined) {
+      fields.push('nama_wali = ?');
+      params.push(data.nama_wali || null);
+    }
+
+    if (fields.length === 0) return 0;
+
+    params.push(id);
+    const sql = `UPDATE pendaftar_spmb SET ${fields.join(', ')} WHERE id = ?`;
+    const [result] = await pool.execute(sql, params);
     return result.affectedRows;
   },
 

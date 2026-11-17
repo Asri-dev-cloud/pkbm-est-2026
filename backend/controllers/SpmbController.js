@@ -61,10 +61,10 @@ const SpmbController = {
     const uploadedFiles = [];
     try {
       const {
-        nama_lengkap, email, nik, no_telp, jenjang_daftar,
+        nama_lengkap, email, nik, npsn, nisn, no_telp, jenjang_daftar,
         tanggal_lahir, jenis_kelamin, alamat,
         jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
-        nama_wali, password,
+        nama_ayah, nama_ibu, nama_wali, password,
       } = req.body;
 
       // Ambil berkas dari Multer upload.fields
@@ -81,13 +81,17 @@ const SpmbController = {
       if (fileIjazah) uploadedFiles.push(fileIjazah);
       if (fileFoto) uploadedFiles.push(fileFoto);
 
-      // 1. Validasi field wajib data diri
+      const effectiveNamaAyah = (nama_ayah || '').trim();
+      const effectiveNamaIbu = (nama_ibu || '').trim();
+      const effectiveNamaWali = (nama_wali || '').trim() || effectiveNamaIbu || effectiveNamaAyah || 'Orang Tua / Wali';
+
+      // 1. Validasi field wajib data diri (Wajib: Nama Ayah/Bapak dan Nama Ibu)
       if (!nama_lengkap || !email || !no_telp || !jenjang_daftar ||
-          !tanggal_lahir || !jenis_kelamin || !alamat || !nama_wali || !password) {
+          !tanggal_lahir || !jenis_kelamin || !alamat || !effectiveNamaAyah || !effectiveNamaIbu || !password) {
         cleanUploadedFiles(uploadedFiles);
         return res.status(400).json({
           success: false,
-          message: 'Semua kolom formulir bertanda (*) wajib diisi lengkap.',
+          message: 'Semua kolom formulir bertanda (*) termasuk Nama Ayah/Bapak dan Nama Ibu Kandung wajib diisi lengkap.',
         });
       }
 
@@ -173,15 +177,17 @@ const SpmbController = {
 
       const sqlPendaftar = `
         INSERT INTO pendaftar_spmb
-          (nama_lengkap, email, nik, password_hash, no_telp, jenjang_daftar, tanggal_lahir,
+          (nama_lengkap, email, nik, npsn, nisn, password_hash, no_telp, jenjang_daftar, tanggal_lahir,
            jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
-           nama_wali, tahun_ajaran_id, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
+           nama_ayah, nama_ibu, nama_wali, tahun_ajaran_id, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
       `;
       const paramsPendaftar = [
         nama_lengkap.trim(),
         email.trim(),
         nik ? nik.trim() : null,
+        npsn ? String(npsn).trim() : 'P9962854',
+        nisn ? String(nisn).trim() : null,
         password_hash,
         no_telp.trim(),
         jenjang_daftar,
@@ -192,7 +198,9 @@ const SpmbController = {
         tinggi_badan !== undefined && tinggi_badan !== '' && tinggi_badan !== null ? parseInt(tinggi_badan, 10) : null,
         berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? Math.round(parseFloat(berat_badan)) : null,
         jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' && jumlah_saudara_kandung !== null ? parseInt(jumlah_saudara_kandung, 10) : 0,
-        nama_wali.trim(),
+        effectiveNamaAyah || null,
+        effectiveNamaIbu || null,
+        effectiveNamaWali,
         tahun_ajaran_id
       ];
 
@@ -931,6 +939,59 @@ const SpmbController = {
       });
     }
   },
+
+  // -----------------------------------------------------------
+  // PUT /api/spmb/:id  [Admin, Super Admin]
+  // Update data pendaftar oleh Admin TU (nama ayah, nama ibu, wali, dll)
+  // -----------------------------------------------------------
+  updatePendaftar: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const pendaftarId = parseInt(id, 10);
+      if (isNaN(pendaftarId)) {
+        return res.status(400).json({ success: false, message: 'ID pendaftar tidak valid.' });
+      }
+
+      const existing = await SpmbModel.findById(pendaftarId);
+      if (!existing) {
+        return res.status(404).json({ success: false, message: 'Pendaftar tidak ditemukan.' });
+      }
+
+      const {
+        nama_lengkap, email, nik, no_telp, jenjang_daftar, tanggal_lahir, jenis_kelamin,
+        alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
+        nama_ayah, nama_ibu, nama_wali
+      } = req.body;
+
+      await SpmbModel.update(pendaftarId, {
+        nama_lengkap, email, nik, no_telp, jenjang_daftar, tanggal_lahir, jenis_kelamin,
+        alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
+        nama_ayah, nama_ibu, nama_wali
+      });
+
+      // Jika pendaftar sudah memiliki akun warga_belajar, sinkronkan juga ke tabel warga_belajar
+      if (existing.warga_belajar_id) {
+        await SiswaModel.update(existing.warga_belajar_id, {
+          alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
+          nama_ayah, nama_ibu, nama_wali, no_telp, nik
+        });
+      }
+
+      const updated = await SpmbModel.findById(pendaftarId);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Data pendaftar berhasil diperbarui oleh Admin.',
+        data: updated
+      });
+    } catch (error) {
+      console.error('[SpmbController.updatePendaftar] Error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal memperbarui data pendaftar: ' + error.message
+      });
+    }
+  },
 };
 
 // -----------------------------------------------------------
@@ -1010,7 +1071,11 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
          berat_badan = COALESCE(?, berat_badan),
          jumlah_saudara_kandung = COALESCE(?, jumlah_saudara_kandung),
          nik = COALESCE(?, nik),
+         npsn = COALESCE(?, npsn, 'P9962854'),
+         nisn = COALESCE(?, nisn),
          alamat = COALESCE(?, alamat),
+         nama_ayah = COALESCE(?, nama_ayah),
+         nama_ibu = COALESCE(?, nama_ibu),
          nama_wali = COALESCE(?, nama_wali),
          no_telp = COALESCE(?, no_telp)
        WHERE id = ?`,
@@ -1021,7 +1086,11 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
         pendaftar.berat_badan || null,
         pendaftar.jumlah_saudara_kandung !== undefined && pendaftar.jumlah_saudara_kandung !== null ? pendaftar.jumlah_saudara_kandung : null,
         pendaftar.nik || null,
+        pendaftar.npsn || null,
+        pendaftar.nisn || null,
         pendaftar.alamat || null,
+        pendaftar.nama_ayah || null,
+        pendaftar.nama_ibu || null,
         pendaftar.nama_wali || null,
         pendaftar.no_telp || null,
         wbId
@@ -1034,14 +1103,16 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
 
     const [wbResult] = await pool.execute(
       `INSERT INTO warga_belajar
-        (user_id, nis, nik, jenjang, tanggal_lahir, jenis_kelamin, alamat,
+        (user_id, nis, nik, npsn, nisn, jenjang, tanggal_lahir, jenis_kelamin, alamat,
          jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
-         nama_wali, no_telp, rombel_id, tahun_ajaran_id, is_aktif, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())`,
+         nama_ayah, nama_ibu, nama_wali, no_telp, rombel_id, tahun_ajaran_id, is_aktif, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())`,
       [
         userId,
         nis,
         pendaftar.nik || null,
+        pendaftar.npsn || 'P9962854',
+        pendaftar.nisn || null,
         pendaftar.jenjang_daftar,
         pendaftar.tanggal_lahir,
         pendaftar.jenis_kelamin,
@@ -1050,7 +1121,9 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
         pendaftar.tinggi_badan || null,
         pendaftar.berat_badan || null,
         pendaftar.jumlah_saudara_kandung !== undefined && pendaftar.jumlah_saudara_kandung !== null ? pendaftar.jumlah_saudara_kandung : null,
-        pendaftar.nama_wali,
+        pendaftar.nama_ayah || null,
+        pendaftar.nama_ibu || null,
+        pendaftar.nama_wali || null,
         pendaftar.no_telp,
         chosenRombelId,
         tahun_ajaran_id,

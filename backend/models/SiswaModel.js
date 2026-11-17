@@ -19,6 +19,8 @@ const SiswaModel = {
         wb.id,
         wb.nis,
         wb.nik,
+        COALESCE(wb.npsn, 'P9962854') AS npsn,
+        wb.nisn,
         wb.user_id,
         u.nama_lengkap,
         u.email,
@@ -34,6 +36,8 @@ const SiswaModel = {
         wb.tinggi_badan,
         wb.berat_badan,
         wb.jumlah_saudara_kandung,
+        wb.nama_ayah,
+        wb.nama_ibu,
         wb.nama_wali,
         wb.no_telp,
         wb.is_aktif,
@@ -199,51 +203,90 @@ const SiswaModel = {
   // Buat profil Warga Belajar baru
   // Dipanggil otomatis oleh pipeline SPMB saat status = 'diterima'
   // -----------------------------------------------------------
-  create: async ({ user_id, nis, nik, jenjang, tanggal_lahir, jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung, nama_wali, no_telp, rombel_id, tahun_ajaran_id }) => {
+  create: async ({ user_id, nis, nik, npsn, nisn, jenjang, tanggal_lahir, jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung, nama_ayah, nama_ibu, nama_wali, no_telp, rombel_id, tahun_ajaran_id }) => {
     const sql = `
       INSERT INTO warga_belajar
-        (user_id, nis, nik, jenjang, tanggal_lahir, jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung, nama_wali, no_telp, rombel_id, tahun_ajaran_id, is_aktif, created_at)
+        (user_id, nis, nik, npsn, nisn, jenjang, tanggal_lahir, jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung, nama_ayah, nama_ibu, nama_wali, no_telp, rombel_id, tahun_ajaran_id, is_aktif, created_at)
       VALUES
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
     `;
     const params = [
-      user_id, nis, nik || null, jenjang, tanggal_lahir, jenis_kelamin, alamat,
+      user_id, nis, nik || null, npsn ? String(npsn).trim() : 'P9962854', nisn ? String(nisn).trim() : null,
+      jenjang, tanggal_lahir, jenis_kelamin, alamat,
       jarak_rumah_km || null, tinggi_badan || null, berat_badan || null,
       jumlah_saudara_kandung !== undefined ? jumlah_saudara_kandung : null,
-      nama_wali, no_telp, rombel_id, tahun_ajaran_id
+      nama_ayah || null, nama_ibu || null, nama_wali || null, no_telp, rombel_id, tahun_ajaran_id
     ];
     const [result] = await pool.execute(sql, params);
     return result.insertId;
   },
 
   // -----------------------------------------------------------
-  // Update data profil Warga Belajar
+  // Update data profil Warga Belajar (termasuk NPSN & Dapodik)
   // -----------------------------------------------------------
-  update: async (id, { alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung, nama_wali, no_telp, rombel_id }) => {
-    const sql = `
-      UPDATE warga_belajar
-      SET alamat = ?,
-          jarak_rumah_km = ?,
-          tinggi_badan = ?,
-          berat_badan = ?,
-          jumlah_saudara_kandung = ?,
-          nama_wali = ?,
-          no_telp = ?,
-          rombel_id = ?,
-          updated_at = NOW()
-      WHERE id = ?
-    `;
-    const params = [
-      alamat,
-      jarak_rumah_km !== undefined && jarak_rumah_km !== '' ? jarak_rumah_km : null,
-      tinggi_badan !== undefined && tinggi_badan !== '' ? tinggi_badan : null,
-      berat_badan !== undefined && berat_badan !== '' ? berat_badan : null,
-      jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' ? jumlah_saudara_kandung : null,
-      nama_wali,
-      no_telp,
-      rombel_id,
-      id
-    ];
+  update: async (id, data = {}) => {
+    const fields = [];
+    const params = [];
+
+    if (data.alamat !== undefined) {
+      fields.push('alamat = ?');
+      params.push(data.alamat);
+    }
+    if (data.jarak_rumah_km !== undefined) {
+      fields.push('jarak_rumah_km = ?');
+      params.push(data.jarak_rumah_km !== '' && data.jarak_rumah_km !== null ? parseFloat(data.jarak_rumah_km) : null);
+    }
+    if (data.tinggi_badan !== undefined) {
+      fields.push('tinggi_badan = ?');
+      params.push(data.tinggi_badan !== '' && data.tinggi_badan !== null ? parseInt(data.tinggi_badan, 10) : null);
+    }
+    if (data.berat_badan !== undefined) {
+      fields.push('berat_badan = ?');
+      params.push(data.berat_badan !== '' && data.berat_badan !== null ? parseFloat(data.berat_badan) : null);
+    }
+    if (data.jumlah_saudara_kandung !== undefined) {
+      fields.push('jumlah_saudara_kandung = ?');
+      params.push(data.jumlah_saudara_kandung !== '' && data.jumlah_saudara_kandung !== null ? parseInt(data.jumlah_saudara_kandung, 10) : null);
+    }
+    if (data.nama_ayah !== undefined) {
+      fields.push('nama_ayah = ?');
+      params.push(data.nama_ayah || null);
+    }
+    if (data.nama_ibu !== undefined) {
+      fields.push('nama_ibu = ?');
+      params.push(data.nama_ibu || null);
+    }
+    if (data.nama_wali !== undefined) {
+      fields.push('nama_wali = ?');
+      params.push(data.nama_wali || null);
+    }
+    if (data.no_telp !== undefined) {
+      fields.push('no_telp = ?');
+      params.push(data.no_telp);
+    }
+    if (data.rombel_id !== undefined) {
+      fields.push('rombel_id = ?');
+      params.push(data.rombel_id);
+    }
+    if (data.npsn !== undefined) {
+      fields.push('npsn = ?');
+      params.push(data.npsn ? String(data.npsn).trim() : null);
+    }
+    if (data.nisn !== undefined) {
+      fields.push('nisn = ?');
+      params.push(data.nisn ? String(data.nisn).trim() : null);
+    }
+    if (data.nik !== undefined) {
+      fields.push('nik = ?');
+      params.push(data.nik ? String(data.nik).trim() : null);
+    }
+
+    if (fields.length === 0) return 0;
+
+    fields.push('updated_at = NOW()');
+    params.push(id);
+
+    const sql = `UPDATE warga_belajar SET ${fields.join(', ')} WHERE id = ?`;
     const [result] = await pool.execute(sql, params);
     return result.affectedRows;
   },

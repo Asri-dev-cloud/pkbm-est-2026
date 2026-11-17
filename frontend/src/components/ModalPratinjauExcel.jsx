@@ -434,7 +434,7 @@ export default function ModalPratinjauExcel({
                     lineHeight: 1.35,
                   }}
                 >
-                  Izin Operasional No: 421.1/04-Disdik/2020 | NPSN: P9962879 | Terakreditasi BAN-PAUD dan PNF
+                  Izin Operasional No: 421.1/04-Disdik/2020 | NPSN: P9962879
                 </div>
                 <div
                   style={{
@@ -670,7 +670,9 @@ export default function ModalPratinjauExcel({
                             {siswa.nama_rombel || '-'}
                           </td>
                           <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>
-                            {siswa.nama_wali || '-'}
+                            {siswa.nama_ayah && siswa.nama_ibu
+                              ? `${siswa.nama_ayah} / ${siswa.nama_ibu}`
+                              : (siswa.nama_ayah || siswa.nama_ibu || siswa.nama_wali || '-')}
                           </td>
                           <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
                             {siswa.no_telp || '-'}

@@ -416,14 +416,15 @@
 .rapor-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
-  z-index: 999;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(5px);
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .rapor-modal-card {
@@ -434,8 +435,11 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
   animation: modalFadeIn 0.2s ease-out;
+  position: relative;
+  z-index: 100000;
+  overflow: hidden;
 }
 
 @keyframes modalFadeIn {
@@ -598,10 +602,33 @@
   border-radius: 20px;
   width: 100%;
   max-width: 960px;
-  max-height: 94vh;
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 100000;
+  overflow: hidden;
+}
+
+.rapor-print-modal-body {
+  background: #525659;
+  padding: 24px 20px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+}
+
+.rapor-print-paper-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  justify-content: center;
+}
+
+.mobile-scroll-hint {
+  display: none;
 }
 
 .rapor-print-paper {
@@ -610,21 +637,34 @@
   font-family: 'Times New Roman', Times, serif;
   color: #000000;
   line-height: 1.4;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 820px;
+  min-width: 680px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  border-radius: 4px;
 }
 
 .print-kop-surat {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   border-bottom: 3px double #000000;
-  padding-bottom: 14px;
-  margin-bottom: 20px;
+  padding-bottom: 12px;
+  margin-bottom: 18px;
 }
 
 .print-logo {
-  width: 82px;
-  height: 82px;
+  width: 76px;
+  height: 76px;
   object-fit: contain;
+  flex-shrink: 0;
+}
+
+.print-kop-spacer {
+  width: 76px;
+  flex-shrink: 0;
 }
 
 .print-kop-text {
@@ -632,24 +672,52 @@
   text-align: center;
 }
 
-.print-kop-text h2 {
-  font-size: 1.05rem;
-  font-weight: 700;
+.print-kop-yayasan {
+  font-size: 0.96rem;
+  font-weight: 800;
   margin: 0;
   text-transform: uppercase;
-}
-
-.print-kop-text h1 {
-  font-size: 1.35rem;
-  font-weight: 800;
-  margin: 2px 0;
-  text-transform: uppercase;
+  color: #000000;
   letter-spacing: 0.02em;
 }
 
-.print-kop-text p {
-  font-size: 0.84rem;
+.print-kop-pkbm {
+  font-size: 1.18rem;
+  font-weight: 800;
   margin: 2px 0 0 0;
+  text-transform: uppercase;
+  color: #2563EB;
+  letter-spacing: 0.03em;
+}
+
+.print-kop-brand {
+  font-size: 1.6rem;
+  font-weight: 900;
+  margin: 1px 0 3px 0;
+  text-transform: uppercase;
+  color: #2563EB;
+  letter-spacing: 0.04em;
+}
+
+.print-kop-legal {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin: 2px 0 1px 0;
+  color: #000000;
+}
+
+.print-kop-address {
+  font-size: 0.76rem;
+  margin: 1px 0;
+  color: #000000;
+  line-height: 1.35;
+}
+
+.print-kop-contact {
+  font-size: 0.74rem;
+  margin: 1px 0 0 0;
+  color: #000000;
+  line-height: 1.35;
 }
 
 .print-title {
@@ -657,9 +725,22 @@
   font-size: 1.15rem;
   font-weight: 800;
   text-decoration: underline;
+  text-underline-offset: 3px;
   text-transform: uppercase;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   letter-spacing: 0.03em;
+  color: #000000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.print-subtitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-decoration: none;
 }
 
 .print-identitas-grid {
@@ -667,94 +748,459 @@
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   font-size: 0.88rem;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .print-table-nilai {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .print-table-nilai th, .print-table-nilai td {
   border: 1px solid #000000;
   padding: 6px 8px;
+  vertical-align: middle;
 }
 
 .print-table-nilai th {
   background: #F1F5F9;
   text-align: center;
   font-weight: 700;
+  color: #000000;
+  font-size: 0.82rem;
 }
 
-.print-absen-box {
-  width: 320px;
+/* ── Evaluation Grid (Rekap Presensi & Catatan Wali Kelas Side-by-Side) ── */
+.print-evaluation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 18px;
+  margin-top: 14px;
+  margin-bottom: 22px;
+  page-break-inside: avoid;
+}
+
+.print-card-title {
+  font-weight: 700;
+  font-size: 0.86rem;
+  margin-bottom: 6px;
+  color: #000000;
+}
+
+.print-presensi-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.print-presensi-table {
+  width: 100%;
   border-collapse: collapse;
   font-size: 0.84rem;
-  margin-bottom: 16px;
+  background: #FFFFFF;
 }
 
-.print-absen-box th, .print-absen-box td {
+.print-presensi-table td {
   border: 1px solid #000000;
-  padding: 4px 8px;
+  padding: 5px 8px;
 }
 
-.print-catatan-box {
+.print-presensi-total {
+  background: #F8FAFC;
+  font-weight: 700;
+}
+
+.print-catatan-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.print-catatan-body {
+  flex: 1;
   border: 1px solid #000000;
   padding: 10px 14px;
-  font-size: 0.86rem;
-  margin-bottom: 24px;
+  background: #FAFAFA;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
 }
 
+.print-catatan-body p {
+  margin: 0;
+  font-size: 0.86rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: #000000;
+}
+
+/* ── Kolom Tanda Tangan 3 Pihak (Presisi & Seimbang) ──────── */
 .print-ttd-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
   text-align: center;
   font-size: 0.88rem;
   margin-top: 24px;
+  page-break-inside: avoid;
 }
 
 .ttd-box {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 120px;
+  align-items: center;
+  min-height: 135px;
 }
 
-.ttd-line {
-  font-weight: 700;
+.ttd-header {
+  height: 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  line-height: 1.35;
+  font-size: 0.86rem;
+  color: #000000;
+}
+
+.ttd-space {
+  flex: 1;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.ttd-stamp-wrap {
+  position: relative;
+  overflow: visible;
+}
+
+.ttd-stamp-img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-65%, -50%) rotate(-6deg);
+  width: 86px;
+  height: 86px;
+  object-fit: contain;
+  opacity: 0.85;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 1;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.ttd-stamp-wrap .ttd-img {
+  position: relative;
+  z-index: 2;
+}
+
+.ttd-img {
+  max-height: 48px;
+  max-width: 130px;
+  object-fit: contain;
+  filter: brightness(0);
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.ttd-footer {
+  height: 26px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+}
+
+.ttd-name-line {
+  font-weight: 600;
+  color: #000000;
+  letter-spacing: 0.05em;
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+
+.ttd-name-official {
+  font-weight: 800;
+  color: #000000;
   text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
-/* ── Print Media Query ─────────────────────────────────────── */
+/* ── Print Media Query (Standar HVS Resmi A4 / F4 Muat 1 Lembar Utuh) ── */
 @media print {
-  body * {
-    visibility: hidden;
+  @page {
+    size: 210mm 297mm; /* Format A4 Standar, otomatis muat presisi di kertas F4 / HVS */
+    margin: 8mm 10mm 8mm 10mm; /* Menghilangkan URL dan timestamp default browser */
   }
-  .modern-sidebar, .modern-mobile-navbar, .rapor-header-section, .rapor-stats-grid, .rapor-filter-card, .rapor-table-card, .rapor-modal-header, .rapor-modal-footer {
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    font-size: 10.5pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .modern-app-sidebar,
+  .modern-sidebar,
+  .modern-mobile-navbar,
+  .rapor-header-section,
+  .rapor-stats-grid,
+  .rapor-filter-card,
+  .rapor-table-card,
+  .rapor-modal-header,
+  .rapor-modal-footer,
+  .mobile-scroll-hint,
+  .btn-modal-close,
+  button {
     display: none !important;
   }
+
   .rapor-modal-backdrop {
     position: static !important;
     background: none !important;
     padding: 0 !important;
+    inset: auto !important;
+    display: block !important;
+    overflow: visible !important;
+    z-index: auto !important;
   }
+
   .rapor-print-modal-card {
     box-shadow: none !important;
     max-width: 100% !important;
     max-height: none !important;
     border-radius: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+    border: none !important;
   }
+
+  .rapor-print-modal-body {
+    background: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  .rapor-print-paper-wrapper {
+    display: block !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
   .rapor-print-paper, .rapor-print-paper * {
     visibility: visible !important;
   }
+
   .rapor-print-paper {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
+    position: static !important;
     width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
     padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    line-height: 1.28 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Kop Surat Print */
+  .print-kop-surat {
+    border-bottom: 2.5px double #000000 !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 8px !important;
+    gap: 12px !important;
+  }
+  .print-logo {
+    width: 62px !important;
+    height: 62px !important;
+  }
+  .print-kop-spacer {
+    width: 62px !important;
+  }
+  .print-kop-yayasan {
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+    color: #000000 !important;
+  }
+  .print-kop-pkbm {
+    font-size: 0.98rem !important;
+    font-weight: 800 !important;
+    color: #2563EB !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 1px 0 0 0 !important;
+  }
+  .print-kop-brand {
+    font-size: 1.35rem !important;
+    font-weight: 900 !important;
+    color: #2563EB !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 0 2px 0 !important;
+  }
+  .print-kop-legal {
+    font-size: 0.74rem !important;
+    font-weight: 700 !important;
+    margin: 1px 0 !important;
+    color: #000000 !important;
+  }
+  .print-kop-address {
+    font-size: 0.69rem !important;
+    margin: 1px 0 !important;
+    line-height: 1.25 !important;
+    color: #000000 !important;
+  }
+  .print-kop-contact {
+    font-size: 0.67rem !important;
+    margin: 1px 0 0 0 !important;
+    line-height: 1.25 !important;
+    color: #000000 !important;
+  }
+
+  /* Judul Rapor */
+  .print-title {
+    font-size: 1.05rem !important;
+    margin-bottom: 6px !important;
+    text-decoration: underline !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1px !important;
+  }
+  .print-subtitle {
+    font-size: 0.86rem !important;
+    text-decoration: none !important;
+  }
+
+  /* Identitas Siswa */
+  .print-identitas-grid {
+    gap: 16px !important;
+    margin-bottom: 8px !important;
+    font-size: 0.8rem !important;
+  }
+  .print-identitas-grid table td {
+    padding: 1.5px 0 !important;
+  }
+
+  /* Tabel Nilai (Kompak agar Muat 1 Lembar A4 / F4) */
+  .print-table-nilai {
+    margin-bottom: 8px !important;
+    font-size: 0.78rem !important;
+  }
+  .print-table-nilai th, .print-table-nilai td {
+    padding: 3px 5px !important;
+    border: 1px solid #000000 !important;
+  }
+  .print-table-nilai th {
+    background: #F1F5F9 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Presensi & Catatan Wali Kelas */
+  .print-evaluation-grid {
+    gap: 14px !important;
+    margin-top: 6px !important;
+    margin-bottom: 10px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .print-card-title {
+    font-size: 0.8rem !important;
+    margin-bottom: 4px !important;
+  }
+  .print-presensi-table {
+    font-size: 0.78rem !important;
+  }
+  .print-presensi-table td {
+    padding: 2.5px 6px !important;
+    border: 1px solid #000000 !important;
+  }
+  .print-catatan-body {
+    padding: 6px 10px !important;
+    border: 1px solid #000000 !important;
+    background: #FAFAFA !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .print-catatan-body p {
+    font-size: 0.78rem !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Kolom Tanda Tangan */
+  .print-ttd-grid {
+    margin-top: 8px !important;
+    gap: 12px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .ttd-box {
+    min-height: 98px !important;
+  }
+  .ttd-header {
+    height: 34px !important;
+    font-size: 0.8rem !important;
+    line-height: 1.25 !important;
+  }
+  .ttd-space {
+    min-height: 42px !important;
+  }
+  .ttd-stamp-wrap {
+    position: relative !important;
+    overflow: visible !important;
+  }
+  .ttd-stamp-img {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-65%, -50%) rotate(-6deg) !important;
+    width: 76px !important;
+    height: 76px !important;
+    object-fit: contain !important;
+    opacity: 0.88 !important;
+    mix-blend-mode: multiply !important;
+    display: block !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    z-index: 1 !important;
+  }
+  .ttd-stamp-wrap .ttd-img {
+    position: relative !important;
+    z-index: 2 !important;
+  }
+  .ttd-img {
+    max-height: 42px !important;
+    max-width: 120px !important;
+    filter: brightness(0) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    display: block !important;
+  }
+  .ttd-footer {
+    height: 22px !important;
+  }
+  .ttd-name-line {
+    font-size: 0.8rem !important;
+  }
+  .ttd-name-official {
+    font-size: 0.84rem !important;
   }
 }
 
@@ -765,6 +1211,53 @@
   }
   .form-grid-2, .form-grid-4 {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .rapor-admin-main {
+    padding: 16px 12px 40px;
+  }
+  .rapor-modal-backdrop {
+    padding: 8px 6px;
+    align-items: flex-start;
+  }
+  .rapor-modal-card,
+  .rapor-print-modal-card {
+    border-radius: 14px;
+    max-height: 96vh;
+    margin: auto 0;
+  }
+  .rapor-modal-header {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+  .rapor-modal-header h3 {
+    font-size: 0.95rem;
+  }
+  .rapor-print-modal-body {
+    padding: 10px 6px;
+  }
+  .rapor-print-paper-wrapper {
+    justify-content: flex-start;
+  }
+  .mobile-scroll-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FDE68A;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+  .rapor-print-paper {
+    padding: 22px 18px;
+    min-width: 640px;
   }
 }
 

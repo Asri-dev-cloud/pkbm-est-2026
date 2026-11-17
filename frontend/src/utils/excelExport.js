@@ -170,7 +170,7 @@ export async function generateLaporanSiswaExcel({
     },
     {
       row: 4,
-      text: 'Izin Operasional: 421.1/04-Disdik/2020 | NPSN: P9962879 | Terakreditasi BAN-PAUD dan PNF',
+      text: 'Izin Operasional: 421.1/04-Disdik/2020 | NPSN: P9962879',
       font: { name: 'Arial', size: 9, italic: true, color: { argb: 'FF475569' } },
       alignment: { horizontal: 'center', vertical: 'middle' },
       height: 16,
@@ -354,6 +354,17 @@ export async function generateLaporanSiswaExcel({
       statusText = siswa.status.toUpperCase();
     }
 
+    let orangTuaText = '-';
+    if (siswa.nama_ayah && siswa.nama_ibu) {
+      orangTuaText = `${siswa.nama_ayah} / ${siswa.nama_ibu}`;
+    } else if (siswa.nama_ayah) {
+      orangTuaText = `A: ${siswa.nama_ayah}`;
+    } else if (siswa.nama_ibu) {
+      orangTuaText = `I: ${siswa.nama_ibu}`;
+    } else if (siswa.nama_wali) {
+      orangTuaText = siswa.nama_wali;
+    }
+
     const rowValues = [
       index + 1,
       siswa.nis || '-',
@@ -363,7 +374,7 @@ export async function generateLaporanSiswaExcel({
       tglLahirText,
       jenjangText,
       siswa.nama_rombel || '-',
-      siswa.nama_wali || '-',
+      orangTuaText,
       siswa.no_telp || '-',
       siswa.alamat || '-',
       siswa.jarak_rumah_km !== null && siswa.jarak_rumah_km !== undefined ? siswa.jarak_rumah_km : '-',

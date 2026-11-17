@@ -1,0 +1,782 @@
+/* ============================================================
+   RuangBelajar.css — Retro Pop Calendar Theme
+   Inspired by cute spiral calendar flip cards
+   Thick comic borders, binder hooks, pop shadows & high interactivity
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Fredoka:wght@600;700;800;900&family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+:root {
+  --rb-dark-border: #1E1B4B;
+  --rb-card-bg-top: #FFFDF8;
+  --rb-shadow: 5px 6px 0px #1E1B4B;
+  --rb-shadow-hover: 8px 10px 0px #1E1B4B;
+  --rb-shadow-sm: 3px 3px 0px #1E1B4B;
+  --rb-radius: 22px;
+}
+
+/* Page Container */
+.ruang-belajar-container {
+  padding: 1.5rem 2rem 3.5rem 2rem;
+  max-width: 1440px;
+  margin: 0 auto;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #0F172A;
+}
+
+/* ── Clean Page Header (Tanpa Kotak Besar) ───────────────────── */
+.rb-clean-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px dashed #CBD5E1;
+}
+
+.rb-clean-title {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #1E1B4B;
+  margin: 0 0 0.35rem 0;
+  line-height: 1.2;
+}
+
+.rb-clean-subtitle {
+  color: #64748B;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 500;
+  max-width: 650px;
+}
+
+.rb-clean-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Interactive Buttons ─────────────────────────────────────── */
+.rb-btn-pop {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 12px;
+  border: 2px solid var(--rb-dark-border);
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--rb-shadow-sm);
+  text-decoration: none;
+}
+
+.rb-btn-pop:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px var(--rb-dark-border);
+}
+
+.rb-btn-pop:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px var(--rb-dark-border);
+}
+
+.rb-btn-pop.primary {
+  background: #FFE600;
+  color: #1E1B4B;
+}
+
+.rb-btn-pop.primary:hover {
+  background: #FFD200;
+}
+
+.rb-btn-pop.secondary {
+  background: #FFFFFF;
+  color: #1E1B4B;
+}
+
+.rb-btn-pop.secondary:hover {
+  background: #F8FAFC;
+}
+
+/* ── Filter & Search Bar ─────────────────────────────────────── */
+.rb-controls-bar {
+  background: #FFFFFF;
+  border: 2.5px solid var(--rb-dark-border);
+  border-radius: 20px;
+  box-shadow: 4px 5px 0px var(--rb-dark-border);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.rb-filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rb-tab-btn {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  border: 2px solid var(--rb-dark-border);
+  background: #FFFDF8;
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 2px 2px 0px var(--rb-dark-border);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rb-tab-btn i {
+  font-size: 0.95rem;
+}
+
+.rb-tab-btn:hover {
+  background: #F1F5F9;
+  transform: translateY(-1px);
+}
+
+.rb-tab-btn.active {
+  background: #1E1B4B;
+  color: #FFFFFF;
+  border-color: #1E1B4B;
+  box-shadow: 3px 3px 0px rgba(30, 27, 75, 0.4);
+}
+
+.rb-tab-btn.active .tab-counter {
+  background: #FFE600;
+  color: #1E1B4B;
+}
+
+.tab-counter {
+  background: #E2E8F0;
+  color: #475569;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+/* Search and Rombel Selector Row */
+.rb-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rb-search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+  max-width: 480px;
+}
+
+.rb-search-input-wrap i.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748B;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.rb-search-input {
+  width: 100%;
+  padding: 10px 38px 10px 40px;
+  border-radius: 12px;
+  border: 2px solid var(--rb-dark-border);
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: #F8FAFC;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.rb-search-input:focus {
+  background: #FFFFFF;
+  box-shadow: 3px 3px 0px var(--rb-dark-border);
+}
+
+.rb-search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.rb-search-clear:hover {
+  color: #EF4444;
+}
+
+.rb-rombel-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.rb-rombel-pill {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1.5px solid var(--rb-dark-border);
+  background: #FFFFFF;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rb-rombel-pill:hover {
+  background: #EFF6FF;
+}
+
+.rb-rombel-pill.active {
+  background: #FFE600;
+  color: #1E1B4B;
+  box-shadow: 2px 2px 0px var(--rb-dark-border);
+}
+
+/* ── Calendar Cards Grid ─────────────────────────────────────── */
+.rb-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 2rem 1.75rem;
+  padding-top: 0.75rem;
+}
+
+/* ── The Retro Calendar Card ─────────────────────────────────── */
+.retro-cal-card {
+  position: relative;
+  background: var(--rb-card-bg-top);
+  border: 3px solid var(--rb-dark-border);
+  border-radius: var(--rb-radius);
+  box-shadow: var(--rb-shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.24s ease;
+  user-select: none;
+}
+
+.retro-cal-card:hover {
+  transform: translateY(-6px) scale(1.015);
+  box-shadow: var(--rb-shadow-hover);
+}
+
+/* Double Spiral Binder Rings (Hanging Top Hooks) */
+.cal-binder-rings {
+  position: absolute;
+  top: -14px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 42px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.cal-binder-ring {
+  width: 16px;
+  height: 24px;
+  background: #FFFFFF;
+  border: 2.5px solid var(--rb-dark-border);
+  border-radius: 9999px;
+  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.12);
+  position: relative;
+}
+
+.cal-binder-ring::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  background: var(--rb-dark-border);
+  border-radius: 50%;
+}
+
+/* ── Card Header Section (Cream Top) ─────────────────────────── */
+.cal-card-header {
+  background: var(--rb-card-bg-top);
+  border-top-left-radius: 19px;
+  border-top-right-radius: 19px;
+  border-bottom: 3px solid var(--rb-dark-border);
+  padding: 1rem 1.25rem 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 64px;
+}
+
+/* Indonesian Script Day (Sabtu / Minggu) */
+.cal-script-day {
+  font-family: 'Caveat', cursive;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+  -webkit-text-stroke: 1px var(--rb-dark-border);
+  transform: rotate(-2deg);
+  display: inline-block;
+}
+
+.cal-class-tag {
+  background: #FFFFFF;
+  border: 1.5px solid var(--rb-dark-border);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--rb-dark-border);
+  box-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* ── Card Body Section (Vibrant Colored Body) ─────────────────── */
+.cal-card-body {
+  border-bottom-left-radius: 19px;
+  border-bottom-right-radius: 19px;
+  padding: 1.4rem 1.25rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+  min-height: 270px;
+  transition: background 0.2s ease;
+}
+
+/* Chunky Retro Number (Tanpa Titik: "01", "02", dst) */
+.cal-number-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+}
+
+.cal-retro-number {
+  font-family: 'Outfit', 'Fredoka', sans-serif;
+  font-size: 3.2rem;
+  font-weight: 900;
+  line-height: 1;
+  background: #FFFDF8;
+  color: var(--rb-dark-border);
+  border: 3px solid var(--rb-dark-border);
+  border-radius: 16px;
+  padding: 4px 22px 2px 22px;
+  box-shadow: 3.5px 4px 0px var(--rb-dark-border);
+  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Subject Title */
+.cal-subject-title {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 900;
+  line-height: 1.25;
+  color: #1E1B4B;
+  text-align: center;
+  margin: 0 0 0.85rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.5rem;
+}
+
+/* Tutor Pill */
+.cal-tutor-pill {
+  background: #FFFDF8;
+  border: 2px solid var(--rb-dark-border);
+  border-radius: 9999px;
+  padding: 5px 12px;
+  box-shadow: 2px 2px 0px var(--rb-dark-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 1.15rem auto;
+  max-width: 95%;
+}
+
+.cal-tutor-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFE600;
+  border: 1.5px solid var(--rb-dark-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  color: #1E1B4B;
+  flex-shrink: 0;
+}
+
+.cal-tutor-name {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #1E1B4B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Card Actions */
+.cal-card-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.cal-btn-enter {
+  flex: 1;
+  background: #FFFFFF;
+  color: #1E1B4B;
+  border: 2.5px solid var(--rb-dark-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 3px 3px 0px var(--rb-dark-border);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-decoration: none;
+}
+
+.cal-btn-enter:hover {
+  background: #FFE600;
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 4px 4px 0px var(--rb-dark-border);
+}
+
+.cal-btn-enter:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1px 1px 0px var(--rb-dark-border);
+}
+
+.cal-btn-info {
+  width: 42px;
+  height: 42px;
+  background: #FFFFFF;
+  color: #1E1B4B;
+  border: 2.5px solid var(--rb-dark-border);
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 3px 3px 0px var(--rb-dark-border);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.cal-btn-info:hover {
+  background: #EFF6FF;
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 4px 4px 0px var(--rb-dark-border);
+}
+
+.cal-btn-info:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1px 1px 0px var(--rb-dark-border);
+}
+
+/* ── Color Variations ────────────────────────────────────────── */
+/* 1. Yellow */
+.theme-yellow .cal-script-day {
+  color: #FFE600;
+}
+.theme-yellow .cal-card-body {
+  background: #FFD200;
+}
+
+/* 2. Coral */
+.theme-coral .cal-script-day {
+  color: #FF5252;
+}
+.theme-coral .cal-card-body {
+  background: #FF5555;
+}
+.theme-coral .cal-subject-title {
+  color: #FFFFFF;
+  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+}
+
+/* 3. Pink */
+.theme-pink .cal-script-day {
+  color: #F06292;
+}
+.theme-pink .cal-card-body {
+  background: #EC4899;
+}
+.theme-pink .cal-subject-title {
+  color: #FFFFFF;
+  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+}
+
+/* 4. Green */
+.theme-green .cal-script-day {
+  color: #00E676;
+}
+.theme-green .cal-card-body {
+  background: #10B981;
+}
+.theme-green .cal-subject-title {
+  color: #FFFFFF;
+  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+}
+
+/* 5. Blue */
+.theme-blue .cal-script-day {
+  color: #00D2FF;
+}
+.theme-blue .cal-card-body {
+  background: #06B6D4;
+}
+.theme-blue .cal-subject-title {
+  color: #FFFFFF;
+  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+}
+
+/* 6. Purple */
+.theme-purple .cal-script-day {
+  color: #C084FC;
+}
+.theme-purple .cal-card-body {
+  background: #8B5CF6;
+}
+.theme-purple .cal-subject-title {
+  color: #FFFFFF;
+  text-shadow: 1.5px 1.5px 0px var(--rb-dark-border);
+}
+
+/* 7. Orange */
+.theme-orange .cal-script-day {
+  color: #FFA726;
+}
+.theme-orange .cal-card-body {
+  background: #F59E0B;
+}
+.theme-orange .cal-subject-title {
+  color: #1E1B4B;
+}
+
+/* ── Modal Styles ────────────────────────────────────────────── */
+.rb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: rbFadeIn 0.2s ease-out;
+}
+
+.rb-modal-content {
+  background: #FFFDF8;
+  border: 3.5px solid var(--rb-dark-border);
+  border-radius: 24px;
+  box-shadow: 8px 10px 0px var(--rb-dark-border);
+  width: 100%;
+  max-width: 960px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: rbPopIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.rb-modal-header {
+  background: #FFE600;
+  border-bottom: 3px solid var(--rb-dark-border);
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rb-modal-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #1E1B4B;
+  margin: 0;
+}
+
+.rb-modal-close {
+  background: #FFFFFF;
+  border: 2px solid var(--rb-dark-border);
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 800;
+  box-shadow: 2px 2px 0px var(--rb-dark-border);
+  transition: all 0.15s ease;
+}
+
+.rb-modal-close:hover {
+  background: #FF5555;
+  color: #FFFFFF;
+}
+
+.rb-modal-body {
+  padding: 1.75rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* SK Document Paper */
+.sk-document-paper {
+  background: #FFFFFF;
+  border: 2px solid #CBD5E1;
+  border-radius: 16px;
+  padding: 2rem 2.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.sk-header-text {
+  text-align: center;
+  border-bottom: 3px double #1E1B4B;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.sk-header-text h3 {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #1E1B4B;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+}
+
+.sk-header-text p {
+  margin: 2px 0;
+  font-size: 0.88rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.sk-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.86rem;
+}
+
+.sk-table th, .sk-table td {
+  border: 1.5px solid #1E1B4B;
+  padding: 8px 12px;
+}
+
+.sk-table th {
+  background: #F1F5F9;
+  font-weight: 800;
+  text-align: center;
+  color: #1E1B4B;
+}
+
+.sk-table td.center {
+  text-align: center;
+}
+
+/* ── Empty State ─────────────────────────────────────────────── */
+.rb-empty-state {
+  text-align: center;
+  padding: 3.5rem 2rem;
+  background: #FFFDF8;
+  border: 3px dashed var(--rb-dark-border);
+  border-radius: 24px;
+  grid-column: 1 / -1;
+}
+
+.rb-empty-state i {
+  font-size: 4rem;
+  color: #CBD5E1;
+}
+
+.rb-empty-state h3 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 1.4rem;
+  margin: 1rem 0 0.5rem 0;
+  color: #1E1B4B;
+}
+
+.rb-empty-state p {
+  color: #64748B;
+  max-width: 450px;
+  margin: 0 auto;
+  font-size: 0.92rem;
+}
+
+/* Animations */
+@keyframes rbFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rbPopIn {
+  from { transform: scale(0.92) translateY(10px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .ruang-belajar-container {
+    padding: 1.25rem 1rem 2.5rem 1rem;
+  }
+  .rb-clean-title {
+    font-size: 1.6rem;
+  }
+  .rb-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+  .cal-binder-rings {
+    padding: 0 28px;
+  }
+}

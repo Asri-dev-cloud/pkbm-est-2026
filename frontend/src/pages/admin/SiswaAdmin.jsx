@@ -88,13 +88,15 @@ function SiswaAdmin() {
   }, [filterJenjang, filterAktif]);
 
   // ── Filter Pencarian Lokal (di client) ───────────────────
-  // Filter berdasarkan nama atau NIS — tidak hit API ulang
+  // Filter berdasarkan nama, NIS, NPSN, atau email — tidak hit API ulang
   const siswaFiltered = siswaList.filter(s => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
     return (
       s.nama_lengkap?.toLowerCase().includes(q) ||
       s.nis?.toLowerCase().includes(q) ||
+      s.npsn?.toLowerCase().includes(q) ||
+      s.nisn?.toLowerCase().includes(q) ||
       s.email?.toLowerCase().includes(q)
     );
   });
@@ -116,8 +118,12 @@ function SiswaAdmin() {
         tinggi_badan: data.tinggi_badan ?? '',
         berat_badan: data.berat_badan ?? '',
         jumlah_saudara_kandung: data.jumlah_saudara_kandung ?? '',
+        nama_ayah: data.nama_ayah || '',
+        nama_ibu: data.nama_ibu || '',
         nama_wali: data.nama_wali || '',
         no_telp:  data.no_telp  || '',
+        npsn:     data.npsn     || 'P9962854',
+        nisn:     data.nisn     || '',
       });
     } catch {
       alert('Gagal memuat detail siswa.');
@@ -482,6 +488,12 @@ function SiswaAdmin() {
                           }}>
                             {s.nis}
                           </code>
+                          <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontWeight: 700, color: '#475569' }}>NPSN:</span>
+                            <span style={{ fontWeight: 800, color: '#0F172A', background: '#F1F5F9', padding: '1px 6px', borderRadius: 4 }}>
+                              {s.npsn || 'P9962854'}
+                            </span>
+                          </div>
                         </td>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -635,6 +647,8 @@ function SiswaAdmin() {
                     }}>
                       {[
                         { label: 'Nomor Induk Siswa (NIS)', value: selectedWB.nis, icon: 'bi-card-text' },
+                        { label: 'NPSN Lembaga / Siswa', value: selectedWB.npsn || 'P9962854', icon: 'bi-building' },
+                        ...(selectedWB.nisn ? [{ label: 'NISN', value: selectedWB.nisn, icon: 'bi-person-badge' }] : []),
                         { label: 'Nama Lengkap', value: selectedWB.nama_lengkap, icon: 'bi-person' },
                         { label: 'Alamat Email', value: selectedWB.email, icon: 'bi-envelope' },
                         { label: 'Jenjang Pendidikan', value: JENJANG_LABEL[selectedWB.jenjang] || selectedWB.jenjang, icon: 'bi-mortarboard' },
@@ -656,6 +670,57 @@ function SiswaAdmin() {
                     {/* Field Edit / Tinjau */}
                     {modalMode === 'edit' ? (
                       <div>
+                        {/* Seksi NPSN & Identitas Siswa */}
+                        <div style={{
+                          marginBottom: '1.25rem',
+                          padding: '1rem',
+                          background: '#EFF6FF',
+                          borderRadius: '10px',
+                          border: '1.5px solid #BFDBFE',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.875rem', color: '#1E40AF', marginBottom: '0.75rem' }}>
+                            <i className="bi bi-building-check"></i>
+                            <span>Nomor Pokok Sekolah Nasional (NPSN) & Identitas</span>
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
+                            <div className="form-group" style={{ margin: 0 }}>
+                              <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1E3A8A' }}>
+                                NPSN Siswa / Lembaga <span style={{ color: '#DC2626' }}>*</span>
+                              </label>
+                              <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Contoh: P9962854"
+                                value={formEdit.npsn}
+                                onChange={e => setFormEdit(p => ({ ...p, npsn: e.target.value }))}
+                                style={{ fontWeight: 700, letterSpacing: '0.04em', borderColor: '#93C5FD' }}
+                                required
+                              />
+                              <span style={{ fontSize: '0.72rem', color: '#2563EB', marginTop: 3, display: 'block' }}>
+                                Langsung terupdate ke database & dicetak pada Kartu Pelajar serta Rapor.
+                              </span>
+                            </div>
+
+                            <div className="form-group" style={{ margin: 0 }}>
+                              <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1E3A8A' }}>
+                                NISN (Nomor Induk Siswa Nasional)
+                              </label>
+                              <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Contoh: 0081234567 (opsional)"
+                                value={formEdit.nisn}
+                                onChange={e => setFormEdit(p => ({ ...p, nisn: e.target.value }))}
+                                style={{ letterSpacing: '0.04em', borderColor: '#93C5FD' }}
+                              />
+                              <span style={{ fontSize: '0.72rem', color: '#64748B', marginTop: 3, display: 'block' }}>
+                                Terdaftar pada Pusdatin Kemdikbudristek.
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: '0.9rem', color: '#0F172A', marginBottom: '0.875rem' }}>
                           <i className="bi bi-pencil-fill" style={{ color: '#1D4ED8' }}></i>
                           <span>Ubah Informasi Alamat & Kontak Wali</span>
@@ -673,13 +738,38 @@ function SiswaAdmin() {
                           />
                         </div>
 
+                        {/* Data Orang Tua & Wali (Nama Ayah, Nama Ibu, Nama Wali) */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                           <div className="form-group">
-                            <label className="form-label" style={{ fontWeight: 700 }}>Nama Orang Tua / Wali</label>
+                            <label className="form-label" style={{ fontWeight: 700 }}>Nama Ayah / Bapak Kandung</label>
                             <input
                               type="text"
                               className="form-input"
-                              placeholder="Nama orang tua / wali..."
+                              placeholder="Nama lengkap ayah/bapak..."
+                              value={formEdit.nama_ayah}
+                              onChange={e => setFormEdit(p => ({ ...p, nama_ayah: e.target.value }))}
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label className="form-label" style={{ fontWeight: 700 }}>Nama Ibu Kandung</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="Nama lengkap ibu kandung..."
+                              value={formEdit.nama_ibu}
+                              onChange={e => setFormEdit(p => ({ ...p, nama_ibu: e.target.value }))}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                          <div className="form-group">
+                            <label className="form-label" style={{ fontWeight: 700 }}>Nama Wali (Opsional)</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="Nama wali jika tinggal bersama wali..."
                               value={formEdit.nama_wali}
                               onChange={e => setFormEdit(p => ({ ...p, nama_wali: e.target.value }))}
                             />
@@ -784,8 +874,12 @@ function SiswaAdmin() {
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
                             {[
+                              { label: 'NPSN Siswa / Lembaga', value: selectedWB.npsn || 'P9962854' },
+                              ...(selectedWB.nisn ? [{ label: 'NISN (Nomor Induk Siswa Nasional)', value: selectedWB.nisn }] : []),
                               { label: 'Alamat Tinggal', value: selectedWB.alamat || 'Belum diisi' },
-                              { label: 'Nama Orang Tua / Wali', value: selectedWB.nama_wali || 'Belum diisi' },
+                              { label: 'Nama Ayah / Bapak Kandung', value: selectedWB.nama_ayah || 'Belum diisi' },
+                              { label: 'Nama Ibu Kandung', value: selectedWB.nama_ibu || 'Belum diisi' },
+                              ...(selectedWB.nama_wali ? [{ label: 'Nama Wali Siswa', value: selectedWB.nama_wali }] : []),
                               { label: 'Nomor Telepon / WA', value: selectedWB.no_telp || 'Belum diisi' },
                             ].map(({ label, value }) => (
                               <div key={label} style={{ padding: '0.5rem 0', borderBottom: '1px solid #F1F5F9' }}>

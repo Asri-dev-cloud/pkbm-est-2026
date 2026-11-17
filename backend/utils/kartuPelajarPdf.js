@@ -332,32 +332,35 @@ const renderQrCodeToPdf = (text, startX, startY, size) => {
   }
 };
 
-const buildPdfBuffer = (commands) => {
-  const content = commands.join('\n');
-  const objects = [
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Count 1 /Kids [3 0 R] >>',
-    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>`,
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>',
-    `<< /Length ${Buffer.byteLength(content, 'utf8')} >>\nstream\n${content}\nendstream`,
-  ];
+const buildPdfBuffer = (frontCommands, backCommands) => {
+  const content1 = frontCommands.join('\n');
+  const content2 = backCommands.join('\n');
 
-  let pdf = '%PDF-1.4\n';
+  const obj1 = '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n';
+  const obj2 = '2 0 obj\n<< /Type /Pages /Count 2 /Kids [3 0 R 4 0 R] >>\nendobj\n';
+  const obj3 = `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${CARD_W} ${CARD_H}] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 7 0 R >>\nendobj\n`;
+  const obj4 = `4 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${CARD_W} ${CARD_H}] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 8 0 R >>\nendobj\n`;
+  const obj5 = '5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n';
+  const obj6 = '6 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>\nendobj\n';
+  const obj7 = `7 0 obj\n<< /Length ${Buffer.byteLength(content1, 'utf8')} >>\nstream\n${content1}\nendstream\nendobj\n`;
+  const obj8 = `8 0 obj\n<< /Length ${Buffer.byteLength(content2, 'utf8')} >>\nstream\n${content2}\nendstream\nendobj\n`;
+
+  const headerStr = '%PDF-1.4\n';
   const offsets = [0];
 
-  objects.forEach((object, index) => {
+  let pdf = headerStr;
+  const parts = [obj1, obj2, obj3, obj4, obj5, obj6, obj7, obj8];
+  parts.forEach((obj) => {
     offsets.push(Buffer.byteLength(pdf, 'utf8'));
-    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+    pdf += obj;
   });
 
   const xrefOffset = Buffer.byteLength(pdf, 'utf8');
-  pdf += `xref\n0 ${objects.length + 1}\n`;
-  pdf += '0000000000 65535 f \n';
-  for (let i = 1; i < offsets.length; i += 1) {
+  pdf += `xref\n0 ${offsets.length}\n0000000000 65535 f \n`;
+  for (let i = 1; i < offsets.length; i++) {
     pdf += `${String(offsets[i]).padStart(10, '0')} 00000 n \n`;
   }
-  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+  pdf += `trailer\n<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
 
   return Buffer.from(pdf, 'utf8');
 };
@@ -376,10 +379,11 @@ const formatTanggalIndo = (tgl) => {
 };
 
 // ============================================================
-// Main Builder: buildKartuPelajarPdf
+// Main Builder: buildKartuPelajarPdf (2 Halaman CR-80)
 // ============================================================
 export const buildKartuPelajarPdf = async ({ siswa, outputPath = null }) => {
-  const lines = [];
+  const frontLines = [];
+  const backLines = [];
 
   const namaLengkap = (siswa.nama_lengkap || 'WARGA BELAJAR').toUpperCase();
   const rawNis = siswa.nis || 'DALAM PENETAPAN';
@@ -392,109 +396,94 @@ export const buildKartuPelajarPdf = async ({ siswa, outputPath = null }) => {
   const rombel = siswa.nama_rombel || 'Dalam Penetapan Rombel';
   const ttl = `${siswa.tempat_lahir || 'Sumedang'}, ${formatTanggalIndo(siswa.tanggal_lahir)}`;
 
-  // URL verifikasi resmi
-  const verifyUrl = `https://pkbmbinamandiri.sch.id/verifikasi-kartu?nis=${encodeURIComponent(nis)}`;
+  // ── 1. SISI DEPAN (FRONT FACE - HALAMAN 1) ──
+  const frontX = 0;
+  const frontY = 0;
+  frontLines.push(rectFill(frontX, frontY, CARD_W, CARD_H, 0.06, 0.12, 0.25));
+  frontLines.push(rectFill(frontX, frontY + CARD_H - 26, CARD_W, 26, 0.09, 0.18, 0.36));
+  frontLines.push(rectFill(frontX, frontY + CARD_H - 28, CARD_W, 2, 0.96, 0.65, 0.12));
 
-  // ── POSISI DUA SISI KARTU CR-80 (85.6mm x 53.98mm) ──
-  const cardY = 600;
-  const frontX = 42;
-  const backX = frontX + CARD_W + 24;
-
-  // Label Sisi Minimalis
-  lines.push(textLine('F2', 8, frontX + 2, cardY + CARD_H + 8, 'SISI DEPAN (FRONT)', 0.35, 0.42, 0.52));
-  lines.push(textLine('F2', 8, backX + 2, cardY + CARD_H + 8, 'SISI BELAKANG (BACK)', 0.35, 0.42, 0.52));
-
-  // Garis putus-putus panduan potong presisi CR-80
-  lines.push(rectDashedStroke(frontX, cardY, CARD_W, CARD_H, 0.7, 0.75, 0.82, 0.75));
-  lines.push(rectDashedStroke(backX, cardY, CARD_W, CARD_H, 0.7, 0.75, 0.82, 0.75));
-
-  // ── 1. SISI DEPAN (FRONT FACE) ──
-  lines.push(rectFill(frontX, cardY, CARD_W, CARD_H, 0.06, 0.12, 0.25));
-  lines.push(rectFill(frontX, cardY + CARD_H - 26, CARD_W, 26, 0.09, 0.18, 0.36));
-  lines.push(rectFill(frontX, cardY + CARD_H - 28, CARD_W, 2, 0.96, 0.65, 0.12));
-
-  lines.push(textLine('F2', 8, frontX + 12, cardY + CARD_H - 12, 'PKBM BINA MANDIRI', 1, 1, 1));
-  lines.push(textLine('F1', 5.5, frontX + 12, cardY + CARD_H - 20, 'KARTU TANDA PELAJAR * NPSN P9962854', 0.9, 0.8, 0.4));
-  lines.push(textLine('F2', 6.5, frontX + CARD_W - 54, cardY + CARD_H - 16, jenjangRaw.toUpperCase(), 0.98, 0.85, 0.35));
+  frontLines.push(textLine('F2', 8, frontX + 12, frontY + CARD_H - 12, 'PKBM BINA MANDIRI', 1, 1, 1));
+  frontLines.push(textLine('F1', 5.5, frontX + 12, frontY + CARD_H - 20, `KARTU TANDA PELAJAR * NPSN ${siswa.npsn || 'P9962854'}`, 0.9, 0.8, 0.4));
+  frontLines.push(textLine('F2', 6.5, frontX + CARD_W - 54, frontY + CARD_H - 16, jenjangRaw.toUpperCase(), 0.98, 0.85, 0.35));
 
   const photoX = frontX + 12;
-  const photoY = cardY + 28;
+  const photoY = frontY + 28;
   const photoW = 48;
   const photoH = 74;
 
-  lines.push(rectFill(photoX, photoY, photoW, photoH, 0.12, 0.22, 0.42));
-  lines.push(rectStroke(photoX, photoY, photoW, photoH, 0.96, 0.65, 0.12, 1));
-  lines.push(textLine('F2', 20, photoX + 16, photoY + 30, namaLengkap.charAt(0) || 'W', 1, 1, 1));
+  frontLines.push(rectFill(photoX, photoY, photoW, photoH, 0.12, 0.22, 0.42));
+  frontLines.push(rectStroke(photoX, photoY, photoW, photoH, 0.96, 0.65, 0.12, 1));
+  frontLines.push(textLine('F2', 20, photoX + 16, photoY + 30, namaLengkap.charAt(0) || 'W', 1, 1, 1));
 
   const dataX = frontX + 68;
-  let textY = cardY + CARD_H - 42;
+  let textY = frontY + CARD_H - 42;
 
   const displayName = namaLengkap.length > 22 ? namaLengkap.substring(0, 20) + '...' : namaLengkap;
-  lines.push(textLine('F2', 9, dataX, textY, displayName, 1, 1, 1));
+  frontLines.push(textLine('F2', 9, dataX, textY, displayName, 1, 1, 1));
 
   textY -= 12;
-  lines.push(textLine('F2', 7, dataX, textY, `NIS: ${nis}`, 0.98, 0.82, 0.35));
+  frontLines.push(textLine('F2', 7, dataX, textY, `NIS: ${nis}`, 0.98, 0.82, 0.35));
 
   textY -= 13;
-  lines.push(textLine('F1', 6, dataX, textY, `NIK           : ${nik}`, 0.82, 0.88, 0.95));
+  frontLines.push(textLine('F1', 6, dataX, textY, `NIK           : ${nik}`, 0.82, 0.88, 0.95));
   textY -= 10;
-  lines.push(textLine('F1', 6, dataX, textY, `TTL           : ${ttl.length > 24 ? ttl.substring(0, 22) + '..' : ttl}`, 0.82, 0.88, 0.95));
+  frontLines.push(textLine('F1', 6, dataX, textY, `TTL           : ${ttl.length > 24 ? ttl.substring(0, 22) + '..' : ttl}`, 0.82, 0.88, 0.95));
   textY -= 10;
-  lines.push(textLine('F1', 6, dataX, textY, `Jenjang    : ${jenjangLabel}`, 0.82, 0.88, 0.95));
+  frontLines.push(textLine('F1', 6, dataX, textY, `Jenjang    : ${jenjangLabel}`, 0.82, 0.88, 0.95));
   textY -= 10;
-  lines.push(textLine('F1', 6, dataX, textY, `Rombel     : ${rombel}`, 0.82, 0.88, 0.95));
+  frontLines.push(textLine('F1', 6, dataX, textY, `Rombel     : ${rombel}`, 0.82, 0.88, 0.95));
   textY -= 10;
-  lines.push(textLine('F1', 6, dataX, textY, `Berlaku     : Selama Menjadi Warga Belajar`, 0.82, 0.88, 0.95));
+  frontLines.push(textLine('F1', 6, dataX, textY, `Berlaku     : Selama Menjadi Warga Belajar`, 0.82, 0.88, 0.95));
 
-  lines.push(lineStroke(frontX + 12, cardY + 16, frontX + CARD_W - 12, cardY + 16, 0.2, 0.3, 0.45, 0.5));
-  lines.push(textLine('F1', 5, frontX + 12, cardY + 8, 'AUTHENTIC STUDENT IDENTIFICATION * PKBM BINA MANDIRI SUMEDANG', 0.65, 0.72, 0.82));
+  frontLines.push(lineStroke(frontX + 12, frontY + 16, frontX + CARD_W - 12, frontY + 16, 0.2, 0.3, 0.45, 0.5));
+  frontLines.push(textLine('F1', 5, frontX + 12, frontY + 8, 'KARTU TANDA PELAJAR RESMI * PKBM BINA MANDIRI SUMEDANG', 0.65, 0.72, 0.82));
 
-  // ── 2. SISI BELAKANG (BACK FACE) ──
-  lines.push(rectFill(backX, cardY, CARD_W, CARD_H, 0.06, 0.12, 0.25));
-  lines.push(rectFill(backX, cardY + CARD_H - 22, CARD_W, 22, 0.09, 0.18, 0.36));
-  lines.push(rectFill(backX, cardY + CARD_H - 24, CARD_W, 2, 0.96, 0.65, 0.12));
+  // ── 2. SISI BELAKANG (BACK FACE - HALAMAN 2) ──
+  const backX = 0;
+  const backY = 0;
+  backLines.push(rectFill(backX, backY, CARD_W, CARD_H, 0.06, 0.12, 0.25));
+  backLines.push(rectFill(backX, backY + CARD_H - 22, CARD_W, 22, 0.09, 0.18, 0.36));
+  backLines.push(rectFill(backX, backY + CARD_H - 24, CARD_W, 2, 0.96, 0.65, 0.12));
 
-  lines.push(textLine('F2', 7.5, backX + 38, cardY + CARD_H - 14, 'KETENTUAN PENGGUNAAN KARTU', 0.98, 0.85, 0.35));
+  backLines.push(textLine('F2', 7.5, backX + 38, backY + CARD_H - 14, 'KETENTUAN PENGGUNAAN KARTU', 0.98, 0.85, 0.35));
 
-  let ruleY = cardY + CARD_H - 36;
+  let ruleY = backY + CARD_H - 36;
   const rules = [
-    '1. Kartu ini adalah tanda pengenal sah Warga Belajar PKBM.',
-    '2. Wajib dibawa saat pembelajaran tatap muka dan evaluasi / asesmen.',
-    '3. Tidak dapat dipindahtangankan kepada orang lain.',
-    '4. Bila kartu ini hilang, segera lapor ke Sekretariat TU PKBM Bina Mandiri.'
+    '1. Kartu ini adalah tanda bukti identitas sah Warga Belajar PKBM Bina Mandiri yang diakui.',
+    '2. Wajib dibawa saat mengikuti tutorial tatap muka, asesmen sumatif, dan ujian evaluasi pembelajaran.',
+    '3. Kartu ini tidak dapat dipinjamkan, digandakan, atau dipindahtangankan kepada orang lain.',
+    '4. Bila kartu ini hilang atau rusak, segera melapor ke Sekretariat TU PKBM Bina Mandiri.'
   ];
   rules.forEach((r) => {
-    lines.push(textLine('F1', 5.5, backX + 10, ruleY, r, 0.9, 0.93, 0.98));
+    backLines.push(textLine('F1', 5, backX + 10, ruleY, r, 0.9, 0.93, 0.98));
     ruleY -= 9;
   });
 
-  lines.push(lineStroke(backX + 10, ruleY - 1, backX + CARD_W - 10, ruleY - 1, 0.2, 0.3, 0.45, 0.5));
+  backLines.push(lineStroke(backX + 10, ruleY - 1, backX + CARD_W - 10, ruleY - 1, 0.2, 0.3, 0.45, 0.5));
 
   // Identitas Lembaga (Kiri Bawah)
   const instX = backX + 12;
-  lines.push(textLine('F1', 4.5, instX, cardY + 44, 'LEMBAGA PENDIDIKAN KESETARAAN', 0.65, 0.72, 0.82));
-  lines.push(textLine('F2', 7, instX, cardY + 34, 'PKBM BINA MANDIRI', 1, 1, 1));
-  lines.push(textLine('F2', 5, instX, cardY + 25, 'NPSN: P9962854 * SUMEDANG', 0.98, 0.85, 0.35));
-  lines.push(textLine('F1', 4.5, instX, cardY + 14, 'Sekretariat: Sumedang, Jawa Barat', 0.65, 0.72, 0.82));
+  backLines.push(textLine('F1', 4.5, instX, backY + 44, 'LEMBAGA PENDIDIKAN KESETARAAN', 0.65, 0.72, 0.82));
+  backLines.push(textLine('F2', 7, instX, backY + 34, 'PKBM BINA MANDIRI', 1, 1, 1));
+  backLines.push(textLine('F2', 5, instX, backY + 25, `NPSN: ${siswa.npsn || 'P9962854'} * SUMEDANG`, 0.98, 0.85, 0.35));
+  backLines.push(textLine('F1', 4.5, instX, backY + 14, 'Sekretariat: Sumedang, Jawa Barat', 0.65, 0.72, 0.82));
 
   // Kepala Lembaga resmi: Indrayani, S.S.,M.Pd. (Kanan Bawah)
   const sigX = backX + 130;
   const currentYear = new Date().getFullYear();
-  lines.push(textLine('F1', 5.5, sigX, cardY + 54, `Sumedang, ${currentYear}`, 0.85, 0.9, 0.95));
-  lines.push(textLine('F2', 6, sigX - 5, cardY + 44, 'Kepala PKBM Bina Mandiri', 1, 1, 1));
+  backLines.push(textLine('F1', 5.5, sigX, backY + 54, `Sumedang, ${currentYear}`, 0.85, 0.9, 0.95));
+  backLines.push(textLine('F2', 6, sigX - 5, backY + 44, 'Kepala PKBM Bina Mandiri', 1, 1, 1));
 
-  lines.push(rectStroke(sigX + 10, cardY + 22, 26, 18, 0.25, 0.55, 0.9, 0.8));
-  lines.push(textLine('F2', 4.5, sigX + 12, cardY + 31, 'TERVERIFIKASI', 0.4, 0.7, 1));
-  lines.push(textLine('F1', 4, sigX + 14, cardY + 25, 'DIGITAL SAH', 0.4, 0.7, 1));
+  backLines.push(rectStroke(sigX + 10, backY + 22, 26, 18, 0.25, 0.55, 0.9, 0.8));
+  backLines.push(textLine('F2', 4.5, sigX + 12, backY + 31, 'TERVERIFIKASI', 0.4, 0.7, 1));
+  backLines.push(textLine('F1', 4, sigX + 14, backY + 25, 'DIGITAL SAH', 0.4, 0.7, 1));
 
-  lines.push(textLine('F2', 6.5, sigX - 10, cardY + 12, 'Indrayani, S.S.,M.Pd.', 1, 1, 1));
-  lines.push(lineStroke(sigX - 10, cardY + 10, sigX + 80, cardY + 10, 0.96, 0.65, 0.12, 0.8));
-
-  // Panduan potong halus di bawah kartu
-  lines.push(textLine('F1', 7, 130, cardY - 18, '- - - Gunting mengikuti garis putus-putus * Standar ID Card CR-80 (85.6 mm x 53.98 mm) - - -', 0.55, 0.6, 0.68));
+  backLines.push(textLine('F2', 6.5, sigX - 10, backY + 12, 'Indrayani, S.S.,M.Pd.', 1, 1, 1));
+  backLines.push(lineStroke(sigX - 10, backY + 10, sigX + 80, backY + 10, 0.96, 0.65, 0.12, 0.8));
 
   // Build Buffer
-  const buffer = buildPdfBuffer(lines);
+  const buffer = buildPdfBuffer(frontLines, backLines);
 
   if (outputPath) {
     await fs.mkdir(path.dirname(outputPath), { recursive: true });

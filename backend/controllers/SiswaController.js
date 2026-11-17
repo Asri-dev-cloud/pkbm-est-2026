@@ -118,7 +118,7 @@ const SiswaController = {
 
   // -----------------------------------------------------------
   // PUT /api/siswa/:id
-  // Update data Warga Belajar (alamat, wali, no telp, rombel)
+  // Update data Warga Belajar (alamat, wali, no telp, rombel, npsn, nisn)
   // Akses: Admin, Super Admin
   // -----------------------------------------------------------
   update: async (req, res) => {
@@ -130,28 +130,40 @@ const SiswaController = {
         tinggi_badan,
         berat_badan,
         jumlah_saudara_kandung,
+        nama_ayah,
+        nama_ibu,
         nama_wali,
         no_telp,
         rombel_id,
+        npsn,
+        nisn,
+        nik,
       } = req.body;
 
-      const affectedRows = await SiswaModel.update(parseInt(id), {
-        alamat,
-        jarak_rumah_km: jarak_rumah_km !== undefined && jarak_rumah_km !== '' && jarak_rumah_km !== null ? parseFloat(jarak_rumah_km) : null,
-        tinggi_badan: tinggi_badan !== undefined && tinggi_badan !== '' && tinggi_badan !== null ? parseInt(tinggi_badan, 10) : null,
-        berat_badan: berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? parseFloat(berat_badan) : null,
-        jumlah_saudara_kandung: jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' && jumlah_saudara_kandung !== null ? parseInt(jumlah_saudara_kandung, 10) : null,
-        nama_wali,
-        no_telp,
-        rombel_id,
-      });
-
-      if (affectedRows === 0) {
+      // Pastikan data siswa ada di database
+      const existing = await SiswaModel.findById(parseInt(id));
+      if (!existing) {
         return res.status(404).json({
           success: false,
           message: `Warga belajar dengan ID ${id} tidak ditemukan.`,
         });
       }
+
+      await SiswaModel.update(parseInt(id), {
+        alamat,
+        jarak_rumah_km: jarak_rumah_km !== undefined && jarak_rumah_km !== '' && jarak_rumah_km !== null ? parseFloat(jarak_rumah_km) : null,
+        tinggi_badan: tinggi_badan !== undefined && tinggi_badan !== '' && tinggi_badan !== null ? parseInt(tinggi_badan, 10) : null,
+        berat_badan: berat_badan !== undefined && berat_badan !== '' && berat_badan !== null ? parseFloat(berat_badan) : null,
+        jumlah_saudara_kandung: jumlah_saudara_kandung !== undefined && jumlah_saudara_kandung !== '' && jumlah_saudara_kandung !== null ? parseInt(jumlah_saudara_kandung, 10) : null,
+        nama_ayah: nama_ayah !== undefined ? (nama_ayah ? String(nama_ayah).trim() : null) : undefined,
+        nama_ibu: nama_ibu !== undefined ? (nama_ibu ? String(nama_ibu).trim() : null) : undefined,
+        nama_wali,
+        no_telp,
+        rombel_id,
+        npsn: npsn !== undefined ? (npsn ? String(npsn).trim() : null) : undefined,
+        nisn: nisn !== undefined ? (nisn ? String(nisn).trim() : null) : undefined,
+        nik: nik !== undefined ? (nik ? String(nik).trim() : null) : undefined,
+      });
 
       return res.status(200).json({
         success: true,
@@ -279,7 +291,8 @@ const SiswaController = {
           foto_profil: siswa.foto_profil || null,
           terdaftar_sejak: siswa.created_at,
           lembaga: 'PKBM Bina Mandiri',
-          npsn: 'P9962854',
+          npsn: siswa.npsn || 'P9962854',
+          nisn: siswa.nisn || null,
           status_kartu: siswa.is_aktif === 1 ? 'AKTIF & RESMI' : 'NONAKTIF / ALUMNI',
         },
       });

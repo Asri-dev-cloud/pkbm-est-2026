@@ -512,13 +512,14 @@ export function BarcodeView({
   }).filter(Boolean);
 
   return (
-    <div style={{ textAlign: 'center', width, display: 'inline-block' }}>
+    <div style={{ textAlign: 'left', width, display: 'inline-block' }}>
       <svg
         viewBox={`0 0 ${totalUnits} ${height - (showText ? 10 : 0)}`}
         width={width}
         height={height - (showText ? 10 : 0)}
+        preserveAspectRatio="none"
         shapeRendering="crispEdges"
-        style={{ display: 'block' }}
+        style={{ display: 'block', width: '100%' }}
       >
         {rects}
       </svg>
