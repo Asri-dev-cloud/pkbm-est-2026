@@ -58,7 +58,7 @@ export const testConnection = async () => {
       { table: 'pendaftar_spmb', col: 'tinggi_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Tinggi badan (cm)"' },
       { table: 'pendaftar_spmb', col: 'berat_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Berat badan (kg)"' },
       { table: 'pendaftar_spmb', col: 'jumlah_saudara_kandung', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Jumlah saudara kandung"' },
-      { table: 'pendaftar_spmb', col: 'npsn', def: 'VARCHAR(20) NULL DEFAULT "P9962854" COMMENT "NPSN Lembaga/Sekolah"' },
+      { table: 'pendaftar_spmb', col: 'npsn', def: 'VARCHAR(20) NULL DEFAULT "P2970848" COMMENT "NPSN Lembaga/Sekolah"' },
       { table: 'pendaftar_spmb', col: 'nisn', def: 'VARCHAR(20) NULL DEFAULT NULL COMMENT "NISN Siswa"' },
       { table: 'pendaftar_spmb', col: 'nama_ayah', def: 'VARCHAR(100) NULL DEFAULT NULL COMMENT "Nama Ayah / Bapak Kandung"' },
       { table: 'pendaftar_spmb', col: 'nama_ibu', def: 'VARCHAR(100) NULL DEFAULT NULL COMMENT "Nama Ibu Kandung"' },
@@ -66,7 +66,7 @@ export const testConnection = async () => {
       { table: 'warga_belajar', col: 'tinggi_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Tinggi badan (cm)"' },
       { table: 'warga_belajar', col: 'berat_badan', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Berat badan (kg)"' },
       { table: 'warga_belajar', col: 'jumlah_saudara_kandung', def: 'INT UNSIGNED NULL DEFAULT NULL COMMENT "Jumlah saudara kandung"' },
-      { table: 'warga_belajar', col: 'npsn', def: 'VARCHAR(20) NULL DEFAULT "P9962854" COMMENT "NPSN Lembaga/Sekolah"' },
+      { table: 'warga_belajar', col: 'npsn', def: 'VARCHAR(20) NULL DEFAULT "P2970848" COMMENT "NPSN Lembaga/Sekolah"' },
       { table: 'warga_belajar', col: 'nisn', def: 'VARCHAR(20) NULL DEFAULT NULL COMMENT "NISN Siswa"' },
       { table: 'warga_belajar', col: 'nama_ayah', def: 'VARCHAR(100) NULL DEFAULT NULL COMMENT "Nama Ayah / Bapak Kandung"' },
       { table: 'warga_belajar', col: 'nama_ibu', def: 'VARCHAR(100) NULL DEFAULT NULL COMMENT "Nama Ibu Kandung"' },
@@ -84,9 +84,10 @@ export const testConnection = async () => {
       }
     }
 
-    // Otomatis sinkronisasi nilai default npsn jika ada baris siswa yang masih null
+    // Otomatis sinkronisasi nilai default npsn resmi (P2970848) ke seluruh pendaftar dan warga belajar
     try {
-      await pool.query('UPDATE warga_belajar SET npsn = "P9962854" WHERE npsn IS NULL OR npsn = ""');
+      await pool.query('UPDATE warga_belajar SET npsn = "P2970848" WHERE npsn IS NULL OR npsn = "" OR npsn = "P9962854" OR npsn = "P9962879"');
+      await pool.query('UPDATE pendaftar_spmb SET npsn = "P2970848" WHERE npsn IS NULL OR npsn = "" OR npsn = "P9962854" OR npsn = "P9962879"');
     } catch (_) {}
 
     // Otomatis pastikan kolom jenis_berkas di berkas_spmb fleksibel & aman (VARCHAR 50) untuk KK, Akta, KTP, Ijazah, Foto

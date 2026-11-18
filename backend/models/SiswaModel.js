@@ -19,7 +19,7 @@ const SiswaModel = {
         wb.id,
         wb.nis,
         wb.nik,
-        COALESCE(wb.npsn, 'P9962854') AS npsn,
+        COALESCE(wb.npsn, 'P2970848') AS npsn,
         wb.nisn,
         wb.user_id,
         u.nama_lengkap,
@@ -211,7 +211,7 @@ const SiswaModel = {
         (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
     `;
     const params = [
-      user_id, nis, nik || null, npsn ? String(npsn).trim() : 'P9962854', nisn ? String(nisn).trim() : null,
+      user_id, nis, nik || null, npsn ? String(npsn).trim() : 'P2970848', nisn ? String(nisn).trim() : null,
       jenjang, tanggal_lahir, jenis_kelamin, alamat,
       jarak_rumah_km || null, tinggi_badan || null, berat_badan || null,
       jumlah_saudara_kandung !== undefined ? jumlah_saudara_kandung : null,

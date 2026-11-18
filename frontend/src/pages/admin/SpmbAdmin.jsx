@@ -115,6 +115,14 @@ function SpmbAdmin() {
 
     setTambahLoading(true);
     try {
+      // Cek duplikasi email terlebih dahulu
+      const checkRes = await SpmbAPI.cekEmail(formTambah.email.trim());
+      if (checkRes.data?.terdaftar) {
+        alert(checkRes.data.message || `Email "${formTambah.email}" sudah terdaftar di sistem. Tidak diperbolehkan menggunakan email yang sama saat pendaftaran.`);
+        setTambahLoading(false);
+        return;
+      }
+
       const fd = new FormData();
       Object.keys(formTambah).forEach((k) => {
         if (formTambah[k] !== undefined && formTambah[k] !== null && String(formTambah[k]).trim() !== '') {

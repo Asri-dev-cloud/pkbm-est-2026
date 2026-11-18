@@ -17,7 +17,7 @@ export const JADWAL_SKBM_INFO = {
   izinOperasional: '1190 Tahun 2025',
   tanggalIzin: '08-08-2025',
   npsn: 'P2970848',
-  alamat: 'Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat 45381',
+  alamat: 'Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat Kode Pos 5381',
   kontak: '0823-1838-3605 | pkbminamandiripaseh@gmail.com',
   website: 'pkbminamandiri.sch.id',
   kepalaPKBM: 'INDRAYANI, S.S., M.Pd.',

@@ -179,14 +179,14 @@ export async function generateLaporanSiswaExcel({
     },
     {
       row: 4,
-      text: 'Izin Operasional: 421.1/04-Disdik/2020 | NPSN: P9962879',
+      text: 'Izin Operasional: 421.1/04-Disdik/2020 | NPSN: P2970848',
       font: { name: 'Arial', size: 9, italic: true, color: { argb: 'FF475569' } },
       alignment: { horizontal: 'center', vertical: 'middle' },
       height: 16,
     },
     {
       row: 5,
-      text: 'Sekretariat: PKBM Bina Mandiri, Sumedang, Jawa Barat | Web: pkbmbinamandiri.sch.id',
+      text: 'Alamat: Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat Kode Pos 5381 | Web: pkbmbinamandiri.sch.id',
       font: { name: 'Arial', size: 9, color: { argb: 'FF64748B' } },
       alignment: { horizontal: 'center', vertical: 'middle' },
       height: 16,

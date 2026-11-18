@@ -363,19 +363,58 @@ const SpmbModel = {
   },
 
   // -----------------------------------------------------------
-  // Cek apakah email sudah pernah mendaftar di tahun ajaran ini
-  // Mencegah duplikasi pendaftaran
+  // Cek apakah email sudah pernah terdaftar di sistem PKBM
+  // Memeriksa tabel users (akun aktif) dan pendaftar_spmb (pendaftar baru/lama)
+  // Mencegah duplikasi email pada saat pendaftaran (kebijakan: 1 email = 1 akun/pendaftar)
   // -----------------------------------------------------------
-  cekEmailTerdaftar: async (email, tahun_ajaran_id) => {
-    let sql = `SELECT id FROM pendaftar_spmb WHERE LOWER(email) = LOWER(?)`;
-    const params = [email.trim()];
-    if (tahun_ajaran_id) {
-      sql += ` AND tahun_ajaran_id = ?`;
-      params.push(tahun_ajaran_id);
+  cekEmailTerdaftar: async (email, excludePendaftarId = null) => {
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    if (!cleanEmail) return null;
+
+    // 1. Cek di tabel users (akun yang sudah aktif: warga belajar, tutor, admin, dsb.)
+    try {
+      const [userRows] = await pool.execute(
+        `SELECT id, nama_lengkap, email, role FROM users WHERE LOWER(TRIM(email)) = ? LIMIT 1`,
+        [cleanEmail]
+      );
+      if (userRows && userRows.length > 0) {
+        return {
+          sumber: 'users',
+          id: userRows[0].id,
+          nama_lengkap: userRows[0].nama_lengkap,
+          email: userRows[0].email,
+          role: userRows[0].role
+        };
+      }
+    } catch (uErr) {
+      console.warn('[SpmbModel.cekEmailTerdaftar] Gagal cek tabel users:', uErr.message);
     }
-    sql += ` LIMIT 1`;
-    const [rows] = await pool.execute(sql, params);
-    return rows[0] || null;
+
+    // 2. Cek di tabel pendaftar_spmb (semua pendaftar tanpa batas tahun ajaran)
+    try {
+      let spmbSql = `SELECT id, nama_lengkap, email, status FROM pendaftar_spmb WHERE LOWER(TRIM(email)) = ?`;
+      const spmbParams = [cleanEmail];
+      if (excludePendaftarId) {
+        spmbSql += ` AND id != ?`;
+        spmbParams.push(excludePendaftarId);
+      }
+      spmbSql += ` LIMIT 1`;
+
+      const [spmbRows] = await pool.execute(spmbSql, spmbParams);
+      if (spmbRows && spmbRows.length > 0) {
+        return {
+          sumber: 'pendaftar_spmb',
+          id: spmbRows[0].id,
+          nama_lengkap: spmbRows[0].nama_lengkap,
+          email: spmbRows[0].email,
+          status: spmbRows[0].status
+        };
+      }
+    } catch (pErr) {
+      console.warn('[SpmbModel.cekEmailTerdaftar] Gagal cek tabel pendaftar_spmb:', pErr.message);
+    }
+
+    return null;
   },
 
   // -----------------------------------------------------------

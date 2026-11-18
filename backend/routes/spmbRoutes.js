@@ -46,6 +46,9 @@ router.post(
   SpmbController.daftar
 );
 
+// GET /api/spmb/cek-email — Cek ketersediaan email secara instan (tanpa login)
+router.get('/cek-email', SpmbController.cekEmailPublik);
+
 // GET /api/spmb/cek-status — Cek status pendaftaran calon siswa (tanpa login)
 router.get('/cek-status', SpmbController.cekStatusPublik);
 

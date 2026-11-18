@@ -404,7 +404,7 @@ export const buildKartuPelajarPdf = async ({ siswa, outputPath = null }) => {
   frontLines.push(rectFill(frontX, frontY + CARD_H - 28, CARD_W, 2, 0.96, 0.65, 0.12));
 
   frontLines.push(textLine('F2', 8, frontX + 12, frontY + CARD_H - 12, 'PKBM BINA MANDIRI', 1, 1, 1));
-  frontLines.push(textLine('F1', 5.5, frontX + 12, frontY + CARD_H - 20, `KARTU TANDA PELAJAR * NPSN ${siswa.npsn || 'P9962854'}`, 0.9, 0.8, 0.4));
+  frontLines.push(textLine('F1', 5.5, frontX + 12, frontY + CARD_H - 20, `KARTU TANDA PELAJAR * NPSN ${siswa.npsn || 'P2970848'}`, 0.9, 0.8, 0.4));
   frontLines.push(textLine('F2', 6.5, frontX + CARD_W - 54, frontY + CARD_H - 16, jenjangRaw.toUpperCase(), 0.98, 0.85, 0.35));
 
   const photoX = frontX + 12;
@@ -466,8 +466,8 @@ export const buildKartuPelajarPdf = async ({ siswa, outputPath = null }) => {
   const instX = backX + 12;
   backLines.push(textLine('F1', 4.5, instX, backY + 44, 'LEMBAGA PENDIDIKAN KESETARAAN', 0.65, 0.72, 0.82));
   backLines.push(textLine('F2', 7, instX, backY + 34, 'PKBM BINA MANDIRI', 1, 1, 1));
-  backLines.push(textLine('F2', 5, instX, backY + 25, `NPSN: ${siswa.npsn || 'P9962854'} * SUMEDANG`, 0.98, 0.85, 0.35));
-  backLines.push(textLine('F1', 4.5, instX, backY + 14, 'Sekretariat: Sumedang, Jawa Barat', 0.65, 0.72, 0.82));
+  backLines.push(textLine('F2', 5, instX, backY + 25, `NPSN: ${siswa.npsn || 'P2970848'} * SUMEDANG`, 0.98, 0.85, 0.35));
+  backLines.push(textLine('F1', 4, instX, backY + 14, 'Alamat: Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat Kode Pos 5381', 0.65, 0.72, 0.82));
 
   // Kepala Lembaga resmi: Indrayani, S.S.,M.Pd. (Kanan Bawah)
   const sigX = backX + 130;

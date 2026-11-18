@@ -254,7 +254,7 @@ export default function RaporSiswa() {
                   <strong>No. SK Izin Operasional: 1190 Tahun 2025 | Tanggal: 08-08-2025 | NPSN: {detailRapor?.npsn || profilSiswa?.npsn || 'P2970848'}</strong>
                 </p>
                 <p className="rapor-kop-address">
-                  Alamat: Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab.Sumedang Prov. Jawa Barat Kode Pos 45381
+                  Alamat: Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat Kode Pos 5381
                 </p>
                 <p className="rapor-kop-contact">
                   Telp. 0823-1838-3605 | e-mail: pkbmbinamandiripaseh@gmail.com | website: pkbmbinamandiri.sch.id
@@ -292,7 +292,7 @@ export default function RaporSiswa() {
                     <tr>
                       <td>Alamat Satuan Pendidikan</td>
                       <td>:</td>
-                      <td>Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang</td>
+                      <td>Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat Kode Pos 5381</td>
                     </tr>
                   </tbody>
                 </table>

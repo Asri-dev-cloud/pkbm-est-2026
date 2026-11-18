@@ -158,14 +158,19 @@ const SpmbController = {
         console.warn('[SpmbController.daftar] Warning saat pengecekan tahun_ajaran:', errTa.message);
       }
 
-      // 5. Cek duplikasi email pada tahun ajaran aktif
-      const sudahDaftar = await SpmbModel.cekEmailTerdaftar(email.trim(), tahun_ajaran_id);
+      // 5. Cek duplikasi email secara menyeluruh (users dan pendaftar_spmb)
+      // Kebijakan resmi: tidak boleh menggunakan email yang sama saat pendaftaran
+      const sudahDaftar = await SpmbModel.cekEmailTerdaftar(email.trim());
       if (sudahDaftar) {
         cleanUploadedFiles(uploadedFiles);
+        const duplicateMsg = sudahDaftar.sumber === 'users'
+          ? `Alamat email "${email.trim()}" sudah terdaftar sebagai akun pengguna di PKBM Bina Mandiri. Tidak diperbolehkan menggunakan email yang sama saat pendaftaran. Silakan gunakan email lain atau login ke akun Anda.`
+          : `Alamat email "${email.trim()}" sudah pernah didaftarkan pada sistem SPMB PKBM Bina Mandiri. Tidak diperbolehkan menggunakan email yang sama saat pendaftaran. Silakan gunakan email lain atau hubungi staf TU untuk mengecek status pendaftaran Anda.`;
+
         return res.status(409).json({
           success: false,
-          message: 'Email ini sudah pernah mendaftar pada tahun ajaran aktif. ' +
-                   'Silakan hubungi staf TU atau login untuk memeriksa status Anda.',
+          code: 'EMAIL_ALREADY_EXISTS',
+          message: duplicateMsg,
         });
       }
 
@@ -186,7 +191,7 @@ const SpmbController = {
         nama_lengkap.trim(),
         email.trim(),
         nik ? nik.trim() : null,
-        npsn ? String(npsn).trim() : 'P9962854',
+        npsn ? String(npsn).trim() : 'P2970848',
         nisn ? String(nisn).trim() : null,
         password_hash,
         no_telp.trim(),
@@ -243,9 +248,9 @@ const SpmbController = {
       console.error('[SpmbController.daftar] Error:', error);
       const isDup = error.code === 'ER_DUP_ENTRY';
       const errMsg = isDup
-        ? 'Email atau NIK ini sudah terdaftar pada tahun ajaran aktif.'
+        ? 'Alamat email ini sudah terdaftar di sistem PKBM Bina Mandiri. Harap gunakan alamat email lain.'
         : (error.sqlMessage || error.message || 'Gagal menyimpan pendaftaran.');
-      return res.status(isDup ? 409 : 500).json({ success: false, message: errMsg });
+      return res.status(isDup ? 409 : 500).json({ success: false, code: isDup ? 'EMAIL_ALREADY_EXISTS' : 'SERVER_ERROR', message: errMsg });
     }
   },
 
@@ -313,6 +318,63 @@ const SpmbController = {
   },
 
   // -----------------------------------------------------------
+  // GET /api/spmb/cek-email  [PUBLIK — tanpa login]
+  // Cek ketersediaan email calon siswa secara instan (real-time validation)
+  // Memastikan calon siswa tidak mendaftar dengan email yang sudah ada
+  // -----------------------------------------------------------
+  cekEmailPublik: async (req, res) => {
+    try {
+      const email = req.query.email;
+      if (!email || !String(email).trim()) {
+        return res.status(400).json({
+          success: false,
+          available: false,
+          message: 'Parameter email wajib disertakan.',
+        });
+      }
+
+      const cleanEmail = String(email).trim().toLowerCase();
+      // Validasi format email sederhana
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(cleanEmail)) {
+        return res.status(400).json({
+          success: false,
+          available: false,
+          message: 'Format alamat email tidak valid.',
+        });
+      }
+
+      const terdaftar = await SpmbModel.cekEmailTerdaftar(cleanEmail);
+      if (terdaftar) {
+        const msg = terdaftar.sumber === 'users'
+          ? `Alamat email "${cleanEmail}" sudah terdaftar sebagai akun pengguna di PKBM Bina Mandiri. Silakan gunakan email lain atau login ke akun Anda.`
+          : `Alamat email "${cleanEmail}" sudah pernah digunakan untuk pendaftaran SPMB di PKBM Bina Mandiri. Tidak diperbolehkan menggunakan email yang sama saat pendaftaran. Silakan gunakan email lain.`;
+
+        return res.status(200).json({
+          success: true,
+          terdaftar: true,
+          available: false,
+          sumber: terdaftar.sumber,
+          message: msg,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        terdaftar: false,
+        available: true,
+        message: 'Alamat email tersedia untuk pendaftaran.',
+      });
+    } catch (error) {
+      console.error('[SpmbController.cekEmailPublik] Error:', error);
+      return res.status(500).json({
+        success: false,
+        available: false,
+        message: 'Gagal mengecek ketersediaan email.',
+      });
+    }
+  },
+
   // -----------------------------------------------------------
   // GET /api/spmb/cek-status  [PUBLIK — tanpa login]
   // Mengecek status pendaftaran calon WB berdasarkan email, ID, atau nama
@@ -963,6 +1025,18 @@ const SpmbController = {
         nama_ayah, nama_ibu, nama_wali
       } = req.body;
 
+      // Jika email diganti, pastikan email baru belum digunakan oleh akun/pendaftar lain
+      if (email && email.trim().toLowerCase() !== (existing.email || '').toLowerCase()) {
+        const emailTerdaftar = await SpmbModel.cekEmailTerdaftar(email.trim(), pendaftarId);
+        if (emailTerdaftar) {
+          return res.status(409).json({
+            success: false,
+            code: 'EMAIL_ALREADY_EXISTS',
+            message: `Alamat email "${email.trim()}" sudah terdaftar pada akun atau pendaftar lain. Tidak diperbolehkan menggunakan email yang sama.`
+          });
+        }
+      }
+
       await SpmbModel.update(pendaftarId, {
         nama_lengkap, email, nik, no_telp, jenjang_daftar, tanggal_lahir, jenis_kelamin,
         alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
@@ -1071,7 +1145,7 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
          berat_badan = COALESCE(?, berat_badan),
          jumlah_saudara_kandung = COALESCE(?, jumlah_saudara_kandung),
          nik = COALESCE(?, nik),
-         npsn = COALESCE(?, npsn, 'P9962854'),
+         npsn = COALESCE(?, npsn, 'P2970848'),
          nisn = COALESCE(?, nisn),
          alamat = COALESCE(?, alamat),
          nama_ayah = COALESCE(?, nama_ayah),
@@ -1111,7 +1185,7 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
         userId,
         nis,
         pendaftar.nik || null,
-        pendaftar.npsn || 'P9962854',
+        pendaftar.npsn || 'P2970848',
         pendaftar.nisn || null,
         pendaftar.jenjang_daftar,
         pendaftar.tanggal_lahir,

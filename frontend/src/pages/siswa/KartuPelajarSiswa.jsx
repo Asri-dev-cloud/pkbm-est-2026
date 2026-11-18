@@ -366,7 +366,7 @@ function KartuPelajarSiswa() {
                         <div className="kop-text-area">
                           <span className="kop-ministry-text">KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET & TEKNOLOGI</span>
                           <h2 className="kop-school-title">PKBM BINA MANDIRI SUMEDANG</h2>
-                          <span className="kop-npsn-akred">NPSN: {cleanProfil?.npsn || 'P9962854'}</span>
+                          <span className="kop-npsn-akred">NPSN: {cleanProfil?.npsn || 'P2970848'}</span>
                         </div>
                       </div>
                       <div className="kop-badge-jenjang">
@@ -430,7 +430,7 @@ function KartuPelajarSiswa() {
                             <span className="id-value">{profil.nama_rombel || 'Dalam Penetapan'}</span>
                           </div>
                           <div className="id-row">
-                            <span className="id-label">Masa Berlaku</span>
+                            <span className="id-label"><span className="label-masa">Masa </span>Berlaku</span>
                             <span className="id-colon">:</span>
                             <span className="id-value">Selama Menjadi Warga Belajar</span>
                           </div>
@@ -476,8 +476,8 @@ function KartuPelajarSiswa() {
                       <div className="back-inst-details">
                         <div className="back-inst-title">PUSAT KEGIATAN BELAJAR MASYARAKAT</div>
                         <div className="back-inst-name">PKBM BINA MANDIRI</div>
-                        <div className="back-inst-meta">NPSN: {cleanProfil?.npsn || 'P9962854'}</div>
-                        <div className="back-inst-addr">Dusun Cikondang RT 02/02, Desa Cikondang, Kec. Ganeas, Kab. Sumedang</div>
+                        <div className="back-inst-meta">NPSN: {cleanProfil?.npsn || 'P2970848'}</div>
+                        <div className="back-inst-addr">Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat Kode Pos 5381</div>
                         <div className="back-inst-web">Laman Resmi: pkbmbinamandiri.sch.id</div>
                       </div>
 

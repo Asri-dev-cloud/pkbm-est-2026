@@ -410,6 +410,10 @@ export const SpmbAPI = {
     return apiClient.post('/spmb/daftar', payload);
   },
 
+  // GET /api/spmb/cek-email?email=... — PUBLIK, validasi ketersediaan email instan
+  cekEmail: (email) =>
+    apiClient.get('/spmb/cek-email', { params: { email } }),
+
   // GET /api/spmb/cek-status?q=keyword — PUBLIK, cek status pendaftaran
   cekStatusPublik: (keyword) =>
     apiClient.get('/spmb/cek-status', { params: { q: keyword } }),

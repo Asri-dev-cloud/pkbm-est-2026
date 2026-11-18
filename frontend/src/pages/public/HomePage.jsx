@@ -3505,7 +3505,7 @@ export default function HomePage() {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {[
-                  { icon: MapPin, label: "Alamat Lembaga", val: "Dusun Sukahurip RT 03/RW 03, Legok Kaler, Kec. Paseh, Kab. Sumedang" },
+                  { icon: MapPin, label: "Alamat Lembaga", val: "Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat Kode Pos 5381" },
                   { icon: ShieldCheck, label: "Naungan Yayasan", val: "Yayasan Amal Bina Insani Darulhuda" },
                   { icon: InstagramIcon, label: "Instagram Resmi", val: "@bina_mandiri_pkbm", href: "https://www.instagram.com/bina_mandiri_pkbm/" },
                   { icon: Mail, label: "Email Resmi", val: "pkbmbinamandiripaseh@gmail.com" },

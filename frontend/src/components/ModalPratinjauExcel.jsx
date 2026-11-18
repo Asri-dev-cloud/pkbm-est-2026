@@ -434,7 +434,7 @@ export default function ModalPratinjauExcel({
                     lineHeight: 1.35,
                   }}
                 >
-                  Izin Operasional No: 421.1/04-Disdik/2020 | NPSN: P9962879
+                  Izin Operasional No: 421.1/04-Disdik/2020 | NPSN: P2970848
                 </div>
                 <div
                   style={{
@@ -444,7 +444,7 @@ export default function ModalPratinjauExcel({
                     marginTop: 2,
                   }}
                 >
-                  Sekretariat: PKBM Bina Mandiri, Sumedang, Jawa Barat | Web: pkbmbinamandiri.sch.id
+                  Alamat: Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat Kode Pos 5381 | Web: pkbmbinamandiri.sch.id
                 </div>
               </div>
 

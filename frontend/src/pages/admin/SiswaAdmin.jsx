@@ -122,7 +122,7 @@ function SiswaAdmin() {
         nama_ibu: data.nama_ibu || '',
         nama_wali: data.nama_wali || '',
         no_telp:  data.no_telp  || '',
-        npsn:     data.npsn     || 'P9962854',
+        npsn:     data.npsn     || 'P2970848',
         nisn:     data.nisn     || '',
       });
     } catch {
@@ -491,7 +491,7 @@ function SiswaAdmin() {
                           <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                             <span style={{ fontWeight: 700, color: '#475569' }}>NPSN:</span>
                             <span style={{ fontWeight: 800, color: '#0F172A', background: '#F1F5F9', padding: '1px 6px', borderRadius: 4 }}>
-                              {s.npsn || 'P9962854'}
+                              {s.npsn || 'P2970848'}
                             </span>
                           </div>
                         </td>
@@ -647,7 +647,7 @@ function SiswaAdmin() {
                     }}>
                       {[
                         { label: 'Nomor Induk Siswa (NIS)', value: selectedWB.nis, icon: 'bi-card-text' },
-                        { label: 'NPSN Lembaga / Siswa', value: selectedWB.npsn || 'P9962854', icon: 'bi-building' },
+                        { label: 'NPSN Lembaga / Siswa', value: selectedWB.npsn || 'P2970848', icon: 'bi-building' },
                         ...(selectedWB.nisn ? [{ label: 'NISN', value: selectedWB.nisn, icon: 'bi-person-badge' }] : []),
                         { label: 'Nama Lengkap', value: selectedWB.nama_lengkap, icon: 'bi-person' },
                         { label: 'Alamat Email', value: selectedWB.email, icon: 'bi-envelope' },
@@ -691,7 +691,7 @@ function SiswaAdmin() {
                               <input
                                 type="text"
                                 className="form-input"
-                                placeholder="Contoh: P9962854"
+                                placeholder="Contoh: P2970848"
                                 value={formEdit.npsn}
                                 onChange={e => setFormEdit(p => ({ ...p, npsn: e.target.value }))}
                                 style={{ fontWeight: 700, letterSpacing: '0.04em', borderColor: '#93C5FD' }}
@@ -874,7 +874,7 @@ function SiswaAdmin() {
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
                             {[
-                              { label: 'NPSN Siswa / Lembaga', value: selectedWB.npsn || 'P9962854' },
+                              { label: 'NPSN Siswa / Lembaga', value: selectedWB.npsn || 'P2970848' },
                               ...(selectedWB.nisn ? [{ label: 'NISN (Nomor Induk Siswa Nasional)', value: selectedWB.nisn }] : []),
                               { label: 'Alamat Tinggal', value: selectedWB.alamat || 'Belum diisi' },
                               { label: 'Nama Ayah / Bapak Kandung', value: selectedWB.nama_ayah || 'Belum diisi' },

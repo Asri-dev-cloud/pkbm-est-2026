@@ -191,7 +191,7 @@ function VerifikasiKartuPage() {
                 {data.is_aktif ? 'KARTU PELAJAR RESMI TERVERIFIKASI' : 'KARTU PELAJAR NONAKTIF / ALUMNI'}
               </h2>
               <div style={{ fontSize: '0.825rem', opacity: 0.9 }}>
-                Pusat Kegiatan Belajar Masyarakat (PKBM) Bina Mandiri • NPSN: {data.npsn}
+                Pusat Kegiatan Belajar Masyarakat (PKBM) Bina Mandiri • NPSN: {data.npsn || 'P2970848'}
               </div>
             </div>
 

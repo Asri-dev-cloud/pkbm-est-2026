@@ -500,7 +500,7 @@ export async function drawCardFront(ctx, siswa, offsetX = 0, offsetY = 0) {
 
   ctx.fillStyle = '#0284C7';
   ctx.font = '700 14px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(`NPSN: ${siswa.npsn || 'P9962854'}`, 130, 104);
+  ctx.fillText(`NPSN: ${siswa.npsn || 'P2970848'}`, 130, 104);
 
   // Badge Jenjang Kanan Kop (Pill Biru Navy dengan Huruf Emas)
   const jenjangBadge = badgeJenjangText[siswa.jenjang] || 'WARGA BELAJAR';
@@ -827,11 +827,11 @@ export async function drawCardBack(ctx, siswa, offsetX = 0, offsetY = 0) {
 
   ctx.fillStyle = '#FCD34D';
   ctx.font = '700 13px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(`NPSN: ${siswa.npsn || 'P9962854'}`, 50, bottomY + 68);
+  ctx.fillText(`NPSN: ${siswa.npsn || 'P2970848'}`, 50, bottomY + 68);
 
   ctx.fillStyle = '#CBD5E1';
-  ctx.font = '500 12px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('Dusun Cikondang RT 02/02, Desa Cikondang, Kec. Ganeas, Kab. Sumedang', 50, bottomY + 88);
+  ctx.font = '500 11px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('Alamat: Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat Kode Pos 5381', 50, bottomY + 88);
 
   ctx.fillStyle = '#93C5FD';
   ctx.font = '700 12px "Plus Jakarta Sans", sans-serif';

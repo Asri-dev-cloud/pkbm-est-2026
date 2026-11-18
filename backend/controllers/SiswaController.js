@@ -306,7 +306,7 @@ const SiswaController = {
           foto_profil: siswa.foto_profil || null,
           terdaftar_sejak: siswa.created_at,
           lembaga: 'PKBM Bina Mandiri',
-          npsn: siswa.npsn || 'P9962854',
+          npsn: siswa.npsn || 'P2970848',
           nisn: siswa.nisn || null,
           status_kartu: siswa.is_aktif === 1 ? 'AKTIF & RESMI' : 'NONAKTIF / ALUMNI',
         },

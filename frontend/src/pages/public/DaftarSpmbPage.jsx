@@ -203,10 +203,47 @@ function DaftarSpmbPage() {
   const [copied, setCopied] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [emailStatus, setEmailStatus] = useState('idle'); // 'idle' | 'checking' | 'available' | 'registered' | 'invalid'
+  const [emailError, setEmailError] = useState('');
+  const [checkingEmail, setCheckingEmail] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+    if (name === 'email') {
+      setEmailStatus('idle');
+      setEmailError('');
+    }
+  };
+
+  // Cek ketersediaan email saat kursor meninggalkan input (onBlur)
+  const handleEmailBlur = async () => {
+    const raw = (form.email || '').trim();
+    if (!raw) {
+      setEmailStatus('idle');
+      setEmailError('');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(raw)) {
+      setEmailStatus('invalid');
+      setEmailError('Format email tidak valid (contoh: nama@email.com).');
+      return;
+    }
+    setEmailStatus('checking');
+    try {
+      const res = await SpmbAPI.cekEmail(raw);
+      if (res.data?.terdaftar) {
+        setEmailStatus('registered');
+        setEmailError(res.data.message || 'Email ini sudah terdaftar. Tidak diperbolehkan menggunakan email yang sama saat pendaftaran.');
+      } else {
+        setEmailStatus('available');
+        setEmailError('');
+      }
+    } catch (err) {
+      console.warn('[handleEmailBlur] Gagal cek email:', err);
+      setEmailStatus('idle');
+    }
   };
 
   const handleJenjangSelect = (jenjangKey) => {
@@ -259,7 +296,7 @@ function DaftarSpmbPage() {
   };
 
   // ── Step 1: Validasi Data Diri & Lanjut ke Step 2 (Belum disimpan ke DB agar berkas tidak kosong) ──
-  const handleSubmitDataDiri = (e) => {
+  const handleSubmitDataDiri = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -278,6 +315,22 @@ function DaftarSpmbPage() {
         window.scrollTo({ top: 180, behavior: 'smooth' });
         return;
       }
+    }
+
+    // Validasi format email dasar
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email.trim())) {
+      setError('Format alamat email tidak valid.');
+      setEmailError('Format alamat email tidak valid (contoh: nama@email.com).');
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+      return;
+    }
+
+    // Jika sebelumnya sudah terdeteksi terdaftar
+    if (emailStatus === 'registered' || emailError) {
+      setError(emailError || 'Email ini sudah terdaftar. Harap gunakan alamat email lain.');
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+      return;
     }
 
     if (Number(form.tinggi_badan) <= 0 || Number(form.berat_badan) <= 0) {
@@ -302,6 +355,27 @@ function DaftarSpmbPage() {
       setError('Konfirmasi password tidak cocok dengan password yang dibuat.');
       window.scrollTo({ top: 180, behavior: 'smooth' });
       return;
+    }
+
+    // Validasi duplikasi email ke server secara langsung sebelum berlanjut ke unggah berkas
+    setCheckingEmail(true);
+    try {
+      const checkRes = await SpmbAPI.cekEmail(form.email.trim());
+      if (checkRes.data?.terdaftar) {
+        const msg = checkRes.data.message || 'Email ini sudah terdaftar di PKBM Bina Mandiri. Tidak diperbolehkan menggunakan email yang sama saat pendaftaran.';
+        setError(msg);
+        setEmailStatus('registered');
+        setEmailError(msg);
+        window.scrollTo({ top: 180, behavior: 'smooth' });
+        return;
+      } else {
+        setEmailStatus('available');
+        setEmailError('');
+      }
+    } catch (errCheck) {
+      console.warn('[DaftarSpmb] Warning saat validasi email di server:', errCheck);
+    } finally {
+      setCheckingEmail(false);
     }
 
     // Formulir data diri valid, lanjut ke Step 2 (Unggah Berkas Wajib)
@@ -551,18 +625,62 @@ function DaftarSpmbPage() {
                   <label className="spmb-label">
                     Alamat Email Aktif <span className="spmb-label-req">*</span>
                   </label>
-                  <div className="spmb-input-wrapper">
+                  <div
+                    className="spmb-input-wrapper"
+                    style={{
+                      position: 'relative',
+                      borderColor: emailStatus === 'registered' || emailStatus === 'invalid'
+                        ? '#EF4444'
+                        : emailStatus === 'available'
+                          ? '#10B981'
+                          : undefined
+                    }}
+                  >
                     <Mail size={18} className="spmb-input-icon" />
                     <input
                       type="email"
                       name="email"
                       value={form.email}
                       onChange={handleChange}
+                      onBlur={handleEmailBlur}
                       required
                       placeholder="nama@email.com"
                       className="spmb-input"
+                      style={{
+                        paddingRight: '2.5rem',
+                        borderColor: emailStatus === 'registered' || emailStatus === 'invalid'
+                          ? '#EF4444'
+                          : emailStatus === 'available'
+                            ? '#10B981'
+                            : undefined
+                      }}
                     />
+                    <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                      {emailStatus === 'checking' && (
+                        <RefreshCw size={16} className="spinner" style={{ color: '#3B82F6' }} />
+                      )}
+                      {emailStatus === 'available' && (
+                        <CheckCircle2 size={18} style={{ color: '#10B981' }} />
+                      )}
+                      {(emailStatus === 'registered' || emailStatus === 'invalid') && (
+                        <AlertCircle size={18} style={{ color: '#EF4444' }} />
+                      )}
+                    </div>
                   </div>
+                  {emailStatus === 'available' && (
+                    <div style={{ fontSize: '0.78rem', color: '#10B981', fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <CheckCircle2 size={14} /> Alamat email tersedia untuk pendaftaran
+                    </div>
+                  )}
+                  {emailError && (
+                    <div style={{ fontSize: '0.78rem', color: '#DC2626', fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                      <AlertCircle size={14} style={{ marginTop: 2, flexShrink: 0 }} />
+                      <span>{emailError}</span>
+                    </div>
+                  )}
+                  <span className="spmb-hint">
+                    Sistem menolak email yang sama saat pendaftaran. Gunakan email pribadi yang aktif.
+                  </span>
                 </div>
               </div>
 
@@ -936,9 +1054,19 @@ function DaftarSpmbPage() {
                 type="submit"
                 className="spmb-btn spmb-btn-primary spmb-btn-full"
                 style={{ marginTop: 8 }}
+                disabled={checkingEmail}
               >
-                <span>Lanjut ke Unggah 5 Berkas Wajib</span>
-                <ArrowRight size={18} />
+                {checkingEmail ? (
+                  <>
+                    <RefreshCw size={18} className="spinner" />
+                    <span>Memeriksa Ketersediaan Email...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Lanjut ke Unggah 5 Berkas Wajib</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
               </button>
             </form>
           </div>
@@ -957,12 +1085,24 @@ function DaftarSpmbPage() {
               </p>
             </div>
 
-            {/* Error Banner jika ada berkas yang belum dipilih */}
+            {/* Error Banner jika ada berkas yang belum dipilih atau error email dari server */}
             {errorStep2 && (
               <div className="spmb-alert error" style={{ marginBottom: 20, background: '#FEF2F2', border: '1.5px solid #FCA5A5', color: '#991B1B' }}>
-                <AlertCircle size={20} style={{ flexShrink: 0 }} />
-                <div style={{ whiteSpace: 'pre-line', fontSize: '0.85rem', fontWeight: 600, lineHeight: 1.5 }}>
+                <AlertCircle size={20} style={{ flexShrink: 0, marginTop: 2 }} />
+                <div style={{ flex: 1, whiteSpace: 'pre-line', fontSize: '0.85rem', fontWeight: 600, lineHeight: 1.5 }}>
                   {errorStep2}
+                  {errorStep2.toLowerCase().includes('email') && (
+                    <div style={{ marginTop: 12 }}>
+                      <button
+                        type="button"
+                        onClick={() => { setStep(1); setError(errorStep2); }}
+                        className="spmb-btn spmb-btn-secondary"
+                        style={{ padding: '6px 14px', fontSize: '0.8rem', background: '#FFFFFF', color: '#DC2626', borderColor: '#F87171' }}
+                      >
+                        ← Kembali ke Data Diri & Ganti Email
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

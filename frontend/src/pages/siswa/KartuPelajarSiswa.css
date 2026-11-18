@@ -806,18 +806,18 @@
     line-height: 1.45;
   }
 
-  /* Dua tombol unduh proporsional mengisi lebar layar */
+  /* Tombol aksi unduh proporsional mengisi lebar layar */
   .kartu-pelajar-actions-bar {
     width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     gap: 8px;
   }
 
   .btn-kartu-action {
+    flex: 1;
     width: 100%;
-    padding: 10px 8px;
-    font-size: 0.8rem;
+    padding: 10px 14px;
+    font-size: 0.85rem;
     justify-content: center;
     box-sizing: border-box;
   }
@@ -878,245 +878,429 @@
   }
 }
 
-@media (max-width: 540px) {
-  /* Proporsi Wajah Kartu CR-80 di Layar HP */
+@media (max-width: 580px) {
+  /* Kartu CR-80 di Layar HP - Wajib padding 0 agar kop & footer menempel sempurna */
   .id-card-face {
-    padding: 10px 14px;
-    border-radius: 14px;
+    padding: 0 !important;
+    border-radius: 10px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.18), 0 0 0 1px #CBD5E1;
   }
 
-  /* Kop Kartu Mobile */
-  .card-top-kop {
-    padding-bottom: 5px;
+  /* Watermark PKBM di Layar HP */
+  .card-watermark-official {
+    width: 110px;
+    height: 110px;
+    right: 2px;
+    bottom: 2px;
+    opacity: 0.30;
   }
 
-  .kop-brand-group {
-    gap: 8px;
+  /* Kop Kartu Sisi Depan */
+  .card-official-kop {
+    padding: 4px 8px;
+    border-bottom: 2px solid #F59E0B;
   }
 
-  .kop-logo-wrapper {
-    width: 30px;
-    height: 30px;
-    padding: 1.5px;
-  }
-
-  .kop-subhead {
-    font-size: 0.42rem;
-    letter-spacing: 0.06em;
-  }
-
-  .kop-school-name {
-    font-size: 0.82rem;
-    margin: 0;
-  }
-
-  .kop-accreditation {
-    font-size: 0.42rem;
-  }
-
-  .kop-jenjang-tag {
-    font-size: 0.52rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-
-  /* Badan Depan (Foto & Typografi) */
-  .card-main-content {
-    margin-top: 6px;
-    gap: 10px;
-  }
-
-  .card-photo-portrait {
-    width: 72px;
-    height: 96px;
-    border-radius: 8px;
-    border-width: 1.5px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-  }
-
-  .student-portrait-fallback {
-    font-size: 1.5rem;
-  }
-
-  .student-name-prominent {
-    font-size: 0.86rem;
-    line-height: 1.15;
-    margin-bottom: 1px;
-  }
-
-  .student-nis-subline {
-    margin-bottom: 4px;
-    gap: 4px;
-  }
-
-  .student-nis-subline .nis-tag {
-    font-size: 0.5rem;
-  }
-
-  .student-nis-subline .nis-number {
-    font-size: 0.72rem;
-  }
-
-  .student-meta-list {
-    gap: 2px;
-  }
-
-  .meta-item {
-    font-size: 0.62rem;
+  .kop-brand-area {
     gap: 6px;
-    line-height: 1.2;
+    min-width: 0;
   }
 
-  .meta-lbl {
+  .kop-logo-box {
+    width: 28px;
+    height: 28px;
+    padding: 1px;
+    box-shadow: 0 1px 3px rgba(15, 43, 105, 0.12);
+  }
+
+  .kop-text-area {
+    min-width: 0;
+  }
+
+  .kop-ministry-text {
+    font-size: 0.38rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+  }
+
+  .kop-school-title {
+    font-size: 0.70rem;
+    line-height: 1.15;
+    margin: 0;
+    font-weight: 900;
+  }
+
+  .kop-npsn-akred {
+    font-size: 0.40rem;
+    line-height: 1.1;
+  }
+
+  .kop-badge-jenjang {
+    padding: 2px 6px;
+    font-size: 0.52rem;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Pita Judul Emas */
+  .card-official-title-bar {
+    font-size: 0.50rem;
+    padding: 2px 0;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid rgba(245, 158, 11, 0.5);
+  }
+
+  /* Badan Depan (Foto + Tabel Identitas) */
+  .card-official-body {
+    padding: 3px 8px 2px;
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Pas Foto 3x4 Proporsional */
+  .card-photo-box {
+    width: 58px;
+    height: 78px;
+    border-radius: 4px;
+    border-width: 1.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .student-photo-placeholder {
+    font-size: 1.3rem;
+  }
+
+  /* Nama & Tabel Identitas */
+  .card-identity-table {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .student-fullname {
+    font-size: 0.74rem;
+    font-weight: 900;
+    margin-bottom: 2px;
+    line-height: 1.15;
+  }
+
+  .identity-rows {
+    gap: 1.5px;
+  }
+
+  .id-row {
+    font-size: 0.52rem;
+    line-height: 1.25;
+  }
+
+  .id-label {
     width: 48px;
+    flex-shrink: 0;
+  }
+
+  .id-colon {
+    width: 6px;
+    flex-shrink: 0;
+  }
+
+  .id-value {
+    font-size: 0.52rem;
+  }
+
+  .id-value.id-nis {
+    font-size: 0.54rem;
+  }
+
+  .label-masa {
+    display: none;
   }
 
   /* Footer Kartu Depan */
-  .card-bottom-bar {
-    padding-top: 4px;
+  .card-official-footer {
+    padding: 2px 8px 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
   }
 
-  .card-auth-code {
-    transform: scale(0.85);
-    transform-origin: left bottom;
+  .footer-barcode-wrap {
+    width: 80px;
+    gap: 1px;
   }
 
-  .auth-code-text {
-    font-size: 0.38rem;
+  .footer-barcode-wrap > div {
+    max-width: 80px !important;
   }
 
-  /* Sisi Belakang Kartu Mobile */
-  .back-title-banner {
-    font-size: 0.64rem;
-    padding-bottom: 4px;
+  .footer-barcode-wrap svg {
+    height: 12px !important;
   }
 
-  .back-clauses-list {
-    margin: 4px 0;
-    font-size: 0.52rem;
-    line-height: 1.35;
-    padding-left: 12px;
+  .barcode-nis-text {
+    font-size: 0.40rem;
+    line-height: 1;
   }
 
-  .back-clauses-list li {
+  .footer-school-text {
+    font-size: 0.44rem;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── Sisi Belakang Kartu Mobile ── */
+  .card-official-kop.back-kop {
+    padding: 4px 8px;
+    border-bottom: 2px solid #F59E0B;
+  }
+
+  .back-kop-title {
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+  }
+
+  .back-clauses-wrapper {
+    padding: 4px 8px 2px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .official-rules-list {
+    font-size: 0.47rem;
+    line-height: 1.25;
+  }
+
+  .official-rules-list li {
     margin-bottom: 2px;
+    gap: 4px;
   }
 
-  .back-signature-cluster {
-    padding-top: 4px;
-    margin-top: 2px;
+  .rule-num {
+    min-width: 10px;
   }
 
-  .back-institution-info .inst-sub {
-    font-size: 0.38rem;
+  .back-official-cluster {
+    padding: 3px 8px 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
   }
 
-  .back-institution-info .inst-name {
+  .back-inst-details {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .back-inst-title {
+    font-size: 0.36rem;
+  }
+
+  .back-inst-name {
     font-size: 0.62rem;
+    margin: 0;
   }
 
-  .back-institution-info .inst-npsn {
+  .back-inst-meta {
     font-size: 0.42rem;
   }
 
-  .back-official-endorsement {
-    width: 135px;
+  .back-inst-addr {
+    font-size: 0.39rem;
+    line-height: 1.2;
+    max-width: 180px;
   }
 
-  .sig-place-date {
+  .back-inst-web {
+    font-size: 0.39rem;
+  }
+
+  .back-signature-box {
+    width: 105px;
+    flex-shrink: 0;
+  }
+
+  .sig-date-text {
+    font-size: 0.44rem;
+  }
+
+  .sig-role-text {
     font-size: 0.46rem;
   }
 
-  .sig-office-title {
-    font-size: 0.48rem;
+  .sig-photo-wrap {
+    height: 20px;
+    margin: 0;
   }
 
-  .sig-image-wrapper {
-    height: 36px;
-    margin: 1px 0 2px;
+  .sig-photo-img {
+    max-width: 70px;
   }
 
-  .sig-image {
-    max-height: 100%;
-    max-width: 95px;
-  }
-
-  .sig-principal-name {
-    font-size: 0.58rem;
-  }
-
-  .back-legal-footer {
-    font-size: 0.42rem;
-    margin-top: 2px;
+  .sig-name-underline {
+    font-size: 0.50rem;
+    padding-bottom: 0;
+    border-bottom-width: 1px;
   }
 }
 
 @media (max-width: 380px) {
   .id-card-face {
-    padding: 8px 10px;
-    border-radius: 12px;
+    border-radius: 8px;
   }
 
-  .kop-logo-wrapper {
-    width: 26px;
-    height: 26px;
+  .card-watermark-official {
+    width: 90px;
+    height: 90px;
   }
 
-  .kop-school-name {
-    font-size: 0.74rem;
+  .card-official-kop {
+    padding: 3px 6px;
+    border-bottom-width: 1.5px;
   }
 
-  .card-photo-portrait {
-    width: 62px;
-    height: 82px;
-  }
-
-  .student-name-prominent {
-    font-size: 0.78rem;
-  }
-
-  .student-nis-subline .nis-number {
-    font-size: 0.68rem;
-  }
-
-  .meta-item {
-    font-size: 0.56rem;
+  .kop-brand-area {
     gap: 4px;
   }
 
-  .meta-lbl {
+  .kop-logo-box {
+    width: 24px;
+    height: 24px;
+  }
+
+  .kop-ministry-text {
+    font-size: 0.34rem;
+  }
+
+  .kop-school-title {
+    font-size: 0.62rem;
+  }
+
+  .kop-npsn-akred {
+    font-size: 0.36rem;
+  }
+
+  .kop-badge-jenjang {
+    padding: 1px 4px;
+    font-size: 0.46rem;
+  }
+
+  .card-official-title-bar {
+    font-size: 0.46rem;
+    padding: 1.5px 0;
+  }
+
+  .card-official-body {
+    padding: 2px 6px 1px;
+    gap: 6px;
+  }
+
+  .card-photo-box {
+    width: 48px;
+    height: 66px;
+  }
+
+  .student-fullname {
+    font-size: 0.68rem;
+    margin-bottom: 1px;
+  }
+
+  .identity-rows {
+    gap: 1px;
+  }
+
+  .id-row {
+    font-size: 0.46rem;
+    line-height: 1.2;
+  }
+
+  .id-label {
     width: 42px;
   }
 
-  .card-auth-code {
-    transform: scale(0.75);
-    transform-origin: left bottom;
+  .id-value {
+    font-size: 0.46rem;
   }
 
-  .back-clauses-list {
-    font-size: 0.47rem;
-    line-height: 1.25;
+  .id-value.id-nis {
+    font-size: 0.48rem;
   }
 
-  .back-official-endorsement {
-    width: 115px;
+  .card-official-footer {
+    padding: 1.5px 6px 3px;
   }
 
-  .sig-image-wrapper {
-    height: 28px;
+  .footer-barcode-wrap {
+    width: 65px;
   }
 
-  .sig-image {
-    max-width: 80px;
+  .footer-barcode-wrap > div {
+    max-width: 65px !important;
   }
 
-  .sig-principal-name {
-    font-size: 0.52rem;
+  .footer-barcode-wrap svg {
+    height: 10px !important;
+  }
+
+  .barcode-nis-text {
+    font-size: 0.36rem;
+  }
+
+  .footer-school-text {
+    font-size: 0.38rem;
+  }
+
+  .card-official-kop.back-kop {
+    padding: 3px 6px;
+  }
+
+  .back-kop-title {
+    font-size: 0.50rem;
+  }
+
+  .back-clauses-wrapper {
+    padding: 2px 6px 1px;
+  }
+
+  .official-rules-list {
+    font-size: 0.42rem;
+    line-height: 1.2;
+  }
+
+  .official-rules-list li {
+    margin-bottom: 1.5px;
+    gap: 3px;
+  }
+
+  .rule-num {
+    min-width: 8px;
+  }
+
+  .back-official-cluster {
+    padding: 2px 6px 3px;
+  }
+
+  .back-inst-name {
+    font-size: 0.54rem;
+  }
+
+  .back-inst-addr {
+    font-size: 0.35rem;
+    max-width: 145px;
+  }
+
+  .back-signature-box {
+    width: 90px;
+  }
+
+  .sig-photo-wrap {
+    height: 16px;
+  }
+
+  .sig-photo-img {
+    max-width: 60px;
+  }
+
+  .sig-name-underline {
+    font-size: 0.46rem;
   }
 
   .btn-kartu-action {
-    font-size: 0.74rem;
-    padding: 8px 4px;
+    font-size: 0.78rem;
+    padding: 9px 8px;
   }
 }
 
