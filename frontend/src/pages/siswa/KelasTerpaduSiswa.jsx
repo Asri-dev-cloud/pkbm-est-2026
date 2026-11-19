@@ -813,73 +813,73 @@ function KelasTerpaduSiswa() {
           rombelId = user?.rombel_id || 1;
         }
 
-        // Ambil info rombel
-        try {
-          const rRes = await SiswaAPI.getRombelOptions();
-          const foundR = (rRes.data?.data || []).find(r => String(r.id) === String(rombelId));
+        // Jalankan semua query data secara simultan/paralel dengan Promise.allSettled (Ultra-Fast Concurrent Loading)
+        const [
+          rResResult,
+          mapelResResult,
+          pertResResult,
+          matResResult,
+          modResResult
+        ] = await Promise.allSettled([
+          SiswaAPI.getRombelOptions(),
+          SiswaAPI.getMapelOptions({ rombel_id: rombelId }),
+          PertemuanAPI.getAll(rombelId, mapelId),
+          LmsAPI.getMateriByRombel(rombelId, { mapel_id: mapelId }),
+          user.role !== 'warga_belajar'
+            ? ModulBukuAPI.getAllAdmin({ rombel_id: rombelId, mapel_id: mapelId })
+            : ModulBukuAPI.getPublished({ rombel_id: rombelId, mapel_id: mapelId }),
+          fetchTugasList(rombelId, mapelId),
+          fetchRps(rombelId),
+          user.role === 'warga_belajar' ? syncRekapKehadiran() : Promise.resolve()
+        ]);
+
+        // 1. Info Rombel
+        if (rResResult.status === 'fulfilled') {
+          const foundR = (rResResult.value.data?.data || []).find(r => String(r.id) === String(rombelId));
           if (foundR) {
             setRombelDetail(foundR);
           } else {
             const paramRombel = searchParams.get('nama_rombel') || user.nama_rombel;
             if (paramRombel) setRombelDetail({ id: rombelId, nama_rombel: paramRombel, nama: paramRombel });
           }
-        } catch {
+        } else {
           const paramRombel = searchParams.get('nama_rombel') || user.nama_rombel;
           if (paramRombel) setRombelDetail({ id: rombelId, nama_rombel: paramRombel, nama: paramRombel });
         }
 
-        // Ambil info mapel spesifik
-        const mapelRes = await SiswaAPI.getMapelOptions({ rombel_id: rombelId });
-        const currentMapel = mapelRes.data.data?.find(m => String(m.id) === String(mapelId));
-        setMapel(currentMapel || { nama: 'Kelas Belajar', kode: 'LMS' });
-
-        // Rekap kehadiran siswa
-        if (user.role === 'warga_belajar') {
-          await syncRekapKehadiran();
+        // 2. Info Mapel
+        if (mapelResResult.status === 'fulfilled') {
+          const currentMapel = mapelResResult.value.data?.data?.find(m => String(m.id) === String(mapelId));
+          setMapel(currentMapel || { nama: 'Kelas Belajar', kode: 'LMS' });
+        } else {
+          setMapel({ nama: 'Kelas Belajar', kode: 'LMS' });
         }
 
-        // 1. Ambil Pertemuan
-        const pertRes = await PertemuanAPI.getAll(rombelId, mapelId);
-        const listPertemuan = pertRes.data.data || [];
-        setPertemuans(listPertemuan);
-        if (listPertemuan.length > 0) {
-          setActivePertemuanId(listPertemuan[0].id);
+        // 3. Daftar Pertemuan
+        if (pertResResult.status === 'fulfilled') {
+          const listPertemuan = pertResResult.value.data?.data || [];
+          setPertemuans(listPertemuan);
+          if (listPertemuan.length > 0) {
+            setActivePertemuanId(listPertemuan[0].id);
+          }
         }
 
-        // 2. Ambil Semua Materi Belajar Rombel (Diisolasi per Mapel & Rombel Ruang Belajar)
-        try {
-          const matRes = await LmsAPI.getMateriByRombel(rombelId, { mapel_id: mapelId });
-          const matData = matRes.data.data || [];
-          setAllMateri(matData);
-        } catch {
+        // 4. Semua Materi Belajar
+        if (matResResult.status === 'fulfilled') {
+          setAllMateri(matResResult.value.data?.data || []);
+        } else {
           setAllMateri([]);
         }
 
-        // 3. Ambil Semua Tugas Mingguan Rombel (Diisolasi per Mapel & Rombel Ruang Belajar)
-        await fetchTugasList(rombelId, mapelId);
-
-        // 4. Ambil Modul & Buku (Diisolasi per Mapel & Rombel Ruang Belajar)
-        try {
-          const modRes = user.role !== 'warga_belajar'
-            ? await ModulBukuAPI.getAllAdmin({ rombel_id: rombelId, mapel_id: mapelId })
-            : await ModulBukuAPI.getPublished({ rombel_id: rombelId, mapel_id: mapelId });
-          if (modRes.data?.success && Array.isArray(modRes.data.data) && modRes.data.data.length > 0) {
-            setModulBukuList(modRes.data.data);
-          } else {
-            const localCustom = getLocalCustomModul();
-            const merged = [...localCustom, ...DEFAULT_MODUL_BUKU];
-            const unique = Array.from(new Map(merged.map(item => [item.id, item])).values());
-            setModulBukuList(unique);
-          }
-        } catch {
+        // 5. Modul & Buku
+        if (modResResult.status === 'fulfilled' && modResResult.value.data?.success && Array.isArray(modResResult.value.data.data) && modResResult.value.data.data.length > 0) {
+          setModulBukuList(modResResult.value.data.data);
+        } else {
           const localCustom = getLocalCustomModul();
           const merged = [...localCustom, ...DEFAULT_MODUL_BUKU];
           const unique = Array.from(new Map(merged.map(item => [item.id, item])).values());
           setModulBukuList(unique);
         }
-
-        // 5. Fetch RPS
-        await fetchRps(rombelId);
       } catch (err) {
         setError(err.response?.data?.message || 'Gagal memuat kelas belajar.');
       } finally {
