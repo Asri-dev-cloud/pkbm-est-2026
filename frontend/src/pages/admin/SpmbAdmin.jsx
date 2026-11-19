@@ -118,7 +118,7 @@ function SpmbAdmin() {
       // Cek duplikasi email terlebih dahulu
       const checkRes = await SpmbAPI.cekEmail(formTambah.email.trim());
       if (checkRes.data?.terdaftar) {
-        alert(checkRes.data.message || `Email "${formTambah.email}" sudah terdaftar di sistem. Tidak diperbolehkan menggunakan email yang sama saat pendaftaran.`);
+        alert(checkRes.data.message || `Kebijakan Sistem: 1 Email untuk 1 Akun (1 Siswa). Email "${formTambah.email}" sudah terdaftar di sistem PKBM Bina Mandiri. Setiap siswa wajib memiliki email unik.`);
         setTambahLoading(false);
         return;
       }
@@ -1543,7 +1543,7 @@ function SpmbAdmin() {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 4 }}>
-                      Alamat Email Aktif <span style={{ color: '#DC2626' }}>*</span>
+                      Alamat Email Calon Siswa (1 Email untuk 1 Siswa) <span style={{ color: '#DC2626' }}>*</span>
                     </label>
                     <input
                       type="email"
@@ -1553,6 +1553,9 @@ function SpmbAdmin() {
                       onChange={(e) => setFormTambah({ ...formTambah, email: e.target.value })}
                       style={{ width: '100%', height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
                     />
+                    <small style={{ color: '#64748B', fontSize: '0.72rem', display: 'block', marginTop: 2 }}>
+                      1 email hanya untuk 1 akun warga belajar.
+                    </small>
                   </div>
 
                   <div>

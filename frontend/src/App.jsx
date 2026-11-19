@@ -82,9 +82,17 @@ class RouteErrorBoundary extends React.Component {
             <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
               Menampilkan Halaman Terbaru
             </h3>
-            <p style={{ color: '#64748B', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: 20 }}>
+            <p style={{ color: '#64748B', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: 16 }}>
               Sistem sedang memperbarui sesi tampilan. Klik tombol di bawah untuk menampilkan konten seketika.
             </p>
+            {this.state.error && (
+              <details style={{ textAlign: 'left', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 16, fontSize: '0.78rem', color: '#991B1B' }}>
+                <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Rincian Teknis</summary>
+                <pre style={{ marginTop: 6, fontSize: '0.74rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#7F1D1D' }}>
+                  {String(this.state.error?.message || this.state.error)}
+                </pre>
+              </details>
+            )}
             <button
               type="button"
               onClick={() => window.location.reload()}

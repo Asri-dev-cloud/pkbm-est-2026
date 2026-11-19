@@ -623,7 +623,7 @@ function DaftarSpmbPage() {
 
                 <div className="spmb-form-group">
                   <label className="spmb-label">
-                    Alamat Email Aktif <span className="spmb-label-req">*</span>
+                    Alamat Email Pribadi Calon Siswa <span className="spmb-label-req">*</span>
                   </label>
                   <div
                     className="spmb-input-wrapper"
@@ -669,7 +669,7 @@ function DaftarSpmbPage() {
                   </div>
                   {emailStatus === 'available' && (
                     <div style={{ fontSize: '0.78rem', color: '#10B981', fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <CheckCircle2 size={14} /> Alamat email tersedia untuk pendaftaran
+                      <CheckCircle2 size={14} /> Alamat email tersedia (1 Email untuk 1 Akun Siswa)
                     </div>
                   )}
                   {emailError && (
@@ -679,7 +679,7 @@ function DaftarSpmbPage() {
                     </div>
                   )}
                   <span className="spmb-hint">
-                    Sistem menolak email yang sama saat pendaftaran. Gunakan email pribadi yang aktif.
+                    Aturan: 1 Email untuk 1 Akun (1 Siswa). Email ini digunakan sebagai akun login Ruang Belajar dan tidak boleh sama dengan siswa lain.
                   </span>
                 </div>
               </div>

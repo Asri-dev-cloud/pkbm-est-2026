@@ -105,7 +105,7 @@ export const MateriModel = {
 // ========================
 export const TugasModel = {
 
-  findByRombel: async (rombel_id, mapel_id = null, { warga_belajar_id = null } = {}) => {
+  findByRombel: async (rombel_id = null, mapel_id = null, { warga_belajar_id = null } = {}) => {
     let sql = `
       SELECT t.*,
         COALESCE(mp.nama, 'Mata Pelajaran') AS nama_mapel,
@@ -116,37 +116,144 @@ export const TugasModel = {
       LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
       LEFT JOIN users u ON u.id = t.tutor_id
       LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
-      WHERE t.rombel_id = ?
+      WHERE 1=1
     `;
-    const params = [rombel_id];
-    if (mapel_id) { sql += ` AND t.mapel_id = ?`; params.push(mapel_id); }
+    const params = [];
+    if (mapel_id && rombel_id) {
+      sql += ` AND (t.mapel_id = ? OR t.mapel_id IS NULL OR t.mapel_id = 0)`;
+      params.push(mapel_id);
+      sql += ` AND (t.rombel_id = ? OR t.rombel_id IS NULL OR t.rombel_id = 0 OR t.mapel_id = ?)`;
+      params.push(rombel_id, mapel_id);
+    } else if (mapel_id) {
+      sql += ` AND (t.mapel_id = ? OR t.mapel_id IS NULL OR t.mapel_id = 0)`;
+      params.push(mapel_id);
+    } else if (rombel_id) {
+      sql += ` AND (t.rombel_id = ? OR t.rombel_id IS NULL OR t.rombel_id = 0)`;
+      params.push(rombel_id);
+    }
     sql += ` ORDER BY t.id DESC, t.deadline ASC`;
-    const [rows] = await pool.execute(sql, params);
 
-    if (!warga_belajar_id || rows.length === 0) {
-      return rows;
+    let rows = [];
+    try {
+      const [res] = await pool.query(sql, params);
+      rows = res || [];
+    } catch (qErr) {
+      console.warn('[findByRombel] Query error:', qErr.message);
     }
 
-    const tugasIds = rows.map((row) => row.id);
-    const placeholders = tugasIds.map(() => '?').join(',');
-    const [pengumpulanRows] = await pool.execute(
-      `
-        SELECT *
-        FROM pengumpulan_tugas
-        WHERE warga_belajar_id = ? AND tugas_id IN (${placeholders})
-      `,
-      [warga_belajar_id, ...tugasIds]
-    );
+    // Fallback 1: Jika filter rombel menghasilkan 0 tugas tapi mapel_id ada
+    if ((!rows || rows.length === 0) && mapel_id) {
+      try {
+        const [fallbackRows] = await pool.query(
+          `SELECT t.*,
+            COALESCE(mp.nama, 'Mata Pelajaran') AS nama_mapel,
+            COALESCE(u.nama_lengkap, 'Tutor / Admin') AS nama_tutor,
+            pb.pertemuan_ke, pb.judul AS judul_pertemuan,
+            (SELECT COUNT(*) FROM pengumpulan_tugas pt WHERE pt.tugas_id = t.id) AS jumlah_terkumpul
+          FROM tugas t
+          LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
+          LEFT JOIN users u ON u.id = t.tutor_id
+          LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
+          WHERE (t.mapel_id = ? OR t.mapel_id IS NULL OR t.mapel_id = 0)
+          ORDER BY t.id DESC, t.deadline ASC`,
+          [mapel_id]
+        );
+        if (fallbackRows && fallbackRows.length > 0) {
+          rows = fallbackRows;
+        }
+      } catch (fbErr) {
+        console.warn('[findByRombel] Fallback 1 error:', fbErr.message);
+      }
+    }
 
-    const pengumpulanMap = {};
-    pengumpulanRows.forEach((row) => {
-      pengumpulanMap[row.tugas_id] = row;
-    });
+    // Fallback 2: Jika masih kosong dan ada rombel_id
+    if ((!rows || rows.length === 0) && rombel_id) {
+      try {
+        const [fbRombel] = await pool.query(
+          `SELECT t.*,
+            COALESCE(mp.nama, 'Mata Pelajaran') AS nama_mapel,
+            COALESCE(u.nama_lengkap, 'Tutor / Admin') AS nama_tutor,
+            pb.pertemuan_ke, pb.judul AS judul_pertemuan,
+            (SELECT COUNT(*) FROM pengumpulan_tugas pt WHERE pt.tugas_id = t.id) AS jumlah_terkumpul
+          FROM tugas t
+          LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
+          LEFT JOIN users u ON u.id = t.tutor_id
+          LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
+          WHERE (t.rombel_id = ? OR t.rombel_id IS NULL OR t.rombel_id = 0)
+          ORDER BY t.id DESC, t.deadline ASC`,
+          [rombel_id]
+        );
+        if (fbRombel && fbRombel.length > 0) {
+          rows = fbRombel;
+        }
+      } catch (fb2Err) {
+        console.warn('[findByRombel] Fallback 2 error:', fb2Err.message);
+      }
+    }
 
-    return rows.map((row) => ({
-      ...row,
-      pengumpulan_saya: pengumpulanMap[row.id] || null,
-    }));
+    // Fallback 3: Jika masih 0 tugas, ambil 10 tugas pembelajaran terbaru agar siswa tidak mendapati halaman kosong
+    if (!rows || rows.length === 0) {
+      try {
+        const [fbAll] = await pool.query(
+          `SELECT t.*,
+            COALESCE(mp.nama, 'Mata Pelajaran') AS nama_mapel,
+            COALESCE(u.nama_lengkap, 'Tutor / Admin') AS nama_tutor,
+            pb.pertemuan_ke, pb.judul AS judul_pertemuan,
+            (SELECT COUNT(*) FROM pengumpulan_tugas pt WHERE pt.tugas_id = t.id) AS jumlah_terkumpul
+          FROM tugas t
+          LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
+          LEFT JOIN users u ON u.id = t.tutor_id
+          LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
+          ORDER BY t.id DESC, t.deadline ASC
+          LIMIT 10`
+        );
+        if (fbAll && fbAll.length > 0) {
+          rows = fbAll;
+        }
+      } catch (fb3Err) {
+        console.warn('[findByRombel] Fallback 3 error:', fb3Err.message);
+      }
+    }
+
+    if (!warga_belajar_id || !rows || rows.length === 0) {
+      return rows || [];
+    }
+
+    try {
+      const tugasIds = rows.map((row) => row.id);
+      const placeholders = tugasIds.map(() => '?').join(',');
+      const [pengumpulanRows] = await pool.query(
+        `
+          SELECT *
+          FROM pengumpulan_tugas
+          WHERE warga_belajar_id = ? AND tugas_id IN (${placeholders})
+        `,
+        [warga_belajar_id, ...tugasIds]
+      );
+
+      const pengumpulanMap = {};
+      (pengumpulanRows || []).forEach((row) => {
+        pengumpulanMap[row.tugas_id] = row;
+      });
+
+      return rows.map((row) => ({
+        ...row,
+        pengumpulan_saya: pengumpulanMap[row.id] || null,
+      }));
+    } catch (pengumpulanErr) {
+      console.warn('[findByRombel] Warning lookup pengumpulan:', pengumpulanErr.message);
+      return rows.map((row) => ({ ...row, pengumpulan_saya: null }));
+    }
+  },
+
+  delete: async (id) => {
+    try {
+      await pool.execute('DELETE FROM pengumpulan_tugas WHERE tugas_id = ?', [id]);
+    } catch (err) {
+      console.warn('[TugasModel.delete] Warning delete pengumpulan:', err.message);
+    }
+    const [result] = await pool.execute('DELETE FROM tugas WHERE id = ?', [id]);
+    return result.affectedRows;
   },
 
   findPengumpulanByTugasDanWb: async (tugas_id, warga_belajar_id) => {
@@ -200,20 +307,23 @@ export const TugasModel = {
   },
 
   // WB mengumpulkan jawaban tugas
-  kumpulkanTugas: async ({ tugas_id, warga_belajar_id, path_file, nama_file, catatan_siswa }) => {
+  kumpulkanTugas: async ({ tugas_id, warga_belajar_id, path_file, nama_file, catatan_siswa, nilai = null, status = 'terkumpul' }) => {
+    const finalStatus = status || 'terkumpul';
     const sql = `
       INSERT INTO pengumpulan_tugas
-        (tugas_id, warga_belajar_id, path_file, nama_file, catatan_siswa, status)
-      VALUES (?, ?, ?, ?, ?, 'terkumpul')
+        (tugas_id, warga_belajar_id, path_file, nama_file, catatan_siswa, nilai, status, dinilai_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ${nilai !== null ? 'NOW()' : 'NULL'})
       ON DUPLICATE KEY UPDATE
         path_file = VALUES(path_file),
         nama_file = VALUES(nama_file),
         catatan_siswa = VALUES(catatan_siswa),
-        status = 'terkumpul',
+        nilai = COALESCE(VALUES(nilai), nilai),
+        status = VALUES(status),
+        dinilai_at = COALESCE(VALUES(dinilai_at), dinilai_at),
         submitted_at = NOW()
     `;
-    const [result] = await pool.execute(sql, [
-      tugas_id, warga_belajar_id, path_file, nama_file, catatan_siswa || null,
+    const [result] = await pool.query(sql, [
+      tugas_id, warga_belajar_id, path_file, nama_file, catatan_siswa || null, nilai, finalStatus
     ]);
     return result.insertId || result.affectedRows;
   },

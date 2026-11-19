@@ -20,8 +20,12 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME     || 'pkbm_bina_mandiri',
 
-  // Jumlah maksimum koneksi dalam pool
-  connectionLimit: 10,
+  // Jumlah maksimum koneksi dalam pool (ditingkatkan untuk lonjakan 100+ pengguna simultan)
+  connectionLimit: parseInt(process.env.DB_POOL_LIMIT, 10) || 50,
+  maxIdle: 20,
+  idleTimeout: 60000,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000,
 
   // Kembalikan BigInt sebagai string agar aman di JSON
   supportBigNumbers: true,
@@ -89,6 +93,23 @@ export const testConnection = async () => {
       await pool.query('UPDATE warga_belajar SET npsn = "P2970848" WHERE npsn IS NULL OR npsn = "" OR npsn = "P9962854" OR npsn = "P9962879"');
       await pool.query('UPDATE pendaftar_spmb SET npsn = "P2970848" WHERE npsn IS NULL OR npsn = "" OR npsn = "P9962854" OR npsn = "P9962879"');
     } catch (_) {}
+
+    // Kebijakan resmi: 1 Email untuk 1 Akun (1 Siswa)
+    // Otomatis pastikan constraint UNIQUE email di pendaftar_spmb agar 1 email hanya untuk 1 siswa
+    try {
+      const [idxEmail] = await pool.query(
+        "SHOW INDEX FROM `pendaftar_spmb` WHERE `Column_name` = 'email' AND `Non_unique` = 0"
+      );
+      if (!idxEmail || idxEmail.length === 0) {
+        try {
+          await pool.query("ALTER TABLE `pendaftar_spmb` DROP INDEX `idx_email`");
+        } catch (_) {}
+        await pool.query("ALTER TABLE `pendaftar_spmb` ADD UNIQUE KEY `uq_pendaftar_email` (`email`)");
+        console.log('✅ Constraint UNIQUE email pada tabel pendaftar_spmb diterapkan (1 Email untuk 1 Siswa).');
+      }
+    } catch (uqErr) {
+      // Abaikan jika tabel belum siap atau ada duplikat data historis
+    }
 
     // Otomatis pastikan kolom jenis_berkas di berkas_spmb fleksibel & aman (VARCHAR 50) untuk KK, Akta, KTP, Ijazah, Foto
     try {

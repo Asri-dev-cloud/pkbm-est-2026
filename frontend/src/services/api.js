@@ -614,6 +614,9 @@ export const LmsAPI = {
   createTugas: (payload) =>
     apiClient.post('/lms/tugas', payload),
 
+  deleteTugas: (id) =>
+    apiClient.delete(`/lms/tugas/${id}`),
+
   kumpulkanTugas: (id, formData) =>
     apiClient.post(`/lms/tugas/${id}/kumpulkan`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

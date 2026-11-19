@@ -1469,7 +1469,7 @@ ALTER TABLE `pendaftar_spmb`
   ADD KEY `tahun_ajaran_id` (`tahun_ajaran_id`),
   ADD KEY `warga_belajar_id` (`warga_belajar_id`),
   ADD KEY `idx_status` (`status`),
-  ADD KEY `idx_email` (`email`);
+  ADD UNIQUE KEY `uq_pendaftar_email` (`email`);
 
 --
 -- Indexes for table `pengumpulan_tugas`

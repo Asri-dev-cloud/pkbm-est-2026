@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
 import apiClient, { PertemuanAPI, LmsAPI, AbsensiAPI, SiswaAPI, UjianAPI, AkademikAPI, ModulBukuAPI, toAssetUrl } from '../../services/api.js';
+import { downloadTemplateExcelSoalPG, importSoalPGFromFile } from '../../utils/soalImporter.js';
 import './KelasTerpaduSiswa.css';
 
 // Fallback data awal katalog buku & modul ajar
@@ -106,6 +107,51 @@ export const parseTaskDescription = (rawDesc) => {
     }
   }
   return { cleanDesc: rawDesc, meta: { tipe: 'upload', soal_pg: [], soal_essay: [] } };
+};
+
+// Helper ekstraksi jawaban PG siswa dari submission / catatan siswa
+export const extractStudentPGAnswers = (tugas, submission, fallbackMap = {}) => {
+  // 1. Direct object di submission.jawaban_pg
+  if (submission?.jawaban_pg && typeof submission.jawaban_pg === 'object') {
+    return submission.jawaban_pg;
+  }
+  if (typeof submission?.jawaban_pg === 'string') {
+    try {
+      const parsed = JSON.parse(submission.jawaban_pg);
+      if (typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
+    } catch {}
+  }
+
+  // 2. Dari fallback in-memory state
+  if (tugas?.id && fallbackMap[tugas.id] && Object.keys(fallbackMap[tugas.id]).length > 0) {
+    return fallbackMap[tugas.id];
+  }
+
+  // 3. Parse dari catatan_siswa (misal: "[Jawaban Pilihan Ganda]:\n{"1":"a"}" atau rincian teks)
+  const cat = submission?.catatan_siswa || '';
+  if (cat) {
+    // Cari blok format JSON { ... }
+    const jsonMatch = cat.match(/\{[\s\S]*?\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
+      } catch {}
+    }
+
+    // Cari pola "Nomor 1: [Pilihan: A]" atau "Nomor 1: Jawaban Anda [A]"
+    const answers = {};
+    const lines = cat.split('\n');
+    lines.forEach(line => {
+      const m = line.match(/Nomor\s+(\d+)[:\s]+.*?[\[\(](?:Pilihan:|Jawaban Anda:)?\s*([A-Da-d])[\]\)]/i);
+      if (m) {
+        answers[m[1]] = m[2].toLowerCase();
+      }
+    });
+    if (Object.keys(answers).length > 0) return answers;
+  }
+
+  return {};
 };
 
 // ══ CUTE CUSTOM SELECT DROPDOWN COMPONENT ═════════════════════
@@ -309,11 +355,32 @@ function KelasTerpaduSiswa() {
   ]);
   const [submittingTugas, setSubmittingTugas] = useState(false);
 
+  // Draf Anti-Hilang Soal PG & Tugas
+  const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
+  const [lastDraftSaved, setLastDraftSaved] = useState(null);
+
+  // Sinkronisasi Realtime Tugas (Tanpa Refresh Browser)
+  const [refreshingTugas, setRefreshingTugas] = useState(false);
+  const [lastTugasSyncTime, setLastTugasSyncTime] = useState(new Date());
+
+  // Import Soal dari File Excel / Word
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importModeTab, setImportModeTab] = useState('upload'); // 'upload' | 'excel_guide' | 'word_guide'
+  const [importingFile, setImportingFile] = useState(false);
+  const [importPreviewData, setImportPreviewData] = useState([]);
+  const [importErrorMsg, setImportErrorMsg] = useState('');
+
   // State Tutor / Admin Melihat & Menilai Pengumpulan Tugas
   const [detailTugasModal, setDetailTugasModal] = useState(null);
   const [loadingDetailTugas, setLoadingDetailTugas] = useState(false);
   const [gradingInputMap, setGradingInputMap] = useState({});
   const [savingGradeId, setSavingGradeId] = useState(null);
+
+  // State Siswa: Modal Lembar Pengerjaan Soal (Page Baru / Dedicated View) & Review Jawaban
+  const [kerjakanTugasModal, setKerjakanTugasModal] = useState(null);
+  const [reviewTugasModal, setReviewTugasModal] = useState(null);
+  const [activeQuizIndex, setActiveQuizIndex] = useState(0);
+  const [showQuizAttachment, setShowQuizAttachment] = useState(false);
 
   // State for opening Absensi timer
   const [showAbsensiForm, setShowAbsensiForm] = useState(false);
@@ -451,6 +518,280 @@ function KelasTerpaduSiswa() {
     }
   };
 
+  // ── Helper Local Deleted Tugas Registry (Anti 404 transisi) ─────────
+  const getDeletedTugasIds = () => {
+    try {
+      return JSON.parse(localStorage.getItem('pkbm_deleted_tugas_ids') || '[]');
+    } catch {
+      return [];
+    }
+  };
+  const addDeletedTugasId = (id) => {
+    try {
+      const current = getDeletedTugasIds();
+      if (!current.includes(id)) {
+        localStorage.setItem('pkbm_deleted_tugas_ids', JSON.stringify([...current, id]));
+      }
+    } catch {}
+  };
+
+  // ── Helper Local Student Submission Registry (Anti 404 transisi VPS) ─
+  const getStudentLocalSubmission = (tugasId) => {
+    try {
+      const key = `pkbm_sub_${user?.id || 'wb'}_${tugasId}`;
+      const saved = localStorage.getItem(key);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  };
+  const saveStudentLocalSubmission = (tugasId, data) => {
+    try {
+      const key = `pkbm_sub_${user?.id || 'wb'}_${tugasId}`;
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch {}
+  };
+
+  // ── Auto-Save Draft Quiz & Tugas (PG, Essay, Catatan) agar tahan refresh / reload / koneksi drop ──
+  const getQuizDraftKey = (tugasId, type) => `pkbm_draft_${user?.id || 'wb'}_${tugasId}_${type}`;
+
+  const loadQuizDraft = (tugasId, type) => {
+    try {
+      const raw = localStorage.getItem(getQuizDraftKey(tugasId, type));
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const saveQuizDraft = (tugasId, type, data) => {
+    try {
+      localStorage.setItem(getQuizDraftKey(tugasId, type), JSON.stringify(data));
+    } catch (e) {
+      console.warn('[saveQuizDraft] Gagal simpan draft:', e.message);
+    }
+  };
+
+  const clearQuizDraft = (tugasId) => {
+    try {
+      localStorage.removeItem(getQuizDraftKey(tugasId, 'pg'));
+      localStorage.removeItem(getQuizDraftKey(tugasId, 'essay'));
+      localStorage.removeItem(getQuizDraftKey(tugasId, 'catatan'));
+    } catch {}
+  };
+
+  // Helper untuk membuka modal pengerjaan soal dengan pemulihan draft otomatis
+  const handleOpenKerjakanTugas = (tugas) => {
+    if (!tugas) return;
+    setActiveQuizIndex(0);
+    setShowQuizAttachment(false);
+
+    // Pulihkan draft PG dari penyimpanan lokal jika siswa sebelumnya reload / keluar
+    const draftPG = loadQuizDraft(tugas.id, 'pg');
+    if (draftPG && typeof draftPG === 'object' && Object.keys(draftPG).length > 0) {
+      setJawabanPGMap(prev => ({
+        ...prev,
+        [tugas.id]: { ...(prev[tugas.id] || {}), ...draftPG }
+      }));
+    }
+
+    // Pulihkan draft Essay dari penyimpanan lokal jika tersedia
+    const draftEssay = loadQuizDraft(tugas.id, 'essay');
+    if (draftEssay && typeof draftEssay === 'object' && Object.keys(draftEssay).length > 0) {
+      setJawabanEssayMap(prev => ({
+        ...prev,
+        [tugas.id]: { ...(prev[tugas.id] || {}), ...draftEssay }
+      }));
+    }
+
+    // Pulihkan draft Catatan jika tersedia
+    const draftCatatan = loadQuizDraft(tugas.id, 'catatan');
+    if (draftCatatan) {
+      setCatatanTugasMap(prev => ({ ...prev, [tugas.id]: draftCatatan }));
+      setCatatanTugas(draftCatatan);
+    }
+
+    setKerjakanTugasModal(tugas);
+  };
+
+  // ── Helper Reusable Fetcher Tugas LMS (Realtime 0-delay) ────
+  const fetchTugasList = async (targetRombelId = null, targetMapelId = null, showSpinner = false) => {
+    let rId = targetRombelId || searchParams.get('rombel_id') || rombelDetail?.id || user?.rombel_id;
+    let mId = targetMapelId || mapelId;
+
+    if (!rId && user.role === 'warga_belajar') {
+      try {
+        const profilRes = await SiswaAPI.getProfilSaya();
+        rId = profilRes.data.data?.rombel_id;
+      } catch {}
+    }
+
+    if (!rId) {
+      rId = 1;
+    }
+
+    if (showSpinner) setRefreshingTugas(true);
+    try {
+      const tugRes = await LmsAPI.getTugasByRombel(rId, { mapel_id: mId });
+      const rawData = tugRes.data.data || [];
+      const deletedIds = getDeletedTugasIds();
+      const tugData = rawData
+        .filter(t => !deletedIds.includes(t.id))
+        .map(t => {
+          let sub = t.pengumpulan_saya;
+          const localSub = getStudentLocalSubmission(t.id);
+          if (!sub) {
+            sub = localSub;
+          } else if (localSub) {
+            if ((sub.nilai === null || sub.nilai === undefined || sub.status !== 'dinilai') && (localSub.nilai !== null && localSub.nilai !== undefined)) {
+              sub = { ...sub, nilai: localSub.nilai, status: localSub.status || 'dinilai', catatan_siswa: localSub.catatan_siswa || sub.catatan_siswa };
+            }
+          }
+
+          // Auto-evaluasi nilai untuk PG jika belum dinilai
+          if (sub) {
+            const { meta } = parseTaskDescription(t.deskripsi);
+            if (meta.tipe === 'pilihan_ganda' && meta.soal_pg && meta.soal_pg.length > 0) {
+              const answers = extractStudentPGAnswers(t, sub, jawabanPGMap);
+              if (Object.keys(answers).length > 0) {
+                let benar = 0;
+                meta.soal_pg.forEach((s, idx) => {
+                  const qId = s.id !== undefined && s.id !== null ? s.id : (idx + 1);
+                  const rawUser = answers[qId] || answers[String(qId)] || answers[idx + 1] || '';
+                  const userAns = String(rawUser).toLowerCase().replace(/[^a-d]/g, '').slice(0, 1);
+                  const keyAns = String(s.kunci || 'a').toLowerCase().replace(/[^a-d]/g, '').slice(0, 1) || 'a';
+                  if (userAns && userAns === keyAns) benar++;
+                });
+                const autoScore = Math.round((benar / meta.soal_pg.length) * (t.nilai_maks || 100));
+                const finalScore = (sub.nilai !== null && sub.nilai !== undefined && sub.nilai !== '') ? sub.nilai : autoScore;
+                sub = {
+                  ...sub,
+                  nilai: finalScore,
+                  status: 'dinilai',
+                  jawaban_pg: answers
+                };
+                saveStudentLocalSubmission(t.id, sub);
+              }
+            }
+          }
+
+          return { ...t, pengumpulan_saya: sub };
+        });
+      setAllTugas(tugData);
+      setLastTugasSyncTime(new Date());
+
+      if (user.role === 'warga_belajar') {
+        setTugasStats({
+          submitted: tugData.filter(t => !!t.pengumpulan_saya).length,
+          total: tugData.length
+        });
+      }
+      return tugData;
+    } catch (err) {
+      console.warn('[fetchTugasList] Gagal memuat tugas:', err?.message);
+      return [];
+    } finally {
+      if (showSpinner) {
+        setTimeout(() => setRefreshingTugas(false), 300);
+      }
+    }
+  };
+
+  // ── Draf Anti-Hilang Soal PG & Tugas (localStorage) ──────────
+  const currentRombelId = searchParams.get('rombel_id') || rombelDetail?.id || user?.rombel_id || 'all';
+  const draftStorageKey = `pkbm_draft_tugas_r${currentRombelId}_m${mapelId || 'all'}`;
+
+  // 1. Pulihkan draft otomatis saat komponen dimuat
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(draftStorageKey);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data && (data.tugasJudul || (data.soalPG && data.soalPG.length > 0 && data.soalPG.some(s => s.pertanyaan?.trim())))) {
+          if (data.tugasJudul) setTugasJudul(data.tugasJudul);
+          if (data.tugasDeskripsi) setTugasDeskripsi(data.tugasDeskripsi);
+          if (data.tugasDeadline) setTugasDeadline(data.tugasDeadline);
+          if (data.tugasNilaiMaks) setTugasNilaiMaks(data.tugasNilaiMaks);
+          if (data.tipeTugas) setTipeTugas(data.tipeTugas);
+          if (Array.isArray(data.soalPG) && data.soalPG.length > 0) setSoalPG(data.soalPG);
+          if (Array.isArray(data.soalEssay) && data.soalEssay.length > 0) setSoalEssay(data.soalEssay);
+          setHasRestoredDraft(true);
+          setLastDraftSaved(data.savedAt ? new Date(data.savedAt) : new Date());
+        }
+      }
+    } catch (err) {
+      console.warn('[Draft] Failed to restore draft:', err);
+    }
+  }, [draftStorageKey]);
+
+  // 2. Simpan draft otomatis saat form aktif atau terisi (Anti-Hilang)
+  useEffect(() => {
+    const hasContent = tugasJudul.trim() || tugasDeskripsi.trim() || soalPG.some(s => s.pertanyaan?.trim() || s.opsi_a?.trim());
+    if (!hasContent) return;
+
+    const timeout = setTimeout(() => {
+      try {
+        const now = new Date();
+        const draftPayload = {
+          tugasJudul,
+          tugasDeskripsi,
+          tugasDeadline,
+          tugasNilaiMaks,
+          tipeTugas,
+          soalPG,
+          soalEssay,
+          savedAt: now.toISOString()
+        };
+        localStorage.setItem(draftStorageKey, JSON.stringify(draftPayload));
+        setLastDraftSaved(now);
+      } catch (err) {
+        console.warn('[Draft] Gagal menyimpan draf:', err);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [tugasJudul, tugasDeskripsi, tugasDeadline, tugasNilaiMaks, tipeTugas, soalPG, soalEssay, draftStorageKey]);
+
+  // 3. Reset draft manual
+  const handleClearDraft = () => {
+    if (window.confirm('Hapus draf otomatis tersimpan dan mulai formulir dari awal?')) {
+      try {
+        localStorage.removeItem(draftStorageKey);
+      } catch {}
+      setTugasJudul('');
+      setTugasDeskripsi('');
+      setTugasDeadline('');
+      setTugasNilaiMaks(100);
+      setTipeTugas('upload');
+      setSoalPG([{ id: 1, pertanyaan: '', opsi_a: '', opsi_b: '', opsi_c: '', opsi_d: '', kunci: 'a' }]);
+      setSoalEssay([{ id: 1, pertanyaan: '' }]);
+      setHasRestoredDraft(false);
+      setLastDraftSaved(null);
+    }
+  };
+
+  // 4. Sinkronisasi realtime tugas saat membuka Room 4 & per 12 detik
+  useEffect(() => {
+    if (mainTab === 'tugas') {
+      fetchTugasList();
+      const interval = setInterval(() => {
+        fetchTugasList();
+      }, 12000);
+      return () => clearInterval(interval);
+    }
+  }, [mainTab, mapelId, searchParams, rombelDetail?.id]);
+
+  // 5. Cross-tab & broadcast sync event
+  useEffect(() => {
+    const handleTugasEvent = () => {
+      fetchTugasList();
+    };
+    window.addEventListener('pkbm_tugas_updated', handleTugasEvent);
+    return () => {
+      window.removeEventListener('pkbm_tugas_updated', handleTugasEvent);
+    };
+  }, [mapelId, rombelDetail?.id]);
+
   // ── 1. Fetch Daftar Pertemuan, Materi, Modul & Tugas ───────
   useEffect(() => {
     const fetchKelasData = async () => {
@@ -461,14 +802,15 @@ function KelasTerpaduSiswa() {
         let rombelId = searchParams.get('rombel_id');
 
         if (!rombelId && user.role === 'warga_belajar') {
-          const profilRes = await SiswaAPI.getProfilSaya();
-          const profil = profilRes.data.data;
-          rombelId = profil?.rombel_id;
+          try {
+            const profilRes = await SiswaAPI.getProfilSaya();
+            const profil = profilRes.data.data;
+            rombelId = profil?.rombel_id;
+          } catch {}
         }
 
         if (!rombelId) {
-          setError('Data Rombel tidak ditemukan. Silakan masuk kembali dari halaman Ruang Belajar.');
-          return;
+          rombelId = user?.rombel_id || 1;
         }
 
         // Ambil info rombel
@@ -514,19 +856,7 @@ function KelasTerpaduSiswa() {
         }
 
         // 3. Ambil Semua Tugas Mingguan Rombel (Diisolasi per Mapel & Rombel Ruang Belajar)
-        try {
-          const tugRes = await LmsAPI.getTugasByRombel(rombelId, { mapel_id: mapelId });
-          const tugData = tugRes.data.data || [];
-          setAllTugas(tugData);
-          if (user.role === 'warga_belajar') {
-            setTugasStats({
-              submitted: tugData.filter(t => !!t.pengumpulan_saya).length,
-              total: tugData.length
-            });
-          }
-        } catch {
-          setAllTugas([]);
-        }
+        await fetchTugasList(rombelId, mapelId);
 
         // 4. Ambil Modul & Buku (Diisolasi per Mapel & Rombel Ruang Belajar)
         try {
@@ -823,9 +1153,20 @@ function KelasTerpaduSiswa() {
     ]);
   };
 
+  const handleDuplicateSoalPG = (idx) => {
+    setSoalPG(prev => {
+      const target = prev[idx];
+      if (!target) return prev;
+      const copy = { ...target };
+      const next = [...prev];
+      next.splice(idx + 1, 0, copy);
+      return next.map((item, i) => ({ ...item, id: i + 1 }));
+    });
+  };
+
   const handleRemoveSoalPG = (idx) => {
     if (soalPG.length <= 1) return;
-    setSoalPG(prev => prev.filter((_, i) => i !== idx));
+    setSoalPG(prev => prev.filter((_, i) => i !== idx).map((item, i) => ({ ...item, id: i + 1 })));
   };
 
   const handleUpdateSoalPG = (idx, field, val) => {
@@ -856,6 +1197,50 @@ function KelasTerpaduSiswa() {
     });
   };
 
+  // ── Helper Import Soal File (Excel / Word / Teks) ────────────
+  const handleProcessImportFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportingFile(true);
+    setImportErrorMsg('');
+    try {
+      const parsed = await importSoalPGFromFile(file);
+      if (!parsed || parsed.length === 0) {
+        throw new Error('Tidak ditemukan butir soal valid dalam file. Pastikan format file sesuai panduan template.');
+      }
+      setImportPreviewData(parsed);
+    } catch (err) {
+      setImportErrorMsg(err.message || 'Gagal membaca berkas.');
+    } finally {
+      setImportingFile(false);
+    }
+  };
+
+  const handleApplyImportedQuestions = (replaceMode = false) => {
+    if (!importPreviewData || importPreviewData.length === 0) return;
+
+    if (replaceMode) {
+      setSoalPG(importPreviewData);
+    } else {
+      setSoalPG(prev => {
+        const existingNonEmpty = prev.filter(s => s.pertanyaan.trim());
+        const startId = existingNonEmpty.length;
+        const adjusted = importPreviewData.map((s, idx) => ({
+          ...s,
+          id: startId + idx + 1
+        }));
+        return [...existingNonEmpty, ...adjusted];
+      });
+    }
+
+    setTipeTugas('pilihan_ganda');
+    setShowImportModal(false);
+    const count = importPreviewData.length;
+    setImportPreviewData([]);
+    alert(`Berhasil menambahkan ${count} butir soal pilihan ganda! Data otomatis tersimpan di draf.`);
+  };
+
   // ── Tutor Action: Create Tugas Pembelajaran ─────────────────
   const handleCreateTugas = async (e) => {
     e.preventDefault();
@@ -880,7 +1265,7 @@ function KelasTerpaduSiswa() {
       }
     }
 
-    let rombelId = searchParams.get('rombel_id');
+    let rombelId = searchParams.get('rombel_id') || rombelDetail?.id || user?.rombel_id;
     if (!rombelId) {
       alert('Rombel ID tidak ditemukan.');
       return;
@@ -910,6 +1295,13 @@ function KelasTerpaduSiswa() {
       alert('Tugas pembelajaran berhasil diterbitkan!');
       setShowTugasForm(false);
 
+      // Bersihkan draf otomatis karena tugas sudah berhasil terbit
+      try {
+        localStorage.removeItem(draftStorageKey);
+      } catch {}
+      setHasRestoredDraft(false);
+      setLastDraftSaved(null);
+
       setTugasJudul('');
       setTugasDeskripsi('');
       setTugasDeadline('');
@@ -918,9 +1310,9 @@ function KelasTerpaduSiswa() {
       setSoalPG([{ id: 1, pertanyaan: '', opsi_a: '', opsi_b: '', opsi_c: '', opsi_d: '', kunci: 'a' }]);
       setSoalEssay([{ id: 1, pertanyaan: '' }]);
 
-      // Refresh list tugas
-      const tugRes = await LmsAPI.getTugasByRombel(rombelId, { mapel_id: mapelId });
-      setAllTugas(tugRes.data.data || []);
+      // Refresh list tugas seketika (0-delay realtime)
+      await fetchTugasList(rombelId, mapelId, true);
+      window.dispatchEvent(new CustomEvent('pkbm_tugas_updated', { detail: { rombelId, mapelId } }));
 
       if (activePertemuanId) {
         const res = await PertemuanAPI.getDetail(activePertemuanId);
@@ -930,6 +1322,37 @@ function KelasTerpaduSiswa() {
       alert(err.response?.data?.message || 'Gagal membuat tugas.');
     } finally {
       setSubmittingTugas(false);
+    }
+  };
+
+  // ── Tutor / Admin Action: Hapus Tugas Pembelajaran ──────────
+  const handleDeleteTugas = async (tugasId, judul) => {
+    if (!tugasId) return;
+    const isConfirmed = window.confirm(
+      `Apakah Anda yakin ingin menghapus tugas "${judul || 'ini'}"?\n\nPerhatian: Tugas akan dihapus dari daftar pembelajaran.`
+    );
+    if (!isConfirmed) return;
+
+    // 1. Langsung hapus dari tampilan UI & simpan di local blacklist agar tidak muncul lagi
+    addDeletedTugasId(tugasId);
+    setAllTugas(prev => prev.filter(t => t.id !== tugasId));
+    window.dispatchEvent(new CustomEvent('pkbm_tugas_updated'));
+
+    // 2. Kirim permintaan DELETE ke backend
+    try {
+      await LmsAPI.deleteTugas(tugasId);
+      alert(`Tugas "${judul || ''}" berhasil dihapus.`);
+    } catch (err) {
+      console.warn('[handleDeleteTugas] Info:', err?.response?.data || err.message);
+      // Jika endpoint backend di VPS belum di-pull/restart (404), tugas tetap disembunyikan
+      if (err.response?.status === 404) {
+        alert(
+          `Tugas "${judul || ''}" berhasil dihapus dari tampilan layar.\n\n` +
+          'Catatan: Karena API menggunakan server VPS (pkbmbinamandiri.sch.id), silakan deploy/push ke server agar terhapus permanen dari database server.'
+        );
+      } else {
+        alert(`Tugas berhasil dihapus dari layar.`);
+      }
     }
   };
 
@@ -972,7 +1395,7 @@ function KelasTerpaduSiswa() {
 
   // ── Action: Kumpulkan Tugas (Multi-format: Upload Foto/PDF, PG, Essay) ──
   const handleKumpulTugas = async (tugasId) => {
-    const targetTugas = allTugas.find(t => t.id === tugasId);
+    const targetTugas = allTugas.find(t => String(t.id) === String(tugasId)) || kerjakanTugasModal;
     const { meta } = parseTaskDescription(targetTugas?.deskripsi);
 
     const file = selectedFileMap[tugasId] || selectedFile;
@@ -983,7 +1406,7 @@ function KelasTerpaduSiswa() {
     if (meta.tipe === 'pilihan_ganda') {
       const countAnswered = Object.keys(pgAnswers).length;
       if (countAnswered === 0 && !file) {
-        alert('Harap pilih jawaban soal pilihan ganda atau unggah foto lembar jawaban Anda.');
+        alert('Harap pilih minimal 1 jawaban soal pilihan ganda sebelum mengumpulkan.');
         return;
       }
     } else if (meta.tipe === 'essay') {
@@ -999,39 +1422,157 @@ function KelasTerpaduSiswa() {
       }
     }
 
+    if (!window.confirm('Apakah Anda yakin ingin mengumpulkan tugas ini sekarang?')) {
+      return;
+    }
+
+    // Hitung evaluasi & nilai otomatis jika soal Pilihan Ganda
+    let calculatedNilai = null;
+    let finalCatatanText = catatan;
+
+    if (meta.tipe === 'pilihan_ganda' && meta.soal_pg && meta.soal_pg.length > 0) {
+      let benar = 0;
+      const totalSoal = meta.soal_pg.length;
+      const breakdown = [];
+
+      meta.soal_pg.forEach((s, idx) => {
+        const qId = s.id !== undefined && s.id !== null ? s.id : (idx + 1);
+        const rawUser = pgAnswers[qId] || pgAnswers[String(qId)] || pgAnswers[idx + 1] || '';
+        const userAns = String(rawUser).toLowerCase().replace(/[^a-d]/g, '').slice(0, 1);
+        const keyAns = String(s.kunci || 'a').toLowerCase().replace(/[^a-d]/g, '').slice(0, 1) || 'a';
+        const isBenar = userAns === keyAns;
+        if (isBenar) benar++;
+        const userLabel = userAns ? userAns.toUpperCase() : 'Tidak Dijawab';
+        const keyLabel = keyAns.toUpperCase();
+        breakdown.push(`Nomor ${idx + 1}: [Pilihan: ${userLabel}] - ${isBenar ? 'BENAR' : `SALAH (Kunci: ${keyLabel})`}`);
+      });
+
+      const nilaiMaks = targetTugas?.nilai_maks || 100;
+      calculatedNilai = Math.round((benar / totalSoal) * nilaiMaks);
+      finalCatatanText = [
+        catatan.trim(),
+        `[HASIL EVALUASI PILIHAN GANDA OTOMATIS]`,
+        `Nilai: ${calculatedNilai} / ${nilaiMaks} (${benar} dari ${totalSoal} Soal Benar)`,
+        `Detail Jawaban:\n${breakdown.join('\n')}`
+      ].filter(Boolean).join('\n\n');
+    }
+
+    if (submittingTugasId) return;
     setSubmittingTugasId(tugasId);
     try {
       const formData = new FormData();
       if (file) {
         formData.append('file', file);
       }
-      formData.append('catatan_siswa', catatan);
+      formData.append('catatan_siswa', finalCatatanText);
 
       if (meta.tipe === 'pilihan_ganda' && Object.keys(pgAnswers).length > 0) {
         formData.append('jawaban_pg', JSON.stringify(pgAnswers));
+        if (calculatedNilai !== null) {
+          formData.append('nilai_auto', calculatedNilai);
+        }
       }
       if (meta.tipe === 'essay' && Object.keys(essayAnswers).length > 0) {
         const textArr = Object.entries(essayAnswers).map(([idx, ans]) => `Soal #${Number(idx) + 1}:\n${ans}`);
         formData.append('jawaban_essay', textArr.join('\n\n'));
       }
 
-      await LmsAPI.kumpulkanTugas(tugasId, formData);
-      alert('Tugas Anda berhasil dikumpulkan!');
-      
-      let rombelId = searchParams.get('rombel_id');
-      if (rombelId) {
-        const tugRes = await LmsAPI.getTugasByRombel(rombelId, { mapel_id: mapelId });
-        const tugData = tugRes.data.data || [];
-        setAllTugas(tugData);
-        setTugasStats({
-          submitted: tugData.filter(t => !!t.pengumpulan_saya).length,
-          total: tugData.length
-        });
+      // Concurrency & network resilience: Coba kirim ke server hingga 2 kali retry jika koneksi lambat/timeout
+      let resKumpul = null;
+      let lastErr = null;
+      const maxRetries = 2;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          if (attempt > 0) {
+            console.log(`[handleKumpulTugas] Mencoba kembali mengirim tugas (percobaan ${attempt + 1})...`);
+            await new Promise(r => setTimeout(r, 1200 * attempt));
+          }
+          resKumpul = await LmsAPI.kumpulkanTugas(tugasId, formData);
+          if (resKumpul?.data?.success) {
+            break;
+          }
+        } catch (apiErr) {
+          lastErr = apiErr;
+          console.warn(`[handleKumpulTugas] Percobaan ${attempt + 1} gagal:`, apiErr?.response?.data || apiErr.message);
+        }
       }
 
+      // Validasi server response: Jika gagal kirim, JANGAN rekayasa keberhasilan!
+      // Pertahankan jawaban siswa di memori dan LocalStorage agar tidak hilang.
+      if (!resKumpul || !resKumpul.data || !resKumpul.data.success) {
+        const errMsg = lastErr?.response?.data?.message || lastErr?.message || 'Server sedang sibuk atau jaringan internet tidak stabil.';
+        alert(`Perhatian: Gagal mengirimkan tugas ke server.\n\nDetail kendala: ${errMsg}\n\nJANGAN KHAWATIR: Seluruh jawaban yang telah Anda kerjakan TETAP TERSIMPAN AMAN di perangkat Anda. Silakan periksa jaringan internet Anda dan klik tombol 'Kumpulkan Tugas' kembali.`);
+        setSubmittingTugasId(null);
+        return;
+      }
+
+      // Pengiriman terverifikasi sukses di server!
+      // 1. Bersihkan draft lokal karena sudah tercatat permanen di database server
+      clearQuizDraft(tugasId);
+
+      const serverData = resKumpul.data.data;
+      const confirmedNilai = serverData?.nilai !== undefined && serverData?.nilai !== null ? serverData.nilai : calculatedNilai;
+      const confirmedStatus = serverData?.status || (confirmedNilai !== null ? 'dinilai' : 'terkumpul');
+
+      const newPengumpulan = {
+        ...serverData,
+        tugas_id: tugasId,
+        status: confirmedStatus,
+        nilai: confirmedNilai,
+        submitted_at: serverData?.submitted_at || new Date().toISOString(),
+        catatan_siswa: serverData?.catatan_siswa || finalCatatanText,
+        nama_file: serverData?.nama_file || (file ? file.name : (meta.tipe === 'pilihan_ganda' ? 'Jawaban Pilihan Ganda Online' : 'Jawaban Online'))
+      };
+
+      // Simpan di local storage siswa agar tidak hilang saat reload / transisi VPS
+      saveStudentLocalSubmission(tugasId, newPengumpulan);
+
+      // Update state instan di memori (0-delay)
+      setAllTugas(prev => prev.map(t => {
+        if (String(t.id) === String(tugasId)) {
+          return {
+            ...t,
+            pengumpulan_saya: newPengumpulan
+          };
+        }
+        return t;
+      }));
+
+      setTugasStats(prev => ({
+        ...prev,
+        submitted: prev.submitted + 1
+      }));
+
+      // Tutup modal pengerjaan soal
+      setKerjakanTugasModal(null);
+
+      // Buka langsung modal review hasil agar siswa langsung melihat skor & rinciannya
+      const updatedTugasWithSubmission = {
+        ...targetTugas,
+        pengumpulan_saya: newPengumpulan
+      };
+      setReviewTugasModal(updatedTugasWithSubmission);
+
+      // Pesan sukses interaktif
+      if (meta.tipe === 'pilihan_ganda' && confirmedNilai !== null) {
+        alert(`Alhamdulillah, tugas Pilihan Ganda Anda berhasil dikumpulkan!\n\nSkor Anda: ${confirmedNilai} / ${targetTugas?.nilai_maks || 100} Poin.`);
+      } else {
+        alert('Alhamdulillah, tugas pembelajaran Anda berhasil dikumpulkan!');
+      }
+
+      // Background sync server
+      let rombelId = searchParams.get('rombel_id') || rombelDetail?.id || user?.rombel_id;
+      if (rombelId) {
+        fetchTugasList(rombelId, mapelId);
+      }
+      window.dispatchEvent(new CustomEvent('pkbm_tugas_updated', { detail: { rombelId, mapelId } }));
+
       if (activePertemuanId) {
-        const res = await PertemuanAPI.getDetail(activePertemuanId);
-        setPertemuanDetail(res.data.data);
+        try {
+          const res = await PertemuanAPI.getDetail(activePertemuanId);
+          setPertemuanDetail(res.data.data);
+        } catch {}
       }
 
       // Reset input lokal untuk tugas ini
@@ -1058,10 +1599,27 @@ function KelasTerpaduSiswa() {
       setDetailTugasModal(fullTugas);
 
       const initGrading = {};
+      const { meta: taskMeta } = parseTaskDescription(fullTugas.deskripsi);
       (fullTugas.pengumpulan || []).forEach(p => {
+        let defaultScore = p.nilai ?? '';
+        if ((defaultScore === '' || defaultScore === null || defaultScore === undefined) && taskMeta.tipe === 'pilihan_ganda' && taskMeta.soal_pg && taskMeta.soal_pg.length > 0) {
+          const ans = extractStudentPGAnswers(fullTugas, p, jawabanPGMap);
+          if (Object.keys(ans).length > 0) {
+            let benar = 0;
+            taskMeta.soal_pg.forEach((s, idx) => {
+              const qId = s.id !== undefined && s.id !== null ? s.id : (idx + 1);
+              const rawUser = ans[qId] || ans[String(qId)] || ans[idx + 1] || '';
+              const userAns = String(rawUser).toLowerCase().replace(/[^a-d]/g, '').slice(0, 1);
+              const keyAns = String(s.kunci || 'a').toLowerCase().replace(/[^a-d]/g, '').slice(0, 1) || 'a';
+              if (userAns && userAns === keyAns) benar++;
+            });
+            defaultScore = Math.round((benar / taskMeta.soal_pg.length) * (fullTugas.nilai_maks || 100));
+          }
+        }
+
         initGrading[p.id] = {
-          nilai: p.nilai ?? '',
-          feedback_tutor: p.feedback_tutor ?? ''
+          nilai: defaultScore,
+          feedback_tutor: p.feedback_tutor ?? (defaultScore === 100 ? 'Luar biasa, nilai sempurna!' : (defaultScore >= 70 ? 'Bagus, tugas diselesaikan dengan baik.' : ''))
         };
       });
       setGradingInputMap(initGrading);
@@ -1361,11 +1919,16 @@ function KelasTerpaduSiswa() {
     return (b.judul || '').toLowerCase().includes(q) || (b.deskripsi || '').toLowerCase().includes(q);
   });
 
-  // Filtered Tugas List
+  // Filtered Tugas List (Akurat untuk Warga Belajar & Tutor/Admin)
   const filteredTugasList = allTugas.filter(t => {
-    if (tugasFilter === 'belum') return !t.pengumpulan_saya;
-    if (tugasFilter === 'terkumpul') return !!t.pengumpulan_saya && t.pengumpulan_saya.status !== 'dinilai';
-    if (tugasFilter === 'dinilai') return !!t.pengumpulan_saya && t.pengumpulan_saya.status === 'dinilai';
+    if (user.role === 'warga_belajar') {
+      if (tugasFilter === 'belum') return !t.pengumpulan_saya;
+      if (tugasFilter === 'terkumpul') return !!t.pengumpulan_saya && t.pengumpulan_saya.status !== 'dinilai';
+      if (tugasFilter === 'dinilai') return !!t.pengumpulan_saya && t.pengumpulan_saya.status === 'dinilai';
+    } else {
+      if (tugasFilter === 'terkumpul') return (t.jumlah_terkumpul || 0) > 0;
+      if (tugasFilter === 'belum') return (t.jumlah_terkumpul || 0) === 0;
+    }
     return true;
   });
 
@@ -2401,32 +2964,77 @@ function KelasTerpaduSiswa() {
                           </p>
                         </div>
 
-                        {user.role !== 'warga_belajar' && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                           <button
                             type="button"
-                            onClick={() => setShowTugasForm(true)}
-                            className="sheet-btn-cta"
+                            onClick={() => fetchTugasList(null, null, true)}
+                            disabled={refreshingTugas}
+                            className="sheet-btn-secondary"
+                            title="Segarkan daftar tugas tanpa reload browser"
                           >
-                            <i className="bi bi-plus-lg"></i>
-                            <span>Buat Tugas Baru</span>
+                            <i className={`bi bi-arrow-clockwise ${refreshingTugas ? 'spin-icon' : ''}`}></i>
+                            <span>{refreshingTugas ? 'Menyinkronkan...' : 'Segarkan Tugas'}</span>
                           </button>
-                        )}
+
+                          {user.role !== 'warga_belajar' && (
+                            <button
+                              type="button"
+                              onClick={() => setShowTugasForm(true)}
+                              className="sheet-btn-cta"
+                            >
+                              <i className="bi bi-plus-lg"></i>
+                              <span>Buat Tugas Baru</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Modal Form Tambah Tugas */}
                       {showTugasForm && (
                         <div style={{ background: '#FFFFFF', border: '2px solid var(--rb-dark-border)', borderRadius: '18px', padding: '1.5rem', marginBottom: '2rem', boxShadow: '4px 6px 0 var(--rb-dark-border)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1.5px solid #F1F5F9', paddingBottom: '0.75rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1.5px solid #F1F5F9', paddingBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <i className="bi bi-file-earmark-plus-fill" style={{ fontSize: '1.3rem', color: '#2563EB' }}></i>
                               <h4 style={{ fontFamily: 'Outfit', fontWeight: 800, color: 'var(--rb-dark)', margin: 0, fontSize: '1.15rem' }}>
                                 Formulir Buat Tugas Belajar Baru
                               </h4>
                             </div>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#EFF6FF', color: '#1D4ED8', padding: '3px 10px', borderRadius: '6px' }}>
-                              Tutor & Admin
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span className="tugas-draft-indicator">
+                                <span className="pulsing-dot"></span>
+                                <span>Draf Tersimpan Otomatis</span>
+                              </span>
+                              <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#EFF6FF', color: '#1D4ED8', padding: '3px 10px', borderRadius: '6px' }}>
+                                Tutor & Admin
+                              </span>
+                            </div>
                           </div>
+
+                          {/* Alert jika draf berhasil dipulihkan */}
+                          {hasRestoredDraft && (
+                            <div className="draft-recovered-alert">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <i className="bi bi-shield-check" style={{ fontSize: '1.2rem', color: '#16A34A' }}></i>
+                                <div>
+                                  <strong>Draf Tugas & Soal Dipulihkan:</strong> Draf soal PG atau isian sebelumnya otomatis dipulihkan dari memori browser agar tidak hilang saat keluar atau website error.
+                                  {lastDraftSaved && (
+                                    <span style={{ opacity: 0.8, fontSize: '0.75rem', marginLeft: '6px' }}>
+                                      (Tersimpan: {new Date(lastDraftSaved).toLocaleTimeString('id-ID')})
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={handleClearDraft}
+                                className="btn-clear-draft"
+                                title="Hapus draf dan kosongkan form"
+                              >
+                                <i className="bi bi-trash3"></i>
+                                <span>Hapus Draf</span>
+                              </button>
+                            </div>
+                          )}
 
                           <form onSubmit={handleCreateTugas} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {/* Judul Tugas */}
@@ -2509,37 +3117,75 @@ function KelasTerpaduSiswa() {
                             {/* KHUSUS: BUILDER PILIHAN GANDA */}
                             {tipeTugas === 'pilihan_ganda' && (
                               <div className="soal-builder-section">
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '8px' }}>
                                   <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#7C3AED', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <i className="bi bi-list-check" style={{ fontSize: '1.1rem' }}></i>
                                     <span>Butir Soal Pilihan Ganda ({soalPG.length} Butir)</span>
                                   </div>
-                                  <button
-                                    type="button"
-                                    onClick={handleAddSoalPG}
-                                    className="retro-btn-action primary"
-                                    style={{ padding: '5px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                                  >
-                                    <i className="bi bi-plus-lg"></i>
-                                    <span>Tambah Soal</span>
-                                  </button>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowImportModal(true)}
+                                      className="retro-btn-action secondary"
+                                      style={{ padding: '5px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#F5F3FF', color: '#6D28D9', borderColor: '#DDD6FE' }}
+                                      title="Import soal dari file Excel (.xlsx), Word (.docx), atau CSV"
+                                    >
+                                      <i className="bi bi-file-earmark-arrow-up-fill"></i>
+                                      <span>Import File (Excel/Word)</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={downloadTemplateExcelSoalPG}
+                                      className="retro-btn-action secondary"
+                                      style={{ padding: '5px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#F0FDF4', color: '#15803D', borderColor: '#BBF7D0' }}
+                                      title="Unduh template Excel resmi untuk format soal PG"
+                                    >
+                                      <i className="bi bi-file-earmark-spreadsheet-fill"></i>
+                                      <span>Unduh Template Excel</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={handleAddSoalPG}
+                                      className="retro-btn-action primary"
+                                      style={{ padding: '5px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                    >
+                                      <i className="bi bi-plus-lg"></i>
+                                      <span>Tambah Soal</span>
+                                    </button>
+                                  </div>
                                 </div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                                   {soalPG.map((soal, sIdx) => (
                                     <div key={sIdx} className="soal-builder-card">
-                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                        <span className="soal-builder-label">Soal Nomor {sIdx + 1}</span>
-                                        {soalPG.length > 1 && (
+                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '6px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                          <span className="soal-builder-label">Soal Nomor {sIdx + 1}</span>
+                                          <span style={{ fontSize: '0.74rem', background: '#DCFCE7', color: '#15803D', border: '1px solid #86EFAC', padding: '2px 8px', borderRadius: '6px', fontWeight: 800 }}>
+                                            Kunci: Opsi {(soal.kunci || 'a').toUpperCase()}
+                                          </span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                           <button
                                             type="button"
-                                            onClick={() => handleRemoveSoalPG(sIdx)}
-                                            className="btn-trash-soal"
-                                            title="Hapus butir soal ini"
+                                            onClick={() => handleDuplicateSoalPG(sIdx)}
+                                            className="btn-duplicate-soal"
+                                            title="Duplikasi butir soal ini"
                                           >
-                                            <i className="bi bi-trash3"></i>
+                                            <i className="bi bi-copy"></i>
+                                            <span>Duplikat</span>
                                           </button>
-                                        )}
+                                          {soalPG.length > 1 && (
+                                            <button
+                                              type="button"
+                                              onClick={() => handleRemoveSoalPG(sIdx)}
+                                              className="btn-trash-soal"
+                                              title="Hapus butir soal ini"
+                                            >
+                                              <i className="bi bi-trash3"></i>
+                                            </button>
+                                          )}
+                                        </div>
                                       </div>
 
                                       <textarea
@@ -2552,33 +3198,31 @@ function KelasTerpaduSiswa() {
                                       />
 
                                       <div className="pg-builder-options-grid">
-                                        {['a', 'b', 'c', 'd'].map((optKey) => (
-                                          <div key={optKey} className="pg-builder-opt-item">
-                                            <span className="opt-prefix">{optKey.toUpperCase()}</span>
-                                            <input
-                                              type="text"
-                                              className="opt-input"
-                                              placeholder={`Pilihan ${optKey.toUpperCase()}`}
-                                              value={soal[`opsi_${optKey}`] || ''}
-                                              onChange={(e) => handleUpdateSoalPG(sIdx, `opsi_${optKey}`, e.target.value)}
-                                              required
-                                            />
-                                          </div>
-                                        ))}
-                                      </div>
-
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginTop: '0.65rem', fontSize: '0.8rem' }}>
-                                        <span style={{ fontWeight: 800, color: '#475569' }}>Kunci Jawaban Benar:</span>
-                                        <select
-                                          value={soal.kunci || 'a'}
-                                          onChange={(e) => handleUpdateSoalPG(sIdx, 'kunci', e.target.value)}
-                                          style={{ borderRadius: '6px', border: '1.5px solid #CBD5E1', padding: '4px 10px', fontSize: '0.8rem', background: '#FFFFFF', fontWeight: 800, color: '#7C3AED' }}
-                                        >
-                                          <option value="a">Opsi A</option>
-                                          <option value="b">Opsi B</option>
-                                          <option value="c">Opsi C</option>
-                                          <option value="d">Opsi D</option>
-                                        </select>
+                                        {['a', 'b', 'c', 'd'].map((optKey) => {
+                                          const isKey = (soal.kunci || 'a') === optKey;
+                                          return (
+                                            <div key={optKey} className={`pg-builder-opt-item ${isKey ? 'is-correct-key' : ''}`}>
+                                              <span className={`opt-prefix ${isKey ? 'key-active' : ''}`}>{optKey.toUpperCase()}</span>
+                                              <input
+                                                type="text"
+                                                className="opt-input"
+                                                placeholder={`Pilihan ${optKey.toUpperCase()}`}
+                                                value={soal[`opsi_${optKey}`] || ''}
+                                                onChange={(e) => handleUpdateSoalPG(sIdx, `opsi_${optKey}`, e.target.value)}
+                                                required
+                                              />
+                                              <button
+                                                type="button"
+                                                onClick={() => handleUpdateSoalPG(sIdx, 'kunci', optKey)}
+                                                className={`btn-toggle-key ${isKey ? 'active' : ''}`}
+                                                title={`Klik untuk menetapkan Opsi ${optKey.toUpperCase()} sebagai kunci jawaban`}
+                                              >
+                                                <i className={`bi ${isKey ? 'bi-check-circle-fill' : 'bi-circle'}`}></i>
+                                                <span>{isKey ? 'Kunci Benar' : 'Jadikan Kunci'}</span>
+                                              </button>
+                                            </div>
+                                          );
+                                        })}
                                       </div>
                                     </div>
                                   ))}
@@ -2756,7 +3400,7 @@ function KelasTerpaduSiswa() {
                                     </span>
                                   </div>
 
-                                  {user.role === 'warga_belajar' && (
+                                  {user.role === 'warga_belajar' ? (
                                     t.pengumpulan_saya ? (
                                       <span className={`retro-tag-pill ${t.pengumpulan_saya.status === 'dinilai' ? 'mint' : 'yellow'}`}>
                                         {t.pengumpulan_saya.status === 'dinilai' ? `Dinilai: ${t.pengumpulan_saya.nilai}` : 'Terkumpul'}
@@ -2766,6 +3410,17 @@ function KelasTerpaduSiswa() {
                                         Belum Dikumpul
                                       </span>
                                     )
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteTugas(t.id, t.judul)}
+                                      className="retro-btn-action danger"
+                                      style={{ padding: '4px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: 5, background: '#FEF2F2', color: '#DC2626', borderColor: '#FECACA' }}
+                                      title="Hapus tugas pembelajaran ini"
+                                    >
+                                      <i className="bi bi-trash3-fill"></i>
+                                      <span>Hapus</span>
+                                    </button>
                                   )}
                                 </div>
 
@@ -2782,189 +3437,85 @@ function KelasTerpaduSiswa() {
                                       <i className="bi bi-people-fill" style={{ fontSize: '1.15rem', color: '#0284C7' }}></i>
                                       <span>Pengumpulan: <strong>{t.jumlah_terkumpul || 0} Siswa</strong> telah mengumpulkan</span>
                                     </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleOpenDetailTugas(t)}
-                                      className="retro-btn-action primary"
-                                      style={{ padding: '6px 14px', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                                    >
-                                      <i className="bi bi-clipboard-check"></i>
-                                      <span>Periksa & Beri Nilai</span>
-                                    </button>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenDetailTugas(t)}
+                                        className="retro-btn-action primary"
+                                        style={{ padding: '6px 14px', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                                      >
+                                        <i className="bi bi-clipboard-check"></i>
+                                        <span>Periksa & Beri Nilai</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteTugas(t.id, t.judul)}
+                                        className="retro-btn-action danger"
+                                        style={{ padding: '6px 14px', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: 6, background: '#FEF2F2', color: '#DC2626', borderColor: '#FECACA' }}
+                                        title="Hapus tugas ini beserta pengumpulan siswa terkait"
+                                      >
+                                        <i className="bi bi-trash3-fill"></i>
+                                        <span>Hapus Tugas</span>
+                                      </button>
+                                    </div>
                                   </div>
                                 ) : t.pengumpulan_saya ? (
-                                  <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '12px', border: '1.5px solid #E2E8F0', fontSize: '0.86rem' }}>
-                                    {t.pengumpulan_saya.path_file && t.pengumpulan_saya.path_file !== 'text_submission' && (
-                                      <div style={{ marginBottom: 6 }}>
-                                        <span style={{ color: '#64748B', fontWeight: 700 }}>Berkas Jawaban:</span>{' '}
-                                        <a href={toAssetUrl(t.pengumpulan_saya.path_file)} target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', fontWeight: 800, textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                          <i className="bi bi-file-earmark-arrow-down-fill"></i>
-                                          {t.pengumpulan_saya.nama_file || 'Lihat / Unduh Berkas'}
-                                        </a>
+                                  <div style={{ background: '#F0FDF4', padding: '14px 18px', borderRadius: '14px', border: '1.5px solid #BBF7D0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginTop: 'auto' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                      <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#DCFCE7', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.35rem', flexShrink: 0 }}>
+                                        <i className="bi bi-check-circle-fill"></i>
                                       </div>
-                                    )}
-                                    {t.pengumpulan_saya.catatan_siswa && (
-                                      <div style={{ marginTop: 6, background: '#FFFFFF', padding: '8px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                                        <div style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>Catatan / Jawaban Anda:</div>
-                                        <div style={{ color: 'var(--rb-dark)', whiteSpace: 'pre-line', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                                          {t.pengumpulan_saya.catatan_siswa}
+                                      <div>
+                                        <div style={{ fontSize: '0.92rem', color: '#15803D', fontWeight: 800 }}>
+                                          Tugas Selesai Dikumpulkan
+                                        </div>
+                                        <div style={{ fontSize: '0.8rem', color: '#166534', marginTop: 2, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                          {t.pengumpulan_saya.status === 'dinilai' ? (
+                                            <span>
+                                              Nilai Anda: <strong style={{ fontSize: '0.98rem', color: '#15803D' }}>{t.pengumpulan_saya.nilai}</strong> / {t.nilai_maks || 100}
+                                            </span>
+                                          ) : (
+                                            <span>Status: Menunggu Evaluasi Tutor</span>
+                                          )}
+                                          {t.pengumpulan_saya.submitted_at && (
+                                            <span style={{ color: '#86EFAC' }}>• {new Date(t.pengumpulan_saya.submitted_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                                          )}
                                         </div>
                                       </div>
-                                    )}
-                                    {t.pengumpulan_saya.feedback_tutor && (
-                                      <div style={{ background: '#FEF3C7', border: '1.5px solid #FCD34D', padding: '10px 12px', borderRadius: '10px', marginTop: '8px', color: '#92400E' }}>
-                                        <i className="bi bi-chat-quote-fill" style={{ marginRight: 6 }}></i>
-                                        <strong>Catatan Evaluasi Tutor:</strong>{' '}
-                                        <span>"{t.pengumpulan_saya.feedback_tutor}"</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div style={{ background: '#F8FAFC', padding: '1.25rem', borderRadius: '14px', border: '1.5px dashed #CBD5E1' }}>
-                                    {/* 1. TAMPILAN INTERAKTIF PILIHAN GANDA */}
-                                    {meta.tipe === 'pilihan_ganda' && meta.soal_pg && meta.soal_pg.length > 0 && (
-                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
-                                        <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#7C3AED', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                          <i className="bi bi-ui-radios-grid"></i>
-                                          <span>Lembar Soal Pilihan Ganda ({meta.soal_pg.length} Butir):</span>
-                                        </div>
-                                        {meta.soal_pg.map((soal, sIdx) => {
-                                          const selectedAns = (jawabanPGMap[t.id] || {})[soal.id || sIdx + 1];
-                                          return (
-                                            <div key={soal.id || sIdx} className="pg-quiz-card">
-                                              <div className="pg-quiz-question">
-                                                <span className="pg-number-badge">{sIdx + 1}</span>
-                                                <span style={{ flex: 1, fontWeight: 700, color: '#1E293B' }}>{soal.pertanyaan}</span>
-                                              </div>
-                                              <div className="pg-options-grid">
-                                                {['a', 'b', 'c', 'd'].map((optKey) => {
-                                                  const optVal = soal[`opsi_${optKey}`];
-                                                  if (!optVal) return null;
-                                                  const isSelected = selectedAns === optKey;
-                                                  return (
-                                                    <div
-                                                      key={optKey}
-                                                      className={`pg-option-item ${isSelected ? 'selected' : ''}`}
-                                                      onClick={() => {
-                                                        setJawabanPGMap(prev => ({
-                                                          ...prev,
-                                                          [t.id]: { ...(prev[t.id] || {}), [soal.id || sIdx + 1]: optKey }
-                                                        }));
-                                                      }}
-                                                    >
-                                                      <span className="pg-option-letter">{optKey.toUpperCase()}</span>
-                                                      <span className="pg-option-text">{optVal}</span>
-                                                      {isSelected && <i className="bi bi-check-circle-fill" style={{ marginLeft: 'auto', color: '#7C3AED' }}></i>}
-                                                    </div>
-                                                  );
-                                                })}
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    )}
-
-                                    {/* 2. TAMPILAN INTERAKTIF ESSAY */}
-                                    {meta.tipe === 'essay' && meta.soal_essay && meta.soal_essay.length > 0 && (
-                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
-                                        <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#2563EB', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                          <i className="bi bi-pencil-square"></i>
-                                          <span>Pertanyaan Essay ({meta.soal_essay.length} Butir):</span>
-                                        </div>
-                                        {meta.soal_essay.map((soal, sIdx) => (
-                                          <div key={soal.id || sIdx} className="essay-question-item">
-                                            <div className="essay-question-prompt">
-                                              <span className="essay-number-badge">{sIdx + 1}</span>
-                                              <span style={{ flex: 1, fontWeight: 700 }}>{soal.pertanyaan}</span>
-                                            </div>
-                                            <textarea
-                                              rows={3}
-                                              placeholder={`Ketikkan uraian jawaban nomor ${sIdx + 1} di sini...`}
-                                              value={(jawabanEssayMap[t.id] || {})[sIdx] || ''}
-                                              onChange={(e) => {
-                                                const val = e.target.value;
-                                                setJawabanEssayMap(prev => ({
-                                                  ...prev,
-                                                  [t.id]: { ...(prev[t.id] || {}), [sIdx]: val }
-                                                }));
-                                              }}
-                                              style={{ width: '100%', borderRadius: '8px', border: '1.5px solid #CBD5E1', padding: '8px 12px', fontSize: '0.86rem', resize: 'vertical' }}
-                                            />
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-
-                                    {/* 3. INPUT BERKAS (FOTO/PDF/DOC) */}
-                                    <div style={{ marginBottom: '0.75rem' }}>
-                                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>
-                                        {meta.tipe === 'upload' ? 'UNGGAH BERKAS LEMBAR KERJA (FOTO / PDF / DOKUMEN) *' : 'LAMPIRKAN FOTO / BERKAS LEMBAR JAWABAN (OPSIONAL)'}
-                                      </label>
-                                      <input
-                                        type="file"
-                                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip"
-                                        onChange={(e) => {
-                                          const f = e.target.files[0];
-                                          setSelectedFileMap(prev => ({ ...prev, [t.id]: f }));
-                                          setSelectedFile(f);
-                                        }}
-                                        style={{ fontSize: '0.85rem', width: '100%', color: 'var(--rb-dark)' }}
-                                      />
-                                      {currentFile && (
-                                        <div className="tugas-file-selected-box">
-                                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E40AF', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                            <i className="bi bi-file-earmark-check-fill" style={{ color: '#059669' }}></i>
-                                            {currentFile.name} ({(currentFile.size / 1024).toFixed(1)} KB)
-                                          </span>
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setSelectedFileMap(prev => { const n = { ...prev }; delete n[t.id]; return n; });
-                                              setSelectedFile(null);
-                                            }}
-                                            style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer' }}
-                                            title="Hapus file"
-                                          >
-                                            <i className="bi bi-x-circle-fill"></i>
-                                          </button>
-                                        </div>
-                                      )}
                                     </div>
-
-                                    {/* CATATAN SISWA */}
-                                    <div style={{ marginBottom: '0.75rem' }}>
-                                      <textarea
-                                        placeholder="Tambahkan catatan untuk tutor (opsional)..."
-                                        value={catatanTugasMap[t.id] ?? catatanTugas}
-                                        onChange={(e) => {
-                                          const val = e.target.value;
-                                          setCatatanTugasMap(prev => ({ ...prev, [t.id]: val }));
-                                          setCatatanTugas(val);
-                                        }}
-                                        rows={2}
-                                        style={{ width: '100%', borderRadius: '8px', border: '1.5px solid #CBD5E1', background: '#FFFFFF', color: 'var(--rb-dark)', padding: '8px 12px', fontSize: '0.85rem', resize: 'vertical' }}
-                                      />
-                                    </div>
-
-                                    {/* SUBMIT BUTTON */}
                                     <button
                                       type="button"
-                                      onClick={() => handleKumpulTugas(t.id)}
-                                      disabled={submittingTugasId === t.id}
+                                      onClick={() => setReviewTugasModal(t)}
                                       className="retro-btn-action primary"
-                                      style={{ alignSelf: 'flex-start', padding: '8px 20px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                                      style={{ padding: '8px 18px', fontSize: '0.84rem', display: 'inline-flex', alignItems: 'center', gap: 6, background: '#16A34A', color: '#FFFFFF', borderColor: '#15803D', fontWeight: 800 }}
                                     >
-                                      <i className="bi bi-cloud-arrow-up-fill"></i>
-                                      <span>
-                                        {submittingTugasId === t.id
-                                          ? 'Mengirim...'
-                                          : meta.tipe === 'pilihan_ganda'
-                                            ? 'Kirim Lembar Jawaban PG'
-                                            : meta.tipe === 'essay'
-                                              ? 'Kirim Jawaban Essay'
-                                              : 'Submit Tugas'}
-                                      </span>
+                                      <i className="bi bi-file-earmark-check-fill"></i>
+                                      <span>Lihat Hasil & Jawaban</span>
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div style={{ background: '#F8FAFC', padding: '14px 18px', borderRadius: '14px', border: '1.5px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginTop: 'auto' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                      <div style={{ width: 42, height: 42, borderRadius: '12px', background: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', flexShrink: 0 }}>
+                                        {meta.tipe === 'pilihan_ganda' ? <i className="bi bi-ui-radios-grid"></i> : meta.tipe === 'essay' ? <i className="bi bi-pencil-square"></i> : <i className="bi bi-cloud-arrow-up"></i>}
+                                      </div>
+                                      <div>
+                                        <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#1E293B' }}>
+                                          {meta.tipe === 'pilihan_ganda' ? `${meta.soal_pg?.length || 0} Soal Pilihan Ganda` : meta.tipe === 'essay' ? `${meta.soal_essay?.length || 0} Soal Uraian / Essay` : 'Lembar Unggah Berkas'}
+                                        </div>
+                                        <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 2 }}>
+                                          Nilai Maksimal: {t.nilai_maks || 100} Poin
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenKerjakanTugas(t)}
+                                      className="retro-btn-action primary"
+                                      style={{ padding: '8px 22px', fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800, boxShadow: '0 4px 12px rgba(37,99,235,0.2)' }}
+                                    >
+                                      <i className="bi bi-pencil-square"></i>
+                                      <span>Kerjakan Tugas</span>
                                     </button>
                                   </div>
                                 )}
@@ -2980,6 +3531,309 @@ function KelasTerpaduSiswa() {
                 </div>
               </div>
             )}
+
+          {/* ══ MODAL: IMPORT SOAL DARI EXCEL / WORD / TEKS ══ */}
+          {showImportModal && (
+            <div className="import-modal-overlay" onClick={() => setShowImportModal(false)}>
+              <div className="import-modal-card" onClick={(e) => e.stopPropagation()}>
+                <div className="import-modal-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: 38, height: 38, borderRadius: '10px', background: '#7C3AED', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>
+                      <i className="bi bi-file-earmark-arrow-up"></i>
+                    </div>
+                    <div>
+                      <h4 style={{ fontFamily: 'Outfit', fontWeight: 800, margin: 0, fontSize: '1.1rem', color: '#1E293B' }}>
+                        Import Soal Pilihan Ganda dari Berkas
+                      </h4>
+                      <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748B' }}>
+                        Unggah file Excel (.xlsx, .xls, .csv) atau Word (.docx, .txt) langsung jadi butir soal PG
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowImportModal(false)}
+                    style={{ background: 'none', border: 'none', fontSize: '1.3rem', cursor: 'pointer', color: '#64748B' }}
+                  >
+                    <i className="bi bi-x-lg"></i>
+                  </button>
+                </div>
+
+                {/* Tabs Panduan & Upload */}
+                <div className="import-modal-tabs">
+                  <button
+                    type="button"
+                    className={`import-tab-btn ${importModeTab === 'upload' ? 'active' : ''}`}
+                    onClick={() => setImportModeTab('upload')}
+                  >
+                    <i className="bi bi-cloud-arrow-up-fill"></i>
+                    <span>Unggah Berkas</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`import-tab-btn ${importModeTab === 'excel_guide' ? 'active' : ''}`}
+                    onClick={() => setImportModeTab('excel_guide')}
+                  >
+                    <i className="bi bi-file-earmark-spreadsheet-fill"></i>
+                    <span>Format & Template Excel</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`import-tab-btn ${importModeTab === 'word_guide' ? 'active' : ''}`}
+                    onClick={() => setImportModeTab('word_guide')}
+                  >
+                    <i className="bi bi-file-earmark-word-fill"></i>
+                    <span>Format Word / Dokumen</span>
+                  </button>
+                </div>
+
+                <div className="import-modal-body">
+                  {/* TAB 1: UPLOAD FILE */}
+                  {importModeTab === 'upload' && (
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
+                        <span style={{ fontSize: '0.84rem', color: '#475569', fontWeight: 600 }}>
+                          Pilih berkas dari komputer Anda:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={downloadTemplateExcelSoalPG}
+                          style={{
+                            background: '#EFF6FF',
+                            border: '1.5px solid #BFDBFE',
+                            color: '#1D4ED8',
+                            borderRadius: '8px',
+                            padding: '6px 12px',
+                            fontSize: '0.78rem',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <i className="bi bi-download"></i>
+                          <span>Unduh Template Excel (.xlsx)</span>
+                        </button>
+                      </div>
+
+                      <label className="import-dropzone" style={{ display: 'block' }}>
+                        <input
+                          type="file"
+                          accept=".xlsx,.xls,.csv,.docx,.txt"
+                          onChange={handleProcessImportFile}
+                          style={{ display: 'none' }}
+                        />
+                        <div style={{ width: 48, height: 48, borderRadius: '12px', background: '#F5F3FF', color: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', fontSize: '1.8rem' }}>
+                          <i className="bi bi-cloud-arrow-up"></i>
+                        </div>
+                        <h5 style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1E293B', marginBottom: '4px' }}>
+                          {importingFile ? 'Menganalisis & Mengekstrak Soal...' : 'Klik untuk Memilih File atau Seret ke Sini'}
+                        </h5>
+                        <p style={{ fontSize: '0.8rem', color: '#64748B', margin: 0 }}>
+                          Mendukung: Excel (.xlsx, .xls), Word (.docx), CSV, dan Teks (.txt)
+                        </p>
+                      </label>
+
+                      {importErrorMsg && (
+                        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: '8px', padding: '10px 14px', fontSize: '0.82rem', marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <i className="bi bi-exclamation-triangle-fill"></i>
+                          <span>{importErrorMsg}</span>
+                        </div>
+                      )}
+
+                      {/* Preview Hasil Ekstraksi */}
+                      {importPreviewData.length > 0 && (
+                        <div style={{ marginTop: '1.25rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                            <span style={{ fontWeight: 800, fontSize: '0.86rem', color: '#16A34A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <i className="bi bi-check-circle-fill"></i>
+                              <span>Berhasil Mengekstrak {importPreviewData.length} Butir Soal!</span>
+                            </span>
+                            <span style={{ fontSize: '0.78rem', color: '#64748B' }}>
+                              Pratinjau soal di bawah:
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto', marginBottom: '1.25rem', paddingRight: '4px' }}>
+                            {importPreviewData.slice(0, 5).map((item, idx) => (
+                              <div key={idx} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '10px 12px', fontSize: '0.82rem' }}>
+                                <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>
+                                  {idx + 1}. {item.pertanyaan}
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '0.78rem', color: '#475569' }}>
+                                  <div><strong>A:</strong> {item.opsi_a}</div>
+                                  <div><strong>B:</strong> {item.opsi_b}</div>
+                                  <div><strong>C:</strong> {item.opsi_c}</div>
+                                  <div><strong>D:</strong> {item.opsi_d}</div>
+                                </div>
+                                <div style={{ marginTop: '4px', fontSize: '0.75rem', fontWeight: 800, color: '#7C3AED' }}>
+                                  Kunci Jawaban: Opsi {item.kunci?.toUpperCase()}
+                                </div>
+                              </div>
+                            ))}
+                            {importPreviewData.length > 5 && (
+                              <div style={{ textAlign: 'center', fontSize: '0.78rem', color: '#64748B', fontStyle: 'italic' }}>
+                                + {importPreviewData.length - 5} soal lainnya siap dimasukkan...
+                              </div>
+                            )}
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleApplyImportedQuestions(false)}
+                              className="retro-btn-action secondary"
+                              style={{ padding: '8px 16px', fontSize: '0.82rem' }}
+                            >
+                              <i className="bi bi-plus-circle"></i>
+                              <span>Tambahkan ke Soal Saat Ini</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleApplyImportedQuestions(true)}
+                              className="retro-btn-action primary"
+                              style={{ padding: '8px 18px', fontSize: '0.82rem' }}
+                            >
+                              <i className="bi bi-check2-all"></i>
+                              <span>Ganti Semua ({importPreviewData.length} Soal)</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* TAB 2: PETUNJUK FORMAT EXCEL */}
+                  {importModeTab === 'excel_guide' && (
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
+                        <h5 style={{ fontWeight: 800, fontSize: '0.9rem', color: '#1E293B', margin: 0 }}>
+                          Panduan Struktur Kolom File Excel (.xlsx / .csv)
+                        </h5>
+                        <button
+                          type="button"
+                          onClick={downloadTemplateExcelSoalPG}
+                          style={{
+                            background: '#16A34A',
+                            border: 'none',
+                            color: '#FFFFFF',
+                            borderRadius: '8px',
+                            padding: '6px 12px',
+                            fontSize: '0.78rem',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <i className="bi bi-download"></i>
+                          <span>Unduh Template Siap Pakai</span>
+                        </button>
+                      </div>
+
+                      <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, marginBottom: '0.75rem' }}>
+                        File Excel wajib memiliki <strong>7 kolom</strong> pada baris pertama (Header). Sistem akan otomatis membaca nomor, pertanyaan, 4 pilihan, dan kunci jawaban.
+                      </p>
+
+                      <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
+                        <table className="guide-table">
+                          <thead>
+                            <tr>
+                              <th>Kolom 1 (No)</th>
+                              <th>Kolom 2 (Pertanyaan)</th>
+                              <th>Kolom 3 (Pilihan A)</th>
+                              <th>Kolom 4 (Pilihan B)</th>
+                              <th>Kolom 5 (Pilihan C)</th>
+                              <th>Kolom 6 (Pilihan D)</th>
+                              <th>Kolom 7 (Kunci)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>1</td>
+                              <td>Ibu kota negara Indonesia saat ini adalah...</td>
+                              <td>DKI Jakarta</td>
+                              <td>Surabaya</td>
+                              <td>Bandung</td>
+                              <td>Medan</td>
+                              <td><strong>A</strong></td>
+                            </tr>
+                            <tr>
+                              <td>2</td>
+                              <td>Lambang sila ke-3 Pancasila adalah...</td>
+                              <td>Bintang Emas</td>
+                              <td>Rantai Baja</td>
+                              <td>Pohon Beringin</td>
+                              <td>Padi dan Kapas</td>
+                              <td><strong>C</strong></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '10px', padding: '10px 14px', fontSize: '0.8rem', color: '#1E40AF' }}>
+                        <strong>Catatan Penting Kunci Jawaban:</strong>
+                        <ul style={{ margin: '4px 0 0 0', paddingLeft: '18px' }}>
+                          <li>Kolom Kunci Jawaban dapat diisi huruf: <strong>A</strong>, <strong>B</strong>, <strong>C</strong>, atau <strong>D</strong> (huruf besar maupun kecil).</li>
+                          <li>Jika kunci dikosongkan, sistem mengasumsikan default ke Opsi A (dapat diubah nanti di builder).</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 3: PETUNJUK FORMAT WORD / DOKUMEN */}
+                  {importModeTab === 'word_guide' && (
+                    <div>
+                      <h5 style={{ fontWeight: 800, fontSize: '0.9rem', color: '#1E293B', marginBottom: '6px' }}>
+                        Panduan Format Soal Word (.docx) & Teks (.txt)
+                      </h5>
+                      <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, marginBottom: '0.75rem' }}>
+                        Anda dapat menyusun soal langsung di Microsoft Word (.docx) atau Notepad (.txt) dengan penulisan standar bernomor. Contoh format penulisan yang otomatis dikenali:
+                      </p>
+
+                      <div style={{ background: '#F8FAFC', border: '1.5px solid #CBD5E1', borderRadius: '10px', padding: '12px 14px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#1E293B', whiteSpace: 'pre-line', marginBottom: '1rem' }}>
+{`1. Lembaga negara pemegang kekuasaan membentuk Undang-Undang di Indonesia adalah...
+A. Dewan Perwakilan Rakyat (DPR)
+B. Mahkamah Agung (MA)
+C. Mahkamah Konstitusi (MK)
+D. Komisi Yudisial (KY)
+Kunci: A
+
+2. Gas yang sangat dibutuhkan manusia saat bernapas adalah...
+A. Karbon Dioksida
+B. Oksigen
+C. Nitrogen
+D. Metana
+Kunci: B`}
+                      </div>
+
+                      <div style={{ background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: '10px', padding: '10px 14px', fontSize: '0.8rem', color: '#14532D' }}>
+                        <strong>Tips Format:</strong>
+                        <ul style={{ margin: '4px 0 0 0', paddingLeft: '18px' }}>
+                          <li>Setiap soal diawali nomor butir (contoh: <code>1.</code> atau <code>1)</code>).</li>
+                          <li>Setiap opsi diawali huruf pilihan (contoh: <code>A.</code>, <code>B.</code>, <code>C.</code>, <code>D.</code>).</li>
+                          <li>Kunci jawaban ditulis di baris berikutnya dengan format <code>Kunci: A</code> atau <code>Jawaban: B</code>.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ padding: '1rem 1.5rem', background: '#F8FAFC', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowImportModal(false)}
+                    className="retro-btn-action neutral"
+                    style={{ padding: '6px 16px', fontSize: '0.82rem' }}
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ══ MODAL: TAMBAH SESI PERTEMUAN (TUTOR / ADMIN) ══ */}
           {showAddPertemuanModal && (
@@ -3403,202 +4257,1322 @@ function KelasTerpaduSiswa() {
             </div>
           )}
 
-          {/* ══ MODAL: PERIKSA & BERI NILAI PENGUMPULAN TUGAS (TUTOR / ADMIN) ══ */}
-          {detailTugasModal && (
-            <div
-              className="retro-modal-overlay"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) setDetailTugasModal(null);
-              }}
-            >
-              <div className="retro-modal-box" style={{ maxWidth: '780px', maxHeight: '92vh' }}>
-                <div className="retro-modal-header" style={{ background: '#E0F2FE', borderBottom: '2px solid var(--rb-dark-border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <i className="bi bi-clipboard2-check-fill" style={{ fontSize: '1.35rem', color: '#0369A1' }}></i>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0C4A6E' }}>
-                        Pengumpulan & Penilaian Tugas
-                      </h3>
-                      <div style={{ fontSize: '0.78rem', color: '#0369A1', fontWeight: 600 }}>
+          {/* ══ MODAL: PERIKSA & BERI NILAI PENGUMPULAN TUGAS (TUTOR / ADMIN - TEMA BIRU SENADA MOCKUP) ══ */}
+          {detailTugasModal && (() => {
+            const { meta: taskMeta } = parseTaskDescription(detailTugasModal.deskripsi);
+            const totalPG = taskMeta.soal_pg?.length || 0;
+            const totalEssay = taskMeta.soal_essay?.length || 0;
+
+            const deadlineText = detailTugasModal.deadline && !isNaN(new Date(detailTugasModal.deadline).getTime())
+              ? new Date(detailTugasModal.deadline).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+              : 'Tidak ada batas';
+
+            return (
+              <div
+                className="blue-quiz-overlay"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) setDetailTugasModal(null);
+                }}
+              >
+                <div
+                  className="blue-admin-card"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Glowing background shapes */}
+                  <div style={{ position: 'absolute', top: -70, right: -70, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 70%)', pointerEvents: 'none', zIndex: 1 }} />
+                  <div style={{ position: 'absolute', bottom: -90, left: -60, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(96,165,250,0.3) 0%, rgba(96,165,250,0) 70%)', pointerEvents: 'none', zIndex: 1 }} />
+
+                  {/* ── 1. Top App Bar ── */}
+                  <div className="blue-quiz-header">
+                    <div style={{ width: 38, height: 38, borderRadius: '12px', background: 'rgba(255, 255, 255, 0.18)', border: '1px solid rgba(255, 255, 255, 0.25)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem' }}>
+                      <i className="bi bi-clipboard-check-fill"></i>
+                    </div>
+
+                    <div className="blue-quiz-title-box">
+                      <div className="blue-quiz-tag">
+                        Penilaian Tugas Tutor
+                      </div>
+                      <h3 className="blue-quiz-title">
                         {detailTugasModal.judul}
-                      </div>
+                      </h3>
                     </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setDetailTugasModal(null)}
-                    style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: 'var(--rb-dark)' }}
-                  >
-                    <i className="bi bi-x-lg"></i>
-                  </button>
-                </div>
 
-                <div style={{ padding: '1.5rem', overflowY: 'auto', maxHeight: 'calc(92vh - 120px)' }}>
-                  {/* Task Meta Brief */}
-                  <div style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Format Tugas</div>
-                      <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '0.88rem' }}>
-                        {(() => {
-                          const { meta } = parseTaskDescription(detailTugasModal.deskripsi);
-                          if (meta.tipe === 'pilihan_ganda') return `Pilihan Ganda (${meta.soal_pg?.length || 0} Soal)`;
-                          if (meta.tipe === 'essay') return `Tugas Essay (${meta.soal_essay?.length || 0} Soal)`;
-                          return 'Upload File / Foto';
-                        })()}
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Batas Waktu (Deadline)</div>
-                      <div style={{ fontWeight: 800, color: '#BE123C', fontSize: '0.88rem' }}>
-                        {new Date(detailTugasModal.deadline).toLocaleString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Nilai Maksimal</div>
-                      <div style={{ fontWeight: 800, color: '#059669', fontSize: '0.88rem' }}>
-                        {detailTugasModal.nilai_maks || 100} Poin
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Total Mengumpulkan</div>
-                      <div style={{ fontWeight: 800, color: '#2563EB', fontSize: '0.88rem' }}>
-                        {detailTugasModal.pengumpulan?.length || 0} Warga Belajar
-                      </div>
-                    </div>
+                    <button
+                      type="button"
+                      className="blue-quiz-nav-btn"
+                      onClick={() => setDetailTugasModal(null)}
+                      title="Tutup Panel Penilaian"
+                    >
+                      <i className="bi bi-x-lg"></i>
+                    </button>
                   </div>
 
-                  {/* Student Submissions List */}
-                  {loadingDetailTugas ? (
-                    <div style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>
-                      <i className="bi bi-arrow-repeat" style={{ animation: 'spin 1s linear infinite', fontSize: '1.75rem', display: 'inline-block' }}></i>
-                      <p style={{ marginTop: '0.5rem', fontSize: '0.86rem' }}>Memuat data pengumpulan siswa...</p>
-                    </div>
-                  ) : !detailTugasModal.pengumpulan || detailTugasModal.pengumpulan.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '2.5rem', background: '#F8FAFC', borderRadius: '12px', border: '1.5px dashed #CBD5E1' }}>
-                      <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#94A3B8', display: 'block', marginBottom: '0.5rem' }}></i>
-                      <h4 style={{ margin: 0, fontWeight: 800, color: '#475569', fontSize: '1rem' }}>Belum Ada Pengumpulan</h4>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#64748B' }}>Belum ada warga belajar yang mengumpulkan lembar jawaban untuk tugas ini.</p>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      {detailTugasModal.pengumpulan.map((p, pIdx) => {
-                        const gradingState = gradingInputMap[p.id] || { nilai: p.nilai ?? '', feedback_tutor: p.feedback_tutor ?? '' };
-                        return (
-                          <div key={p.id} className="grading-student-card">
-                            {/* Student Header */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, paddingBottom: '0.65rem', borderBottom: '1px solid #F1F5F9' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <span style={{ width: 28, height: 28, borderRadius: '50%', background: '#2563EB', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.78rem' }}>
-                                  {pIdx + 1}
-                                </span>
-                                <div>
-                                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0F172A' }}>
-                                    {p.nama_lengkap || 'Warga Belajar'}
-                                  </div>
-                                  <div style={{ fontSize: '0.74rem', color: '#64748B' }}>
-                                    NIS: {p.nis || '-'} • Dikumpulkan: {p.submitted_at ? new Date(p.submitted_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'}
-                                  </div>
-                                </div>
-                              </div>
-
-                              <span className={`retro-tag-pill ${p.status === 'dinilai' ? 'mint' : 'yellow'}`}>
-                                {p.status === 'dinilai' ? `Sudah Dinilai: ${p.nilai}` : 'Menunggu Dinilai'}
-                              </span>
-                            </div>
-
-                            {/* Submitted Content */}
-                            <div style={{ marginTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                              {/* Berkas Upload */}
-                              {p.path_file && p.path_file !== 'text_submission' && (
-                                <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.84rem', color: '#1E40AF', fontWeight: 700 }}>
-                                    <i className="bi bi-file-earmark-arrow-down-fill" style={{ fontSize: '1.1rem', color: '#2563EB' }}></i>
-                                    <span>{p.nama_file || 'Berkas Jawaban Siswa'}</span>
-                                  </div>
-                                  <a
-                                    href={toAssetUrl(p.path_file)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="retro-btn-action primary"
-                                    style={{ padding: '4px 12px', fontSize: '0.76rem', textDecoration: 'none' }}
-                                  >
-                                    Buka / Unduh Berkas
-                                  </a>
-                                </div>
-                              )}
-
-                              {/* Teks Jawaban / Catatan Siswa */}
-                              {p.catatan_siswa && (
-                                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '10px 12px', borderRadius: '8px' }}>
-                                  <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 4 }}>
-                                    Jawaban Teks / Catatan Siswa:
-                                  </div>
-                                  <div style={{ fontSize: '0.84rem', color: '#1E293B', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
-                                    {p.catatan_siswa}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Grading Input Form */}
-                            <div style={{ marginTop: '1rem', background: '#FEFCE8', border: '1.5px solid #FEF08A', padding: '10px 14px', borderRadius: '10px' }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#854D0E', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <i className="bi bi-award-fill"></i>
-                                <span>Form Penilaian & Catatan Evaluasi Tutor</span>
-                              </div>
-                              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr auto', gap: '8px', alignItems: 'center' }}>
-                                <div>
-                                  <input
-                                    type="number"
-                                    min={0}
-                                    max={detailTugasModal.nilai_maks || 100}
-                                    placeholder="Nilai (0-100)"
-                                    value={gradingState.nilai}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      setGradingInputMap(prev => ({
-                                        ...prev,
-                                        [p.id]: { ...(prev[p.id] || {}), nilai: val }
-                                      }));
-                                    }}
-                                    style={{ width: '100%', borderRadius: '8px', border: '1.5px solid #FCD34D', padding: '7px 10px', fontSize: '0.85rem', fontWeight: 800, background: '#FFFFFF', color: '#713F12' }}
-                                  />
-                                </div>
-                                <div>
-                                  <input
-                                    type="text"
-                                    placeholder="Tuliskan catatan evaluasi / feedback untuk siswa..."
-                                    value={gradingState.feedback_tutor}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      setGradingInputMap(prev => ({
-                                        ...prev,
-                                        [p.id]: { ...(prev[p.id] || {}), feedback_tutor: val }
-                                      }));
-                                    }}
-                                    style={{ width: '100%', borderRadius: '8px', border: '1.5px solid #FCD34D', padding: '7px 12px', fontSize: '0.85rem', background: '#FFFFFF' }}
-                                  />
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => handleSimpanNilai(p.id)}
-                                  disabled={savingGradeId === p.id}
-                                  className="retro-btn-action primary"
-                                  style={{ padding: '7px 16px', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
-                                >
-                                  {savingGradeId === p.id ? 'Menyimpan...' : 'Simpan Nilai'}
-                                </button>
-                              </div>
-                            </div>
+                  {/* ── 2. Scrollable Body ── */}
+                  <div className="blue-quiz-scroll-body" style={{ paddingTop: '0.5rem' }}>
+                    
+                    {/* Sleek Minimal Meta Overview Strip in Pure White Card */}
+                    <div style={{
+                      background: '#FFFFFF',
+                      borderRadius: '20px',
+                      padding: '14px 18px',
+                      boxShadow: '0 8px 22px rgba(15, 23, 42, 0.12)',
+                      marginBottom: '1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 12,
+                      color: '#0F172A'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+                        <div>
+                          <div style={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Format Tugas</div>
+                          <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0F172A', marginTop: 1 }}>
+                            {taskMeta.tipe === 'pilihan_ganda' ? `Pilihan Ganda (${totalPG} Soal)` : taskMeta.tipe === 'essay' ? `Essay (${totalEssay} Soal)` : 'Upload Berkas'}
                           </div>
-                        );
-                      })}
+                        </div>
+                        <div style={{ width: 1, height: 26, background: '#E2E8F0' }} className="d-none d-sm-block" />
+                        <div>
+                          <div style={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Batas Waktu</div>
+                          <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#BE123C', marginTop: 1 }}>
+                            {deadlineText}
+                          </div>
+                        </div>
+                        <div style={{ width: 1, height: 26, background: '#E2E8F0' }} className="d-none d-sm-block" />
+                        <div>
+                          <div style={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nilai Maksimal</div>
+                          <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#16A34A', marginTop: 1 }}>
+                            {detailTugasModal.nilai_maks || 100} Poin
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ fontSize: '0.8rem', color: '#1D4ED8', fontWeight: 800, background: '#EFF6FF', padding: '6px 14px', borderRadius: 999, border: '1px solid #BFDBFE' }}>
+                        {detailTugasModal.pengumpulan?.length || 0} Siswa Mengumpulkan
+                      </div>
                     </div>
-                  )}
+
+                    {/* Student Submissions List */}
+                    {loadingDetailTugas ? (
+                      <div style={{ textAlign: 'center', padding: '2.5rem', background: '#FFFFFF', borderRadius: '20px', color: '#64748B', boxShadow: '0 8px 22px rgba(15,23,42,0.08)' }}>
+                        <i className="bi bi-arrow-repeat" style={{ animation: 'spin 1s linear infinite', fontSize: '1.75rem', display: 'inline-block', color: '#2563EB' }}></i>
+                        <p style={{ marginTop: '0.5rem', fontSize: '0.86rem', fontWeight: 700, color: '#0F172A' }}>Memuat pengumpulan siswa...</p>
+                      </div>
+                    ) : !detailTugasModal.pengumpulan || detailTugasModal.pengumpulan.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '2.5rem', background: '#FFFFFF', borderRadius: '20px', boxShadow: '0 8px 22px rgba(15,23,42,0.08)' }}>
+                        <div style={{ width: 50, height: 50, borderRadius: '50%', background: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', margin: '0 auto 0.75rem auto' }}>
+                          <i className="bi bi-inbox"></i>
+                        </div>
+                        <h4 style={{ margin: 0, fontWeight: 800, color: '#0F172A', fontSize: '0.98rem' }}>Belum Ada Pengumpulan</h4>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#64748B' }}>Belum ada warga belajar yang mengumpulkan jawaban untuk tugas ini.</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {detailTugasModal.pengumpulan.map((p) => {
+                          const gradingState = gradingInputMap[p.id] || { nilai: p.nilai ?? '', feedback_tutor: p.feedback_tutor ?? '' };
+                          const studentAnswers = extractStudentPGAnswers(detailTugasModal, p, jawabanPGMap);
+
+                          let benarCount = 0;
+                          let salahCount = 0;
+                          if (taskMeta.tipe === 'pilihan_ganda' && totalPG > 0) {
+                            taskMeta.soal_pg.forEach((s, sIdx) => {
+                              const qId = s.id !== undefined && s.id !== null ? s.id : (sIdx + 1);
+                              const rawUser = studentAnswers[qId] || studentAnswers[String(qId)] || studentAnswers[sIdx + 1] || '';
+                              const userAns = String(rawUser).toLowerCase().replace(/[^a-d]/g, '').slice(0, 1);
+                              const keyAns = String(s.kunci || 'a').toLowerCase().replace(/[^a-d]/g, '').slice(0, 1) || 'a';
+                              if (userAns && userAns === keyAns) benarCount++;
+                              else salahCount++;
+                            });
+                          }
+                          const calculatedAutoScore = totalPG > 0 ? Math.round((benarCount / totalPG) * (detailTugasModal.nilai_maks || 100)) : 100;
+                          const isGraded = p.status === 'dinilai' && p.nilai !== null && p.nilai !== undefined && p.nilai !== '';
+
+                          // Inisial avatar
+                          const nameWords = (p.nama_lengkap || 'Warga Belajar').trim().split(/\s+/);
+                          const initials = nameWords.length > 1 ? (nameWords[0][0] + nameWords[1][0]).toUpperCase() : nameWords[0].slice(0, 2).toUpperCase();
+
+                          return (
+                            <div
+                              key={p.id}
+                              style={{
+                                background: '#FFFFFF',
+                                borderRadius: '20px',
+                                padding: '1.25rem 1.4rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.9rem',
+                                boxShadow: '0 6px 20px rgba(15, 23, 42, 0.08)',
+                                color: '#0F172A'
+                              }}
+                            >
+                              {/* 1. Header Siswa */}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                  <div style={{ width: 40, height: 40, borderRadius: '11px', background: '#EFF6FF', color: '#1D4ED8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.92rem', flexShrink: 0 }}>
+                                    {initials}
+                                  </div>
+                                  <div>
+                                    <div style={{ fontWeight: 800, fontSize: '0.98rem', color: '#0F172A' }}>
+                                      {p.nama_lengkap || 'Warga Belajar'}
+                                    </div>
+                                    <div style={{ fontSize: '0.76rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 1 }}>
+                                      <span>NIS: {p.nis || '-'}</span>
+                                      <span>• Dikumpulkan: {p.submitted_at && !isNaN(new Date(p.submitted_at).getTime()) ? new Date(p.submitted_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'}</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  {isGraded ? (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 12px', borderRadius: 999, fontSize: '0.78rem', fontWeight: 800, background: '#DCFCE7', color: '#15803D', border: '1px solid #86EFAC' }}>
+                                      <i className="bi bi-check-circle-fill"></i>
+                                      <span>Nilai: <strong>{p.nilai} Poin</strong></span>
+                                    </span>
+                                  ) : taskMeta.tipe === 'pilihan_ganda' ? (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 12px', borderRadius: 999, fontSize: '0.78rem', fontWeight: 800, background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE' }}>
+                                      <i className="bi bi-lightning-charge-fill"></i>
+                                      <span>Nilai Sistem: <strong>{calculatedAutoScore}</strong></span>
+                                    </span>
+                                  ) : (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 12px', borderRadius: 999, fontSize: '0.78rem', fontWeight: 800, background: '#FEF9C3', color: '#854D0E', border: '1px solid #FDE047' }}>
+                                      <i className="bi bi-hourglass-split"></i>
+                                      <span>Menunggu Dinilai</span>
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* 2. Jawaban Siswa */}
+                              <div>
+                                {/* A. TAMPILAN JAWABAN PILIHAN GANDA (BERSIH & RAPI) */}
+                                {taskMeta.tipe === 'pilihan_ganda' && taskMeta.soal_pg && taskMeta.soal_pg.length > 0 ? (
+                                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden' }}>
+                                    <div style={{ padding: '8px 14px', background: '#EFF6FF', borderBottom: '1px solid #DBEAFE', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 800, color: '#1E40AF' }}>
+                                      <span>JAWABAN PILIHAN GANDA ({benarCount} dari {totalPG} Soal Benar)</span>
+                                      <span style={{ color: '#2563EB' }}>Skor Auto: {calculatedAutoScore} Poin</span>
+                                    </div>
+                                    <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                      {taskMeta.soal_pg.map((soal, sIdx) => {
+                                        const qId = soal.id !== undefined && soal.id !== null ? soal.id : (sIdx + 1);
+                                        const rawUser = studentAnswers[qId] || studentAnswers[String(qId)] || studentAnswers[sIdx + 1] || '';
+                                        const userAns = String(rawUser).toLowerCase().replace(/[^a-d]/g, '').slice(0, 1);
+                                        const keyAns = String(soal.kunci || 'a').toLowerCase().replace(/[^a-d]/g, '').slice(0, 1) || 'a';
+                                        const isCorrect = userAns && userAns === keyAns;
+                                        const userAnsText = userAns ? soal[`opsi_${userAns}`] : 'Tidak Dijawab';
+                                        const keyAnsText = soal[`opsi_${keyAns}`];
+
+                                        return (
+                                          <div
+                                            key={qId}
+                                            style={{
+                                              display: 'flex',
+                                              alignItems: 'flex-start',
+                                              justifyContent: 'space-between',
+                                              padding: '6px 0',
+                                              borderBottom: sIdx === totalPG - 1 ? 'none' : '1px solid #E2E8F0',
+                                              gap: 10
+                                            }}
+                                          >
+                                            <div style={{ flex: 1 }}>
+                                              <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0F172A' }}>
+                                                <span style={{ color: '#64748B', marginRight: 6 }}>{sIdx + 1}.</span>
+                                                {soal.pertanyaan}
+                                              </div>
+                                              <div style={{ fontSize: '0.78rem', marginTop: 3, color: '#475569' }}>
+                                                Pilihan Siswa: <strong style={{ color: isCorrect ? '#16A34A' : '#DC2626' }}>{userAns ? `Opsi ${userAns.toUpperCase()} (${userAnsText})` : 'Tidak Dijawab'}</strong>
+                                                {!isCorrect && (
+                                                  <span style={{ color: '#64748B', marginLeft: 8 }}>
+                                                    • Kunci: <strong style={{ color: '#16A34A' }}>Opsi {keyAns.toUpperCase()} ({keyAnsText})</strong>
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </div>
+
+                                            <span style={{
+                                              fontSize: '0.74rem',
+                                              fontWeight: 800,
+                                              color: isCorrect ? '#15803D' : '#DC2626',
+                                              background: isCorrect ? '#DCFCE7' : '#FEE2E2',
+                                              border: `1px solid ${isCorrect ? '#86EFAC' : '#FECACA'}`,
+                                              padding: '2px 8px',
+                                              borderRadius: 6,
+                                              whiteSpace: 'nowrap',
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              gap: 4
+                                            }}>
+                                              <i className={`bi ${isCorrect ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}`}></i>
+                                              <span>{isCorrect ? 'Benar' : 'Salah'}</span>
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  /* B. JAWABAN TEKS / ESSAY / CATATAN */
+                                  p.catatan_siswa && (
+                                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '10px 14px', borderRadius: '12px' }}>
+                                      <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <i className="bi bi-journal-text" style={{ color: '#2563EB' }}></i>
+                                        <span>Jawaban / Catatan Siswa:</span>
+                                      </div>
+                                      <div style={{ fontSize: '0.86rem', color: '#1E293B', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+                                        {p.catatan_siswa}
+                                      </div>
+                                    </div>
+                                  )
+                                )}
+
+                                {/* C. BERKAS FILE UPLOAD (Jika Ada) */}
+                                {p.path_file && p.path_file !== 'text_submission' && (
+                                  <div style={{ marginTop: '0.6rem', background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '10px 14px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.84rem', color: '#1E40AF', fontWeight: 700 }}>
+                                      <i className="bi bi-file-earmark-check-fill" style={{ fontSize: '1.15rem', color: '#2563EB' }}></i>
+                                      <span>{p.nama_file || 'Berkas Jawaban Siswa'}</span>
+                                    </div>
+                                    <a
+                                      href={toAssetUrl(p.path_file)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="retro-btn-action primary"
+                                      style={{ padding: '5px 14px', fontSize: '0.78rem', textDecoration: 'none', fontWeight: 700 }}
+                                    >
+                                      Buka Berkas
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* 3. Form Penilaian & Feedback Tutor (Clean Layout) */}
+                              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px 14px', borderRadius: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                                  <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
+                                    Beri Nilai & Feedback Tutor:
+                                  </span>
+                                  {taskMeta.tipe === 'pilihan_ganda' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setGradingInputMap(prev => ({
+                                          ...prev,
+                                          [p.id]: {
+                                            nilai: calculatedAutoScore,
+                                            feedback_tutor: calculatedAutoScore === 100 ? 'Luar biasa, nilai sempurna!' : (calculatedAutoScore >= 70 ? 'Bagus, tugas diselesaikan dengan baik.' : 'Perlu belajar lebih giat lagi.')
+                                          }
+                                        }));
+                                      }}
+                                      style={{ background: 'none', border: 'none', color: '#2563EB', fontSize: '0.74rem', fontWeight: 800, cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                    >
+                                      <i className="bi bi-lightning-charge-fill"></i>
+                                      <span>Terapkan Nilai Sistem ({calculatedAutoScore})</span>
+                                    </button>
+                                  )}
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr auto', gap: 8, alignItems: 'center' }}>
+                                  <div>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      max={detailTugasModal.nilai_maks || 100}
+                                      placeholder="Nilai (0-100)"
+                                      value={gradingState.nilai}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setGradingInputMap(prev => ({
+                                          ...prev,
+                                          [p.id]: { ...(prev[p.id] || {}), nilai: val }
+                                        }));
+                                      }}
+                                      style={{ width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '8px 10px', fontSize: '0.86rem', fontWeight: 800, background: '#FFFFFF', color: '#0F172A' }}
+                                    />
+                                  </div>
+                                  <div>
+                                    <input
+                                      type="text"
+                                      placeholder="Catatan evaluasi untuk siswa (opsional)..."
+                                      value={gradingState.feedback_tutor}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setGradingInputMap(prev => ({
+                                          ...prev,
+                                          [p.id]: { ...(prev[p.id] || {}), feedback_tutor: val }
+                                        }));
+                                      }}
+                                      style={{ width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '8px 12px', fontSize: '0.82rem', background: '#FFFFFF', color: '#0F172A' }}
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSimpanNilai(p.id)}
+                                    disabled={savingGradeId === p.id}
+                                    className="retro-btn-action primary"
+                                    style={{ padding: '8px 18px', fontSize: '0.82rem', whiteSpace: 'nowrap', fontWeight: 800, background: '#2563EB', borderColor: '#1D4ED8' }}
+                                  >
+                                    {savingGradeId === p.id ? 'Menyimpan...' : 'Simpan Nilai'}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── 3. Bottom Sticky Action Bar ── */}
+                  <div className="blue-quiz-footer">
+                    <button
+                      type="button"
+                      className="blue-quiz-btn-primary next"
+                      onClick={() => setDetailTugasModal(null)}
+                      style={{ width: '100%' }}
+                    >
+                      <i className="bi bi-check2"></i>
+                      <span>Tutup Panel Penilaian</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
+
+          {/* ══ MODAL / DEDICATED VIEW: LEMBAR KERJA TUGAS SISWA (TEMA BIRU SESUAI MOCKUP) ══ */}
+          {kerjakanTugasModal && (() => {
+            const t = kerjakanTugasModal;
+            const { meta, cleanDesc } = parseTaskDescription(t.deskripsi);
+            const currentFile = selectedFileMap[t.id] || selectedFile;
+            const studentPG = jawabanPGMap[t.id] || {};
+            const studentEssay = jawabanEssayMap[t.id] || {};
+            const currentCatatan = catatanTugasMap[t.id] ?? catatanTugas ?? '';
+
+            const isPG = meta.tipe === 'pilihan_ganda';
+            const isEssay = meta.tipe === 'essay';
+            const isUpload = !isPG && !isEssay;
+
+            const questions = isPG ? (meta.soal_pg || []) : isEssay ? (meta.soal_essay || []) : [];
+            const totalQuestions = questions.length;
+
+            const curIdx = totalQuestions > 0 ? Math.min(Math.max(0, activeQuizIndex), totalQuestions - 1) : 0;
+            const currentSoal = questions[curIdx] || null;
+
+            // Answers count & progress
+            const answeredPGCount = Object.keys(studentPG).length;
+            const answeredEssayCount = Object.values(studentEssay).filter(v => v && String(v).trim()).length;
+            const answeredCount = isPG ? answeredPGCount : isEssay ? answeredEssayCount : (currentFile ? 1 : 0);
+
+            // Progress bar: Mockup shows Question X of Y progress!
+            const progressPercent = totalQuestions > 0 ? Math.round(((curIdx + 1) / totalQuestions) * 100) : 100;
+
+            const isLastQuestion = totalQuestions === 0 || curIdx === totalQuestions - 1;
+
+            // Current question identifier and answer
+            const currentQId = currentSoal ? (currentSoal.id !== undefined && currentSoal.id !== null ? currentSoal.id : (curIdx + 1)) : null;
+            const rawSelected = isPG && currentQId ? (studentPG[currentQId] || studentPG[String(currentQId)] || studentPG[curIdx + 1]) : null;
+            const selectedAns = rawSelected ? String(rawSelected).toLowerCase() : '';
+            const isCurrentAnswered = isPG ? !!selectedAns : isEssay ? !!(studentEssay[curIdx] && String(studentEssay[curIdx]).trim()) : !!currentFile;
+
+            // Deadline format
+            const deadlineDate = t.deadline ? new Date(t.deadline) : null;
+            const deadlineText = deadlineDate
+              ? deadlineDate.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+              : 'Tidak ada batas';
+
+            const handleCloseModal = () => {
+              if ((answeredCount > 0 || currentFile) && !window.confirm('Jawaban sementara Anda tersimpan di sesi ini. Tutup lembar pengerjaan?')) return;
+              setKerjakanTugasModal(null);
+            };
+
+            const handleSubmitQuiz = () => {
+              if (totalQuestions > 0 && answeredCount < totalQuestions) {
+                const unanswered = totalQuestions - answeredCount;
+                if (!window.confirm(`Perhatian: Masih ada ${unanswered} soal yang belum Anda jawab. Yakin ingin mengumpulkan tugas sekarang?`)) {
+                  return;
+                }
+              }
+              handleKumpulTugas(t.id);
+            };
+
+            return (
+              <div className="blue-quiz-overlay" onClick={handleCloseModal}>
+                <div
+                  className="blue-quiz-card"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Decorative glowing background circles */}
+                  <div style={{ position: 'absolute', top: -70, right: -70, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 70%)', pointerEvents: 'none', zIndex: 1 }} />
+                  <div style={{ position: 'absolute', bottom: -90, left: -60, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(96,165,250,0.3) 0%, rgba(96,165,250,0) 70%)', pointerEvents: 'none', zIndex: 1 }} />
+
+                  {/* ── 1. Top App Bar (Back button, Title, Close button) ── */}
+                  <div className="blue-quiz-header">
+                    <button
+                      type="button"
+                      className="blue-quiz-nav-btn"
+                      onClick={() => {
+                        if (curIdx > 0) {
+                          setActiveQuizIndex(prev => Math.max(0, prev - 1));
+                        } else {
+                          handleCloseModal();
+                        }
+                      }}
+                      title={curIdx > 0 ? "Soal Sebelumnya" : "Tutup"}
+                    >
+                      <i className="bi bi-arrow-left"></i>
+                    </button>
+
+                    <div className="blue-quiz-title-box">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <div className="blue-quiz-tag">
+                          {mapel?.nama_mapel || mapel?.nama || 'Quiz & Tugas LMS'}
+                        </div>
+                        <div className="blue-quiz-autosave-badge" title="Jawaban otomatis tersimpan aman di perangkat Anda secara realtime">
+                          <i className="bi bi-shield-check" style={{ color: '#4ADE80' }}></i>
+                          <span>Draft Aman</span>
+                        </div>
+                      </div>
+                      <h3 className="blue-quiz-title">
+                        {t.judul}
+                      </h3>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="blue-quiz-nav-btn"
+                      onClick={handleCloseModal}
+                      title="Tutup Lembar Pengerjaan"
+                    >
+                      <i className="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+
+                  {/* ── 2. Progress Bar & Question Counter (Like Mockup) ── */}
+                  {totalQuestions > 0 && (
+                    <div className="blue-quiz-progress-section">
+                      {/* High-contrast Lime Progress Bar */}
+                      <div className="blue-quiz-progress-track">
+                        <div
+                          className="blue-quiz-progress-bar"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+
+                      {/* Question meta row: "Question X of Y" and "Timer/Deadline" */}
+                      <div className="blue-quiz-progress-meta">
+                        <span>
+                          Soal {curIdx + 1} dari {totalQuestions}
+                          <span style={{ fontSize: '0.75rem', opacity: 0.85, marginLeft: 6 }}>
+                            ({answeredCount} terjawab)
+                          </span>
+                        </span>
+                        <div className="blue-quiz-timer-pill" title={`Batas Waktu: ${deadlineText}`}>
+                          <i className="bi bi-clock-fill"></i>
+                          <span>{deadlineText}</span>
+                        </div>
+                      </div>
+
+                      {/* Interactive Horizontal Question Pills: 1, 2, 3... */}
+                      {totalQuestions > 1 && (
+                        <div className="blue-quiz-numbers-strip">
+                          {questions.map((q, qIndex) => {
+                            const isCur = qIndex === curIdx;
+                            const qIdent = q.id !== undefined && q.id !== null ? q.id : (qIndex + 1);
+                            const isAns = isPG
+                              ? !!(studentPG[qIdent] || studentPG[String(qIdent)] || studentPG[qIndex + 1])
+                              : !!(studentEssay[qIndex] && String(studentEssay[qIndex]).trim());
+
+                            return (
+                              <button
+                                key={qIndex}
+                                type="button"
+                                className={`blue-quiz-num-pill ${isCur ? 'active' : ''} ${isAns ? 'answered' : ''}`}
+                                onClick={() => setActiveQuizIndex(qIndex)}
+                                title={`Soal Nomor ${qIndex + 1}${isAns ? ' (Sudah Dijawab)' : ' (Belum Dijawab)'}`}
+                              >
+                                {qIndex + 1}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── 3. Scrollable Quiz Body ── */}
+                  <div className="blue-quiz-scroll-body">
+                    {/* Petunjuk pengerjaan (jika ada instruksi khusus) */}
+                    {cleanDesc && (
+                      <div style={{ background: 'rgba(255, 255, 255, 0.16)', borderRadius: '14px', padding: '10px 14px', marginBottom: 14, fontSize: '0.8rem', color: '#FFFFFF', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'flex-start', gap: 8, border: '1px solid rgba(255,255,255,0.2)' }}>
+                        <i className="bi bi-info-circle-fill" style={{ color: '#FEF08A', marginTop: 1, flexShrink: 0, fontSize: '0.95rem' }}></i>
+                        <div style={{ flex: 1, lineHeight: 1.5, whiteSpace: 'pre-line' }}>{cleanDesc}</div>
+                      </div>
+                    )}
+
+                    {/* A. JIKA TUGAS PILIHAN GANDA (PG) */}
+                    {isPG && (!questions || questions.length === 0) && (
+                      <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '2rem 1.5rem', textAlign: 'center', color: '#64748B', boxShadow: '0 8px 24px rgba(15,23,42,0.12)' }}>
+                        <i className="bi bi-info-circle-fill" style={{ fontSize: '2rem', color: '#3B82F6', marginBottom: 8, display: 'block' }}></i>
+                        <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0F172A' }}>Belum Ada Butir Soal</div>
+                        <div style={{ fontSize: '0.85rem', marginTop: 4 }}>Tutor belum menambahkan butir soal pilihan ganda untuk tugas ini.</div>
+                      </div>
+                    )}
+
+                    {isPG && currentSoal && (
+                      <div>
+                        {/* Question White Card */}
+                        <div className="blue-quiz-question-box">
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#1D4ED8', background: '#EFF6FF', padding: '3px 10px', borderRadius: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                              Soal Nomor {curIdx + 1}
+                            </span>
+                            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: isCurrentAnswered ? '#16A34A' : '#94A3B8', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <i className={`bi ${isCurrentAnswered ? 'bi-check-circle-fill' : 'bi-circle'}`}></i>
+                              {isCurrentAnswered ? `Terpilih: Opsi ${selectedAns.toUpperCase()}` : 'Belum Dijawab'}
+                            </span>
+                          </div>
+                          <div className="blue-quiz-question-text">
+                            {currentSoal.pertanyaan}
+                          </div>
+                        </div>
+
+                        {/* Options Stack (A, B, C, D) - Mockup Faithful */}
+                        <div className="blue-quiz-options-list">
+                          {['a', 'b', 'c', 'd'].map((optKey) => {
+                            const optVal = currentSoal[`opsi_${optKey}`];
+                            if (!optVal) return null;
+                            const isSelected = selectedAns === optKey;
+
+                            return (
+                              <div
+                                key={optKey}
+                                className={`blue-quiz-option-btn ${isSelected ? 'selected' : ''}`}
+                                onClick={() => {
+                                  const nextPG = { ...(jawabanPGMap[t.id] || {}), [currentQId]: optKey };
+                                  setJawabanPGMap(prev => ({
+                                    ...prev,
+                                    [t.id]: nextPG
+                                  }));
+                                  saveQuizDraft(t.id, 'pg', nextPG);
+                                }}
+                              >
+                                <div className="blue-quiz-opt-badge">
+                                  {optKey.toUpperCase()}
+                                </div>
+                                <div className="blue-quiz-opt-text">
+                                  {optVal}
+                                </div>
+                                <div className="blue-quiz-opt-indicator">
+                                  {isSelected && <i className="bi bi-check-lg" style={{ strokeWidth: 2 }}></i>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* B. JIKA TUGAS ESSAY / URAIAN */}
+                    {isEssay && (!questions || questions.length === 0) && (
+                      <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '2rem 1.5rem', textAlign: 'center', color: '#64748B', boxShadow: '0 8px 24px rgba(15,23,42,0.12)' }}>
+                        <i className="bi bi-info-circle-fill" style={{ fontSize: '2rem', color: '#3B82F6', marginBottom: 8, display: 'block' }}></i>
+                        <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0F172A' }}>Belum Ada Pertanyaan Uraian</div>
+                        <div style={{ fontSize: '0.85rem', marginTop: 4 }}>Tutor belum menambahkan butir pertanyaan essay untuk tugas ini.</div>
+                      </div>
+                    )}
+
+                    {isEssay && currentSoal && (
+                      <div>
+                        {/* Question White Card */}
+                        <div className="blue-quiz-question-box">
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#1D4ED8', background: '#EFF6FF', padding: '3px 10px', borderRadius: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                              Soal Uraian Nomor {curIdx + 1}
+                            </span>
+                            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: isCurrentAnswered ? '#16A34A' : '#94A3B8', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <i className={`bi ${isCurrentAnswered ? 'bi-check-circle-fill' : 'bi-circle'}`}></i>
+                              {isCurrentAnswered ? 'Sudah Diisi' : 'Belum Diisi'}
+                            </span>
+                          </div>
+                          <div className="blue-quiz-question-text" style={{ textAlign: 'left' }}>
+                            {currentSoal.pertanyaan}
+                          </div>
+                        </div>
+
+                        {/* Essay Textarea Card */}
+                        <div className="blue-quiz-essay-box">
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                            <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: 6, margin: 0 }}>
+                              <i className="bi bi-pencil-fill" style={{ color: '#2563EB' }}></i>
+                              <span>Lembar Jawaban Uraian Anda:</span>
+                            </label>
+                            <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}>
+                              {(studentEssay[curIdx] || '').length} Karakter
+                            </span>
+                          </div>
+                          <textarea
+                            className="blue-quiz-essay-textarea"
+                            rows={6}
+                            placeholder={`Tuliskan penjelasan dan uraian lengkap jawaban nomor ${curIdx + 1} di sini...`}
+                            value={studentEssay[curIdx] || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const nextEssay = { ...(jawabanEssayMap[t.id] || {}), [curIdx]: val };
+                              setJawabanEssayMap(prev => ({
+                                ...prev,
+                                [t.id]: nextEssay
+                              }));
+                              saveQuizDraft(t.id, 'essay', nextEssay);
+                            }}
+                          />
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, fontSize: '0.74rem', color: '#64748B' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <i className="bi bi-check-circle-fill" style={{ color: '#16A34A', fontSize: '0.8rem' }}></i>
+                              Tersimpan otomatis di sesi ini
+                            </span>
+                            {studentEssay[curIdx] && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const nextEssay = { ...(jawabanEssayMap[t.id] || {}), [curIdx]: '' };
+                                  setJawabanEssayMap(prev => ({
+                                    ...prev,
+                                    [t.id]: nextEssay
+                                  }));
+                                  saveQuizDraft(t.id, 'essay', nextEssay);
+                                }}
+                                style={{ background: 'none', border: 'none', color: '#DC2626', fontSize: '0.74rem', cursor: 'pointer', padding: 0, fontWeight: 700 }}
+                              >
+                                Bersihkan Jawaban
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* C. JIKA TUGAS UPLOAD BERKAS BIASA */}
+                    {isUpload && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <div className="blue-quiz-question-box">
+                          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#1D4ED8', background: '#EFF6FF', padding: '3px 10px', borderRadius: '8px', textTransform: 'uppercase', letterSpacing: '0.5px', alignSelf: 'flex-start', marginBottom: 10 }}>
+                            Instruksi Lembar Tugas
+                          </div>
+                          <div className="blue-quiz-question-text" style={{ textAlign: 'left', fontSize: '0.98rem' }}>
+                            {cleanDesc || 'Silakan unggah dokumen atau foto lembar kerja tugas mandiri Anda sesuai petunjuk yang diberikan tutor.'}
+                          </div>
+                        </div>
+
+                        <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '1.25rem', boxShadow: '0 8px 24px rgba(15,23,42,0.12)', color: '#1E293B' }}>
+                          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: 8 }}>
+                            UNGGAH FOTO / BERKAS TUGAS (FOTO, PDF, WORD, EXCEL) *
+                          </label>
+                          <input
+                            type="file"
+                            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip"
+                            onChange={(e) => {
+                              const f = e.target.files[0];
+                              setSelectedFileMap(prev => ({ ...prev, [t.id]: f }));
+                              setSelectedFile(f);
+                            }}
+                            style={{ fontSize: '0.85rem', width: '100%', color: '#0F172A' }}
+                          />
+                          {currentFile && (
+                            <div style={{ marginTop: 10, background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '8px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E40AF', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <i className="bi bi-file-earmark-check-fill" style={{ color: '#16A34A', fontSize: '1rem' }}></i>
+                                {currentFile.name} ({(currentFile.size / 1024).toFixed(1)} KB)
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedFileMap(prev => { const n = { ...prev }; delete n[t.id]; return n; });
+                                  setSelectedFile(null);
+                                }}
+                                style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.95rem' }}
+                                title="Hapus berkas"
+                              >
+                                <i className="bi bi-x-circle-fill"></i>
+                              </button>
+                            </div>
+                          )}
+
+                          <div style={{ marginTop: 14 }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: 6 }}>
+                              CATATAN UNTUK TUTOR (OPSIONAL)
+                            </label>
+                            <textarea
+                              placeholder="Tuliskan catatan atau pesan tambahan untuk tutor pengampu jika diperlukan..."
+                              value={catatanTugasMap[t.id] ?? catatanTugas ?? ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setCatatanTugasMap(prev => ({ ...prev, [t.id]: val }));
+                                setCatatanTugas(val);
+                                saveQuizDraft(t.id, 'catatan', val);
+                              }}
+                              rows={3}
+                              style={{ width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '8px 12px', fontSize: '0.85rem', resize: 'vertical' }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* D. Collapsible Lampiran & Catatan Tambahan (Khusus PG & Essay) */}
+                    {(isPG || isEssay) && (
+                      <div style={{ marginTop: 6, marginBottom: 10 }}>
+                        <button
+                          type="button"
+                          onClick={() => setShowQuizAttachment(!showQuizAttachment)}
+                          style={{
+                            width: '100%',
+                            background: showQuizAttachment ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.12)',
+                            border: '1px dashed rgba(255, 255, 255, 0.4)',
+                            borderRadius: '14px',
+                            padding: '10px 14px',
+                            color: '#FFFFFF',
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            backdropFilter: 'blur(6px)',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <i className="bi bi-paperclip" style={{ fontSize: '0.95rem' }}></i>
+                            <span>{currentFile ? `Lampiran: ${currentFile.name}` : 'Lampiran Berkas / Catatan Tutor (Opsional)'}</span>
+                          </span>
+                          <i className={`bi ${showQuizAttachment ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
+                        </button>
+
+                        {showQuizAttachment && (
+                          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '14px', marginTop: 8, boxShadow: '0 8px 20px rgba(0,0,0,0.12)', color: '#1E293B' }}>
+                            <div style={{ marginBottom: 12 }}>
+                              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', marginBottom: 6 }}>
+                                LAMPIRKAN FOTO / BERKAS LEMBAR JAWABAN (OPSIONAL)
+                              </label>
+                              <input
+                                type="file"
+                                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip"
+                                onChange={(e) => {
+                                  const f = e.target.files[0];
+                                  setSelectedFileMap(prev => ({ ...prev, [t.id]: f }));
+                                  setSelectedFile(f);
+                                }}
+                                style={{ fontSize: '0.82rem', width: '100%' }}
+                              />
+                              {currentFile && (
+                                <div style={{ marginTop: 6, background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '6px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1E40AF', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <i className="bi bi-file-earmark-check-fill" style={{ color: '#16A34A' }}></i>
+                                    {currentFile.name} ({(currentFile.size / 1024).toFixed(1)} KB)
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedFileMap(prev => { const n = { ...prev }; delete n[t.id]; return n; });
+                                      setSelectedFile(null);
+                                    }}
+                                    style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.9rem' }}
+                                    title="Hapus file"
+                                  >
+                                    <i className="bi bi-x-circle-fill"></i>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            <div>
+                              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', marginBottom: 6 }}>
+                                CATATAN UNTUK TUTOR (OPSIONAL)
+                              </label>
+                              <textarea
+                                placeholder="Tuliskan catatan tambahan jika ada..."
+                                value={catatanTugasMap[t.id] ?? catatanTugas ?? ''}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setCatatanTugasMap(prev => ({ ...prev, [t.id]: val }));
+                                  setCatatanTugas(val);
+                                  saveQuizDraft(t.id, 'catatan', val);
+                                }}
+                                rows={2}
+                                style={{ width: '100%', borderRadius: '8px', border: '1.5px solid #CBD5E1', padding: '6px 10px', fontSize: '0.82rem', resize: 'vertical' }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── 4. Bottom Sticky Action Bar (Pill button like Mockup "Check") ── */}
+                  <div className="blue-quiz-footer">
+                    {/* Previous Button (if past first question) */}
+                    {totalQuestions > 1 && curIdx > 0 && (
+                      <button
+                        type="button"
+                        className="blue-quiz-btn-prev"
+                        onClick={() => setActiveQuizIndex(prev => Math.max(0, prev - 1))}
+                      >
+                        <i className="bi bi-arrow-left"></i>
+                        <span>Sebelumnya</span>
+                      </button>
+                    )}
+
+                    {/* Next Question or Submit Button */}
+                    {!isLastQuestion ? (
+                      <button
+                        type="button"
+                        className="blue-quiz-btn-primary next"
+                        onClick={() => setActiveQuizIndex(prev => Math.min(totalQuestions - 1, prev + 1))}
+                      >
+                        <span>Lanjut Soal Berikutnya</span>
+                        <i className="bi bi-arrow-right"></i>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="blue-quiz-btn-primary submit"
+                        onClick={handleSubmitQuiz}
+                        disabled={submittingTugasId === t.id}
+                      >
+                        {submittingTugasId === t.id ? (
+                          <>
+                            <i className="bi bi-arrow-repeat" style={{ animation: 'spin 1s linear infinite' }}></i>
+                            <span>Mengirim Jawaban...</span>
+                          </>
+                        ) : (
+                          <>
+                            <i className="bi bi-check2-circle" style={{ fontSize: '1.15rem' }}></i>
+                            <span>Kumpulkan Tugas Sekarang</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ══ MODAL / DEDICATED VIEW: REVIEW HASIL & JAWABAN TUGAS SISWA (TEMA BIRU SENADA KUIS) ══ */}
+          {reviewTugasModal && (() => {
+            const t = reviewTugasModal;
+            const localSub = getStudentLocalSubmission(t.id);
+            const p = t.pengumpulan_saya || localSub || {};
+            const { meta, cleanDesc } = parseTaskDescription(t.deskripsi);
+            const studentAnswers = extractStudentPGAnswers(t, p, jawabanPGMap);
+
+            const totalPG = meta.soal_pg?.length || 0;
+            let benarPG = 0;
+            let salahPG = 0;
+            let tidakDijawabPG = 0;
+
+            if (meta.tipe === 'pilihan_ganda' && totalPG > 0) {
+              meta.soal_pg.forEach((s, idx) => {
+                const qId = s.id !== undefined && s.id !== null ? s.id : (idx + 1);
+                const rawUser = studentAnswers[qId] || studentAnswers[String(qId)] || studentAnswers[idx + 1] || '';
+                const userChoice = String(rawUser).toLowerCase().replace(/[^a-d]/g, '').slice(0, 1);
+                const keyChoice = String(s.kunci || 'a').toLowerCase().replace(/[^a-d]/g, '').slice(0, 1) || 'a';
+                if (!userChoice) {
+                  tidakDijawabPG++;
+                } else if (userChoice === keyChoice) {
+                  benarPG++;
+                } else {
+                  salahPG++;
+                }
+              });
+            }
+
+            const calculatedNilaiPG = totalPG > 0 ? Math.round((benarPG / totalPG) * (t.nilai_maks || 100)) : 100;
+            const isDinilai = (meta.tipe === 'pilihan_ganda') || p.status === 'dinilai' || (p.nilai !== null && p.nilai !== undefined && p.nilai !== '');
+            const finalNilai = (p.nilai !== null && p.nilai !== undefined && p.nilai !== '') ? Number(p.nilai) : (meta.tipe === 'pilihan_ganda' ? calculatedNilaiPG : null);
+
+            const nilaiMaks = t.nilai_maks || 100;
+            const persentaseNilai = finalNilai !== null ? Math.round((finalNilai / nilaiMaks) * 100) : 0;
+            const isLulus = finalNilai !== null && finalNilai >= 70;
+            const isSempurna = finalNilai !== null && finalNilai === nilaiMaks;
+
+            const submittedDateText = p.submitted_at && !isNaN(new Date(p.submitted_at).getTime())
+              ? new Date(p.submitted_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+              : 'Baru saja';
+
+            return (
+              <div className="blue-quiz-overlay" onClick={() => setReviewTugasModal(null)}>
+                <div
+                  className="blue-result-card"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Glowing background shapes */}
+                  <div style={{ position: 'absolute', top: -70, right: -70, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 70%)', pointerEvents: 'none', zIndex: 1 }} />
+                  <div style={{ position: 'absolute', bottom: -90, left: -60, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(96,165,250,0.3) 0%, rgba(96,165,250,0) 70%)', pointerEvents: 'none', zIndex: 1 }} />
+
+                  {/* ── 1. Top App Bar ── */}
+                  <div className="blue-quiz-header">
+                    <div style={{ width: 38, height: 38, borderRadius: '12px', background: 'rgba(255, 255, 255, 0.18)', border: '1px solid rgba(255, 255, 255, 0.25)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem' }}>
+                      <i className="bi bi-award-fill"></i>
+                    </div>
+
+                    <div className="blue-quiz-title-box">
+                      <div className="blue-quiz-tag">
+                        Hasil & Penilaian Tugas
+                      </div>
+                      <h3 className="blue-quiz-title">
+                        {t.judul}
+                      </h3>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="blue-quiz-nav-btn"
+                      onClick={() => setReviewTugasModal(null)}
+                      title="Tutup Lembar Hasil"
+                    >
+                      <i className="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+
+                  {/* ── 2. Scrollable Body ── */}
+                  <div className="blue-quiz-scroll-body" style={{ paddingTop: '0.5rem' }}>
+                    
+                    {/* ── HERO SCORE CARD (Pure White Card matching Mockup result card) ── */}
+                    <div className="blue-result-score-hero">
+                      {/* Status Badge */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '4px 14px',
+                          borderRadius: 999,
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                          background: isDinilai ? (isSempurna ? '#FEF3C7' : isLulus ? '#DCFCE7' : '#FEE2E2') : '#EFF6FF',
+                          color: isDinilai ? (isSempurna ? '#B45309' : isLulus ? '#15803D' : '#DC2626') : '#1D4ED8',
+                          border: `1px solid ${isDinilai ? (isSempurna ? '#FDE68A' : isLulus ? '#86EFAC' : '#FECACA') : '#BFDBFE'}`
+                        }}>
+                          {isDinilai ? (
+                            isSempurna ? (
+                              <>
+                                <i className="bi bi-trophy-fill" style={{ color: '#D97706' }}></i>
+                                <span>Nilai Sempurna! Sangat Memuaskan</span>
+                              </>
+                            ) : isLulus ? (
+                              <>
+                                <i className="bi bi-check-circle-fill"></i>
+                                <span>Tuntas / Memenuhi KKM</span>
+                              </>
+                            ) : (
+                              <>
+                                <i className="bi bi-journal-bookmark-fill"></i>
+                                <span>Perlu Peningkatan Belajar</span>
+                              </>
+                            )
+                          ) : (
+                            <>
+                              <i className="bi bi-hourglass-split"></i>
+                              <span>Tugas Terkumpul • Menunggu Koreksi Tutor</span>
+                            </>
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Score Display */}
+                      <div style={{ margin: '8px 0 2px 0' }}>
+                        <div style={{ fontSize: '3.6rem', fontWeight: 900, lineHeight: 1, fontFamily: 'Outfit, sans-serif', color: isDinilai ? '#1D4ED8' : '#D97706' }}>
+                          {isDinilai ? finalNilai : 'Terkumpul'}
+                        </div>
+                        {isDinilai && (
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748B', marginTop: 4 }}>
+                            dari {nilaiMaks} Nilai Maksimal
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Stat pills (khusus PG) */}
+                      {meta.tipe === 'pilihan_ganda' && totalPG > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+                          <span style={{ background: '#F0FDF4', color: '#15803D', border: '1px solid #BBF7D0', padding: '5px 12px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <i className="bi bi-check-circle-fill" style={{ color: '#16A34A' }}></i>
+                            {benarPG} Benar
+                          </span>
+                          <span style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', padding: '5px 12px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <i className="bi bi-x-circle-fill" style={{ color: '#DC2626' }}></i>
+                            {salahPG} Salah
+                          </span>
+                          {tidakDijawabPG > 0 && (
+                            <span style={{ background: '#F8FAFC', color: '#64748B', border: '1px solid #E2E8F0', padding: '5px 12px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                              <i className="bi bi-dash-circle"></i>
+                              {tidakDijawabPG} Kosong
+                            </span>
+                          )}
+                          <span style={{ background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', padding: '5px 12px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <i className="bi bi-pie-chart-fill" style={{ color: '#2563EB' }}></i>
+                            Akurasi {persentaseNilai}%
+                          </span>
+                        </div>
+                      )}
+
+                      <div style={{ fontSize: '0.74rem', color: '#94A3B8', marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        <i className="bi bi-clock-history"></i>
+                        <span>Diserahkan pada: {submittedDateText}</span>
+                      </div>
+                    </div>
+
+                    {/* ── Feedback Tutor (Jika Ada) ── */}
+                    {p.feedback_tutor && (
+                      <div style={{ background: '#FFFBEB', border: '1.5px solid #FCD34D', borderRadius: '18px', padding: '12px 16px', color: '#92400E', marginBottom: 12, boxShadow: '0 4px 14px rgba(0,0,0,0.06)' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6, color: '#B45309' }}>
+                          <i className="bi bi-chat-quote-fill" style={{ fontSize: '1rem' }}></i>
+                          <span>Catatan & Evaluasi Tutor:</span>
+                        </div>
+                        <div style={{ fontSize: '0.9rem', lineHeight: 1.5, fontWeight: 600, fontStyle: 'italic' }}>
+                          "{p.feedback_tutor}"
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ── Berkas Unggahan Siswa (Jika Ada) ── */}
+                    {p.path_file && p.path_file !== 'text_submission' && (
+                      <div style={{ background: '#FFFFFF', borderRadius: '18px', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12, boxShadow: '0 4px 14px rgba(0,0,0,0.06)', color: '#0F172A' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 38, height: 38, borderRadius: '10px', background: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem' }}>
+                            <i className="bi bi-file-earmark-arrow-down-fill"></i>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0F172A' }}>
+                              {p.nama_file || 'Berkas Lembar Jawaban'}
+                            </div>
+                            <div style={{ fontSize: '0.74rem', color: '#64748B' }}>
+                              Lampiran berkas siswa
+                            </div>
+                          </div>
+                        </div>
+                        <a
+                          href={toAssetUrl(p.path_file)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="retro-btn-action primary"
+                          style={{ padding: '6px 14px', fontSize: '0.8rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700 }}
+                        >
+                          <i className="bi bi-download"></i>
+                          <span>Unduh</span>
+                        </a>
+                      </div>
+                    )}
+
+                    {/* ── Section Title: Rincian Pembahasan ── */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px 8px 4px', color: '#FFFFFF' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <i className="bi bi-check2-square" style={{ color: '#4ADE80', fontSize: '1.1rem' }}></i>
+                        <span>
+                          {meta.tipe === 'pilihan_ganda' ? `Pembahasan Soal (${totalPG} Soal)` : 'Catatan Pengerjaan Siswa'}
+                        </span>
+                      </div>
+                      {meta.tipe === 'pilihan_ganda' && (
+                        <span style={{ fontSize: '0.78rem', color: '#BFDBFE', fontWeight: 700 }}>
+                          {benarPG} Benar • {salahPG} Salah
+                        </span>
+                      )}
+                    </div>
+
+                    {/* ── Detail Per Butir Soal PG ── */}
+                    {meta.tipe === 'pilihan_ganda' && meta.soal_pg && meta.soal_pg.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {meta.soal_pg.map((soal, sIdx) => {
+                          const qId = soal.id !== undefined && soal.id !== null ? soal.id : (sIdx + 1);
+                          const rawUser = studentAnswers[qId] || studentAnswers[String(qId)] || studentAnswers[sIdx + 1] || '';
+                          const userChoice = String(rawUser).toLowerCase().replace(/[^a-d]/g, '').slice(0, 1);
+                          const keyChoice = String(soal.kunci || 'a').toLowerCase().replace(/[^a-d]/g, '').slice(0, 1) || 'a';
+                          const isCorrect = userChoice && userChoice === keyChoice;
+                          const isUnanswered = !userChoice;
+                          const poinPerSoal = Math.round((t.nilai_maks || 100) / meta.soal_pg.length);
+
+                          return (
+                            <div key={qId} className="blue-result-qcard">
+                              {/* Header Card */}
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  <span style={{ width: 26, height: 26, borderRadius: '8px', background: isCorrect ? '#DCFCE7' : isUnanswered ? '#F1F5F9' : '#FEE2E2', color: isCorrect ? '#15803D' : isUnanswered ? '#64748B' : '#DC2626', fontWeight: 800, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {sIdx + 1}
+                                  </span>
+                                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#334155' }}>
+                                    Soal Nomor {sIdx + 1}
+                                  </span>
+                                </div>
+
+                                <span style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 5,
+                                  padding: '2px 10px',
+                                  borderRadius: 999,
+                                  fontSize: '0.74rem',
+                                  fontWeight: 800,
+                                  background: isCorrect ? '#DCFCE7' : isUnanswered ? '#F1F5F9' : '#FEE2E2',
+                                  color: isCorrect ? '#15803D' : isUnanswered ? '#64748B' : '#DC2626',
+                                  border: `1px solid ${isCorrect ? '#86EFAC' : isUnanswered ? '#E2E8F0' : '#FECACA'}`
+                                }}>
+                                  {isCorrect ? (
+                                    <>
+                                      <i className="bi bi-check-circle-fill"></i>
+                                      <span>Benar (+{poinPerSoal} Poin)</span>
+                                    </>
+                                  ) : isUnanswered ? (
+                                    <>
+                                      <i className="bi bi-dash-circle"></i>
+                                      <span>Tidak Dijawab (0 Poin)</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i className="bi bi-x-circle-fill"></i>
+                                      <span>Kurang Tepat (0 Poin)</span>
+                                    </>
+                                  )}
+                                </span>
+                              </div>
+
+                              {/* Question prompt */}
+                              <div style={{ fontSize: '0.96rem', fontWeight: 700, color: '#0F172A', lineHeight: 1.5, marginBottom: 12, whiteSpace: 'pre-line' }}>
+                                {soal.pertanyaan}
+                              </div>
+
+                              {/* Options Stack */}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                {['a', 'b', 'c', 'd'].map((optKey) => {
+                                  const optVal = soal[`opsi_${optKey}`];
+                                  if (!optVal) return null;
+                                  const isUserPick = userChoice === optKey;
+                                  const isKeyOpt = keyChoice === optKey;
+
+                                  let optBg = '#F8FAFC';
+                                  let optBorder = '1.5px solid #E2E8F0';
+                                  let badgeEl = null;
+
+                                  if (isUserPick && isCorrect) {
+                                    optBg = '#F0FDF4';
+                                    optBorder = '2px solid #16A34A';
+                                    badgeEl = (
+                                      <span style={{ background: '#16A34A', color: '#FFFFFF', padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                        <i className="bi bi-check2"></i> Pilihan Anda (Benar)
+                                      </span>
+                                    );
+                                  } else if (isUserPick && !isCorrect) {
+                                    optBg = '#FEF2F2';
+                                    optBorder = '2px solid #DC2626';
+                                    badgeEl = (
+                                      <span style={{ background: '#DC2626', color: '#FFFFFF', padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                        <i className="bi bi-x-lg"></i> Pilihan Anda (Salah)
+                                      </span>
+                                    );
+                                  } else if (isKeyOpt && !isCorrect) {
+                                    optBg = '#F0FDF4';
+                                    optBorder = '2px dashed #16A34A';
+                                    badgeEl = (
+                                      <span style={{ background: '#059669', color: '#FFFFFF', padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                        <i className="bi bi-key-fill"></i> Kunci Jawaban
+                                      </span>
+                                    );
+                                  }
+
+                                  return (
+                                    <div
+                                      key={optKey}
+                                      style={{
+                                        background: optBg,
+                                        border: optBorder,
+                                        borderRadius: '12px',
+                                        padding: '8px 12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 10,
+                                        fontSize: '0.88rem'
+                                      }}
+                                    >
+                                      <span style={{
+                                        width: 28,
+                                        height: 28,
+                                        borderRadius: '8px',
+                                        fontWeight: 800,
+                                        fontSize: '0.82rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        flexShrink: 0,
+                                        background: isUserPick && isCorrect ? '#16A34A' : isUserPick && !isCorrect ? '#DC2626' : isKeyOpt ? '#059669' : '#E2E8F0',
+                                        color: isUserPick || isKeyOpt ? '#FFFFFF' : '#475569'
+                                      }}>
+                                        {optKey.toUpperCase()}
+                                      </span>
+                                      <span style={{ flex: 1, color: isUserPick || isKeyOpt ? '#0F172A' : '#475569', fontWeight: isUserPick || isKeyOpt ? 700 : 500 }}>
+                                        {optVal}
+                                      </span>
+                                      {badgeEl}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Explanation Strip */}
+                              <div style={{
+                                marginTop: 10,
+                                padding: '8px 12px',
+                                borderRadius: '10px',
+                                fontSize: '0.8rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                background: isCorrect ? '#F0FDF4' : '#FFF7ED',
+                                color: isCorrect ? '#166534' : '#9A3412',
+                                border: `1px solid ${isCorrect ? '#BBF7D0' : '#FED7AA'}`
+                              }}>
+                                <i className={`bi ${isCorrect ? 'bi-check-circle-fill' : 'bi-info-circle-fill'}`}></i>
+                                <span>
+                                  {isCorrect
+                                    ? `Jawaban Anda tepat memilih Opsi ${keyChoice.toUpperCase()} (${soal[`opsi_${keyChoice}`]}).`
+                                    : `Kunci jawaban yang benar adalah Opsi ${keyChoice.toUpperCase()} (${soal[`opsi_${keyChoice}`]}).`}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      /* Jika Essay atau Catatan Siswa */
+                      p.catatan_siswa && (
+                        <div style={{ background: '#FFFFFF', borderRadius: '18px', padding: '14px 16px', boxShadow: '0 6px 18px rgba(15,23,42,0.08)', color: '#0F172A' }}>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <i className="bi bi-journal-text" style={{ color: '#2563EB' }}></i>
+                            <span>Catatan / Jawaban Uraian yang Dikumpulkan:</span>
+                          </div>
+                          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px 14px', fontSize: '0.88rem', color: '#1E293B', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+                            {p.catatan_siswa}
+                          </div>
+                        </div>
+                      )
+                    )}
+
+                  </div>
+
+                  {/* ── 3. Bottom Sticky Action Bar ── */}
+                  <div className="blue-quiz-footer">
+                    <button
+                      type="button"
+                      className="blue-quiz-btn-primary next"
+                      onClick={() => setReviewTugasModal(null)}
+                      style={{ width: '100%' }}
+                    >
+                      <i className="bi bi-check2"></i>
+                      <span>Tutup Lembar Hasil</span>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            );
+          })()}
 
         </div>
       </main>

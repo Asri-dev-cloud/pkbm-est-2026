@@ -159,13 +159,13 @@ const SpmbController = {
       }
 
       // 5. Cek duplikasi email secara menyeluruh (users dan pendaftar_spmb)
-      // Kebijakan resmi: tidak boleh menggunakan email yang sama saat pendaftaran
+      // Kebijakan resmi: 1 Email untuk 1 Akun (1 Siswa)
       const sudahDaftar = await SpmbModel.cekEmailTerdaftar(email.trim());
       if (sudahDaftar) {
         cleanUploadedFiles(uploadedFiles);
         const duplicateMsg = sudahDaftar.sumber === 'users'
-          ? `Alamat email "${email.trim()}" sudah terdaftar sebagai akun pengguna di PKBM Bina Mandiri. Tidak diperbolehkan menggunakan email yang sama saat pendaftaran. Silakan gunakan email lain atau login ke akun Anda.`
-          : `Alamat email "${email.trim()}" sudah pernah didaftarkan pada sistem SPMB PKBM Bina Mandiri. Tidak diperbolehkan menggunakan email yang sama saat pendaftaran. Silakan gunakan email lain atau hubungi staf TU untuk mengecek status pendaftaran Anda.`;
+          ? `Kebijakan Sistem: 1 Email untuk 1 Akun (1 Siswa). Alamat email "${email.trim()}" sudah terdaftar sebagai akun pengguna di PKBM Bina Mandiri. Tidak diperbolehkan menggunakan 1 email untuk lebih dari 1 siswa. Silakan gunakan email pribadi siswa yang lain atau login ke akun Anda.`
+          : `Kebijakan Sistem: 1 Email untuk 1 Akun (1 Siswa). Alamat email "${email.trim()}" sudah pernah didaftarkan pada sistem SPMB PKBM Bina Mandiri. Setiap siswa wajib memiliki email unik sendiri. Silakan gunakan email pribadi siswa yang lain atau hubungi staf TU untuk mengecek status pendaftaran Anda.`;
 
         return res.status(409).json({
           success: false,
@@ -347,8 +347,8 @@ const SpmbController = {
       const terdaftar = await SpmbModel.cekEmailTerdaftar(cleanEmail);
       if (terdaftar) {
         const msg = terdaftar.sumber === 'users'
-          ? `Alamat email "${cleanEmail}" sudah terdaftar sebagai akun pengguna di PKBM Bina Mandiri. Silakan gunakan email lain atau login ke akun Anda.`
-          : `Alamat email "${cleanEmail}" sudah pernah digunakan untuk pendaftaran SPMB di PKBM Bina Mandiri. Tidak diperbolehkan menggunakan email yang sama saat pendaftaran. Silakan gunakan email lain.`;
+          ? `Kebijakan 1 Email untuk 1 Akun (1 Siswa): Alamat email "${cleanEmail}" sudah terdaftar sebagai akun di PKBM Bina Mandiri. Tidak diperbolehkan menggunakan email yang sama untuk siswa lain.`
+          : `Kebijakan 1 Email untuk 1 Akun (1 Siswa): Alamat email "${cleanEmail}" sudah pernah digunakan untuk pendaftaran SPMB. Setiap siswa wajib menggunakan alamat email sendiri yang unik.`;
 
         return res.status(200).json({
           success: true,
@@ -1032,7 +1032,7 @@ const SpmbController = {
           return res.status(409).json({
             success: false,
             code: 'EMAIL_ALREADY_EXISTS',
-            message: `Alamat email "${email.trim()}" sudah terdaftar pada akun atau pendaftar lain. Tidak diperbolehkan menggunakan email yang sama.`
+            message: `Kebijakan 1 Email untuk 1 Akun (1 Siswa): Alamat email "${email.trim()}" sudah terdaftar pada akun atau pendaftar lain. Tidak diperbolehkan menggunakan 1 email untuk lebih dari 1 siswa.`
           });
         }
       }
@@ -1109,6 +1109,28 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
   const pasFotoFile = berkasFoto[0]?.path_file || null;
 
   if (existingUser) {
+    // Kebijakan ketat: 1 Email untuk 1 Akun (1 Siswa)
+    const [existingWb] = await pool.execute(
+      `SELECT id, nis FROM warga_belajar WHERE user_id = ? LIMIT 1`,
+      [existingUser.id]
+    );
+    if (existingWb.length > 0) {
+      if (pendaftar.warga_belajar_id && pendaftar.warga_belajar_id !== existingWb[0].id) {
+        throw new Error(
+          `Aturan 1 Email untuk 1 Akun (1 Siswa): Alamat email "${pendaftar.email}" sudah terikat pada siswa lain (NIS: ${existingWb[0].nis}). Tidak diperbolehkan menggunakan 1 email untuk lebih dari 1 siswa.`
+        );
+      }
+      const [otherPendaftar] = await pool.execute(
+        `SELECT id, nama_lengkap FROM pendaftar_spmb WHERE warga_belajar_id = ? AND id != ? LIMIT 1`,
+        [existingWb[0].id, pendaftarId]
+      );
+      if (otherPendaftar.length > 0) {
+        throw new Error(
+          `Aturan 1 Email untuk 1 Akun (1 Siswa): Alamat email "${pendaftar.email}" sudah dimiliki oleh siswa "${otherPendaftar[0].nama_lengkap}" (NIS: ${existingWb[0].nis}). Setiap siswa wajib memiliki email unik sendiri.`
+        );
+      }
+    }
+
     userId = existingUser.id;
     if (existingUser.role !== 'warga_belajar') {
       await pool.execute(`UPDATE users SET role = 'warga_belajar' WHERE id = ?`, [userId]);

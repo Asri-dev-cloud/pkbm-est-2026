@@ -93,6 +93,13 @@ router.put(
   TugasController.nilaiTugas
 );
 
+// DELETE /api/tugas/:id — Tutor / Admin menghapus tugas pembelajaran
+router.delete(
+  '/tugas/:id',
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  TugasController.delete
+);
+
 // ============================================================
 // JADWAL KBM
 // ============================================================
