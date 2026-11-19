@@ -2,28 +2,22 @@
 // src/pages/siswa/KlubSiswa.jsx — Katalog & Pendaftaran Klub
 // ============================================================
 // WB melihat semua klub lintas jenjang dan bisa daftar/keluar.
-//
-// API:
-//   GET    /api/klub         → katalog semua klub
-//   GET    /api/klub/saya    → klub yang diikuti WB
-//   POST   /api/klub/:id/daftar  → daftar masuk klub
-//   DELETE /api/klub/:id/keluar  → keluar dari klub
+// Tampilan mobile-first, rapi, bersih, dan selaras tema biru PKBM.
 // ============================================================
 
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
 import { KlubAPI } from '../../services/api.js';
+import './KlubSiswa.css';
 
 function KlubSiswa() {
   const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
 
   const [semuaKlub, setSemuaKlub] = useState([]);
-  const [klubSaya,  setKlubSaya]  = useState(new Set()); // Set of id klub yang diikuti
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState('');
-  // ID klub yang sedang diproses (daftar/keluar) — untuk disable tombol
+  const [klubSaya, setKlubSaya] = useState(new Set()); // Set of id klub yang diikuti
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [processing, setProcessing] = useState(null);
-  // Tab aktif: 'semua' | 'saya'
   const [tab, setTab] = useState('semua');
 
   useEffect(() => {
@@ -34,11 +28,10 @@ function KlubSiswa() {
           KlubAPI.getKlubSaya(),
         ]);
         setSemuaKlub(resAll.data.data || []);
-        // Buat Set berisi ID klub yang sudah diikuti WB untuk lookup O(1)
         const idKlubSaya = new Set((resSaya.data.data || []).map(k => k.id));
         setKlubSaya(idKlubSaya);
       } catch {
-        setError('Gagal memuat data klub.');
+        setError('Gagal memuat data klub minat bakat.');
       } finally {
         setLoading(false);
       }
@@ -59,11 +52,15 @@ function KlubSiswa() {
   };
 
   const handleKeluar = async (klubId) => {
-    if (!window.confirm('Yakin ingin keluar dari klub ini?')) return;
+    if (!window.confirm('Apakah Anda yakin ingin keluar dari klub ini?')) return;
     setProcessing(klubId);
     try {
       await KlubAPI.keluar(klubId);
-      setKlubSaya(prev => { const s = new Set(prev); s.delete(klubId); return s; });
+      setKlubSaya(prev => {
+        const s = new Set(prev);
+        s.delete(klubId);
+        return s;
+      });
     } catch (err) {
       alert(err.response?.data?.message || 'Gagal keluar dari klub.');
     } finally {
@@ -71,203 +68,244 @@ function KlubSiswa() {
     }
   };
 
-  // Klub yang ditampilkan berdasarkan tab
   const tampilKlub = tab === 'saya'
     ? semuaKlub.filter(k => klubSaya.has(k.id))
     : semuaKlub;
 
-  // Warna ikon per jenis klub
-  const warnaKlub = (jenis) => {
-    const m = {
-      seni:       { bg: '#FCE7F3', color: '#BE185D' },
-      olahraga:   { bg: '#DBEAFE', color: '#1D4ED8' },
-      teknologi:  { bg: '#EDE9FE', color: '#6D28D9' },
-      bahasa:     { bg: '#D1FAE5', color: '#065F46' },
-      sains:      { bg: '#FEF3C7', color: '#92400E' },
+  // Warna dan ikon spesifik per kategori klub
+  const getKlubVisual = (jenis) => {
+    const j = String(jenis || '').toLowerCase();
+    const config = {
+      seni: {
+        bg: '#FDF2F8',
+        color: '#BE185D',
+        icon: 'bi-palette-fill',
+        label: 'Seni & Budaya'
+      },
+      olahraga: {
+        bg: '#EFF6FF',
+        color: '#1D4ED8',
+        icon: 'bi-trophy-fill',
+        label: 'Olahraga'
+      },
+      teknologi: {
+        bg: '#EDE9FE',
+        color: '#6D28D9',
+        icon: 'bi-cpu-fill',
+        label: 'Teknologi'
+      },
+      bahasa: {
+        bg: '#ECFDF5',
+        color: '#047857',
+        icon: 'bi-translate',
+        label: 'Bahasa Asing'
+      },
+      sains: {
+        bg: '#FEF3C7',
+        color: '#B45309',
+        icon: 'bi-lightbulb-fill',
+        label: 'Sains & Riset'
+      },
     };
-    return m[jenis] || { bg: 'var(--color-primary-light)', color: 'var(--color-primary)' };
+    return config[j] || {
+      bg: '#EFF6FF',
+      color: '#2563EB',
+      icon: 'bi-stars',
+      label: jenis || 'Minat Bakat'
+    };
   };
 
   return (
     <div className="app-layout">
       <Sidebar user={user} />
       <main className="app-main">
-        <div className="app-content" style={{ padding: '2rem' }}>
+        <div className="klub-page-container">
 
-          <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontSize: '2.1rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+          {/* ── 1. Hero / Header ── */}
+          <div className="klub-hero-header">
+            <div className="klub-hero-pill">
+              <i className="bi bi-stars"></i>
+              <span>Ekstrakurikuler PKBM</span>
+            </div>
+            <h1 className="klub-hero-title">
               Klub Minat Bakat & Ekstrakurikuler
             </h1>
-            <p style={{ color: '#64748B', marginTop: 8, fontSize: '0.94rem', maxWidth: '680px' }}>
+            <p className="klub-hero-desc">
               Ikuti komunitas klub ekstrakurikuler yang sesuai dengan minat dan bakat Anda — terbuka lintas jenjang untuk mengasah soft-skills!
             </p>
           </div>
 
-          {/* Tab: Semua Klub / Klub Saya */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: '2rem', background: '#F1F5F9', padding: '6px', borderRadius: '9999px', width: 'fit-content', border: '1px solid #E2E8F0' }}>
-            {['semua', 'saya'].map(t => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                style={{
-                  padding: '8px 20px', borderRadius: '9999px', border: 'none',
-                  background: tab === t ? '#1D4ED8' : 'transparent',
-                  color: tab === t ? '#FFFFFF' : '#64748B',
-                  fontWeight: tab === t ? 800 : 600, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s',
-                  boxShadow: tab === t ? '0 4px 14px rgba(29, 78, 216, 0.3)' : 'none'
-                }}
-              >
-                {t === 'semua' ? `Semua Klub (${semuaKlub.length})` : `Klub Saya (${klubSaya.size})`}
-              </button>
-            ))}
+          {/* ── 2. Tab Filter (Semua Klub / Klub Saya) ── */}
+          <div className="klub-tabs-container">
+            <button
+              type="button"
+              className={`klub-tab-btn ${tab === 'semua' ? 'active' : ''}`}
+              onClick={() => setTab('semua')}
+            >
+              <span>Semua Klub</span>
+              <span className="klub-tab-count">{semuaKlub.length}</span>
+            </button>
+            <button
+              type="button"
+              className={`klub-tab-btn ${tab === 'saya' ? 'active' : ''}`}
+              onClick={() => setTab('saya')}
+            >
+              <span>Klub Saya</span>
+              <span className="klub-tab-count">{klubSaya.size}</span>
+            </button>
           </div>
 
-          {loading && <div className="loading-container"><div className="spinner"></div><p>Memuat klub...</p></div>}
-          {!loading && error && <div className="alert alert-danger"><i className="bi bi-exclamation-triangle-fill"></i><span>{error}</span></div>}
+          {loading && (
+            <div className="loading-container">
+              <div className="spinner"></div>
+              <p>Memuat daftar klub...</p>
+            </div>
+          )}
+
+          {!loading && error && (
+            <div className="alert alert-danger" style={{ borderRadius: '16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <i className="bi bi-exclamation-triangle-fill"></i>
+              <span>{error}</span>
+            </div>
+          )}
 
           {!loading && !error && (
             tampilKlub.length === 0 ? (
-              <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '3rem 2rem', textAlign: 'center' }}>
-                <div className="empty-state">
-                  <i className="bi bi-people" style={{ fontSize: '3rem', color: '#CBD5E1' }}></i>
-                  <h3 style={{ marginTop: '1rem', fontWeight: 800 }}>{tab === 'saya' ? 'Belum Ikuti Klub' : 'Belum Ada Klub'}</h3>
-                  <p style={{ color: '#64748B' }}>{tab === 'saya' ? 'Anda belum mengikuti klub apapun. Jelajahi tab "Semua Klub".' : 'Admin belum membuat klub.'}</p>
+              <div className="klub-empty-state">
+                <div className="klub-empty-icon">
+                  <i className="bi bi-people"></i>
                 </div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>
+                  {tab === 'saya' ? 'Belum Ada Klub Diikuti' : 'Belum Ada Klub Tersedia'}
+                </h3>
+                <p style={{ color: '#64748B', fontSize: '0.88rem', margin: 0, maxWidth: 420, marginInline: 'auto' }}>
+                  {tab === 'saya'
+                    ? 'Anda belum mendaftar di klub manapun. Silakan jelajahi tab "Semua Klub" untuk memilih kegiatan yang Anda minati.'
+                    : 'Klub minat bakat sedang disiapkan oleh pembina dan admin.'}
+                </p>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.25rem' }}>
+              <div className="klub-grid">
                 {tampilKlub.map(klub => {
-                  const warna   = warnaKlub(klub.jenis);
+                  const visual = getKlubVisual(klub.jenis);
                   const diikuti = klubSaya.has(klub.id);
-                  const isProc  = processing === klub.id;
+                  const isProc = processing === klub.id;
 
                   return (
-                    <div
-                      key={klub.id}
-                      style={{
-                        background: 'white',
-                        borderRadius: '20px',
-                        border: '1px solid #E2E8F0',
-                        padding: '1.5rem',
-                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 10px 24px rgba(92, 184, 255, 0.12)';
-                        e.currentTarget.style.borderColor = 'rgba(92, 184, 255, 0.4)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.02)';
-                        e.currentTarget.style.borderColor = '#E2E8F0';
-                      }}
-                    >
+                    <div key={klub.id} className="klub-card">
                       <div>
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                          {/* Ikon klub */}
-                          <div style={{
-                            width: 52, height: 52, borderRadius: '16px', flexShrink: 0,
-                            background: warna.bg, color: warna.color,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem',
-                          }}>
-                            <i className="bi bi-people-fill"></i>
+                        <div className="klub-card-header">
+                          {/* Ikon klub spesifik kategori */}
+                          <div
+                            className="klub-icon-box"
+                            style={{ background: visual.bg, color: visual.color }}
+                          >
+                            <i className={`bi ${visual.icon}`}></i>
                           </div>
 
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                              <span style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0F172A', fontFamily: 'var(--font-heading, "Outfit", sans-serif)' }}>{klub.nama_klub}</span>
+                          <div className="klub-info-box">
+                            <div className="klub-header-topline">
+                              <h3 className="klub-nama">{klub.nama_klub}</h3>
                               {diikuti && (
-                                <span style={{
-                                  background: '#D1FAE5',
-                                  color: '#065F46',
-                                  fontSize: '0.7rem',
-                                  fontWeight: 800,
-                                  padding: '2px 8px',
-                                  borderRadius: '9999px',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: 4
-                                }}>
-                                  <i className="bi bi-check-circle-fill"></i> Diikuti
+                                <span className="klub-badge-diikuti">
+                                  <i className="bi bi-check-circle-fill"></i> Terdaftar
                                 </span>
                               )}
                             </div>
+
+                            <span
+                              className="klub-badge-kategori"
+                              style={{ background: visual.bg, color: visual.color }}
+                            >
+                              <i className={`bi ${visual.icon}`}></i>
+                              <span>{visual.label}</span>
+                            </span>
+
                             {klub.deskripsi && (
-                              <p style={{ fontSize: '0.84rem', color: '#64748B', marginBottom: 10, lineHeight: 1.6 }}>
+                              <p className="klub-deskripsi">
                                 {klub.deskripsi}
                               </p>
                             )}
-                            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>
+
+                            <div className="klub-meta-chips">
                               {klub.jumlah_anggota != null && (
-                                <span><i className="bi bi-people"></i> {klub.jumlah_anggota} anggota</span>
+                                <span className="klub-chip">
+                                  <i className="bi bi-people-fill"></i>
+                                  <span>{klub.jumlah_anggota} Anggota</span>
+                                </span>
                               )}
-                              {klub.jadwal && (
-                                <span><i className="bi bi-calendar-week"></i> {klub.jadwal}</span>
+                              {klub.kapasitas && (
+                                <span className="klub-chip">
+                                  <i className="bi bi-person-check-fill"></i>
+                                  <span>Maks {klub.kapasitas}</span>
+                                </span>
                               )}
                               {klub.tutor_nama && (
-                                <span><i className="bi bi-person-badge"></i> {klub.tutor_nama}</span>
+                                <span className="klub-chip">
+                                  <i className="bi bi-person-badge-fill"></i>
+                                  <span>{klub.tutor_nama}</span>
+                                </span>
+                              )}
+                              {klub.jadwal && (
+                                <span className="klub-chip">
+                                  <i className="bi bi-calendar3"></i>
+                                  <span>{klub.jadwal}</span>
+                                </span>
                               )}
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Tombol aksi */}
-                      <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'flex-end' }}>
+                      {/* Tombol aksi mobile-friendly */}
+                      <div className="klub-card-footer">
+                        <div className="klub-status-note">
+                          {diikuti ? (
+                            <span style={{ color: '#16A34A', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                              <i className="bi bi-shield-check"></i> Anggota Aktif
+                            </span>
+                          ) : (
+                            <span>Terbuka semua jenjang</span>
+                          )}
+                        </div>
+
                         {diikuti ? (
                           <button
-                            style={{
-                              background: '#FEE2E2',
-                              color: '#991B1B',
-                              border: 'none',
-                              padding: '8px 20px',
-                              borderRadius: '9999px',
-                              fontSize: '0.84rem',
-                              fontWeight: 800,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              transition: 'all 0.2s ease'
-                            }}
+                            type="button"
+                            className="klub-btn-action leave"
                             onClick={() => handleKeluar(klub.id)}
                             disabled={isProc}
                           >
-                            {isProc ? <><span className="spinner-sm" style={{ width: 14, height: 14, border: '2px solid rgba(153,27,27,0.2)', borderTopColor: '#991B1B', borderRadius: '50%', display: 'inline-block' }}></span> Memproses...</> : <><i className="bi bi-box-arrow-right"></i> Keluar Klub</>}
+                            {isProc ? (
+                              <>
+                                <span className="spinner-sm" style={{ width: 14, height: 14, border: '2px solid rgba(220,38,38,0.2)', borderTopColor: '#DC2626', borderRadius: '50%', display: 'inline-block' }}></span>
+                                <span>Memproses...</span>
+                              </>
+                            ) : (
+                              <>
+                                <i className="bi bi-box-arrow-right"></i>
+                                <span>Keluar Klub</span>
+                              </>
+                            )}
                           </button>
                         ) : (
                           <button
-                            style={{
-                              background: '#5CB8FF',
-                              color: '#0F172A',
-                              border: 'none',
-                              padding: '9px 24px',
-                              borderRadius: '9999px',
-                              fontSize: '0.86rem',
-                              fontWeight: 800,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              boxShadow: '0 4px 14px rgba(92, 184, 255, 0.28)',
-                              transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = '#3A9BF0';
-                              e.currentTarget.style.transform = 'translateY(-1px)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = '#5CB8FF';
-                              e.currentTarget.style.transform = 'translateY(0)';
-                            }}
+                            type="button"
+                            className="klub-btn-action join"
                             onClick={() => handleDaftar(klub.id)}
                             disabled={isProc}
                           >
-                            {isProc ? <><span className="spinner-sm" style={{ width: 14, height: 14, border: '2px solid rgba(15,23,42,0.2)', borderTopColor: '#0F172A', borderRadius: '50%', display: 'inline-block' }}></span> Mendaftar...</> : <><i className="bi bi-plus-circle"></i> Gabung Klub</>}
+                            {isProc ? (
+                              <>
+                                <span className="spinner-sm" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#FFFFFF', borderRadius: '50%', display: 'inline-block' }}></span>
+                                <span>Mendaftar...</span>
+                              </>
+                            ) : (
+                              <>
+                                <i className="bi bi-plus-circle-fill"></i>
+                                <span>Gabung Klub</span>
+                              </>
+                            )}
                           </button>
                         )}
                       </div>
