@@ -163,18 +163,19 @@ export const TugasController = {
     }
   },
 
-  // DELETE /api/tugas/:id — Tutor / Admin menghapus tugas
+  // DELETE /api/tugas/:id — Tutor / Admin menghapus tugas (idempotent, aman jika sudah terhapus)
   delete: async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id, 10);
       if (!id || isNaN(id)) {
         return res.status(400).json({ success: false, message: 'ID tugas tidak valid.' });
       }
       const affected = await TugasModel.delete(id);
-      if (affected === 0) {
-        return res.status(404).json({ success: false, message: 'Tugas tidak ditemukan.' });
-      }
-      return res.status(200).json({ success: true, message: 'Tugas berhasil dihapus permanen.' });
+      return res.status(200).json({
+        success: true,
+        message: affected > 0 ? 'Tugas berhasil dihapus permanen.' : 'Tugas sudah tidak ada atau telah dihapus sebelumnya.',
+        data: { id, affected }
+      });
     } catch (error) {
       console.error('[TugasController.delete]', error);
       return res.status(500).json({ success: false, message: 'Gagal menghapus tugas.' });

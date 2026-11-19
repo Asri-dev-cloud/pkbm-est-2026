@@ -93,9 +93,15 @@ router.put(
   TugasController.nilaiTugas
 );
 
-// DELETE /api/tugas/:id — Tutor / Admin menghapus tugas pembelajaran
+// DELETE /api/tugas/:id — Tutor / Admin menghapus tugas pembelajaran (mendukung multi-path & POST fallback)
 router.delete(
-  '/tugas/:id',
+  ['/tugas/:id', '/:id'],
+  checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  TugasController.delete
+);
+
+router.post(
+  ['/tugas/:id/delete', '/:id/delete'],
   checkRole(ROLES.TUTOR, ROLES.ADMIN, ROLES.SUPER_ADMIN),
   TugasController.delete
 );

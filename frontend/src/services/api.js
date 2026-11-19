@@ -615,7 +615,12 @@ export const LmsAPI = {
     apiClient.post('/lms/tugas', payload),
 
   deleteTugas: (id) =>
-    apiClient.delete(`/lms/tugas/${id}`),
+    apiClient.delete(`/lms/tugas/${id}`).catch(err => {
+      if (err.response?.status === 404 || err.response?.status === 405) {
+        return apiClient.post(`/lms/tugas/${id}/delete`).catch(() => apiClient.delete(`/tugas/${id}`));
+      }
+      throw err;
+    }),
 
   kumpulkanTugas: (id, formData) =>
     apiClient.post(`/lms/tugas/${id}/kumpulkan`, formData, {

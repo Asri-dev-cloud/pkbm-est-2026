@@ -416,8 +416,9 @@ const SpmbController = {
       const [rows] = await pool.execute(sql, params);
 
       if (!rows.length) {
-        return res.status(404).json({
+        return res.status(200).json({
           success: false,
+          data: null,
           message: `Data pendaftaran tidak ditemukan untuk "${keyword}". Pastikan nama lengkap, email, atau nomor pendaftaran Anda sudah sesuai.`,
         });
       }

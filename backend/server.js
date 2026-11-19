@@ -207,6 +207,8 @@ const registerRoutes = (prefix = '') => {
   app.use(`${prefix}/tagihan`, tagihanRoutes);
   app.use(`${prefix}/absensi`, absensiRoutes);
   app.use(`${prefix}/lms`, materiRoutes);
+  app.use(`${prefix}/tugas`, materiRoutes);
+  app.use(`${prefix}/materi`, materiRoutes);
   app.use(`${prefix}/ujian`, ujianRoutes);
   app.use(`${prefix}/klub`, klubRoutes);
   app.use(`${prefix}/pertemuan`, pertemuanRoutes);
