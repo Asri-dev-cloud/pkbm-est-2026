@@ -7,6 +7,18 @@
 import { MateriModel, TugasModel, JadwalModel } from '../models/MateriModel.js';
 import SiswaModel from '../models/SiswaModel.js';
 import upload from '../config/multer.js';
+import pool from '../config/db.js';
+
+// Helper pembersih path upload agar konsisten dan portabel di Linux/Windows
+const toCleanUploadPath = (filePath) => {
+  if (!filePath) return '';
+  const normalized = String(filePath).replace(/\\/g, '/').replace(/^\/+/, '');
+  const uploadIdx = normalized.indexOf('uploads/');
+  if (uploadIdx !== -1) {
+    return normalized.substring(uploadIdx);
+  }
+  return normalized;
+};
 
 // ============================================================
 // MATERI PEMBELAJARAN
@@ -70,7 +82,7 @@ export const MateriController = {
         mapel_id:  parseInt(mapel_id),
         tutor_id:  req.user.id,
         judul, deskripsi, tipe,
-        path_file: req.file ? req.file.path : null,
+        path_file: req.file ? toCleanUploadPath(req.file.path) : null,
         url:       url || null,
         urutan:    urutan ? parseInt(urutan) : null,
         is_published: req.body.is_published !== undefined ? (Number(req.body.is_published) === 1 || req.body.is_published === 'true') : 1,
@@ -337,7 +349,7 @@ export const TugasController = {
         finalCatatan = (finalCatatan ? finalCatatan + '\n\n' : '') + autoEvaluationSummary;
       }
 
-      const filePath = req.file ? req.file.path : 'text_submission';
+      const filePath = req.file ? toCleanUploadPath(req.file.path) : 'text_submission';
       const fileName = req.file ? req.file.originalname : (jawaban_pg ? 'Jawaban Pilihan Ganda Online' : 'Jawaban Online');
 
       // Simpan ke database dengan atomic ON DUPLICATE KEY UPDATE
@@ -368,7 +380,10 @@ export const TugasController = {
       });
     } catch (error) {
       console.error('[TugasController.kumpulkan]', error);
-      return res.status(500).json({ success: false, message: 'Gagal mengumpulkan tugas. Server sibuk, silakan coba sesaat lagi.' });
+      return res.status(500).json({
+        success: false,
+        message: error.message ? `Gagal mengumpulkan tugas: ${error.message}` : 'Gagal mengumpulkan tugas. Server sibuk, silakan coba sesaat lagi.'
+      });
     }
   },
 
