@@ -165,16 +165,17 @@ const AbsensiModel = {
     const validStatus = ['hadir', 'izin', 'sakit'];
     const finalStatus = validStatus.includes(status) ? status : 'hadir';
 
-    // Ambil info sesi terlebih dahulu untuk validasi
+    // Ambil info sesi terlebih dahulu dengan kalkulasi timer langsung dari database MySQL
     const [sesiRows] = await pool.execute(
-      `SELECT id, rombel_id, status_sesi, mode, waktu_mulai, durasi_timer
+      `SELECT id, rombel_id, status_sesi, mode, waktu_mulai, durasi_timer,
+              TIMESTAMPDIFF(SECOND, waktu_mulai, NOW()) AS elapsed_seconds
        FROM sesi_absensi WHERE id = ? LIMIT 1`,
       [sesi_id]
     );
     const sesi = sesiRows[0];
 
     const [wbRows] = await pool.execute(
-      `SELECT id, rombel_id
+      `SELECT id, user_id, rombel_id
        FROM warga_belajar
        WHERE id = ? LIMIT 1`,
       [warga_belajar_id]
@@ -185,19 +186,31 @@ const AbsensiModel = {
     if (!sesi) throw new Error('Sesi absensi tidak ditemukan.');
     if (!wargaBelajar) throw new Error('Profil Warga Belajar tidak ditemukan.');
     if (sesi.status_sesi !== 'aktif') throw new Error('Sesi presensi sudah ditutup.');
-    if (String(sesi.rombel_id) !== String(wargaBelajar.rombel_id)) {
-      throw new Error('Sesi presensi ini bukan untuk rombel kelas Anda.');
-    }
 
-    // Validasi timer jika ada
-    if (sesi.durasi_timer && sesi.waktu_mulai) {
-      const selisihDetik = Math.floor((new Date() - new Date(sesi.waktu_mulai)) / 1000);
-      if (selisihDetik > sesi.durasi_timer) {
-        throw new Error('Waktu pengisian presensi mandiri sudah berakhir.');
+    // Validasi kesesuaian rombel (bila sesi dikhususkan untuk rombel tertentu)
+    if (sesi.rombel_id && sesi.rombel_id > 0) {
+      if (!wargaBelajar.rombel_id) {
+        throw new Error('Akun Anda belum terdaftar dalam rombel kelas manapun. Silakan hubungi admin/tutor.');
+      }
+      if (String(sesi.rombel_id) !== String(wargaBelajar.rombel_id)) {
+        throw new Error('Sesi presensi ini bukan untuk rombel kelas Anda.');
       }
     }
 
-    // Simpan atau update rekaman presensi
+    // Validasi timer presensi mandiri berbasis jam database MySQL
+    if (sesi.mode === 'mandiri' && sesi.durasi_timer && sesi.durasi_timer > 0) {
+      const elapsed = Number(sesi.elapsed_seconds || 0);
+      if (elapsed > sesi.durasi_timer) {
+        // Otomatis update status sesi menjadi selesai bila waktu telah lampau
+        await pool.execute(
+          `UPDATE sesi_absensi SET status_sesi = 'selesai', waktu_selesai = COALESCE(waktu_selesai, NOW()) WHERE id = ?`,
+          [sesi_id]
+        );
+        throw new Error('Waktu pengisian presensi mandiri untuk sesi ini sudah berakhir.');
+      }
+    }
+
+    // Simpan atau update rekaman presensi (idempotent dengan ON DUPLICATE KEY UPDATE)
     const sql = `
       INSERT INTO rekaman_kehadiran
         (sesi_id, warga_belajar_id, status, catatan, waktu_check_in, metode)
@@ -297,15 +310,21 @@ const AbsensiModel = {
         sa.*,
         r.nama_rombel,
         mp.nama AS nama_mapel,
-        EXISTS(
-          SELECT 1
-          FROM rekaman_kehadiran rk
-          WHERE rk.sesi_id = sa.id
-            AND rk.warga_belajar_id = ?
-        ) AS sudah_checkin
+        u.nama_lengkap AS nama_tutor,
+        rk.status AS status_kehadiran_saya,
+        rk.catatan AS catatan_kehadiran_saya,
+        rk.waktu_check_in AS waktu_checkin_saya,
+        CASE WHEN rk.id IS NOT NULL THEN 1 ELSE 0 END AS sudah_checkin,
+        CASE
+          WHEN sa.mode = 'mandiri' AND sa.durasi_timer IS NOT NULL
+          THEN GREATEST(0, sa.durasi_timer - TIMESTAMPDIFF(SECOND, sa.waktu_mulai, NOW()))
+          ELSE NULL
+        END AS sisa_timer_detik
       FROM sesi_absensi sa
       JOIN rombel r ON r.id = sa.rombel_id
+      JOIN users u ON u.id = sa.tutor_id
       LEFT JOIN mata_pelajaran mp ON mp.id = sa.mapel_id
+      LEFT JOIN rekaman_kehadiran rk ON rk.sesi_id = sa.id AND rk.warga_belajar_id = ?
       WHERE sa.rombel_id = ?
         AND sa.status_sesi = 'aktif'
         AND sa.mode = 'mandiri'

@@ -6,14 +6,12 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Newspaper,
   Calendar,
   MapPin,
   Eye,
   Video,
   Image as ImageIcon,
   Search,
-  Sparkles,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
@@ -21,7 +19,9 @@ import {
   Play,
   Film,
   User,
-  Share2
+  Share2,
+  Clock,
+  Check
 } from 'lucide-react';
 import Sidebar from '../../components/Sidebar.jsx';
 import { BeritaAPI, toAssetUrl } from '../../services/api.js';
@@ -59,6 +59,14 @@ const formatTanggal = (dateStr) => {
   }
 };
 
+// Estimasi waktu baca
+const getReadingTime = (text) => {
+  if (!text) return '1 mnt baca';
+  const words = text.trim().split(/\s+/).length;
+  const minutes = Math.max(1, Math.ceil(words / 150));
+  return `${minutes} mnt baca`;
+};
+
 function BeritaSiswa() {
   const [user] = useState(() => JSON.parse(localStorage.getItem('pkbm_user') || '{}'));
 
@@ -77,7 +85,34 @@ function BeritaSiswa() {
   // ── Lightbox Gallery State ────────────────────────────────
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
-  // ── Fetch Berita ──────────────────────────────────────────
+  // ── Share / Copy Link State ───────────────────────────────
+  const [copiedShare, setCopiedShare] = useState(false);
+
+  const handleShareBerita = async (item) => {
+    if (!item) return;
+    const shareData = {
+      title: item.judul,
+      text: item.ringkasan || item.judul,
+      url: window.location.href,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // User cancelled share dialog
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${item.judul} - PKBM Bina Mandiri\n${window.location.href}`);
+        setCopiedShare(true);
+        setTimeout(() => setCopiedShare(false), 2500);
+      } catch {
+        // Fallback
+      }
+    }
+  };
+
+  // ── Fetch Berita (100% Murni Database) ───────────────────
   const fetchBerita = async () => {
     try {
       setLoading(true);
@@ -91,38 +126,14 @@ function BeritaSiswa() {
       }
 
       const res = await BeritaAPI.getPublished(params);
-      if (res.data?.success) {
-        setBeritaList(res.data.data || []);
+      if (res.data?.success && Array.isArray(res.data.data)) {
+        setBeritaList(res.data.data);
+      } else {
+        setBeritaList([]);
       }
     } catch (err) {
       console.warn('Gagal memuat berita dari server:', err.message);
-      // Fallback data demonstrasi agar UI tetap tampil prima
-      setBeritaList([
-        {
-          id: 1,
-          judul: 'Peringatan Hari Belajar Mandiri & Pameran Karya Vokasi Warga Belajar PKBM',
-          kategori: 'Vokasi & Ekstrakurikuler',
-          tanggal_kegiatan: new Date().toISOString(),
-          lokasi: 'Aula Kampus PKBM Bina Mandiri',
-          penulis: 'Humas PKBM',
-          ringkasan: 'Dokumentasi meriah pameran karya kewirausahaan, vokasi tata boga, serta keterampilan digital warga belajar Paket A, B, dan C.',
-          konten: 'PKBM Bina Mandiri sukses menyelenggarakan pameran karya vokasi dan gelar karya belajar mandiri tahun ajaran 2026/2027.\n\nAcara ini dihadiri oleh seluruh tutor, pamong belajar, serta ratusan warga belajar dari seluruh rombel reguler dan mandiri. Kegiatan ini bertujuan untuk menampilkan hasil pembelajaran keterampilan terapan warga belajar, mulai dari desain grafis, kerajinan tangan, produk olahan pangan lokal, hingga demonstrasi aplikasi teknologi informasi.',
-          is_pinned: 1,
-          views_count: 85,
-        },
-        {
-          id: 2,
-          judul: 'Pelatihan Literasi Digital & Pemrograman Dasar untuk Warga Belajar Paket C',
-          kategori: 'Akademik',
-          tanggal_kegiatan: new Date().toISOString(),
-          lokasi: 'Laboratorium Komputer PKBM',
-          penulis: 'Tim Akademik',
-          ringkasan: 'Sesi workshop intensif pemanfaatan teknologi informasi untuk kesiapan kerja dan perkuliahan alumni pendidikan kesetaraan.',
-          konten: 'Sebagai bagian dari komitmen mencetak lulusan berdaya saing tinggi, PKBM Bina Mandiri mengadakan pelatihan literasi digital terpadu. Materi mencakup dasar pengolahan data spreadsheet, desain visual presentasi, dan pengenalan kecerdasan buatan untuk produktivitas kerja.',
-          is_pinned: 0,
-          views_count: 52,
-        }
-      ]);
+      setBeritaList([]);
     } finally {
       setLoading(false);
     }
@@ -142,7 +153,7 @@ function BeritaSiswa() {
         setSelectedBerita(res.data.data);
       }
     } catch {
-      // Tetap tampilkan item yang ada
+      // Tetap gunakan data yang ada
     } finally {
       setLoadingDetail(false);
     }
@@ -178,8 +189,10 @@ function BeritaSiswa() {
 
             {/* ── Welcome Hero Banner ── */}
             <div className="berita-siswa-hero">
-              <div className="berita-hero-tag">
-                <Sparkles size={14} /> Kabar & Kegiatan Warga Belajar
+              <div className="berita-hero-top-row">
+                <div className="berita-hero-tag">
+                  Kabar & Kegiatan Warga Belajar
+                </div>
               </div>
               <h1>Dokumentasi & Berita PKBM Bina Mandiri</h1>
               <p>
@@ -201,13 +214,18 @@ function BeritaSiswa() {
                       className="berita-featured-media"
                     />
                   ) : (
-                    <div style={{ width: '100%', height: '100%', minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1E3A8A 0%, #0F172A 100%)', color: '#93C5FD' }}>
-                      <Newspaper size={64} />
+                    <div style={{ width: '100%', height: '100%', minHeight: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%)', color: '#FFFFFF', padding: '2.5rem', textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: '#FDE047', marginBottom: 10 }}>
+                        {featuredItem.kategori}
+                      </span>
+                      <strong style={{ fontSize: '1.35rem', color: '#FFFFFF', lineHeight: 1.4, maxWidth: 450 }}>
+                        {featuredItem.judul}
+                      </strong>
                     </div>
                   )}
 
                   <div className="berita-featured-badge-float">
-                    <Sparkles size={13} /> Berita Unggulan
+                    Liputan Utama
                   </div>
                 </div>
 
@@ -259,6 +277,16 @@ function BeritaSiswa() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="berita-search-clear-btn"
+                    onClick={() => setSearchQuery('')}
+                    title="Hapus pencarian"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -269,10 +297,13 @@ function BeritaSiswa() {
                 <p style={{ color: '#64748B', fontWeight: 600 }}>Memuat liputan kegiatan...</p>
               </div>
             ) : beritaList.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '4rem 2rem', background: '#FFFFFF', borderRadius: 20, border: '1px dashed #CBD5E1' }}>
-                <Newspaper size={44} style={{ color: '#94A3B8', marginBottom: 12 }} />
+              <div className="berita-empty-clean">
                 <h3 style={{ margin: '0 0 6px 0', color: '#0F172A', fontWeight: 700 }}>Belum Ada Berita</h3>
-                <p style={{ margin: 0, color: '#64748B' }}>Tidak ada berita yang cocok dengan filter yang dipilih.</p>
+                <p style={{ margin: 0, color: '#64748B' }}>
+                  {searchQuery || activeCategory !== 'Semua'
+                    ? 'Tidak ada liputan kegiatan yang sesuai dengan filter yang dipilih.'
+                    : 'Saat ini belum ada publikasi kabar atau kegiatan terbaru.'}
+                </p>
               </div>
             ) : (
               <div className="berita-siswa-grid">
@@ -305,13 +336,21 @@ function BeritaSiswa() {
                             display: item.gambar_sampul ? 'none' : 'flex',
                             width: '100%',
                             height: '100%',
+                            flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            background: 'linear-gradient(135deg, #1E3A8A 0%, #0F172A 100%)',
-                            color: '#93C5FD',
+                            background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+                            color: '#FFFFFF',
+                            padding: '1.25rem',
+                            textAlign: 'center'
                           }}
                         >
-                          <Newspaper size={36} />
+                          <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#60A5FA', marginBottom: 4 }}>
+                            {item.kategori}
+                          </span>
+                          <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#E2E8F0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            {item.judul}
+                          </span>
                         </div>
 
                         <span className="berita-siswa-category-badge">
@@ -338,6 +377,10 @@ function BeritaSiswa() {
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                             <Calendar size={13} />
                             {formatTanggal(item.tanggal_kegiatan || item.created_at)}
+                          </span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Clock size={13} />
+                            {getReadingTime(item.konten || item.ringkasan)}
                           </span>
                           {item.lokasi && (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -383,41 +426,44 @@ function BeritaSiswa() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="berita-reader-header">
-                    <div>
-                      <span
-                        style={{
-                          background: '#EFF6FF',
-                          color: '#1D4ED8',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: 999,
-                          fontSize: '0.785rem',
-                          fontWeight: 700,
-                          display: 'inline-block',
-                          marginBottom: 6,
-                        }}
-                      >
+                    <div className="berita-reader-header-left">
+                      <span className="berita-reader-cat-badge">
                         {selectedBerita.kategori}
+                      </span>
+                      <span className="berita-reader-readtime">
+                        <Clock size={13} /> {getReadingTime(selectedBerita.konten)}
                       </span>
                     </div>
 
-                    <button
-                      type="button"
-                      style={{
-                        background: '#FFFFFF',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: 10,
-                        width: 36,
-                        height: 36,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: '#64748B',
-                      }}
-                      onClick={() => setSelectedBerita(null)}
-                    >
-                      <X size={18} />
-                    </button>
+                    <div className="berita-reader-header-actions">
+                      <button
+                        type="button"
+                        className={`berita-reader-action-btn ${copiedShare ? 'copied' : ''}`}
+                        onClick={() => handleShareBerita(selectedBerita)}
+                        title="Bagikan kabar ini"
+                      >
+                        {copiedShare ? (
+                          <>
+                            <Check size={15} />
+                            <span>Tersalin!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Share2 size={15} />
+                            <span>Bagikan</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="berita-reader-close-btn"
+                        onClick={() => setSelectedBerita(null)}
+                        title="Tutup Berita"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="berita-reader-body">
@@ -429,6 +475,10 @@ function BeritaSiswa() {
                       <div className="berita-reader-meta-item">
                         <Calendar size={15} />
                         <span>{formatTanggal(selectedBerita.tanggal_kegiatan || selectedBerita.created_at)}</span>
+                      </div>
+                      <div className="berita-reader-meta-item">
+                        <Clock size={15} />
+                        <span>{getReadingTime(selectedBerita.konten)}</span>
                       </div>
                       {selectedBerita.lokasi && (
                         <div className="berita-reader-meta-item">

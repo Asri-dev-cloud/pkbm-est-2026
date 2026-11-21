@@ -154,7 +154,7 @@ export const TugasController = {
       const tugas = await TugasModel.findByRombel(
         parsedRombelId,
         parsedMapelId,
-        { warga_belajar_id: wargaBelajarId }
+        { warga_belajar_id: wargaBelajarId, user_id: req.user?.id }
       );
       return res.status(200).json({ success: true, data: tugas });
     } catch (error) {

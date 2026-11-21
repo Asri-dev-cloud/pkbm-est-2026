@@ -90,25 +90,28 @@ const PertemuanController = {
 
       if (req.user.role === 'warga_belajar') {
         const wb = await SiswaModel.findByUserId(req.user.id);
-        if (wb) {
-          // Cari check-in absensi saya
-          if (absensiSesi) {
-            absensiSaya = await PertemuanModel.findKehadiranWB(absensiSesi.id, wb.id);
-          }
+        const wbId = wb ? wb.id : req.user.id;
 
-          // Cari status pengumpulan tugas saya
-          if (tugas.length > 0) {
-            const tugasIds = tugas.map(t => t.id);
-            const placeholders = tugasIds.map(() => '?').join(',');
-            const sqlTugas = `
-              SELECT * FROM pengumpulan_tugas
-              WHERE warga_belajar_id = ? AND tugas_id IN (${placeholders})
-            `;
-            const [rows] = await pool.execute(sqlTugas, [wb.id, ...tugasIds]);
-            rows.forEach(row => {
-              tugasSiswaMap[row.tugas_id] = row;
-            });
+        // Cari check-in absensi saya
+        if (absensiSesi) {
+          absensiSaya = await PertemuanModel.findKehadiranWB(absensiSesi.id, wbId);
+          if (!absensiSaya && wb && wb.id !== req.user.id) {
+            absensiSaya = await PertemuanModel.findKehadiranWB(absensiSesi.id, req.user.id);
           }
+        }
+
+        // Cari status pengumpulan tugas saya
+        if (tugas.length > 0) {
+          const tugasIds = tugas.map(t => t.id);
+          const placeholders = tugasIds.map(() => '?').join(',');
+          const sqlTugas = `
+            SELECT * FROM pengumpulan_tugas
+            WHERE (warga_belajar_id = ? OR warga_belajar_id = ?) AND tugas_id IN (${placeholders})
+          `;
+          const [rows] = await pool.execute(sqlTugas, [wbId, req.user.id, ...tugasIds]);
+          rows.forEach(row => {
+            tugasSiswaMap[row.tugas_id] = row;
+          });
         }
       }
 

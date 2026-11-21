@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import LedDisplayBoard from "../../components/LedDisplayBoard";
+import "./HomePage.css";
 import {
   CheckCircle2,
   Award,
@@ -318,7 +319,7 @@ const TUTORIAL_VIDEOS = [
 ];
 
 export default function HomePage() {
-  const [scrollY, setScrollY] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeGaleri, setActiveGaleri] = useState(0);
@@ -337,7 +338,18 @@ export default function HomePage() {
   const carouselRef = useRef(null);
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrolled = window.scrollY > 40;
+          setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    if (window.scrollY > 40) setIsScrolled(true);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -426,8 +438,6 @@ export default function HomePage() {
     handleSelectKebutuhan(nextIdx);
   };
 
-  const isScrolled = scrollY > 40;
-
   return (
     <div
       className="pkbm-boutique-page"
@@ -438,384 +448,6 @@ export default function HomePage() {
         overflowX: "hidden"
       }}
     >
-      {/* ── STYLING KHUSUS IN-LINE ────────────────────────────── */}
-      <style>{`
-        /* Infinite Marquee Ticker Track */
-        @keyframes marqueeScroll {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
-        }
-        .marquee-track {
-          display: flex;
-          width: max-content;
-          animation: marqueeScroll 28s linear infinite;
-        }
-        .marquee-track:hover {
-          animation-play-state: paused;
-        }
-
-        /* Float Subtle */
-        @keyframes floatCute {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-8px) rotate(2deg); }
-        }
-        .anim-float {
-          animation: floatCute 5s ease-in-out infinite;
-        }
-
-        /* Modern CTA Buttons */
-        .cute-pill-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          border-radius: 8px;
-          font-weight: 700;
-          font-size: 0.92rem;
-          text-decoration: none;
-          cursor: pointer;
-          transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-          border: 2px solid transparent;
-        }
-        .cute-pill-btn:hover {
-          transform: translateY(-2px) scale(1.02);
-        }
-        .cute-pill-btn:active {
-          transform: translateY(0) scale(0.99);
-        }
-
-        /* Yellow CTA Button - Bersih & Mewah Tanpa Bayang Hitam */
-        .btn-yellow {
-          background-color: #FACC15;
-          color: #0F172A !important;
-          border: 1px solid #EAB308;
-          box-shadow: 0 4px 14px rgba(234, 179, 8, 0.35);
-        }
-        .btn-yellow:hover {
-          background-color: #FDE047;
-          border-color: #CA8A04;
-          box-shadow: 0 8px 22px rgba(234, 179, 8, 0.45);
-        }
-
-        /* Hero Background dengan Gradien Khusus di Area Kiri (Pagar & Tiang Listrik)
-           Area Kanan (Gedung PKBM) 100% Bebas, Terang & Tampak Jelas */
-        @media (min-width: 900px) {
-          .hero-building-bg {
-            background: linear-gradient(
-              to right,
-              #FFFFFF 0%,
-              rgba(255, 255, 255, 0.98) 22%,
-              rgba(255, 255, 255, 0.88) 30%,
-              rgba(255, 255, 255, 0.35) 36%,
-              rgba(255, 255, 255, 0) 41%
-            ), url('/images/gedung.jpeg') right center / cover no-repeat !important;
-          }
-        }
-        @media (max-width: 899px) {
-          .hero-building-bg {
-            background: linear-gradient(
-              to bottom,
-              rgba(255, 255, 255, 0.98) 0%,
-              rgba(255, 255, 255, 0.94) 55%,
-              rgba(255, 255, 255, 0.65) 80%,
-              rgba(255, 255, 255, 0.25) 100%
-            ), url('/images/gedung.jpeg') center top / cover no-repeat !important;
-          }
-        }
-
-        /* Translucent Glass Button for Hero */
-        .btn-glass-hero {
-          background: rgba(255, 255, 255, 0.18);
-          color: #FFFFFF !important;
-          border: 2px solid rgba(255, 255, 255, 0.6);
-          border-radius: 8px;
-          backdrop-filter: blur(8px);
-        }
-        .btn-glass-hero:hover {
-          background: rgba(255, 255, 255, 0.32);
-          border-color: #FFFFFF;
-          box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
-        }
-
-        /* Nav Link Item */
-        .pill-nav-link {
-          color: #334155;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 0.82rem;
-          padding: 5px 10px;
-          border-radius: 6px;
-          transition: all 0.2s ease;
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          white-space: nowrap;
-        }
-        .pill-nav-link:hover {
-          color: #1D4ED8;
-          background: #F1F5F9;
-        }
-
-        /* Card Interactive Hover */
-        .boutique-card {
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .boutique-card:hover {
-          transform: translateY(-6px);
-          box-shadow: 0 16px 36px rgba(29, 78, 216, 0.12);
-        }
-
-        /* Hide Scrollbars */
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-
-        /* Prevent sections from being obscured by floating navbar */
-        section[id] {
-          scroll-margin-top: 100px;
-        }
-
-        /* ── OPTIMASI KELANCARAN & KECEPATAN RENDER MOBILE (CONTENT-VISIBILITY) ── */
-        #program, #kebutuhan, #keunggulan, #galeri, #faq, #kontak {
-          content-visibility: auto;
-          contain-intrinsic-size: 1px 650px;
-        }
-
-        /* Modal Video Tutorial Responsif Tanpa Layer Hitam */
-        .video-modal-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 9999;
-          background: rgba(255, 255, 255, 0.88);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 16px;
-        }
-        @media (max-width: 640px) {
-          .video-modal-overlay {
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.96);
-          }
-          .video-modal-card {
-            border-radius: 20px !important;
-            max-height: 96vh !important;
-          }
-          .video-modal-actions {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 8px !important;
-            width: 100% !important;
-          }
-          .video-modal-actions .cute-pill-btn {
-            width: 100% !important;
-            padding: 10px 8px !important;
-            font-size: 0.78rem !important;
-          }
-        }
-
-        /* Program Cards Slider (Horizontal 100% Utuh Tanpa Terpotong di Mobile, 4 Kolom di Desktop) */
-        @media (min-width: 1024px) {
-          .program-carousel-grid {
-            display: grid !important;
-            grid-template-columns: repeat(4, 1fr) !important;
-            gap: 20px !important;
-            overflow-x: visible !important;
-          }
-        }
-        @media (min-width: 640px) and (max-width: 1023px) {
-          .program-carousel-grid {
-            display: grid;
-            grid-auto-flow: column;
-            grid-auto-columns: calc(50% - 10px);
-            gap: 20px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            padding-top: 14px;
-            padding-bottom: 20px;
-            scroll-behavior: smooth;
-          }
-          .program-card-item {
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
-          }
-        }
-        @media (max-width: 639px) {
-          .program-carousel-grid {
-            display: grid;
-            grid-auto-flow: column;
-            grid-auto-columns: 100%;
-            gap: 16px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            padding-top: 14px;
-            padding-bottom: 20px;
-            scroll-behavior: smooth;
-          }
-          .program-card-item {
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
-          }
-        }
-
-        /* Kebutuhan 5 Cards Slider (Horizontal 100% Utuh Tanpa Terpotong di Mobile, 5 Kolom di Desktop) */
-        @media (min-width: 1024px) {
-          .kebutuhan-grid {
-            display: grid !important;
-            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-            gap: 16px !important;
-            overflow-x: visible !important;
-          }
-        }
-        @media (min-width: 640px) and (max-width: 1023px) {
-          .kebutuhan-grid {
-            display: grid;
-            grid-auto-flow: column;
-            grid-auto-columns: calc(50% - 8px);
-            gap: 16px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            padding-top: 14px;
-            padding-bottom: 20px;
-            scroll-behavior: smooth;
-          }
-          .kebutuhan-card-item {
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
-          }
-        }
-        @media (max-width: 639px) {
-          .kebutuhan-grid {
-            display: grid;
-            grid-auto-flow: column;
-            grid-auto-columns: 100%;
-            gap: 16px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            padding-top: 14px;
-            padding-bottom: 20px;
-            scroll-behavior: smooth;
-          }
-          .kebutuhan-card-item {
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
-          }
-        }
-
-        /* ── RESPONSIVE GRIDS (MOBILE RAPI, DESKTOP TETAP MAKSIMAL) ── */
-
-        /* 1. Hero Content Grid */
-        .hero-content-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 28px;
-          align-items: center;
-        }
-        @media (min-width: 1024px) {
-          .hero-content-grid {
-            grid-template-columns: minmax(320px, 440px) 1fr;
-            gap: 36px;
-          }
-        }
-
-        /* 2. Tentang Lembaga Grid */
-        .tentang-content-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          align-items: stretch;
-        }
-        @media (min-width: 1024px) {
-          .tentang-content-grid {
-            grid-template-columns: 1fr 1.15fr;
-          }
-        }
-
-        /* 3. 8 Keunggulan Cards Grid (1 Kolom Rapi di Mobile, 2 Kolom di Tablet, 4 Kolom di Desktop) */
-        .keunggulan-cards-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 16px;
-        }
-        @media (min-width: 640px) {
-          .keunggulan-cards-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 18px;
-          }
-        }
-        @media (min-width: 1024px) {
-          .keunggulan-cards-grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-          }
-        }
-
-        /* 4. Legalitas & Komitmen Grid */
-        .legalitas-content-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 32px;
-          align-items: center;
-        }
-        @media (min-width: 1024px) {
-          .legalitas-content-grid {
-            grid-template-columns: 0.9fr 1.1fr;
-            gap: 56px;
-          }
-        }
-
-        /* 5. Galeri Thumbnails Grid */
-        .galeri-thumbnails-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 10px;
-        }
-        @media (min-width: 768px) {
-          .galeri-thumbnails-grid {
-            grid-template-columns: repeat(6, 1fr);
-            gap: 12px;
-          }
-        }
-
-        /* 6. Kontak & Form Grid */
-        .kontak-content-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 36px;
-          align-items: start;
-        }
-        @media (min-width: 1024px) {
-          .kontak-content-grid {
-            grid-template-columns: 1.05fr 0.95fr;
-            gap: 52px;
-          }
-        }
-
-        /* 7. Footer Grid */
-        .footer-content-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 32px;
-          margin-bottom: 44px;
-        }
-        @media (min-width: 640px) {
-          .footer-content-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 36px;
-          }
-        }
-        @media (min-width: 1024px) {
-          .footer-content-grid {
-            grid-template-columns: 1.8fr 1fr 1fr 1fr;
-            gap: 40px;
-          }
-        }
-      `}</style>
 
       {/* ══════════════════════════════════════════════════════════
           1. FLOATING PILL NAVBAR ALA REFERENSI GAMBAR
@@ -1052,63 +684,43 @@ export default function HomePage() {
               <ArrowRight size={13} />
             </Link>
 
-            {/* Hamburger Button untuk Mobile / Layar Kecil */}
+            {/* Hamburger Button untuk Mobile / Layar Kecil (Ukuran pas jempol, 0ms tap delay & instant feedback) */}
             <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden flex items-center justify-center rounded-full"
-              style={{
-                width: 36,
-                height: 36,
-                background: "#EFF6FF",
-                color: "#1D4ED8",
-                border: "1px solid #BFDBFE",
-                cursor: "pointer",
-                flexShrink: 0
-              }}
+              type="button"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              className="lg:hidden mobile-hamburger-btn"
               title="Menu Navigasi"
+              aria-label="Buka Menu Navigasi"
+              aria-expanded={menuOpen}
             >
-              {menuOpen ? <X size={18} /> : <Menu size={18} />}
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Dropdown Menu Floating */}
+      {/* Backdrop overlay saat menu terbuka (Klik luar untuk menutup instan) */}
       {menuOpen && (
         <div
-          style={{
-            position: "fixed",
-            top: 76,
-            left: 16,
-            right: 16,
-            zIndex: 999,
-            background: "#FFFFFF",
-            borderRadius: 24,
-            padding: "20px 20px 24px",
-            boxShadow: "0 20px 45px rgba(15, 23, 42, 0.16)",
-            border: "1px solid #E2E8F0",
-            maxHeight: "calc(100vh - 100px)",
-            overflowY: "auto"
-          }}
-        >
+          className="mobile-menu-backdrop"
+          onClick={() => setMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Dropdown Menu Floating (GPU Accelerated & Instant Response) */}
+      {menuOpen && (
+        <div className="mobile-menu-dropdown">
           {/* Quick Contact & LMS Bar inside Mobile Menu */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #F1F5F9" }}>
             <a
               href="https://wa.me/6282318383605"
               target="_blank"
               rel="noreferrer"
+              className="mobile-menu-quick-item"
               style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 5,
-                padding: "10px 4px",
                 background: "#EFF6FF",
-                borderRadius: 14,
-                color: "#1D4ED8",
-                textDecoration: "none",
-                fontSize: "0.72rem",
-                fontWeight: 700
+                color: "#1D4ED8"
               }}
             >
               <Send size={16} />
@@ -1118,19 +730,10 @@ export default function HomePage() {
               href="https://www.instagram.com/bina_mandiri_pkbm/"
               target="_blank"
               rel="noreferrer"
-              onClick={() => setMenuOpen(false)}
+              className="mobile-menu-quick-item"
               style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 5,
-                padding: "10px 4px",
                 background: "#FEF9C3",
-                borderRadius: 14,
-                color: "#854D0E",
-                textDecoration: "none",
-                fontSize: "0.72rem",
-                fontWeight: 700
+                color: "#854D0E"
               }}
             >
               <InstagramIcon size={16} />
@@ -1138,19 +741,10 @@ export default function HomePage() {
             </a>
             <Link
               to="/login"
-              onClick={() => setMenuOpen(false)}
+              className="mobile-menu-quick-item"
               style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 5,
-                padding: "10px 4px",
                 background: "#F8FAFC",
-                borderRadius: 14,
                 color: "#334155",
-                textDecoration: "none",
-                fontSize: "0.72rem",
-                fontWeight: 700,
                 border: "1px solid #E2E8F0"
               }}
             >
@@ -1173,15 +767,7 @@ export default function HomePage() {
               key={label}
               href={href}
               onClick={() => setMenuOpen(false)}
-              style={{
-                display: "block",
-                padding: "11px 4px",
-                borderBottom: "1px solid #F1F5F9",
-                color: "#0F172A",
-                textDecoration: "none",
-                fontWeight: 700,
-                fontSize: "0.88rem"
-              }}
+              className="mobile-menu-nav-link"
             >
               {label}
             </a>
@@ -1190,26 +776,13 @@ export default function HomePage() {
           <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
             <Link
               to="/login"
-              onClick={() => setMenuOpen(false)}
-              style={{
-                flex: 1,
-                textAlign: "center",
-                padding: "11px",
-                borderRadius: 9999,
-                border: "1.5px solid #CBD5E1",
-                color: "#1E293B",
-                fontWeight: 800,
-                textDecoration: "none",
-                fontSize: "0.86rem"
-              }}
+              className="mobile-menu-btn-portal"
             >
               Masuk Portal
             </Link>
             <Link
               to="/daftar"
-              onClick={() => setMenuOpen(false)}
-              className="cute-pill-btn btn-yellow"
-              style={{ flex: 1, padding: "11px", fontSize: "0.86rem" }}
+              className="cute-pill-btn btn-yellow mobile-menu-btn-spmb"
             >
               Daftar SPMB
             </Link>

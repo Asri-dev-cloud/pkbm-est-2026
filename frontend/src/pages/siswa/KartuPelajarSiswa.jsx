@@ -12,7 +12,6 @@ import {
   AlertTriangle,
   Users,
   RotateCw,
-  Sparkles,
   FileText
 } from 'lucide-react';
 import Sidebar from '../../components/Sidebar.jsx';

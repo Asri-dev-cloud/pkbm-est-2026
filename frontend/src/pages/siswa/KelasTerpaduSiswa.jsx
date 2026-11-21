@@ -205,7 +205,7 @@ function CuteSelect({ id, value, onChange, options, icon, labelHint, themeColor 
         <div className="cute-select-dropdown-menu" role="listbox">
           <div className="cute-select-menu-header">
             <span className="cute-select-menu-title">
-              <i className="bi bi-sparkles"></i> {labelHint || 'Pilih Opsi'}
+              {labelHint || 'Pilih Opsi'}
             </span>
             <span className="cute-select-menu-count">{options.length} pilihan</span>
           </div>
@@ -1329,30 +1329,40 @@ function KelasTerpaduSiswa() {
   const handleDeleteTugas = async (tugasId, judul) => {
     if (!tugasId) return;
     const isConfirmed = window.confirm(
-      `Apakah Anda yakin ingin menghapus tugas "${judul || 'ini'}"?\n\nPerhatian: Tugas akan dihapus dari daftar pembelajaran.`
+      `Apakah Anda yakin ingin menghapus tugas "${judul || 'ini'}"?\n\nPerhatian: Tugas akan dihapus dari daftar pembelajaran dan tidak akan muncul di sisi siswa maupun tutor.`
     );
     if (!isConfirmed) return;
 
-    // 1. Langsung hapus dari tampilan UI & simpan di local blacklist agar tidak muncul lagi
+    // Snapshot state untuk rollback jika backend gagal
+    const prevTugas = [...allTugas];
+
+    // Optimistic UI: hapus dari state & simpan di local blacklist
     addDeletedTugasId(tugasId);
     setAllTugas(prev => prev.filter(t => t.id !== tugasId));
     window.dispatchEvent(new CustomEvent('pkbm_tugas_updated'));
 
-    // 2. Kirim permintaan DELETE ke backend
+    // Kirim permintaan DELETE ke backend
     try {
       await LmsAPI.deleteTugas(tugasId);
-      alert(`Tugas "${judul || ''}" berhasil dihapus.`);
+
+      // Bersihkan juga cache pengumpulan lokal & drafts terkait tugas ini
+      try {
+        localStorage.removeItem(`pkbm_sub_${user?.id || 'wb'}_${tugasId}`);
+        clearQuizDraft(tugasId);
+      } catch {}
+
+      // Refresh list allTugas dari backend untuk konfirmasi status sinkronisasi
+      await fetchTugasList(null, null, false);
+      window.dispatchEvent(new CustomEvent('pkbm_tugas_updated'));
+
+      alert(`Tugas "${judul || ''}" berhasil dihapus secara permanen.`);
     } catch (err) {
-      console.warn('[handleDeleteTugas] Info:', err?.response?.data || err.message);
-      // Jika endpoint backend di VPS belum di-pull/restart (404), tugas tetap disembunyikan
-      if (err.response?.status === 404) {
-        alert(
-          `Tugas "${judul || ''}" berhasil dihapus dari tampilan layar.\n\n` +
-          'Catatan: Karena API menggunakan server VPS (pkbmbinamandiri.sch.id), silakan deploy/push ke server agar terhapus permanen dari database server.'
-        );
-      } else {
-        alert(`Tugas berhasil dihapus dari layar.`);
-      }
+      console.error('[handleDeleteTugas] Error:', err);
+      // Revert optimistic UI jika penghapusan di server gagal
+      setAllTugas(prevTugas);
+      const currentDeleted = getDeletedTugasIds().filter(id => id !== tugasId);
+      localStorage.setItem('pkbm_deleted_tugas_ids', JSON.stringify(currentDeleted));
+      alert(err.response?.data?.message || 'Gagal menghapus tugas dari server. Silakan coba kembali.');
     }
   };
 
@@ -1596,11 +1606,33 @@ function KelasTerpaduSiswa() {
     try {
       const res = await LmsAPI.getTugasById(tugas.id);
       const fullTugas = res.data.data;
+
+      // Pastikan pengumpulan berupa array lengkap
+      let pengumpulanList = Array.isArray(fullTugas?.pengumpulan) ? [...fullTugas.pengumpulan] : [];
+
+      // Fallback: sertakan submission lokal jika ada dan belum terdaftar di respon server
+      const localSub = getStudentLocalSubmission(tugas.id);
+      if (localSub && !pengumpulanList.some(p => String(p.id) === String(localSub.id) || String(p.warga_belajar_id) === String(localSub.warga_belajar_id))) {
+        pengumpulanList.push({
+          id: localSub.id || `sub_local_${tugas.id}`,
+          warga_belajar_id: localSub.warga_belajar_id || user?.id,
+          nama_lengkap: localSub.nama_lengkap || user?.nama_lengkap || 'Warga Belajar',
+          nis: localSub.nis || user?.nis || 'PKBM-WB',
+          path_file: localSub.path_file,
+          nama_file: localSub.nama_file,
+          catatan_siswa: localSub.catatan_siswa,
+          nilai: localSub.nilai,
+          status: localSub.status || 'terkumpul',
+          submitted_at: localSub.submitted_at || new Date().toISOString()
+        });
+      }
+
+      fullTugas.pengumpulan = pengumpulanList;
       setDetailTugasModal(fullTugas);
 
       const initGrading = {};
       const { meta: taskMeta } = parseTaskDescription(fullTugas.deskripsi);
-      (fullTugas.pengumpulan || []).forEach(p => {
+      pengumpulanList.forEach(p => {
         let defaultScore = p.nilai ?? '';
         if ((defaultScore === '' || defaultScore === null || defaultScore === undefined) && taskMeta.tipe === 'pilihan_ganda' && taskMeta.soal_pg && taskMeta.soal_pg.length > 0) {
           const ans = extractStudentPGAnswers(fullTugas, p, jawabanPGMap);
@@ -1664,12 +1696,9 @@ function KelasTerpaduSiswa() {
         };
       });
 
-      // Refresh list allTugas
-      let rombelId = searchParams.get('rombel_id');
-      if (rombelId) {
-        const tugRes = await LmsAPI.getTugasByRombel(rombelId, { mapel_id: mapelId });
-        setAllTugas(tugRes.data.data || []);
-      }
+      // Refresh list allTugas & statistik secara komprehensif
+      await fetchTugasList(null, null, false);
+      window.dispatchEvent(new CustomEvent('pkbm_tugas_updated'));
     } catch (err) {
       alert(err.response?.data?.message || 'Gagal menyimpan nilai.');
     } finally {
@@ -3411,16 +3440,10 @@ function KelasTerpaduSiswa() {
                                       </span>
                                     )
                                   ) : (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDeleteTugas(t.id, t.judul)}
-                                      className="retro-btn-action danger"
-                                      style={{ padding: '4px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: 5, background: '#FEF2F2', color: '#DC2626', borderColor: '#FECACA' }}
-                                      title="Hapus tugas pembelajaran ini"
-                                    >
-                                      <i className="bi bi-trash3-fill"></i>
-                                      <span>Hapus</span>
-                                    </button>
+                                    <span className="retro-tag-pill blue" style={{ fontSize: '0.78rem', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                                      <i className="bi bi-people-fill"></i>
+                                      <span>{t.jumlah_terkumpul || 0} Pengumpulan</span>
+                                    </span>
                                   )}
                                 </div>
 

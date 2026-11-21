@@ -21,8 +21,7 @@ import {
   ChevronRight,
   AlertCircle,
   Check,
-  Building2,
-  Sparkles
+  Building2
 } from 'lucide-react';
 import { SiswaAPI, AbsensiAPI, TagihanAPI, toAssetUrl } from '../../services/api.js';
 import Sidebar from '../../components/Sidebar.jsx';
@@ -103,6 +102,30 @@ function DashboardSiswa() {
     return () => clearTimeout(timeoutId);
   }, []);
 
+  // ── Helper Periode Akademik Dinamis (Kalender Pendidikan Indonesia) ──
+  // Bulan 7 - 12 (Juli s.d. Desember) = Semester Ganjil (Tahun Ajaran Y / Y+1)
+  // Bulan 1 - 6  (Januari s.d. Juni)  = Semester Genap  (Tahun Ajaran Y-1 / Y)
+  const getAcademicPeriod = () => {
+    const now = new Date();
+    const month = now.getMonth() + 1; // 1 - 12
+    const year = now.getFullYear();
+    const isGanjil = month >= 7 && month <= 12;
+    const startYear = isGanjil ? year : year - 1;
+    const endYear = startYear + 1;
+
+    let namaTahun = profil?.nama_tahun_ajaran;
+    if (namaTahun && !namaTahun.toLowerCase().startsWith('tahun ajaran')) {
+      namaTahun = `Tahun Ajaran ${namaTahun}`;
+    }
+
+    return {
+      semester: isGanjil ? 'Semester Ganjil' : 'Semester Genap',
+      tahunAjaran: namaTahun || `Tahun Ajaran ${startYear}/${endYear}`
+    };
+  };
+
+  const academicPeriod = getAcademicPeriod();
+
   if (loadingProfil) {
     return (
       <div className="app-layout">
@@ -124,7 +147,6 @@ function DashboardSiswa() {
         <main className="app-main">
           <div className="app-content">
             <div className="edutech-error-card">
-              <AlertCircle size={44} className="edutech-error-icon" />
               <h3 style={{ fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem' }}>Gagal Menghubungkan Data</h3>
               <p style={{ color: '#64748B', marginBottom: '1.5rem' }}>{errorProfil}</p>
               <button
@@ -366,8 +388,8 @@ function DashboardSiswa() {
                   </span>
                 </div>
                 <div className="metric-foot">
-                  <span>Tahun Ajaran 2026/2027</span>
-                  <span className="semester-pill">Semester Genap</span>
+                  <span>{academicPeriod.tahunAjaran}</span>
+                  <span className="semester-pill">{academicPeriod.semester}</span>
                 </div>
               </div>
             </div>

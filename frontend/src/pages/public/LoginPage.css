@@ -100,6 +100,10 @@
   transform: translateX(-2px);
 }
 
+.login-topbar-back:active {
+  transform: scale(0.96);
+}
+
 .login-back-text-mobile {
   display: none;
 }
@@ -323,6 +327,10 @@
 
 .login-tab-btn:hover {
   color: var(--login-black);
+}
+
+.login-tab-btn:active {
+  transform: scale(0.96);
 }
 
 .login-tab-btn.active {
@@ -1057,6 +1065,10 @@
   background: linear-gradient(135deg, #1E40AF 0%, #1D4ED8 100%);
   transform: translateY(-2px);
   box-shadow: 0 10px 24px -4px rgba(37, 99, 235, 0.45);
+}
+
+.login-btn-primary:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .login-btn-primary:disabled {

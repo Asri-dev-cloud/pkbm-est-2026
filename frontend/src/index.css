@@ -138,6 +138,13 @@ body, button, input, select, textarea {
 html {
   scroll-behavior: smooth;
   font-size: clamp(15px, 1vw + 12px, 17px);
+  touch-action: manipulation;
+}
+
+/* ── FAST TOUCH RESPONSIVENESS (ELIMINASI 300MS TAP DELAY DI MOBILE) ── */
+button, a, input, select, textarea, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {

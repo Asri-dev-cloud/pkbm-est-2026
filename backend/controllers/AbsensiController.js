@@ -220,17 +220,22 @@ const AbsensiController = {
       }
 
       const { status = 'hadir', catatan = null } = req.body || {};
+      const validStatus = ['hadir', 'izin', 'sakit'];
+      const finalStatus = validStatus.includes(status) ? status : 'hadir';
 
       // Proses check-in mandiri (validasi status & timer ada di model)
       await AbsensiModel.checkInMandiri(parseInt(sesiId), wb.id, {
-        status,
+        status: finalStatus,
         catatan: catatan ? String(catatan).trim() : null
       });
 
       return res.status(200).json({
         success: true,
-        message: 'Check-in berhasil! Kehadiran Anda telah tercatat.',
-        data: { waktu_check_in: new Date().toISOString() },
+        message: `Check-in berhasil! Kehadiran Anda tercatat sebagai ${finalStatus.toUpperCase()}.`,
+        data: {
+          status: finalStatus,
+          waktu_check_in: new Date().toISOString()
+        },
       });
 
     } catch (error) {
@@ -303,7 +308,7 @@ const AbsensiController = {
 
       const persentase_hadir = ringkasan.total_pertemuan > 0
         ? Math.round((ringkasan.hadir / ringkasan.total_pertemuan) * 100)
-        : 0;
+        : 100;
 
       return res.status(200).json({
         success: true,

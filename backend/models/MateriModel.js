@@ -105,7 +105,7 @@ export const MateriModel = {
 // ========================
 export const TugasModel = {
 
-  findByRombel: async (rombel_id = null, mapel_id = null, { warga_belajar_id = null } = {}) => {
+  findByRombel: async (rombel_id = null, mapel_id = null, { warga_belajar_id = null, user_id = null } = {}) => {
     let sql = `
       SELECT t.*,
         COALESCE(mp.nama, 'Mata Pelajaran') AS nama_mapel,
@@ -116,7 +116,7 @@ export const TugasModel = {
       LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
       LEFT JOIN users u ON u.id = t.tutor_id
       LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
-      WHERE 1=1
+      WHERE (t.is_aktif = 1 OR t.is_aktif IS NULL)
     `;
     const params = [];
     if (mapel_id && rombel_id) {
@@ -154,7 +154,7 @@ export const TugasModel = {
           LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
           LEFT JOIN users u ON u.id = t.tutor_id
           LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
-          WHERE (t.mapel_id = ? OR t.mapel_id IS NULL OR t.mapel_id = 0)
+          WHERE (t.is_aktif = 1 OR t.is_aktif IS NULL) AND (t.mapel_id = ? OR t.mapel_id IS NULL OR t.mapel_id = 0)
           ORDER BY t.id DESC, t.deadline ASC`,
           [mapel_id]
         );
@@ -179,7 +179,7 @@ export const TugasModel = {
           LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
           LEFT JOIN users u ON u.id = t.tutor_id
           LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
-          WHERE (t.rombel_id = ? OR t.rombel_id IS NULL OR t.rombel_id = 0)
+          WHERE (t.is_aktif = 1 OR t.is_aktif IS NULL) AND (t.rombel_id = ? OR t.rombel_id IS NULL OR t.rombel_id = 0)
           ORDER BY t.id DESC, t.deadline ASC`,
           [rombel_id]
         );
@@ -204,6 +204,7 @@ export const TugasModel = {
           LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
           LEFT JOIN users u ON u.id = t.tutor_id
           LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
+          WHERE (t.is_aktif = 1 OR t.is_aktif IS NULL)
           ORDER BY t.id DESC, t.deadline ASC
           LIMIT 10`
         );
@@ -215,20 +216,23 @@ export const TugasModel = {
       }
     }
 
-    if (!warga_belajar_id || !rows || rows.length === 0) {
+    if ((!warga_belajar_id && !user_id) || !rows || rows.length === 0) {
       return rows || [];
     }
 
     try {
       const tugasIds = rows.map((row) => row.id);
       const placeholders = tugasIds.map(() => '?').join(',');
+      const studentId1 = warga_belajar_id || user_id;
+      const studentId2 = user_id || warga_belajar_id;
+
       const [pengumpulanRows] = await pool.query(
         `
           SELECT *
           FROM pengumpulan_tugas
-          WHERE warga_belajar_id = ? AND tugas_id IN (${placeholders})
+          WHERE (warga_belajar_id = ? OR warga_belajar_id = ?) AND tugas_id IN (${placeholders})
         `,
-        [warga_belajar_id, ...tugasIds]
+        [studentId1, studentId2, ...tugasIds]
       );
 
       const pengumpulanMap = {};
@@ -252,6 +256,11 @@ export const TugasModel = {
     } catch (err) {
       console.warn('[TugasModel.delete] Warning delete pengumpulan:', err.message);
     }
+    try {
+      await pool.execute('UPDATE tugas SET is_aktif = 0 WHERE id = ?', [id]);
+    } catch (err) {
+      console.warn('[TugasModel.delete] Warning soft-delete:', err.message);
+    }
     const [result] = await pool.execute('DELETE FROM tugas WHERE id = ?', [id]);
     return result.affectedRows;
   },
@@ -261,10 +270,10 @@ export const TugasModel = {
       `
         SELECT *
         FROM pengumpulan_tugas
-        WHERE tugas_id = ? AND warga_belajar_id = ?
+        WHERE tugas_id = ? AND (warga_belajar_id = ? OR warga_belajar_id IN (SELECT id FROM warga_belajar WHERE user_id = ?))
         LIMIT 1
       `,
-      [tugas_id, warga_belajar_id]
+      [tugas_id, warga_belajar_id, warga_belajar_id]
     );
     return rows[0] || null;
   },
@@ -282,13 +291,17 @@ export const TugasModel = {
     );
     if (!tugas[0]) return null;
 
-    // Ambil semua pengumpulan untuk tugas ini
+    // Ambil SEMUA pengumpulan untuk tugas ini tanpa ada yang terlewat / hilang
     const [pengumpulan] = await pool.execute(
-      `SELECT pt.*, u2.nama_lengkap, wb.nis
+      `SELECT pt.*,
+         COALESCE(u2.nama_lengkap, u_direct.nama_lengkap, wb.nama_lengkap, 'Warga Belajar') AS nama_lengkap,
+         COALESCE(wb.nis, u_direct.username, CONCAT('WB-', pt.warga_belajar_id)) AS nis
        FROM pengumpulan_tugas pt
-       JOIN warga_belajar wb ON wb.id = pt.warga_belajar_id
-       JOIN users u2 ON u2.id = wb.user_id
+       LEFT JOIN warga_belajar wb ON (wb.id = pt.warga_belajar_id OR wb.user_id = pt.warga_belajar_id)
+       LEFT JOIN users u2 ON u2.id = wb.user_id
+       LEFT JOIN users u_direct ON u_direct.id = pt.warga_belajar_id
        WHERE pt.tugas_id = ?
+       GROUP BY pt.id
        ORDER BY pt.submitted_at ASC`,
       [id]
     );

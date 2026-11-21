@@ -50,10 +50,42 @@
   font-size: 0.8rem;
   font-weight: 700;
   border: 1px solid rgba(250, 204, 21, 0.35);
+  margin-bottom: 0;
+}
+
+.berita-hero-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
   margin-bottom: 1rem;
 }
 
+.berita-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.berita-stat-badge {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  font-size: 0.785rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+.berita-stat-badge strong {
+  color: #FDE047;
+  font-weight: 800;
+  margin-right: 3px;
+}
+
 .berita-siswa-hero h1 {
+  color: #FFFFFF !important;
   font-size: 2rem;
   font-weight: 800;
   line-height: 1.25;
@@ -62,7 +94,7 @@
 }
 
 .berita-siswa-hero p {
-  color: #E2E8F0;
+  color: #E2E8F0 !important;
   font-size: 1rem;
   max-width: 650px;
   line-height: 1.6;
@@ -224,17 +256,18 @@
   min-width: 280px;
 }
 
-.berita-siswa-search svg {
+.berita-siswa-search > svg {
   position: absolute;
   left: 0.95rem;
   top: 50%;
   transform: translateY(-50%);
   color: #94A3B8;
+  pointer-events: none;
 }
 
 .berita-siswa-search input {
   width: 100%;
-  padding: 0.65rem 1rem 0.65rem 2.6rem;
+  padding: 0.65rem 2.5rem 0.65rem 2.6rem;
   border: 1px solid #CBD5E1;
   border-radius: 12px;
   font-size: 0.9rem;
@@ -246,6 +279,29 @@
 .berita-siswa-search input:focus {
   border-color: #1D4ED8;
   box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.berita-search-clear-btn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #E2E8F0;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748B;
+  transition: all 0.2s;
+}
+
+.berita-search-clear-btn:hover {
+  background: #CBD5E1;
+  color: #0F172A;
 }
 
 /* ── Feed Grid ── */
@@ -432,12 +488,93 @@
 }
 
 .berita-reader-header {
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 2rem;
   border-bottom: 1px solid #E2E8F0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: #F8FAFC;
+  gap: 1rem;
+}
+
+.berita-reader-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.berita-reader-cat-badge {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.785rem;
+  font-weight: 800;
+  display: inline-block;
+  border: 1px solid #DBEAFE;
+}
+
+.berita-reader-readtime {
+  font-size: 0.8rem;
+  color: #64748B;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.berita-reader-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.berita-reader-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.berita-reader-action-btn:hover {
+  background: #F1F5F9;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+.berita-reader-action-btn.copied {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #065F46;
+}
+
+.berita-reader-close-btn {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748B;
+  transition: all 0.2s;
+}
+
+.berita-reader-close-btn:hover {
+  background: #FEE2E2;
+  border-color: #FCA5A5;
+  color: #DC2626;
 }
 
 .berita-reader-body {
@@ -519,17 +656,14 @@
   overflow: hidden;
   background: #000000;
   position: relative;
-}
-
-.berita-reader-video-container video {
   width: 100%;
-  max-height: 440px;
-  display: block;
+  aspect-ratio: 16 / 9;
 }
 
+.berita-reader-video-container video,
 .berita-reader-video-container iframe {
   width: 100%;
-  height: 380px;
+  height: 100%;
   border: none;
   display: block;
 }
@@ -647,5 +781,161 @@
 
 .berita-lightbox-nav:hover {
   background: rgba(255, 255, 255, 0.35);
+}
+
+/* ── Responsif Tablet & Mobile (Khusus Tampilan Handphone) ── */
+@media (max-width: 768px) {
+  .berita-siswa-container {
+    gap: 1.5rem;
+    padding-bottom: 3rem;
+  }
+
+  .berita-siswa-hero {
+    padding: 1.75rem 1.35rem;
+    border-radius: 20px;
+  }
+
+  .berita-siswa-hero h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+
+  .berita-siswa-hero p {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .berita-hero-top-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .berita-featured-content {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .berita-featured-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .berita-siswa-filter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .berita-siswa-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .berita-siswa-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .berita-siswa-search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .berita-siswa-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .berita-reader-backdrop {
+    padding: 0.75rem;
+  }
+
+  .berita-reader-window {
+    max-height: 94vh;
+    border-radius: 20px;
+  }
+
+  .berita-reader-header {
+    padding: 1rem 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .berita-reader-body {
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+
+  .berita-reader-title {
+    font-size: 1.35rem;
+  }
+
+  .berita-reader-content {
+    font-size: 0.975rem;
+    line-height: 1.75;
+  }
+
+  .berita-reader-gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .berita-gallery-photo-card {
+    height: 120px;
+  }
+
+  .berita-lightbox-nav {
+    width: 42px;
+    height: 42px;
+  }
+  .berita-lightbox-nav.prev {
+    left: 0.5rem;
+  }
+  .berita-lightbox-nav.next {
+    right: 0.5rem;
+  }
+  .berita-lightbox-close {
+    top: 1rem;
+    right: 1rem;
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 480px) {
+  .berita-siswa-hero {
+    padding: 1.35rem 1rem;
+  }
+
+  .berita-siswa-hero h1 {
+    font-size: 1.3rem;
+  }
+
+  .berita-featured-media-wrap {
+    min-height: 220px;
+  }
+
+  .berita-siswa-cover-wrap {
+    height: 190px;
+  }
+
+  .berita-siswa-card-body {
+    padding: 1.15rem;
+  }
+
+  .berita-reader-header {
+    padding: 0.85rem 1rem;
+  }
+
+  .berita-reader-body {
+    padding: 1rem;
+  }
+
+  .berita-reader-title {
+    font-size: 1.2rem;
+  }
 }
 

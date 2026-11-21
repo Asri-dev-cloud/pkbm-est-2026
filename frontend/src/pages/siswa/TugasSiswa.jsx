@@ -1026,7 +1026,6 @@ function TugasSiswa() {
                   <div className="tugas-hero-motivation-card">
                     <div className="motivation-header">
                       <div className="motivation-sparkle-pill">
-                        <Sparkles size={14} />
                         <span>Fokus & Semangat Hari Ini</span>
                       </div>
                     </div>
@@ -1369,7 +1368,6 @@ function TugasSiswa() {
               </div>
             ) : error ? (
               <div className="card" style={{ padding: '2.5rem', textAlign: 'center' }}>
-                <AlertCircle size={44} color="#EF4444" style={{ margin: '0 auto 1rem' }} />
                 <h3 style={{ fontFamily: 'var(--font-heading)', color: '#991B1B', marginBottom: '0.5rem' }}>
                   Tidak Dapat Memuat Data
                 </h3>
@@ -1644,7 +1642,7 @@ function TugasSiswa() {
                               onClick={() => handleOpenUploadModal(t)}
                               title="Buka form pengerjaan untuk menguji pratinjau dari sudut pandang siswa"
                             >
-                              <Sparkles size={15} />
+                              <Eye size={15} />
                               <span>Pratinjau Siswa</span>
                             </button>
                           </div>

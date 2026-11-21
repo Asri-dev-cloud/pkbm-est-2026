@@ -84,8 +84,11 @@ export const checkRole = (...allowedRoles) => {
       });
     }
 
-    // Cek apakah role user ada di daftar role yang diizinkan
-    if (!allowedRoles.includes(req.user.role)) {
+    // Normalisasi role user agar tahan case-sensitivity dan whitespace
+    const userRole = String(req.user.role || '').toLowerCase().trim();
+    const hasRole = allowedRoles.some(r => String(r).toLowerCase().trim() === userRole);
+
+    if (!hasRole) {
       return res.status(403).json({
         success: false,
         message: `Akses ditolak. Halaman ini hanya untuk: ${allowedRoles.join(', ')}.`,

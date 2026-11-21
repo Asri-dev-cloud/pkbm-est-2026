@@ -108,10 +108,15 @@ export default function AbsensiSiswa() {
       setSesiAktif(sesi);
 
       if (sesi) {
-        const mulai = new Date(sesi.waktu_mulai).getTime();
-        const durasi = (sesi.durasi_timer || 0) * 1000;
-        const selesai = mulai + durasi;
-        const sisa = Math.max(0, Math.floor((selesai - Date.now()) / 1000));
+        let sisa = 0;
+        if (sesi.sisa_timer_detik !== undefined && sesi.sisa_timer_detik !== null) {
+          sisa = Math.max(0, Number(sesi.sisa_timer_detik));
+        } else {
+          const mulai = new Date(sesi.waktu_mulai).getTime();
+          const durasi = (sesi.durasi_timer || 0) * 1000;
+          const selesai = mulai + durasi;
+          sisa = Math.max(0, Math.floor((selesai - Date.now()) / 1000));
+        }
         setSisaWaktu(sisa);
 
         const sudahCheckin = Number(sesi.sudah_checkin) === 1;
@@ -234,7 +239,7 @@ export default function AbsensiSiswa() {
           <div className="weekend-schedule-banner">
             <div className="weekend-schedule-left">
               <div className="weekend-schedule-icon">
-                {isWeekend ? <Sparkles size={20} /> : <Coffee size={20} />}
+                {isWeekend ? <CalendarCheck size={20} /> : <Coffee size={20} />}
               </div>
               <div>
                 <h3 className="weekend-schedule-title">
@@ -685,7 +690,6 @@ export default function AbsensiSiswa() {
                 </div>
               ) : riwayatFiltered.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#94A3B8' }}>
-                  <FileText size={42} style={{ margin: '0 auto 10px', color: '#CBD5E1' }} />
                   <div style={{ fontWeight: 800, color: '#475569', fontSize: '1.05rem' }}>Belum Ada Catatan Pertemuan</div>
                   <div style={{ fontSize: '0.86rem', marginTop: 4 }}>
                     Pertemuan akan dicatat secara otomatis setelah pengajar membuka sesi absensi di hari Sabtu & Minggu.

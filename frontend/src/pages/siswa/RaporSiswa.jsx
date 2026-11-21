@@ -271,54 +271,54 @@ export default function RaporSiswa() {
 
             {/* Identitas Peserta Didik (Format Standar Rapor Indonesia) */}
             <div className="rapor-identity-grid">
-              <div>
+              <div className="rapor-identity-col">
                 <table className="rapor-identity-table">
                   <tbody>
                     <tr>
-                      <td style={{ width: 145 }}>Nama Peserta Didik</td>
-                      <td style={{ width: 10 }}>:</td>
-                      <td><strong>{studentName}</strong></td>
+                      <td className="rapor-id-label">Nama Peserta Didik</td>
+                      <td className="rapor-id-colon">:</td>
+                      <td className="rapor-id-value"><strong>{studentName}</strong></td>
                     </tr>
                     <tr>
-                      <td>NISN / NIS</td>
-                      <td>:</td>
-                      <td>{detailRapor?.nisn || profilSiswa?.nisn || '-'} / {displayNis || '-'}</td>
+                      <td className="rapor-id-label">NISN / NIS</td>
+                      <td className="rapor-id-colon">:</td>
+                      <td className="rapor-id-value">{detailRapor?.nisn || profilSiswa?.nisn || '-'} / {displayNis || '-'}</td>
                     </tr>
                     <tr>
-                      <td>Nama Satuan Pendidikan</td>
-                      <td>:</td>
-                      <td>PKBM BINA MANDIRI</td>
+                      <td className="rapor-id-label">Nama Satuan Pendidikan</td>
+                      <td className="rapor-id-colon">:</td>
+                      <td className="rapor-id-value">PKBM BINA MANDIRI</td>
                     </tr>
                     <tr>
-                      <td>Alamat Satuan Pendidikan</td>
-                      <td>:</td>
-                      <td>Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat Kode Pos 5381</td>
+                      <td className="rapor-id-label">Alamat Satuan Pendidikan</td>
+                      <td className="rapor-id-colon">:</td>
+                      <td className="rapor-id-value">Dusun Sukahurip RT 03 RW 03 Desa Legok Kaler Kec. Paseh Kab. Sumedang Prov. Jawa Barat Kode Pos 5381</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
-              <div>
+              <div className="rapor-identity-col">
                 <table className="rapor-identity-table">
                   <tbody>
                     <tr>
-                      <td style={{ width: 125 }}>Kelas / Rombel</td>
-                      <td style={{ width: 10 }}>:</td>
-                      <td>{detailRapor?.nama_rombel || studentRombel}</td>
+                      <td className="rapor-id-label">Kelas / Rombel</td>
+                      <td className="rapor-id-colon">:</td>
+                      <td className="rapor-id-value">{detailRapor?.nama_rombel || studentRombel}</td>
                     </tr>
                     <tr>
-                      <td>Fase / Program</td>
-                      <td>:</td>
-                      <td><strong>{detailRapor?.fase ? `Fase ${detailRapor.fase}` : studentProgram}</strong></td>
+                      <td className="rapor-id-label">Fase / Program</td>
+                      <td className="rapor-id-colon">:</td>
+                      <td className="rapor-id-value"><strong>{detailRapor?.fase ? `Fase ${detailRapor.fase}` : studentProgram}</strong></td>
                     </tr>
                     <tr>
-                      <td>Semester</td>
-                      <td>:</td>
-                      <td>{activeSemester} ({activeSemester === '1' ? 'Ganjil' : 'Genap'})</td>
+                      <td className="rapor-id-label">Semester</td>
+                      <td className="rapor-id-colon">:</td>
+                      <td className="rapor-id-value">{activeSemester} ({activeSemester === '1' ? 'Ganjil' : 'Genap'})</td>
                     </tr>
                     <tr>
-                      <td>Tahun Pelajaran</td>
-                      <td>:</td>
-                      <td>{detailRapor?.nama_tahun_ajaran || '2026/2027'}</td>
+                      <td className="rapor-id-label">Tahun Pelajaran</td>
+                      <td className="rapor-id-colon">:</td>
+                      <td className="rapor-id-value">{detailRapor?.nama_tahun_ajaran || '2026/2027'}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -341,45 +341,52 @@ export default function RaporSiswa() {
             ) : (
               /* Tabel Nilai Hasil Belajar Raport Asli */
               <>
-                <table className="rapor-grades-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: 32, textAlign: 'center' }}>No</th>
-                      <th style={{ width: 210, textAlign: 'left' }}>Mata Pelajaran</th>
-                      <th style={{ width: 75, textAlign: 'center' }}>Nilai Akhir</th>
-                      <th>Capaian Kompetensi / Catatan Pembelajaran</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {detailRapor.nilai && detailRapor.nilai.length > 0 ? (
-                      detailRapor.nilai.map((n, idx) => (
-                        <tr key={n.id || idx}>
-                          <td className="center">{idx + 1}</td>
-                          <td className="bold">{n.nama_mapel}</td>
-                          <td className="center bold">{n.nilai_akhir}</td>
-                          <td>{n.catatan || 'Tuntas mencapai kriteria ketuntasan tujuan pembelajaran.'}</td>
+                <div className="rapor-table-responsive-wrap">
+                  <div className="rapor-mobile-scroll-hint">
+                    <span>⇄ Geser tabel ke kanan untuk melihat rincian nilai</span>
+                  </div>
+                  <div className="rapor-table-scroll-container">
+                    <table className="rapor-grades-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: 32, textAlign: 'center' }}>No</th>
+                          <th style={{ width: 210, textAlign: 'left' }}>Mata Pelajaran</th>
+                          <th style={{ width: 75, textAlign: 'center' }}>Nilai Akhir</th>
+                          <th>Capaian Kompetensi / Catatan Pembelajaran</th>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="4" style={{ textAlign: 'center', padding: '16px' }}>
-                          Belum ada nilai yang dimasukkan.
-                        </td>
-                      </tr>
-                    )}
-                    <tr className="summary-row">
-                      <td colSpan="2" style={{ textAlign: 'right', paddingRight: 14 }}>
-                        RATA-RATA NILAI KESELURUHAN:
-                      </td>
-                      <td className="center bold">
-                        {detailRapor.rata_rata || detailRapor.rata_rata_nilai || '0'}
-                      </td>
-                      <td style={{ fontStyle: 'italic', color: '#475569' }}>
-                        {Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 85 ? 'Capaian Sangat Baik' : Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 75 ? 'Capaian Baik' : Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 60 ? 'Cukup' : 'Perlu Bimbingan'}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody>
+                        {detailRapor.nilai && detailRapor.nilai.length > 0 ? (
+                          detailRapor.nilai.map((n, idx) => (
+                            <tr key={n.id || idx}>
+                              <td className="center">{idx + 1}</td>
+                              <td className="bold">{n.nama_mapel}</td>
+                              <td className="center bold">{n.nilai_akhir}</td>
+                              <td>{n.catatan || 'Tuntas mencapai kriteria ketuntasan tujuan pembelajaran.'}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="4" style={{ textAlign: 'center', padding: '16px' }}>
+                              Belum ada nilai yang dimasukkan.
+                            </td>
+                          </tr>
+                        )}
+                        <tr className="summary-row">
+                          <td colSpan="2" style={{ textAlign: 'right', paddingRight: 14 }}>
+                            RATA-RATA NILAI KESELURUHAN:
+                          </td>
+                          <td className="center bold">
+                            {detailRapor.rata_rata || detailRapor.rata_rata_nilai || '0'}
+                          </td>
+                          <td style={{ fontStyle: 'italic', color: '#475569' }}>
+                            {Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 85 ? 'Capaian Sangat Baik' : Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 75 ? 'Capaian Baik' : Number(detailRapor.rata_rata || detailRapor.rata_rata_nilai || 0) >= 60 ? 'Cukup' : 'Perlu Bimbingan'}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
 
                 {/* Rekap Kehadiran & Catatan Wali Kelas (Side-by-Side Grid) */}
                 <div className="print-evaluation-grid">

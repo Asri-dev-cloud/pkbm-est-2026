@@ -239,7 +239,8 @@
   margin-bottom: 6px;
 }
 
-.rapor-identity-grid > div {
+.rapor-identity-grid > div,
+.rapor-identity-col {
   flex: 1;
   min-width: 0;
 }
@@ -255,6 +256,21 @@
   padding: 1.2px 0;
   vertical-align: top;
   line-height: 1.25;
+}
+
+.rapor-id-label {
+  width: 145px;
+  min-width: 145px;
+  color: #000000;
+}
+
+.rapor-id-colon {
+  width: 10px;
+  text-align: center;
+}
+
+.rapor-id-value {
+  color: #000000;
 }
 
 /* Tabel Nilai Raport Asli (border-collapse separate agar garis border TIDAK menimpa teks) */
@@ -911,38 +927,374 @@
   }
 }
 
-/* ── Responsive Mobile ─────────────────────────────────────── */
+/* ── Responsive Mobile (Tampilan Mobile Rapi, Bersih, Proporsional & Nyaman Dibaca) ── */
+.rapor-mobile-scroll-hint {
+  display: none;
+}
+.rapor-table-scroll-container {
+  width: 100%;
+}
+
 @media (max-width: 768px) {
   .rapor-siswa-page {
-    padding: 16px 12px 40px;
+    padding: 16px 10px 48px;
+    max-width: 100%;
+    box-sizing: border-box;
   }
+
+  /* Top Bar Header */
+  .rapor-top-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .rapor-top-title h1 {
+    font-size: 1.35rem;
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+  .rapor-top-title p {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+  .rapor-actions-group {
+    width: 100%;
+  }
+  .rapor-btn-print {
+    width: 100%;
+    justify-content: center;
+    padding: 11px 16px;
+    font-size: 0.88rem;
+    box-sizing: border-box;
+    border-radius: 12px;
+  }
+
+  /* Semester Bar */
+  .rapor-semester-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px;
+    margin-bottom: 18px;
+    border-radius: 12px;
+  }
+  .rapor-segmented-tabs {
+    width: 100%;
+    display: flex;
+    box-sizing: border-box;
+  }
+  .rapor-tab-button {
+    flex: 1;
+    text-align: center;
+    padding: 9px 8px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+  .rapor-ta-badge {
+    text-align: center;
+    font-size: 0.78rem;
+    color: #475569;
+  }
+
+  /* Lembar Dokumen Rapor (Pas 100% Layar Mobile, Rapi & Tidak Goyang) */
   .rapor-paper-sheet {
-    padding: 24px 16px;
-    border-radius: 8px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 16px 12px;
+    border-radius: 12px;
+    max-width: 100%;
+    margin: 0 auto 24px auto;
+    box-sizing: border-box;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
   }
-  .rapor-grades-table {
-    min-width: 600px;
+
+  /* Kop Surat Resmi di Layar HP */
+  .rapor-kop-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+  .rapor-kop-logo {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 2px;
+  }
+  .rapor-kop-spacer {
+    display: none;
+  }
+  .rapor-kop-text {
+    width: 100%;
+  }
+  .rapor-kop-yayasan {
+    font-size: 0.70rem;
+    line-height: 1.25;
+  }
+  .rapor-kop-pkbm {
+    font-size: 0.84rem;
+    line-height: 1.25;
+  }
+  .rapor-kop-brand {
+    font-size: 1.15rem;
+    line-height: 1.2;
+    margin-bottom: 3px;
+  }
+  .rapor-kop-legal {
+    font-size: 0.63rem;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+  .rapor-kop-address {
+    font-size: 0.61rem;
+    line-height: 1.35;
+  }
+  .rapor-kop-contact {
+    font-size: 0.60rem;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+
+  /* Judul Dokumen Rapor */
+  .rapor-doc-title {
+    font-size: 0.94rem;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .rapor-doc-subtitle {
+    font-size: 0.78rem;
+  }
+
+  /* Identitas Siswa (Vertikal 1 Kolom Bersih & Rapi) */
+  .rapor-identity-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.75rem;
+    margin-bottom: 10px;
+  }
+  .rapor-identity-col {
+    width: 100%;
   }
   .rapor-identity-table {
+    width: 100%;
+    font-size: 0.74rem;
+  }
+  .rapor-identity-table td {
+    padding: 2.5px 0;
+  }
+  .rapor-id-label {
+    width: 130px;
+    min-width: 130px;
+    font-size: 0.73rem;
+    font-weight: 600;
+  }
+  .rapor-id-colon {
+    width: 8px;
+    font-size: 0.73rem;
+  }
+  .rapor-id-value {
+    font-size: 0.73rem;
+    word-break: break-word;
+  }
+
+  /* Petunjuk Geser Tabel Mobile */
+  .rapor-mobile-scroll-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border: 1px dashed #BFDBFE;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  /* Tabel Nilai Mobile (Dapat Di-swipe Lancar) */
+  .rapor-table-scroll-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    border-radius: 6px;
+  }
+  .rapor-grades-table {
+    min-width: 520px;
+    font-size: 0.73rem;
+    margin-bottom: 6px;
+  }
+  .rapor-grades-table th,
+  .rapor-grades-table td {
+    padding: 5px 6px;
+  }
+
+  /* Evaluasi (Presensi & Catatan Wali Kelas Stacked Vertikal) */
+  .print-evaluation-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+  }
+  .print-presensi-card,
+  .print-catatan-card {
+    width: 100%;
     min-width: 0;
   }
-  .rapor-identity-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .print-card-title {
+    font-size: 0.75rem;
+    margin-bottom: 4px;
   }
-  .rapor-kop-header {
+  .print-presensi-box {
+    font-size: 0.73rem;
+  }
+  .presensi-row {
+    line-height: 1.35;
+  }
+  .presensi-lbl {
+    padding: 4px 8px;
+  }
+  .presensi-val {
+    width: 70px;
+    padding: 4px 6px;
+  }
+  .print-catatan-body {
+    padding: 8px 10px;
+    min-height: 52px;
+  }
+  .print-catatan-body p {
+    font-size: 0.74rem;
+    line-height: 1.35;
+  }
+
+  /* Kolom Tanda Tangan 3 Pihak di Mobile (Tersusun Vertikal Berurutan Tanpa Bertumpuk) */
+  .print-ttd-grid {
+    display: flex;
     flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    width: 100%;
+    margin-top: 14px;
+  }
+  .ttd-box {
+    width: 100%;
+    max-width: 290px;
+    min-height: 84px;
     text-align: center;
-    gap: 10px;
   }
-  .print-evaluation-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
+  .ttd-header {
+    height: auto;
+    min-height: 28px;
+    margin-bottom: 6px;
+    font-size: 0.75rem;
   }
-  .rapor-signature-grid {
-    grid-template-columns: 1fr;
-    gap: 28px;
+  .ttd-space {
+    min-height: 44px;
   }
+  .ttd-stamp-img {
+    width: 58px;
+    height: 58px;
+  }
+  .ttd-img {
+    max-height: 38px;
+    max-width: 110px;
+  }
+  .ttd-footer {
+    height: auto;
+    margin-top: 6px;
+  }
+  .ttd-name-line {
+    font-size: 0.74rem;
+  }
+  .ttd-name-official {
+    font-size: 0.80rem;
+  }
+}
+
+/* ── Layar HP Ekstra Kecil (<= 480px) ──────────────────────── */
+@media (max-width: 480px) {
+  .rapor-id-label {
+    width: 115px;
+    min-width: 115px;
+    font-size: 0.71rem;
+  }
+  .rapor-id-colon {
+    font-size: 0.71rem;
+  }
+  .rapor-id-value {
+    font-size: 0.71rem;
+  }
+  .rapor-tab-button {
+    font-size: 0.78rem;
+    padding: 8px 4px;
+  }
+}
+
+/* ── Penegasan Format Dokumen Asli untuk Download PDF (html2canvas Clone) ─── */
+#rapor-pdf-isolated-clone {
+  width: 794px !important;
+  min-width: 794px !important;
+  max-width: 794px !important;
+  padding: 18px 22px !important;
+  font-size: 10.5pt !important;
+}
+#rapor-pdf-isolated-clone .rapor-kop-header {
+  flex-direction: row !important;
+  text-align: center !important;
+  gap: 12px !important;
+}
+#rapor-pdf-isolated-clone .rapor-kop-logo {
+  width: 58px !important;
+  height: 58px !important;
+}
+#rapor-pdf-isolated-clone .rapor-kop-spacer {
+  display: block !important;
+  width: 58px !important;
+}
+#rapor-pdf-isolated-clone .rapor-identity-grid {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 14px !important;
+}
+#rapor-pdf-isolated-clone .rapor-id-label {
+  width: 145px !important;
+  min-width: 145px !important;
+}
+#rapor-pdf-isolated-clone .rapor-table-scroll-container {
+  overflow-x: visible !important;
+}
+#rapor-pdf-isolated-clone .rapor-grades-table {
+  min-width: 100% !important;
+  width: 100% !important;
+}
+#rapor-pdf-isolated-clone .print-evaluation-grid {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 10px !important;
+}
+#rapor-pdf-isolated-clone .print-presensi-card {
+  flex: 1 !important;
+}
+#rapor-pdf-isolated-clone .print-catatan-card {
+  flex: 1.35 !important;
+}
+#rapor-pdf-isolated-clone .print-ttd-grid {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+}
+#rapor-pdf-isolated-clone .ttd-box {
+  max-width: none !important;
+  width: auto !important;
+  flex: 1 !important;
+}
+#rapor-pdf-isolated-clone .rapor-mobile-scroll-hint {
+  display: none !important;
 }

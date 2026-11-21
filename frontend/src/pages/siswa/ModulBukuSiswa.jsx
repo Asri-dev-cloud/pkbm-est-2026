@@ -494,7 +494,7 @@ function ModulBukuSiswa() {
                   <div className="kemendikdasmen-card">
                     <div>
                       <div className="kemendikdasmen-card-icon nonteks">
-                        <Sparkles size={26} />
+                        <BookOpen size={24} />
                       </div>
                       <h3>Buku Literasi & Nonteks Bergizi</h3>
                       <p>
@@ -643,7 +643,6 @@ function ModulBukuSiswa() {
                 />
               ) : activeReader.url_eksternal ? (
                 <div className="reader-fallback">
-                  <BookMarked size={48} color="#60A5FA" style={{ margin: '0 auto 1rem' }} />
                   <h4>Modul / Buku Disediakan Melalui Tautan Resmi</h4>
                   <p>
                     Buku ini terintegrasi dengan Portal Resmi Kemendikdasmen. Anda dapat membacanya langsung
@@ -661,7 +660,6 @@ function ModulBukuSiswa() {
                 </div>
               ) : (
                 <div className="reader-fallback">
-                  <FileText size={48} color="#94A3B8" style={{ margin: '0 auto 1rem' }} />
                   <h4>Berkas Modul Sedang Dipersiapkan</h4>
                   <p>
                     File materi untuk modul ini belum diunggah oleh admin. Silakan periksa kembali nanti atau
