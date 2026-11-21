@@ -378,25 +378,48 @@ export default function AbsensiSiswa() {
           ══════════════════════════════════════════════════════ */}
           {activeTab === 'aktif' && (
             <div className="absensi-active-card">
-              {!sesiAktif ? (
-                /* Empty state ketika tidak ada sesi aktif */
+              {!isWeekend || sesiAktif?.status_jadwal === 'tutup' ? (
+                /* Hari Kerja (Senin - Jumat): Presensi Ditutup Otomatis Sesuai Jadwal */
+                <div className="absensi-empty-box" style={{ padding: '3rem 1.5rem', textAlign: 'center' }}>
+                  <div className="absensi-empty-icon" style={{ background: '#F8FAFC', color: '#64748B', border: '1.5px solid #CBD5E1' }}>
+                    <Coffee size={28} />
+                  </div>
+                  <h3 className="absensi-empty-title" style={{ color: '#1E293B' }}>
+                    Presensi KBM Ditutup (Senin – Jumat)
+                  </h3>
+                  <p className="absensi-empty-desc" style={{ maxWidth: 540, margin: '8px auto 16px', lineHeight: 1.6 }}>
+                    Sesuai jadwal akademik PKBM Bina Mandiri, sesi presensi pembelajaran tatap muka dan mandiri <strong>hanya dibuka otomatis setiap hari Sabtu dan Minggu</strong>. Hari {currentDayName} adalah waktu belajar mandiri.
+                  </p>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 999, background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', fontSize: '0.84rem', fontWeight: 700, marginBottom: '1.25rem' }}>
+                    <CalendarCheck size={15} />
+                    <span>Sesi Terdekat: Sabtu ({weekendDates.sabtuStr}) & Minggu ({weekendDates.mingguStr})</span>
+                  </div>
+                  <div>
+                    <NavLink
+                      to="/dashboard/siswa/ruang-belajar"
+                      className="weekend-schedule-cta"
+                      style={{ display: 'inline-flex', padding: '10px 22px', borderRadius: 12, fontSize: '0.88rem' }}
+                    >
+                      <span>Buka Modul & Ruang Belajar</span>
+                      <ArrowRight size={14} />
+                    </NavLink>
+                  </div>
+                </div>
+              ) : !sesiAktif ? (
+                /* Hari Weekend tetapi Sesi Masih Menunggu Inisialisasi */
                 <div className="absensi-empty-box">
                   <div className="absensi-empty-icon">
                     <CalendarCheck size={28} />
                   </div>
                   <h3 className="absensi-empty-title">
-                    {isWeekend 
-                      ? `Belum Ada Sesi Presensi yang Terbuka untuk Hari ${currentDayName}` 
-                      : `Sesi Belajar Terbuka di Akhir Pekan (Sabtu & Minggu)`}
+                    Sesi Presensi Hari {currentDayName} Sedang Dipersiapkan
                   </h3>
                   <p className="absensi-empty-desc">
-                    {isWeekend
-                      ? `Tutor pengampu akan membuka sesi presensi mandiri saat jam pembelajaran dimulai. Halaman ini akan mendeteksi sinyal presensi secara otomatis.`
-                      : `Saat ini adalah hari ${currentDayName}. Sesi tatap muka dan presensi langsung dibuka setiap hari Sabtu dan Minggu sesuai jadwal rombel Anda.`}
+                    Sistem mendeteksi jadwal akhir pekan aktif. Halaman akan menyinkronkan data presensi secara otomatis.
                   </p>
                   <div className="absensi-empty-status">
                     <div className="spinner" style={{ width: 14, height: 14, borderWidth: 2, borderTopColor: '#0284C7' }}></div>
-                    <span>Memantau pembukaan sesi belajar otomatis...</span>
+                    <span>Menghubungkan sesi belajar akhir pekan...</span>
                   </div>
                 </div>
               ) : (

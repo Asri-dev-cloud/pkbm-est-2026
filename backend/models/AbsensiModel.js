@@ -1,8 +1,8 @@
 // ============================================================
 // models/AbsensiModel.js
-// Model untuk Absensi Dual-Mode:
-// - Mode MANUAL: Tutor mengisi kehadiran seluruh rombel sekaligus
-// - Mode MANDIRI: Tutor aktifkan sesi → WB check-in sendiri dalam timer
+// Model untuk Presensi Otomatis KBM Akhir Pekan (Sabtu & Minggu)
+// - Hari Senin - Jumat: Presensi TUTUP otomatis (Protected by Database)
+// - Hari Sabtu & Minggu: Sesi Presensi AKTIF OTOMATIS sesuai jadwal rombel
 // ============================================================
 
 import pool from '../config/db.js';
@@ -10,8 +10,85 @@ import pool from '../config/db.js';
 const AbsensiModel = {
 
   // -----------------------------------------------------------
-  // Buka sesi absensi baru untuk satu rombel
-  // Dipanggil Tutor saat memulai pertemuan
+  // Auto-Provision Sesi KBM Akhir Pekan (Sabtu & Minggu)
+  // Menjamin presensi otomatis terbentuk sesuai jadwal KBM tanpa manual input
+  // -----------------------------------------------------------
+  ensureSesiOtomatisAkhirPekan: async (rombel_id) => {
+    if (!rombel_id || rombel_id <= 0) return null;
+
+    // 1. Cek hari ini di server MySQL (1 = Minggu, 7 = Sabtu, 2..6 = Senin..Jumat)
+    const [dayRows] = await pool.execute(`SELECT DAYOFWEEK(CURDATE()) AS dow`);
+    const dow = Number(dayRows[0]?.dow || 0);
+    const isWeekend = dow === 1 || dow === 7;
+
+    if (!isWeekend) {
+      return {
+        is_open: false,
+        status: 'tutup',
+        message: 'Presensi KBM ditutup. Jadwal sesi pembelajaran tatap muka dan mandiri hanya dibuka pada hari Sabtu dan Minggu.'
+      };
+    }
+
+    // 2. Jika hari Sabtu atau Minggu, cek apakah sudah ada sesi untuk rombel ini hari ini
+    const [existingRows] = await pool.execute(
+      `SELECT sa.id
+       FROM sesi_absensi sa
+       WHERE sa.rombel_id = ? AND sa.tanggal = CURDATE()
+       ORDER BY sa.id DESC LIMIT 1`,
+      [rombel_id]
+    );
+
+    if (existingRows.length > 0) {
+      return {
+        is_open: true,
+        status: 'aktif',
+        sesi_id: existingRows[0].id
+      };
+    }
+
+    // 3. Jika belum ada, otomatis buatkan sesi resmi hari ini di database
+    // Ambil mata pelajaran aktif rombel dari rombel_mapel
+    const [mapelRows] = await pool.execute(
+      `SELECT rm.mapel_id, rm.tutor_id, r.tutor_wali_id
+       FROM rombel_mapel rm
+       JOIN rombel r ON r.id = rm.rombel_id
+       WHERE rm.rombel_id = ? AND rm.is_visible = 1
+       ORDER BY rm.urutan ASC, rm.id ASC LIMIT 1`,
+      [rombel_id]
+    );
+
+    let mapel_id = mapelRows[0]?.mapel_id || null;
+    let tutor_id = mapelRows[0]?.tutor_id || mapelRows[0]?.tutor_wali_id || null;
+
+    if (!tutor_id) {
+      const [adminRows] = await pool.execute(`SELECT id FROM users WHERE role IN ('tutor', 'admin', 'super_admin') LIMIT 1`);
+      tutor_id = adminRows[0]?.id || 1;
+    }
+
+    // Hitung nomor pertemuan berjalan
+    const [countRows] = await pool.execute(
+      `SELECT COUNT(*) AS total FROM sesi_absensi WHERE rombel_id = ?`,
+      [rombel_id]
+    );
+    const pertemuan_ke = (countRows[0]?.total || 0) + 1;
+
+    // Insert otomatis sesi presensi mandiri berdurasi KBM hari itu
+    const sqlInsert = `
+      INSERT INTO sesi_absensi
+        (tutor_id, rombel_id, mapel_id, tanggal, mode, waktu_mulai, durasi_timer, status_sesi, pertemuan_ke, catatan)
+      VALUES (?, ?, ?, CURDATE(), 'mandiri', NOW(), 86400, 'aktif', ?, 'Sesi KBM Akhir Pekan Terjadwal')
+    `;
+    const [insertResult] = await pool.execute(sqlInsert, [tutor_id, rombel_id, mapel_id, pertemuan_ke]);
+
+    return {
+      is_open: true,
+      status: 'aktif',
+      sesi_id: insertResult.insertId
+    };
+  },
+
+  // -----------------------------------------------------------
+  // Buka sesi absensi (kompatibilitas sistem)
   // -----------------------------------------------------------
   bukaSesi: async ({ tutor_id, rombel_id, mapel_id, tanggal, mode, durasi_timer = null, pertemuan_id = null, pertemuan_ke = 1, catatan = null }) => {
     const sql = `
@@ -165,9 +242,18 @@ const AbsensiModel = {
     const validStatus = ['hadir', 'izin', 'sakit'];
     const finalStatus = validStatus.includes(status) ? status : 'hadir';
 
+    // 1. Strict Server-Side & Database Enforcement:
+    // Presensi KBM Resmi HANYA diperbolehkan pada hari Sabtu (7) dan Minggu (1)
+    const [dayRows] = await pool.execute(`SELECT DAYOFWEEK(CURDATE()) AS dow`);
+    const dow = Number(dayRows[0]?.dow || 0);
+    if (dow !== 1 && dow !== 7) {
+      throw new Error('Presensi KBM ditutup. Pengisian presensi hanya diperbolehkan pada hari Sabtu dan Minggu sesuai jadwal pembelajaran resmi PKBM Bina Mandiri.');
+    }
+
     // Ambil info sesi terlebih dahulu dengan kalkulasi timer langsung dari database MySQL
     const [sesiRows] = await pool.execute(
-      `SELECT id, rombel_id, status_sesi, mode, waktu_mulai, durasi_timer,
+      `SELECT id, rombel_id, status_sesi, mode, waktu_mulai, durasi_timer, tanggal,
+              (DATE(tanggal) = CURDATE()) AS is_today,
               TIMESTAMPDIFF(SECOND, waktu_mulai, NOW()) AS elapsed_seconds
        FROM sesi_absensi WHERE id = ? LIMIT 1`,
       [sesi_id]
@@ -186,6 +272,7 @@ const AbsensiModel = {
     if (!sesi) throw new Error('Sesi absensi tidak ditemukan.');
     if (!wargaBelajar) throw new Error('Profil Warga Belajar tidak ditemukan.');
     if (sesi.status_sesi !== 'aktif') throw new Error('Sesi presensi sudah ditutup.');
+    if (!sesi.is_today) throw new Error('Presensi hanya dapat diisi pada hari sesi KBM berlangsung.');
 
     // Validasi kesesuaian rombel (bila sesi dikhususkan untuk rombel tertentu)
     if (sesi.rombel_id && sesi.rombel_id > 0) {
@@ -262,6 +349,19 @@ const AbsensiModel = {
   // Digunakan untuk real-time monitoring di dashboard Tutor
   // -----------------------------------------------------------
   getSesiAktifTutor: async (tutor_id) => {
+    // 1. Cek jadwal KBM di server MySQL (1 = Minggu, 7 = Sabtu)
+    const [dayRows] = await pool.execute(`SELECT DAYOFWEEK(CURDATE()) AS dow`);
+    const dow = Number(dayRows[0]?.dow || 0);
+    const isWeekend = dow === 1 || dow === 7;
+
+    if (!isWeekend) {
+      return {
+        status_jadwal: 'tutup',
+        is_weekend: false,
+        message: 'Presensi KBM ditutup. Jadwal tatap muka dan presensi mandiri hanya dibuka pada hari Sabtu dan Minggu.'
+      };
+    }
+
     // Tutup otomatis sesi mandiri yang timer-nya sudah habis
     await pool.execute(
       `UPDATE sesi_absensi
@@ -285,15 +385,36 @@ const AbsensiModel = {
       FROM sesi_absensi sa
       JOIN rombel r ON r.id = sa.rombel_id
       LEFT JOIN mata_pelajaran mp ON mp.id = sa.mapel_id
-      WHERE sa.tutor_id = ? AND sa.status_sesi = 'aktif'
+      WHERE sa.tutor_id = ? AND sa.status_sesi = 'aktif' AND sa.tanggal = CURDATE()
       ORDER BY sa.created_at DESC
       LIMIT 1
     `;
     const [rows] = await pool.execute(sql, [tutor_id]);
-    return rows[0] || null;
+    if (!rows[0]) return null;
+    return {
+      ...rows[0],
+      status_jadwal: 'buka',
+      is_weekend: true
+    };
   },
 
   getSesiAktifWb: async ({ warga_belajar_id, rombel_id }) => {
+    // 1. Cek jadwal KBM di server MySQL (1 = Minggu, 7 = Sabtu)
+    const [dayRows] = await pool.execute(`SELECT DAYOFWEEK(CURDATE()) AS dow`);
+    const dow = Number(dayRows[0]?.dow || 0);
+    const isWeekend = dow === 1 || dow === 7;
+
+    if (!isWeekend) {
+      return {
+        status_jadwal: 'tutup',
+        is_weekend: false,
+        message: 'Presensi KBM ditutup. Jadwal sesi pembelajaran tatap muka dan mandiri hanya dibuka otomatis pada hari Sabtu dan Minggu.'
+      };
+    }
+
+    // 2. Jika hari Sabtu atau Minggu, otomatis pastikan sesi hari ini tersedia di database
+    await AbsensiModel.ensureSesiOtomatisAkhirPekan(rombel_id);
+
     await pool.execute(
       `UPDATE sesi_absensi
        SET status_sesi = 'selesai', waktu_selesai = COALESCE(waktu_selesai, NOW())
@@ -327,12 +448,17 @@ const AbsensiModel = {
       LEFT JOIN rekaman_kehadiran rk ON rk.sesi_id = sa.id AND rk.warga_belajar_id = ?
       WHERE sa.rombel_id = ?
         AND sa.status_sesi = 'aktif'
-        AND sa.mode = 'mandiri'
-      ORDER BY sa.created_at DESC
+        AND sa.tanggal = CURDATE()
+      ORDER BY sa.id DESC
       LIMIT 1
     `;
     const [rows] = await pool.execute(sql, [warga_belajar_id, rombel_id]);
-    return rows[0] || null;
+    if (!rows[0]) return null;
+    return {
+      ...rows[0],
+      status_jadwal: 'buka',
+      is_weekend: true
+    };
   },
 
   // -----------------------------------------------------------
@@ -367,6 +493,19 @@ const AbsensiModel = {
   // Menghasilkan data matriks kehadiran: Siswa x Pertemuan (P1..Pn)
   // -----------------------------------------------------------
   getRekapMatriks: async ({ rombel_id, mapel_id = null }) => {
+    // 0. Auto-provision sesi akhir pekan jika hari ini Sabtu atau Minggu
+    if (rombel_id) {
+      try {
+        const [dayRows] = await pool.execute(`SELECT DAYOFWEEK(CURDATE()) AS dow`);
+        const dow = Number(dayRows[0]?.dow || 0);
+        if (dow === 1 || dow === 7) {
+          await AbsensiModel.ensureSesiOtomatisAkhirPekan(rombel_id);
+        }
+      } catch (autoErr) {
+        console.warn('[getRekapMatriks] Auto weekend session notice:', autoErr.message);
+      }
+    }
+
     // 1. Data rombel
     const [rombelRows] = await pool.execute(`SELECT id, nama_rombel, jenjang FROM rombel WHERE id = ?`, [rombel_id]);
     const rombelInfo = rombelRows[0] || null;

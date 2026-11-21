@@ -56,19 +56,6 @@ function AbsensiAdmin() {
   const [rekapData, setRekapData] = useState(null);
   const [error, setError] = useState('');
 
-  // ── Modal Buka Sesi State ─────────────────────────────────
-  const [showModalBukaSesi, setShowModalBukaSesi] = useState(false);
-  const [formSesi, setFormSesi] = useState({
-    rombel_id: '',
-    mapel_id: '',
-    pertemuan_ke: 1,
-    tanggal: satDate,
-    mode: 'mandiri',
-    durasi_menit: 60,
-    catatan: '',
-  });
-  const [submittingSesi, setSubmittingSesi] = useState(false);
-
   // ── Modal Quick Edit Status Siswa ─────────────────────────
   const [editModal, setEditModal] = useState({
     isOpen: false,
@@ -222,55 +209,6 @@ function AbsensiAdmin() {
   useEffect(() => {
     fetchRekapMatriks();
   }, [selectedRombelId, selectedMapelId]);
-
-  // ── 4. Handler Buka Sesi Baru ──────────────────────────────
-  const handleOpenModalBukaSesi = () => {
-    const nextP = (rekapData?.sesi_list?.length || 0) + 1;
-    setFormSesi({
-      rombel_id: selectedRombelId,
-      mapel_id: selectedMapelId || (mapelList[0]?.id ? String(mapelList[0].id) : ''),
-      pertemuan_ke: nextP,
-      tanggal: satDate,
-      mode: 'mandiri',
-      durasi_menit: 60,
-      catatan: `Pertemuan ${nextP}`,
-    });
-    setShowModalBukaSesi(true);
-  };
-
-  const handleSubmitBukaSesi = async (e) => {
-    e.preventDefault();
-    if (!formSesi.rombel_id) {
-      alert('Pilih rombongan belajar terlebih dahulu.');
-      return;
-    }
-
-    setSubmittingSesi(true);
-    try {
-      const payload = {
-        rombel_id: Number(formSesi.rombel_id),
-        mapel_id: formSesi.mapel_id ? Number(formSesi.mapel_id) : null,
-        pertemuan_ke: Number(formSesi.pertemuan_ke) || 1,
-        tanggal: formSesi.tanggal,
-        mode: formSesi.mode,
-        durasi_timer: formSesi.mode === 'mandiri' && formSesi.durasi_menit ? Number(formSesi.durasi_menit) * 60 : null,
-        catatan: formSesi.catatan.trim() || null,
-      };
-
-      const res = await AbsensiAPI.bukaSesi(payload);
-      if (res.data?.success) {
-        alert(`Sesi presensi Pertemuan ${formSesi.pertemuan_ke} berhasil dibuka!`);
-        setShowModalBukaSesi(false);
-        await fetchRekapMatriks();
-      } else {
-        alert(res.data?.message || 'Gagal membuka sesi presensi.');
-      }
-    } catch (err) {
-      alert(err.response?.data?.message || 'Terjadi kesalahan saat membuka sesi presensi.');
-    } finally {
-      setSubmittingSesi(false);
-    }
-  };
 
   // ── 5. Handler Tutup Sesi & Hapus Sesi ─────────────────────
   const handleTutupSesi = async (sesiId, pKe) => {
@@ -485,15 +423,23 @@ function AbsensiAdmin() {
                     <span>Unduh Excel (CSV)</span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={handleOpenModalBukaSesi}
-                    className="admin-hero-btn gold"
-                    title="Buka sesi presensi baru untuk hari Sabtu atau Minggu"
-                  >
-                    <i className="bi bi-calendar-plus"></i>
-                    <span>Buka Sesi Presensi</span>
-                  </button>
+                  {isWeekend ? (
+                    <div className="admin-status-auto-pill active" title="Sesi presensi otomatis aktif setiap hari Sabtu & Minggu">
+                      <span className="auto-pill-dot green"></span>
+                      <div>
+                        <div className="auto-pill-title">Sesi Otomatis Aktif</div>
+                        <div className="auto-pill-sub">Hari Ini: {currentDayName} (Sabtu & Minggu)</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="admin-status-auto-pill closed" title="Presensi tatap muka dan mandiri ditutup pada hari Senin s.d. Jumat">
+                      <i className="bi bi-lock-fill"></i>
+                      <div>
+                        <div className="auto-pill-title">Presensi KBM Ditutup</div>
+                        <div className="auto-pill-sub">Buka Otomatis Sabtu & Minggu</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -889,181 +835,6 @@ function AbsensiAdmin() {
                     </table>
                   </div>
                 )}
-              </div>
-            )}
-
-            {/* ════ MODAL BUKA SESI PRESENSI (SABTU & MINGGU) ════ */}
-            {showModalBukaSesi && (
-              <div className="admin-modal-overlay" onClick={() => setShowModalBukaSesi(false)}>
-                <div className="admin-modal-box" onClick={(e) => e.stopPropagation()}>
-                  <div className="admin-modal-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <i className="bi bi-calendar-plus text-primary"></i>
-                      <h3>Buka Sesi Presensi Akhir Pekan</h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowModalBukaSesi(false)}
-                      className="admin-modal-close-btn"
-                    >
-                      <i className="bi bi-x-lg"></i>
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleSubmitBukaSesi}>
-                    <div className="admin-modal-body">
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 4 }}>
-                          Rombongan Belajar (Kelas) <span style={{ color: '#DC2626' }}>*</span>
-                        </label>
-                        <select
-                          value={formSesi.rombel_id}
-                          onChange={(e) => setFormSesi({ ...formSesi, rombel_id: e.target.value })}
-                          required
-                          className="admin-filter-select"
-                        >
-                          {rombelList.map(r => (
-                            <option key={r.id} value={r.id}>{r.nama_rombel || r.nama}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 4 }}>
-                          Mata Pelajaran <span style={{ color: '#DC2626' }}>*</span>
-                        </label>
-                        <select
-                          value={formSesi.mapel_id}
-                          onChange={(e) => setFormSesi({ ...formSesi, mapel_id: e.target.value })}
-                          required
-                          className="admin-filter-select"
-                        >
-                          <option value="">-- Pilih Mata Pelajaran --</option>
-                          {mapelList.map(m => (
-                            <option key={m.id} value={m.id}>{m.kode ? `[${m.kode}] ` : ''}{m.nama}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                          <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
-                            Tanggal Sesi (Sabtu / Minggu) <span style={{ color: '#DC2626' }}>*</span>
-                          </label>
-                        </div>
-
-                        <input
-                          type="date"
-                          value={formSesi.tanggal}
-                          onChange={(e) => setFormSesi({ ...formSesi, tanggal: e.target.value })}
-                          required
-                          className="admin-filter-input"
-                        />
-
-                        <div className="weekend-quick-pickers">
-                          <button
-                            type="button"
-                            onClick={() => setFormSesi({ ...formSesi, tanggal: satDate })}
-                            className="quick-weekend-btn"
-                          >
-                            <i className="bi bi-calendar-event" style={{ marginRight: 5 }}></i>
-                            Sabtu Ini ({satDate})
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setFormSesi({ ...formSesi, tanggal: sunDate })}
-                            className="quick-weekend-btn"
-                          >
-                            <i className="bi bi-calendar-event" style={{ marginRight: 5 }}></i>
-                            Minggu Ini ({sunDate})
-                          </button>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
-                        <div>
-                          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 4 }}>
-                            Pertemuan Ke- <span style={{ color: '#DC2626' }}>*</span>
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            max="32"
-                            value={formSesi.pertemuan_ke}
-                            onChange={(e) => setFormSesi({ ...formSesi, pertemuan_ke: e.target.value })}
-                            required
-                            className="admin-filter-input"
-                          />
-                        </div>
-
-                        <div>
-                          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 4 }}>
-                            Metode Presensi <span style={{ color: '#DC2626' }}>*</span>
-                          </label>
-                          <select
-                            value={formSesi.mode}
-                            onChange={(e) => setFormSesi({ ...formSesi, mode: e.target.value })}
-                            className="admin-filter-select"
-                          >
-                            <option value="mandiri">Mandiri Siswa (Digital)</option>
-                            <option value="manual">Manual Tutor / Admin</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {formSesi.mode === 'mandiri' && (
-                        <div>
-                          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 4 }}>
-                            Batas Waktu Check-In
-                          </label>
-                          <select
-                            value={formSesi.durasi_menit}
-                            onChange={(e) => setFormSesi({ ...formSesi, durasi_menit: e.target.value })}
-                            className="admin-filter-select"
-                          >
-                            <option value="30">30 Menit</option>
-                            <option value="60">60 Menit (1 Jam)</option>
-                            <option value="90">90 Menit (1.5 Jam)</option>
-                            <option value="120">120 Menit (2 Jam)</option>
-                            <option value="1440">Sepanjang Hari (24 Jam)</option>
-                          </select>
-                        </div>
-                      )}
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 4 }}>
-                          Catatan / Pengantar Sesi (Opsional)
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Contoh: Sesi Pagi - Pembahasan Modul 3"
-                          value={formSesi.catatan}
-                          onChange={(e) => setFormSesi({ ...formSesi, catatan: e.target.value })}
-                          className="admin-filter-input"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="admin-modal-footer">
-                      <button
-                        type="button"
-                        onClick={() => setShowModalBukaSesi(false)}
-                        className="quick-weekend-btn"
-                        style={{ background: '#F1F5F9' }}
-                      >
-                        Batal
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={submittingSesi}
-                        className="admin-hero-btn gold"
-                        style={{ borderRadius: 8, padding: '7px 18px', fontSize: '0.85rem' }}
-                      >
-                        {submittingSesi ? 'Membuka...' : 'Buka Sesi Presensi'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
               </div>
             )}
 

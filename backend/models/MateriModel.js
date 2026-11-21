@@ -122,8 +122,8 @@ export const TugasModel = {
     if (mapel_id && rombel_id) {
       sql += ` AND (t.mapel_id = ? OR t.mapel_id IS NULL OR t.mapel_id = 0)`;
       params.push(mapel_id);
-      sql += ` AND (t.rombel_id = ? OR t.rombel_id IS NULL OR t.rombel_id = 0 OR t.mapel_id = ?)`;
-      params.push(rombel_id, mapel_id);
+      sql += ` AND (t.rombel_id = ? OR t.rombel_id IS NULL OR t.rombel_id = 0)`;
+      params.push(rombel_id);
     } else if (mapel_id) {
       sql += ` AND (t.mapel_id = ? OR t.mapel_id IS NULL OR t.mapel_id = 0)`;
       params.push(mapel_id);
@@ -142,7 +142,7 @@ export const TugasModel = {
     }
 
     // Fallback 1: Jika filter rombel menghasilkan 0 tugas tapi mapel_id ada
-    if ((!rows || rows.length === 0) && mapel_id) {
+    if ((!rows || rows.length === 0) && mapel_id && !rombel_id) {
       try {
         const [fallbackRows] = await pool.query(
           `SELECT t.*,
@@ -154,7 +154,7 @@ export const TugasModel = {
           LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
           LEFT JOIN users u ON u.id = t.tutor_id
           LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
-          WHERE (t.is_aktif = 1 OR t.is_aktif IS NULL) AND (t.mapel_id = ? OR t.mapel_id IS NULL OR t.mapel_id = 0)
+          WHERE t.is_aktif = 1 AND t.mapel_id = ?
           ORDER BY t.id DESC, t.deadline ASC`,
           [mapel_id]
         );
@@ -163,56 +163,6 @@ export const TugasModel = {
         }
       } catch (fbErr) {
         console.warn('[findByRombel] Fallback 1 error:', fbErr.message);
-      }
-    }
-
-    // Fallback 2: Jika masih kosong dan ada rombel_id
-    if ((!rows || rows.length === 0) && rombel_id) {
-      try {
-        const [fbRombel] = await pool.query(
-          `SELECT t.*,
-            COALESCE(mp.nama, 'Mata Pelajaran') AS nama_mapel,
-            COALESCE(u.nama_lengkap, 'Tutor / Admin') AS nama_tutor,
-            pb.pertemuan_ke, pb.judul AS judul_pertemuan,
-            (SELECT COUNT(*) FROM pengumpulan_tugas pt WHERE pt.tugas_id = t.id) AS jumlah_terkumpul
-          FROM tugas t
-          LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
-          LEFT JOIN users u ON u.id = t.tutor_id
-          LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
-          WHERE (t.is_aktif = 1 OR t.is_aktif IS NULL) AND (t.rombel_id = ? OR t.rombel_id IS NULL OR t.rombel_id = 0)
-          ORDER BY t.id DESC, t.deadline ASC`,
-          [rombel_id]
-        );
-        if (fbRombel && fbRombel.length > 0) {
-          rows = fbRombel;
-        }
-      } catch (fb2Err) {
-        console.warn('[findByRombel] Fallback 2 error:', fb2Err.message);
-      }
-    }
-
-    // Fallback 3: Jika masih 0 tugas, ambil 10 tugas pembelajaran terbaru agar siswa tidak mendapati halaman kosong
-    if (!rows || rows.length === 0) {
-      try {
-        const [fbAll] = await pool.query(
-          `SELECT t.*,
-            COALESCE(mp.nama, 'Mata Pelajaran') AS nama_mapel,
-            COALESCE(u.nama_lengkap, 'Tutor / Admin') AS nama_tutor,
-            pb.pertemuan_ke, pb.judul AS judul_pertemuan,
-            (SELECT COUNT(*) FROM pengumpulan_tugas pt WHERE pt.tugas_id = t.id) AS jumlah_terkumpul
-          FROM tugas t
-          LEFT JOIN mata_pelajaran mp ON mp.id = t.mapel_id
-          LEFT JOIN users u ON u.id = t.tutor_id
-          LEFT JOIN pertemuan_belajar pb ON pb.id = t.pertemuan_id
-          WHERE (t.is_aktif = 1 OR t.is_aktif IS NULL)
-          ORDER BY t.id DESC, t.deadline ASC
-          LIMIT 10`
-        );
-        if (fbAll && fbAll.length > 0) {
-          rows = fbAll;
-        }
-      } catch (fb3Err) {
-        console.warn('[findByRombel] Fallback 3 error:', fb3Err.message);
       }
     }
 
@@ -291,18 +241,18 @@ export const TugasModel = {
     );
     if (!tugas[0]) return null;
 
-    // Ambil SEMUA pengumpulan untuk tugas ini tanpa ada yang terlewat / hilang
+    // Ambil SEMUA rekaman pengumpulan untuk tugas ini secara lengkap dan akurat
     const [pengumpulan] = await pool.execute(
       `SELECT pt.*,
-         COALESCE(u2.nama_lengkap, u_direct.nama_lengkap, wb.nama_lengkap, 'Warga Belajar') AS nama_lengkap,
-         COALESCE(wb.nis, u_direct.username, CONCAT('WB-', pt.warga_belajar_id)) AS nis
+         COALESCE(u_wb.nama_lengkap, u_direct.nama_lengkap, 'Warga Belajar') AS nama_lengkap,
+         COALESCE(wb_direct.nis, wb_user.nis, u_direct.username, CONCAT('WB-', pt.warga_belajar_id)) AS nis
        FROM pengumpulan_tugas pt
-       LEFT JOIN warga_belajar wb ON (wb.id = pt.warga_belajar_id OR wb.user_id = pt.warga_belajar_id)
-       LEFT JOIN users u2 ON u2.id = wb.user_id
+       LEFT JOIN warga_belajar wb_direct ON wb_direct.id = pt.warga_belajar_id
+       LEFT JOIN users u_wb ON u_wb.id = wb_direct.user_id
        LEFT JOIN users u_direct ON u_direct.id = pt.warga_belajar_id
+       LEFT JOIN warga_belajar wb_user ON wb_user.user_id = pt.warga_belajar_id
        WHERE pt.tugas_id = ?
-       GROUP BY pt.id
-       ORDER BY pt.submitted_at ASC`,
+       ORDER BY pt.submitted_at ASC, pt.id ASC`,
       [id]
     );
     return { ...tugas[0], pengumpulan };

@@ -256,6 +256,10 @@ function KelasTerpaduSiswa() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState('');
 
+  // Deteksi Hari KBM Otomatis (Sabtu = 6, Minggu = 0, Senin..Jumat = 1..5)
+  const todayDow = new Date().getDay();
+  const isWeekendKbm = todayDow === 0 || todayDow === 6;
+
   // ── Sheet Tabs State (Reference Image 2) ───────────────────
   // 'pertemuan' | 'materi' | 'modul' | 'tugas'
   const [mainTab, setMainTab] = useState('pertemuan');
@@ -2232,125 +2236,106 @@ function KelasTerpaduSiswa() {
                           <div className="sheet-content-grid">
                             {/* Kolom Kiri */}
                             <div>
-                              {/* 1. PRESENSI / ABSENSI MANDIRI */}
-                              {(pertemuanDetail.absensi || user.role !== 'warga_belajar') && (
-                                <div className="sheet-taped-card">
-                                  <span className="retro-washi-tape top-left mint"></span>
-                                  <div className="sheet-card-header">
-                                    <span className="retro-badge-wavy mint">
-                                      <i className="bi bi-clock-history"></i> Presensi Sesi
+                              {/* 1. PRESENSI OTOMATIS SESUAI JADWAL AKHIR PEKAN (SABTU & MINGGU) */}
+                              <div className="sheet-taped-card">
+                                <span className="retro-washi-tape top-left mint"></span>
+                                <div className="sheet-card-header">
+                                  <span className="retro-badge-wavy mint">
+                                    <i className="bi bi-clock-history"></i> Presensi Sesi KBM
+                                  </span>
+                                  {isWeekendKbm ? (
+                                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#059669', background: '#ECFDF5', padding: '4px 10px', borderRadius: 999, border: '1px solid #A7F3D0' }}>
+                                      🟢 Sesi Otomatis Aktif (Akhir Pekan)
                                     </span>
-                                  </div>
-
-                                  {!pertemuanDetail.absensi ? (
-                                    <div style={{ background: '#F8FAFC', border: '1.5px solid #CBD5E1', padding: '1.25rem', borderRadius: '14px' }}>
-                                      <strong style={{ display: 'block', marginBottom: '4px', color: 'var(--rb-dark)', fontFamily: 'Outfit' }}>Presensi Belum Dibuka</strong>
-                                      <p style={{ margin: '0 0 12px 0', fontSize: '0.84rem', color: '#475569', lineHeight: 1.5 }}>
-                                        Aktifkan timer presensi mandiri agar siswa dapat melakukan check-in kehadiran langsung.
-                                      </p>
-
-                                      {showAbsensiForm ? (
-                                        <form onSubmit={handleCreateAbsensiSesi} style={{ background: '#F1F5F9', border: '1.5px solid #CBD5E1', padding: '12px 14px', borderRadius: '12px' }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>Durasi:</span>
-                                              <input
-                                                type="number"
-                                                min={5}
-                                                max={180}
-                                                value={absensiTimer}
-                                                onChange={(e) => setAbsensiTimer(e.target.value)}
-                                                style={{ width: '70px', borderRadius: '8px', border: '1.5px solid #94A3B8', background: '#FFFFFF', color: 'var(--rb-dark)', padding: '6px 8px', textAlign: 'center', fontWeight: 700 }}
-                                                required
-                                              />
-                                              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>Menit</span>
-                                            </div>
-                                            <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
-                                              <button type="button" onClick={() => setShowAbsensiForm(false)} className="retro-btn-action neutral" style={{ padding: '6px 14px', fontSize: '0.8rem' }}>
-                                                Batal
-                                              </button>
-                                              <button type="submit" disabled={submittingAbsensi} className="retro-btn-action primary" style={{ padding: '6px 16px', fontSize: '0.8rem' }}>
-                                                {submittingAbsensi ? 'Mengaktifkan...' : 'Aktifkan Timer'}
-                                              </button>
-                                            </div>
-                                          </div>
-                                        </form>
-                                      ) : (
-                                        <button type="button" onClick={() => setShowAbsensiForm(true)} className="retro-btn-action primary">
-                                          <i className="bi bi-play-circle-fill"></i>
-                                          <span>Buka Timer Presensi Mandiri</span>
-                                        </button>
-                                      )}
-                                    </div>
-                                  ) : user.role !== 'warga_belajar' ? (
-                                    pertemuanDetail.absensi.status_sesi === 'aktif' && sisaWaktuAbsen > 0 ? (
-                                      <div style={{ background: '#EFF6FF', border: '1.5px solid #3B82F6', padding: '1.25rem', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                        <i className="bi bi-broadcast" style={{ fontSize: '1.6rem', color: '#2563EB' }}></i>
-                                        <div>
-                                          <strong style={{ display: 'block', color: '#1E40AF', fontFamily: 'Outfit', fontSize: '1.05rem' }}>
-                                            Sesi Presensi Mandiri Sedang Berjalan
-                                          </strong>
-                                          <span style={{ fontSize: '0.86rem', color: '#1E3A8A' }}>
-                                            Siswa dapat check-in kehadiran (Sisa waktu: <strong>{formatTimer(sisaWaktuAbsen)}</strong>)
-                                          </span>
-                                        </div>
-                                      </div>
-                                    ) : (
-                                      <div style={{ background: '#F8FAFC', border: '1.5px dashed #CBD5E1', padding: '1rem', borderRadius: '12px', color: '#64748B', fontSize: '0.88rem' }}>
-                                        <i className="bi bi-info-circle" style={{ marginRight: 6 }}></i>
-                                        <span>Tidak ada timer presensi mandiri aktif saat ini.</span>
-                                      </div>
-                                    )
-                                  ) : pertemuanDetail.absensi.rekaman_saya ? (
-                                    <div style={{ background: '#ECFDF5', border: '1.5px solid #10B981', padding: '1.25rem', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                      <i className="bi bi-check-circle-fill" style={{ fontSize: '1.8rem', color: '#059669' }}></i>
-                                      <div>
-                                        <strong style={{ fontSize: '1.05rem', color: '#065F46', display: 'block', fontFamily: 'Outfit' }}>
-                                          Anda Sudah Presensi
-                                        </strong>
-                                        <span style={{ fontSize: '0.84rem', color: '#047857' }}>
-                                          Status: <strong>{pertemuanDetail.absensi.rekaman_saya.status?.toUpperCase()}</strong>
-                                          {pertemuanDetail.absensi.rekaman_saya.waktu_check_in && ` (Tercatat ${new Date(pertemuanDetail.absensi.rekaman_saya.waktu_check_in).toLocaleTimeString('id-ID')})`}
-                                        </span>
-                                      </div>
-                                    </div>
                                   ) : (
-                                    <>
-                                      {pertemuanDetail.absensi.status_sesi === 'aktif' && pertemuanDetail.absensi.mode === 'mandiri' && sisaWaktuAbsen > 0 ? (
-                                        <div style={{ background: '#FEF2F2', border: '2px solid #F43F5E', borderRadius: '14px', padding: '1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-                                          <div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                                              <span className="retro-badge-wavy pink" style={{ background: '#F43F5E', color: '#FFFFFF', border: 'none' }}>
-                                                <i className="bi bi-stopwatch"></i> {formatTimer(sisaWaktuAbsen)}
-                                              </span>
-                                              <strong style={{ color: '#9F1239', fontFamily: 'Outfit', fontSize: '1.05rem' }}>
-                                                Presensi Dibuka!
-                                              </strong>
-                                            </div>
-                                            <span style={{ fontSize: '0.84rem', color: '#881337' }}>
-                                              Klik tombol di sebelah kanan untuk merekam kehadiran Anda.
-                                            </span>
-                                          </div>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleCheckIn(pertemuanDetail.absensi.id)}
-                                            className="retro-btn-action mint"
-                                            style={{ fontSize: '0.95rem' }}
-                                          >
-                                            <i className="bi bi-fingerprint"></i>
-                                            <span>Check-in Presensi Sekarang</span>
-                                          </button>
-                                        </div>
-                                      ) : (
-                                        <div style={{ background: '#FFFBEB', border: '1.5px solid #F59E0B', padding: '1rem', borderRadius: '12px', color: '#92400E', fontSize: '0.88rem' }}>
-                                          <i className="bi bi-exclamation-circle" style={{ marginRight: 6 }}></i>
-                                          <span>Tidak ada sesi presensi mandiri yang aktif saat ini.</span>
-                                        </div>
-                                      )}
-                                    </>
+                                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748B', background: '#F1F5F9', padding: '4px 10px', borderRadius: 999, border: '1px solid #CBD5E1' }}>
+                                      🔒 Ditutup (Senin – Jumat)
+                                    </span>
                                   )}
                                 </div>
-                              )}
+
+                                {!isWeekendKbm ? (
+                                  <div style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', padding: '1.25rem', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                    <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#F1F5F9', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0 }}>
+                                      <i className="bi bi-calendar-x"></i>
+                                    </div>
+                                    <div>
+                                      <strong style={{ display: 'block', color: '#334155', fontFamily: 'Outfit', fontSize: '0.98rem' }}>
+                                        Presensi KBM Hari Ini Ditutup (Senin – Jumat)
+                                      </strong>
+                                      <p style={{ margin: '2px 0 0 0', fontSize: '0.84rem', color: '#64748B', lineHeight: 1.5 }}>
+                                        Sesuai jadwal resmi pembelajaran PKBM Bina Mandiri, presensi KBM dibuka secara otomatis pada hari <strong>Sabtu dan Minggu</strong>. Tidak memerlukan pengaturan manual oleh tutor maupun admin.
+                                      </p>
+                                    </div>
+                                  </div>
+                                ) : user.role !== 'warga_belajar' ? (
+                                  <div style={{ background: '#F0FDF4', border: '1.5px solid #86EFAC', padding: '1.25rem', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                    <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#DCFCE7', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0 }}>
+                                      <i className="bi bi-broadcast-pin"></i>
+                                    </div>
+                                    <div>
+                                      <strong style={{ display: 'block', color: '#166534', fontFamily: 'Outfit', fontSize: '0.98rem' }}>
+                                        Sesi Presensi Otomatis KBM Akhir Pekan Aktif
+                                      </strong>
+                                      <p style={{ margin: '2px 0 0 0', fontSize: '0.84rem', color: '#15803D', lineHeight: 1.5 }}>
+                                        Hari ini adalah hari KBM resmi (Sabtu / Minggu). Seluruh warga belajar dapat melakukan check-in mandiri secara langsung melalui portal tanpa perlu aktivasi timer manual.
+                                      </p>
+                                    </div>
+                                  </div>
+                                ) : pertemuanDetail?.absensi?.rekaman_saya ? (
+                                  <div style={{ background: '#ECFDF5', border: '1.5px solid #10B981', padding: '1.25rem', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                    <i className="bi bi-check-circle-fill" style={{ fontSize: '1.8rem', color: '#059669' }}></i>
+                                    <div>
+                                      <strong style={{ fontSize: '1.02rem', color: '#065F46', display: 'block', fontFamily: 'Outfit' }}>
+                                        Anda Sudah Melakukan Presensi
+                                      </strong>
+                                      <span style={{ fontSize: '0.84rem', color: '#047857' }}>
+                                        Status: <strong>{pertemuanDetail.absensi.rekaman_saya.status?.toUpperCase()}</strong>
+                                        {pertemuanDetail.absensi.rekaman_saya.waktu_check_in && ` (Tercatat ${new Date(pertemuanDetail.absensi.rekaman_saya.waktu_check_in).toLocaleTimeString('id-ID')})`}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div style={{ background: '#EFF6FF', border: '1.5px solid #93C5FD', borderRadius: '14px', padding: '1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                                    <div>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                                        <span className="retro-badge-wavy mint" style={{ background: '#10B981', color: '#FFFFFF', border: 'none' }}>
+                                          <i className="bi bi-check-circle"></i> Sesi KBM Buka
+                                        </span>
+                                        <strong style={{ color: '#1E40AF', fontFamily: 'Outfit', fontSize: '1rem' }}>
+                                          Presensi Akhir Pekan Terbuka
+                                        </strong>
+                                      </div>
+                                      <span style={{ fontSize: '0.84rem', color: '#1E3A8A' }}>
+                                        Silakan klik tombol di samping untuk merekam presensi kehadiran belajar Anda hari ini.
+                                      </span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        try {
+                                          let sId = pertemuanDetail?.absensi?.id;
+                                          if (!sId) {
+                                            const actRes = await AbsensiAPI.getSesiAktif();
+                                            sId = actRes.data?.data?.id;
+                                          }
+                                          if (!sId) {
+                                            throw new Error('Sesi presensi aktif belum tersedia untuk rombel Anda.');
+                                          }
+                                          await handleCheckIn(sId);
+                                        } catch (cErr) {
+                                          alert(cErr.response?.data?.message || cErr.message || 'Gagal melakukan check-in.');
+                                        }
+                                      }}
+                                      className="retro-btn-action mint"
+                                      style={{ fontSize: '0.92rem', padding: '9px 18px' }}
+                                    >
+                                      <i className="bi bi-fingerprint"></i>
+                                      <span>Check-in Presensi Sekarang</span>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
 
                               {/* 2. FORUM DISKUSI SESI */}
                               <div className="sheet-taped-card">
