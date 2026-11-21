@@ -8,9 +8,9 @@ import { NavLink } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
 import { AbsensiAPI } from '../../services/api.js';
 import { 
-  CheckCircle2, Clock, AlertTriangle, CalendarCheck, FileText, 
-  BookOpen, UserCheck, ShieldCheck, RefreshCw, Calendar, Sparkles,
-  ArrowRight, Info, Coffee
+  CheckCircle2, Clock, AlertTriangle, CalendarCheck, 
+  BookOpen, UserCheck, ShieldCheck, RefreshCw, 
+  ArrowRight, Coffee
 } from 'lucide-react';
 import './AbsensiSiswa.css';
 
@@ -25,12 +25,6 @@ export default function AbsensiSiswa() {
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
   const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
   const currentDayName = dayNames[dayOfWeek];
-  const currentDateFormatted = today.toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
 
   // Hitung tanggal sesi Sabtu & Minggu terdekat
   const getUpcomingWeekendDates = () => {
@@ -50,8 +44,8 @@ export default function AbsensiSiswa() {
   };
   const weekendDates = getUpcomingWeekendDates();
 
-  // Tab: 'aktif' (Sesi Hari Ini) atau 'riwayat' (Daftar Pertemuan)
-  const [activeTab, setActiveTab] = useState('aktif');
+  // Tab Navigasi Menu Kelas: 'pertemuan' | 'report' (Sesuai Mockup)
+  const [activeTab, setActiveTab] = useState('pertemuan');
 
   // ── State: Sesi Aktif ─────────────────────────────────────
   const [sesiAktif, setSesiAktif] = useState(null);
@@ -161,7 +155,7 @@ export default function AbsensiSiswa() {
   // ── Submit Kehadiran Mandiri ──────────────────────────────
   const handleCheckIn = async (e) => {
     if (e) e.preventDefault();
-    if (!sesiAktif || sisaWaktu <= 0) return;
+    if (!sesiAktif) return;
 
     setLoadingCi(true);
     setFeedbackCi({ type: '', msg: '' });
@@ -190,19 +184,33 @@ export default function AbsensiSiswa() {
     }
   };
 
-  const formatTimer = (detik) => {
-    const m = Math.floor(detik / 60).toString().padStart(2, '0');
-    const s = (detik % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
-
-  const warnaTimer = sisaWaktu > 60 ? '#059669' : sisaWaktu > 20 ? '#D97706' : '#DC2626';
-
   // Daftar mapel unik untuk filter riwayat
   const listMapel = Array.from(new Set(riwayatPertemuan.map(item => item.nama_mapel).filter(Boolean)));
   const riwayatFiltered = filterMapel === 'ALL' 
     ? riwayatPertemuan 
     : riwayatPertemuan.filter(item => item.nama_mapel === filterMapel);
+
+  // Standar Semester PKBM: 14 Pertemuan (Sesuai Desain Mockup)
+  const TOTAL_SEMESTER_PERTEMUAN = 14;
+
+  // Bentuk array 14 pertemuan semester dengan menggabungkan data aktual
+  const daftarPertemuan = Array.from({ length: TOTAL_SEMESTER_PERTEMUAN }, (_, i) => {
+    const pertKe = i + 1;
+    const isActive = sesiAktif && Number(sesiAktif.pertemuan_ke || 1) === pertKe;
+    const riwayatItem = riwayatPertemuan.find(r => Number(r.pertemuan_ke) === pertKe);
+
+    return {
+      pertemuan_ke: pertKe,
+      judul: `Pertemuan ${pertKe} Sesi 1`,
+      subjudul: 'Sesi Pembelajaran Mandiri & Tatap Muka',
+      isActive: Boolean(isActive),
+      statusPresensi: riwayatItem?.status_kehadiran || (isActive && statusCi ? statusCi : null),
+      catatan: riwayatItem?.catatan_siswa || (isActive && catatanCi ? catatanCi : ''),
+      namaMapel: riwayatItem?.nama_mapel || (isActive ? sesiAktif.nama_mapel : 'Mata Pelajaran Umum'),
+      namaTutor: riwayatItem?.nama_tutor || (isActive ? sesiAktif.nama_tutor : 'Tutor Pembimbing'),
+      isClosed: !isActive && !riwayatItem
+    };
+  });
 
   return (
     <div className="app-layout">
@@ -215,13 +223,13 @@ export default function AbsensiSiswa() {
             <div>
               <div className="absensi-header-badge">
                 <CalendarCheck size={13} />
-                <span>KBM PKBM BINA MANDIRI: SABTU & MINGGU</span>
+                <span>KBM PKBM BINA MANDIRI</span>
               </div>
               <h1 className="absensi-header-title">
                 Presensi & Log Kehadiran Belajar
               </h1>
               <p className="absensi-header-subtitle">
-                Konfirmasi kehadiran sesi akhir pekan (Sabtu & Minggu) secara mandiri dan pantau capaian presensi Anda.
+                Akses presensi pertemuan dan laporan rekapitulasi kehadiran warga belajar.
               </p>
             </div>
 
@@ -235,7 +243,7 @@ export default function AbsensiSiswa() {
             </button>
           </div>
 
-          {/* ── 2. Weekend Schedule Notice / Reminder Banner ── */}
+          {/* ── 2. Weekend Notice Capsule ── */}
           <div className="weekend-schedule-banner">
             <div className="weekend-schedule-left">
               <div className="weekend-schedule-icon">
@@ -244,7 +252,7 @@ export default function AbsensiSiswa() {
               <div>
                 <h3 className="weekend-schedule-title">
                   {isWeekend 
-                    ? `Hari Ini Sesi Belajar KBM (${currentDayName}, ${today.getDate()} ${today.toLocaleDateString('id-ID', { month: 'short' })})` 
+                    ? `Hari Ini Sesi Belajar KBM (${currentDayName})` 
                     : `Hari Ini ${currentDayName} • Waktu Belajar Mandiri`}
                 </h3>
                 <p className="weekend-schedule-desc">
@@ -274,453 +282,320 @@ export default function AbsensiSiswa() {
             </div>
           </div>
 
-          {/* ── 3. Academic Summary Stats Cards ── */}
-          <div className="absensi-stats-grid">
-            {/* Tingkat Kehadiran Card */}
-            <div className="absensi-stat-card absensi-stat-percentage">
-              <div className="absensi-pct-header">
+          {/* ── 3. Layout Dua Kolom: MENU KELAS (Kiri) & KONTEN (Kanan) Sesuai Mockup ── */}
+          <div className="menu-kelas-layout">
+            
+            {/* ══ SISI KIRI: MENU KELAS (HANYA PERTEMUAN & REPORT PRESENSI) ══ */}
+            <aside className="menu-kelas-sidebar">
+              <div className="menu-kelas-title">MENU KELAS</div>
+
+              {/* Menu 1: Pertemuan */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('pertemuan')}
+                className={`menu-kelas-btn ${activeTab === 'pertemuan' ? 'active' : ''}`}
+              >
+                <div className="menu-kelas-btn-left">
+                  <BookOpen size={18} />
+                  <span>Pertemuan</span>
+                </div>
+                <span className="menu-kelas-badge">{TOTAL_SEMESTER_PERTEMUAN}</span>
+              </button>
+
+              {/* Menu 2: Report Presensi */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('report')}
+                className={`menu-kelas-btn ${activeTab === 'report' ? 'active' : ''}`}
+              >
+                <div className="menu-kelas-btn-left">
+                  <CalendarCheck size={18} />
+                  <span>Report Presensi</span>
+                </div>
+                <span className="menu-kelas-badge">
+                  {rekap?.persentase_hadir !== undefined ? `${rekap.persentase_hadir}%` : 'Rekap'}
+                </span>
+              </button>
+            </aside>
+
+            {/* ══ SISI KANAN: KONTEN UTAMA ══ */}
+            <section className="menu-kelas-content">
+              {activeTab === 'pertemuan' ? (
+                /* ── TAB PERTEMUAN KELAS (SESUAI MOCKUP GAMBAR 1) ── */
                 <div>
-                  <div className="title">Tingkat Kehadiran</div>
-                  <div className="val" style={{ color: (rekap?.persentase_hadir ?? 0) >= 75 ? '#34D399' : '#F87171' }}>
-                    {rekap?.persentase_hadir ?? 0}%
-                  </div>
-                </div>
-                <div className="status-text">
-                  {(rekap?.persentase_hadir ?? 0) >= 75 ? (
-                    <span className="absensi-status-chip success">
-                      <CheckCircle2 size={13} />
-                      <span>Memenuhi Syarat Evaluasi (≥75%)</span>
-                    </span>
-                  ) : (
-                    <span className="absensi-status-chip warning">
-                      <AlertTriangle size={13} />
-                      <span>Di bawah batas minimal 75%</span>
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="absensi-progress-track">
-                <div 
-                  className="absensi-progress-fill" 
-                  style={{ 
-                    width: `${Math.min(100, Math.max(0, rekap?.persentase_hadir ?? 0))}%`,
-                    backgroundColor: (rekap?.persentase_hadir ?? 0) >= 75 ? '#10B981' : '#EF4444'
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* 5 Counts Cards */}
-            <div className="absensi-counts-row">
-              <div className="absensi-stat-card">
-                <div className="absensi-stat-val" style={{ color: '#1D4ED8' }}>
-                  {rekap?.total_pertemuan ?? '0'}
-                </div>
-                <div className="absensi-stat-label">Total Sesi</div>
-              </div>
-
-              <div className="absensi-stat-card">
-                <div className="absensi-stat-val" style={{ color: '#059669' }}>
-                  {rekap?.hadir ?? '0'}
-                </div>
-                <div className="absensi-stat-label">Hadir</div>
-              </div>
-
-              <div className="absensi-stat-card">
-                <div className="absensi-stat-val" style={{ color: '#D97706' }}>
-                  {rekap?.izin ?? '0'}
-                </div>
-                <div className="absensi-stat-label">Izin</div>
-              </div>
-
-              <div className="absensi-stat-card">
-                <div className="absensi-stat-val" style={{ color: '#2563EB' }}>
-                  {rekap?.sakit ?? '0'}
-                </div>
-                <div className="absensi-stat-label">Sakit</div>
-              </div>
-
-              <div className="absensi-stat-card">
-                <div className="absensi-stat-val" style={{ color: '#DC2626' }}>
-                  {rekap?.alpa ?? '0'}
-                </div>
-                <div className="absensi-stat-label">Alpa</div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── 4. Navigation Tabs ── */}
-          <div className="absensi-tabs-nav">
-            <button
-              type="button"
-              onClick={() => setActiveTab('aktif')}
-              className={`absensi-tab-btn ${activeTab === 'aktif' ? 'active' : ''}`}
-            >
-              <Clock size={16} />
-              <span className="tab-text-full">Sesi Belajar Hari Ini {isWeekend ? `(${currentDayName})` : ''}</span>
-              <span className="tab-text-mobile">Sesi Hari Ini</span>
-              {sesiAktif && <span className="absensi-tab-badge"></span>}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('riwayat')}
-              className={`absensi-tab-btn ${activeTab === 'riwayat' ? 'active' : ''}`}
-            >
-              <BookOpen size={16} />
-              <span className="tab-text-full">Buku Riwayat Pertemuan ({riwayatPertemuan.length})</span>
-              <span className="tab-text-mobile">Riwayat ({riwayatPertemuan.length})</span>
-            </button>
-          </div>
-
-          {/* ══════════════════════════════════════════════════════
-              TAB 1: SESI BELAJAR HARI INI (CHECK-IN MANDIRI)
-          ══════════════════════════════════════════════════════ */}
-          {activeTab === 'aktif' && (
-            <div className="absensi-active-card">
-              {!isWeekend || sesiAktif?.status_jadwal === 'tutup' ? (
-                /* Hari Kerja (Senin - Jumat): Presensi Ditutup Otomatis Sesuai Jadwal */
-                <div className="absensi-empty-box" style={{ padding: '3rem 1.5rem', textAlign: 'center' }}>
-                  <div className="absensi-empty-icon" style={{ background: '#F8FAFC', color: '#64748B', border: '1.5px solid #CBD5E1' }}>
-                    <Coffee size={28} />
-                  </div>
-                  <h3 className="absensi-empty-title" style={{ color: '#1E293B' }}>
-                    Presensi KBM Ditutup (Senin – Jumat)
-                  </h3>
-                  <p className="absensi-empty-desc" style={{ maxWidth: 540, margin: '8px auto 16px', lineHeight: 1.6 }}>
-                    Sesuai jadwal akademik PKBM Bina Mandiri, sesi presensi pembelajaran tatap muka dan mandiri <strong>hanya dibuka otomatis setiap hari Sabtu dan Minggu</strong>. Hari {currentDayName} adalah waktu belajar mandiri.
-                  </p>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 999, background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', fontSize: '0.84rem', fontWeight: 700, marginBottom: '1.25rem' }}>
-                    <CalendarCheck size={15} />
-                    <span>Sesi Terdekat: Sabtu ({weekendDates.sabtuStr}) & Minggu ({weekendDates.mingguStr})</span>
-                  </div>
-                  <div>
-                    <NavLink
-                      to="/dashboard/siswa/ruang-belajar"
-                      className="weekend-schedule-cta"
-                      style={{ display: 'inline-flex', padding: '10px 22px', borderRadius: 12, fontSize: '0.88rem' }}
-                    >
-                      <span>Buka Modul & Ruang Belajar</span>
-                      <ArrowRight size={14} />
-                    </NavLink>
-                  </div>
-                </div>
-              ) : !sesiAktif ? (
-                /* Hari Weekend tetapi Sesi Masih Menunggu Inisialisasi */
-                <div className="absensi-empty-box">
-                  <div className="absensi-empty-icon">
-                    <CalendarCheck size={28} />
-                  </div>
-                  <h3 className="absensi-empty-title">
-                    Sesi Presensi Hari {currentDayName} Sedang Dipersiapkan
-                  </h3>
-                  <p className="absensi-empty-desc">
-                    Sistem mendeteksi jadwal akhir pekan aktif. Halaman akan menyinkronkan data presensi secara otomatis.
-                  </p>
-                  <div className="absensi-empty-status">
-                    <div className="spinner" style={{ width: 14, height: 14, borderWidth: 2, borderTopColor: '#0284C7' }}></div>
-                    <span>Menghubungkan sesi belajar akhir pekan...</span>
-                  </div>
-                </div>
-              ) : (
-                /* Ada Sesi Aktif */
-                <div>
-                  {/* Sesi Header Info */}
-                  <div className="sesi-meta-bar">
+                  <div className="pertemuan-header-strip">
                     <div>
-                      <div className="sesi-pills-row">
-                        <span className="pill-pertemuan">
-                          PERTEMUAN KE-{sesiAktif.pertemuan_ke || 1}
-                        </span>
-                        <span className="pill-weekend">
-                          JADWAL {currentDayName.toUpperCase()}
-                        </span>
-                        <span style={{ background: '#EFF6FF', color: '#1D4ED8', padding: '4px 10px', borderRadius: 8, fontSize: '0.76rem', fontWeight: 800 }}>
-                          {sesiAktif.mode === 'mandiri' ? (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              <UserCheck size={13} />
-                              <span>Presensi Mandiri Siswa</span>
-                            </span>
-                          ) : (
-                            'Manual Tutor'
-                          )}
-                        </span>
-                      </div>
-                      <h2 className="sesi-title">
-                        {sesiAktif.nama_mapel || sesiAktif.nama_rombel || 'Mata Pelajaran Aktif'}
-                      </h2>
-                      <div className="sesi-subinfo">
-                        Kelas: <strong>{sesiAktif.nama_rombel || '-'}</strong> • Tutor: <strong>{sesiAktif.nama_tutor || 'Tutor PKBM'}</strong>
-                      </div>
-                    </div>
-
-                    {/* Timer Widget */}
-                    <div className="sesi-timer-box" style={{ borderColor: sisaWaktu > 0 ? warnaTimer : '#E2E8F0' }}>
-                      <div className="sesi-timer-circle" style={{ border: `3px solid ${warnaTimer}`, color: warnaTimer }}>
-                        <Clock size={20} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 800, letterSpacing: '0.3px' }}>
-                          Sisa Waktu Presensi
-                        </div>
-                        <div className="sesi-timer-number" style={{ color: warnaTimer }}>
-                          {sisaWaktu > 0 ? formatTimer(sisaWaktu) : '00:00'}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Feedback Toast */}
-                  {feedbackCi.msg && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '12px 18px',
-                      borderRadius: 12,
-                      background: feedbackCi.type === 'success' ? '#DCFCE7' : '#FEE2E2',
-                      color: feedbackCi.type === 'success' ? '#166534' : '#991B1B',
-                      fontSize: '0.88rem',
-                      fontWeight: 800,
-                      marginBottom: '1.5rem'
-                    }}>
-                      {feedbackCi.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-                      <span>{feedbackCi.msg}</span>
-                    </div>
-                  )}
-
-                  {/* Form Submission / Verified State */}
-                  {statusCi ? (
-                    /* Sudah Melakukan Presensi */
-                    <div className="absensi-verified-box">
-                      <div className="absensi-verified-avatar">
-                        <ShieldCheck size={38} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '0.8rem', color: '#15803D', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                          Presensi Belajar Telah Dikonfirmasi
-                        </div>
-                        <h3 style={{ fontFamily: 'Outfit', fontSize: '1.45rem', fontWeight: 900, color: '#14532D', margin: '4px 0' }}>
-                          Status: {statusCi.toUpperCase()}
-                        </h3>
-                        {catatanCi && (
-                          <div style={{ fontSize: '0.88rem', color: '#166534', marginTop: 6, fontStyle: 'italic', background: 'rgba(255,255,255,0.7)', padding: '6px 16px', borderRadius: 10, display: 'inline-block' }}>
-                            "{catatanCi}"
-                          </div>
-                        )}
-                        <p style={{ fontSize: '0.84rem', color: '#15803D', marginTop: 10 }}>
-                          Kehadiran Anda telah tersimpan secara resmi di buku catatan akademik PKBM Bina Mandiri.
-                        </p>
-                      </div>
-
-                      {/* Tombol ganti keterangan jika timer masih jalan */}
-                      {sisaWaktu > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setStatusCi(null)}
-                          style={{
-                            background: '#FFFFFF',
-                            border: '1.5px solid #86EFAC',
-                            padding: '7px 16px',
-                            borderRadius: 10,
-                            color: '#15803D',
-                            fontSize: '0.82rem',
-                            fontWeight: 800,
-                            cursor: 'pointer',
-                            marginTop: 6
-                          }}
-                        >
-                          Ubah Status / Catatan Kehadiran
-                        </button>
-                      )}
-                    </div>
-                  ) : sisaWaktu <= 0 ? (
-                    /* Waktu Habis */
-                    <div style={{
-                      background: '#FEF2F2',
-                      border: '1.5px solid #FECACA',
-                      borderRadius: '16px',
-                      padding: '1.75rem',
-                      textAlign: 'center',
-                      color: '#991B1B'
-                    }}>
-                      <AlertTriangle size={36} style={{ margin: '0 auto 8px', color: '#DC2626' }} />
-                      <h4 style={{ fontFamily: 'Outfit', fontWeight: 900, fontSize: '1.15rem', margin: '4px 0' }}>
-                        Waktu Check-In Sesi Telah Berakhir
-                      </h4>
-                      <p style={{ fontSize: '0.88rem', color: '#7F1D1D', maxWidth: 460, margin: '0 auto' }}>
-                        Batas waktu presensi mandiri untuk sesi ini telah ditutup. Bila Anda berhalangan hadir atau ada kendala teknis, silakan hubungi tutor pengampu kelas.
+                      <h2 className="pertemuan-title-main">Pertemuan kelas</h2>
+                      <p className="pertemuan-sub-main">
+                        Pilih pertemuan untuk melihat materi dan melakukan aktivitas presensi kehadiran.
                       </p>
                     </div>
-                  ) : (
-                    /* Form Input Presensi Siswa */
-                    <form onSubmit={handleCheckIn}>
-                      <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 800, color: '#334155', marginBottom: 12 }}>
-                          Pilih Status Kehadiran Anda Hari Ini:
-                        </label>
-                        <div className="status-options-grid">
-                          {/* Hadir */}
-                          <label className={`status-option-label ${pilihanStatus === 'hadir' ? 'selected hadir' : ''}`}>
-                            <input
-                              type="radio"
-                              name="statusPresensi"
-                              value="hadir"
-                              checked={pilihanStatus === 'hadir'}
-                              onChange={() => setPilihanStatus('hadir')}
-                              style={{ width: 18, height: 18, accentColor: '#059669' }}
-                            />
-                            <div>
-                              <div className="status-option-title" style={{ color: '#065F46' }}>Hadir di Sesi Belajar</div>
-                              <div className="status-option-desc">Mengikuti pembelajaran penuh</div>
-                            </div>
-                          </label>
+                    <span className="pertemuan-count-pill">
+                      {TOTAL_SEMESTER_PERTEMUAN} pertemuan
+                    </span>
+                  </div>
 
-                          {/* Izin */}
-                          <label className={`status-option-label ${pilihanStatus === 'izin' ? 'selected izin' : ''}`}>
-                            <input
-                              type="radio"
-                              name="statusPresensi"
-                              value="izin"
-                              checked={pilihanStatus === 'izin'}
-                              onChange={() => setPilihanStatus('izin')}
-                              style={{ width: 18, height: 18, accentColor: '#D97706' }}
-                            />
-                            <div>
-                              <div className="status-option-title" style={{ color: '#92400E' }}>Izin Belajar</div>
-                              <div className="status-option-desc">Ada keperluan / dispensasi</div>
-                            </div>
-                          </label>
-
-                          {/* Sakit */}
-                          <label className={`status-option-label ${pilihanStatus === 'sakit' ? 'selected sakit' : ''}`}>
-                            <input
-                              type="radio"
-                              name="statusPresensi"
-                              value="sakit"
-                              checked={pilihanStatus === 'sakit'}
-                              onChange={() => setPilihanStatus('sakit')}
-                              style={{ width: 18, height: 18, accentColor: '#2563EB' }}
-                            />
-                            <div>
-                              <div className="status-option-title" style={{ color: '#1E40AF' }}>Sakit</div>
-                              <div className="status-option-desc">Kondisi kesehatan kurang baik</div>
-                            </div>
-                          </label>
+                  {/* Sesi Presensi Aktif Hari Ini (Bisa Langsung Check-in) */}
+                  {sesiAktif && isWeekend && (
+                    <div style={{
+                      background: '#F0FDF4',
+                      border: '1.5px solid #86EFAC',
+                      borderRadius: '16px',
+                      padding: '1.25rem 1.4rem',
+                      marginBottom: '1.5rem',
+                      boxShadow: '0 4px 14px rgba(22, 101, 52, 0.06)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ background: '#16A34A', color: '#FFFFFF', padding: '3px 10px', borderRadius: 999, fontSize: '0.74rem', fontWeight: 800 }}>
+                            🟢 Sesi Presensi Buka
+                          </span>
+                          <strong style={{ fontSize: '0.98rem', color: '#166534' }}>
+                            {sesiAktif.nama_mapel || 'Mata Pelajaran Aktif'} (Pertemuan {sesiAktif.pertemuan_ke || 1})
+                          </strong>
                         </div>
                       </div>
 
-                      {/* Input Catatan jika Izin/Sakit atau opsional hadir */}
-                      <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#475569', marginBottom: 6 }}>
-                          Catatan / Alasan {pilihanStatus !== 'hadir' && <span style={{ color: '#DC2626' }}>*</span>}:
-                        </label>
-                        <input
-                          type="text"
-                          value={catatanCi}
-                          onChange={(e) => setCatatanCi(e.target.value)}
-                          placeholder={
-                            pilihanStatus === 'hadir'
-                              ? 'Opsional: misal "Hadir tepat waktu di kelas"'
-                              : pilihanStatus === 'izin'
-                              ? 'Alasan izin (misal: lembur kerja, keperluan keluarga mendesak)'
-                              : 'Keterangan sakit (misal: demam, flu, kontrol dokter)'
-                          }
-                          required={pilihanStatus !== 'hadir'}
-                          style={{
-                            width: '100%',
-                            padding: '0.8rem 1.1rem',
-                            borderRadius: 12,
-                            border: '1.5px solid #CBD5E1',
-                            fontSize: '0.92rem',
-                            outline: 'none',
-                            boxSizing: 'border-box'
-                          }}
-                        />
-                      </div>
+                      {feedbackCi.msg && (
+                        <div style={{
+                          padding: '10px 14px',
+                          borderRadius: 10,
+                          background: feedbackCi.type === 'success' ? '#DCFCE7' : '#FEE2E2',
+                          color: feedbackCi.type === 'success' ? '#166534' : '#991B1B',
+                          fontSize: '0.84rem',
+                          fontWeight: 700,
+                          marginBottom: 12
+                        }}>
+                          {feedbackCi.msg}
+                        </div>
+                      )}
 
-                      {/* Tombol Submit */}
-                      <button
-                        type="submit"
-                        disabled={loadingCi}
-                        className="absensi-submit-btn"
-                      >
-                        {loadingCi ? (
-                          <>
-                            <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2, borderTopColor: 'white' }}></div>
-                            <span>Memproses Presensi...</span>
-                          </>
-                        ) : (
-                          <>
-                            <UserCheck size={20} />
-                            <span>KIRIM PRESENSI PERTEMUAN KE-{sesiAktif.pertemuan_ke || 1}</span>
-                          </>
-                        )}
-                      </button>
-                    </form>
+                      {statusCi ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#15803D', fontWeight: 800, fontSize: '0.92rem' }}>
+                          <CheckCircle2 size={20} />
+                          <span>Kehadiran Anda Telah Dikonfirmasi: <strong>{statusCi.toUpperCase()}</strong></span>
+                        </div>
+                      ) : (
+                        <form onSubmit={handleCheckIn} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                            {['hadir', 'izin', 'sakit'].map((st) => (
+                              <label
+                                key={st}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 6,
+                                  padding: '7px 14px',
+                                  borderRadius: 10,
+                                  border: pilihanStatus === st ? '2px solid #059669' : '1.5px solid #CBD5E1',
+                                  background: pilihanStatus === st ? '#ECFDF5' : '#FFFFFF',
+                                  color: pilihanStatus === st ? '#065F46' : '#334155',
+                                  fontWeight: 800,
+                                  fontSize: '0.84rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <input
+                                  type="radio"
+                                  name="pilihanStatus"
+                                  value={st}
+                                  checked={pilihanStatus === st}
+                                  onChange={() => setPilihanStatus(st)}
+                                  style={{ accentColor: '#059669' }}
+                                />
+                                <span>{st.toUpperCase()}</span>
+                              </label>
+                            ))}
+                          </div>
+
+                          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <input
+                              type="text"
+                              value={catatanCi}
+                              onChange={(e) => setCatatanCi(e.target.value)}
+                              placeholder="Catatan kehadiran (opsional)..."
+                              style={{
+                                flex: 1,
+                                minWidth: '200px',
+                                padding: '8px 12px',
+                                borderRadius: 10,
+                                border: '1.5px solid #CBD5E1',
+                                fontSize: '0.84rem',
+                                outline: 'none'
+                              }}
+                            />
+                            <button
+                              type="submit"
+                              disabled={loadingCi}
+                              style={{
+                                padding: '8px 20px',
+                                borderRadius: 10,
+                                background: '#16A34A',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                fontWeight: 800,
+                                fontSize: '0.86rem',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {loadingCi ? 'Menyimpan...' : 'Check-In Sekarang'}
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
                   )}
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* ══════════════════════════════════════════════════════
-              TAB 2: BUKU RIWAYAT PERTEMUAN LMS (SABTU & MINGGU)
-          ══════════════════════════════════════════════════════ */}
-          {activeTab === 'riwayat' && (
-            <div className="absensi-riwayat-card">
-              <div className="riwayat-header-row">
-                <div>
-                  <h3 style={{ fontFamily: 'Outfit', fontSize: '1.25rem', fontWeight: 900, color: '#0F172A', margin: 0 }}>
-                    Log & Buku Pertemuan Sesi Belajar
-                  </h3>
-                  <p style={{ fontSize: '0.84rem', color: '#64748B', marginTop: 4 }}>
-                    Catatan kehadiran Anda pada seluruh sesi akhir pekan (Sabtu & Minggu) semester ini.
-                  </p>
-                </div>
+                  {!isWeekend && (
+                    <div style={{
+                      background: '#F8FAFC',
+                      border: '1.5px solid #E2E8F0',
+                      borderRadius: '14px',
+                      padding: '1rem 1.25rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      marginBottom: '1.25rem',
+                      color: '#475569'
+                    }}>
+                      <Coffee size={20} style={{ color: '#64748B', flexShrink: 0 }} />
+                      <div style={{ fontSize: '0.84rem', lineHeight: 1.5 }}>
+                        <strong>Presensi KBM Ditutup (Senin – Jumat).</strong> Sesi presensi interaktif dibuka otomatis pada hari <strong>Sabtu dan Minggu</strong> sesuai jadwal pembelajaran resmi PKBM Bina Mandiri.
+                      </div>
+                    </div>
+                  )}
 
-                {/* Filter Mapel */}
-                {listMapel.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#475569' }}>Filter Mapel:</span>
-                    <select
-                      value={filterMapel}
-                      onChange={(e) => setFilterMapel(e.target.value)}
-                      style={{
-                        padding: '0.5rem 0.95rem',
-                        borderRadius: 10,
-                        border: '1.5px solid #CBD5E1',
-                        fontSize: '0.86rem',
-                        fontWeight: 700,
-                        outline: 'none',
-                        background: '#F8FAFC'
-                      }}
-                    >
-                      <option value="ALL">Semua Mata Pelajaran ({riwayatPertemuan.length})</option>
-                      {listMapel.map(m => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
+                  {/* 14 Pertemuan Cards List (Identik Mockup 1) */}
+                  <div className="pertemuan-list-grid">
+                    {daftarPertemuan.map((pert) => {
+                      const numStr = String(pert.pertemuan_ke).padStart(2, '0');
+                      const isHadir = pert.statusPresensi === 'hadir';
+                      const isIzinSakit = pert.statusPresensi === 'izin' || pert.statusPresensi === 'sakit';
 
-              {/* Table List */}
-              {loadingRiwayat ? (
-                <div style={{ textAlign: 'center', padding: '3rem' }}>
-                  <div className="spinner" style={{ margin: '0 auto 10px' }}></div>
-                  <div style={{ color: '#64748B', fontSize: '0.88rem' }}>Memuat riwayat pertemuan...</div>
-                </div>
-              ) : riwayatFiltered.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#94A3B8' }}>
-                  <div style={{ fontWeight: 800, color: '#475569', fontSize: '1.05rem' }}>Belum Ada Catatan Pertemuan</div>
-                  <div style={{ fontSize: '0.86rem', marginTop: 4 }}>
-                    Pertemuan akan dicatat secara otomatis setelah pengajar membuka sesi absensi di hari Sabtu & Minggu.
+                      return (
+                        <div
+                          key={pert.pertemuan_ke}
+                          className={`pertemuan-item-card ${pert.isActive ? 'is-active-card' : ''}`}
+                        >
+                          <div className="pertemuan-item-left">
+                            <div className="pertemuan-number-box">
+                              {numStr}
+                            </div>
+                            <div>
+                              <div className="pertemuan-item-title-row">
+                                <span className="pertemuan-item-title">
+                                  {pert.judul}
+                                </span>
+                                {pert.isActive ? (
+                                  <span className="pertemuan-badge-open">
+                                    🟢 Buka Presensi
+                                  </span>
+                                ) : isHadir ? (
+                                  <span className="pertemuan-badge-hadir">
+                                    ✓ Hadir
+                                  </span>
+                                ) : isIzinSakit ? (
+                                  <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A' }}>
+                                    {pert.statusPresensi.toUpperCase()}
+                                  </span>
+                                ) : (
+                                  <span className="pertemuan-badge-closed">
+                                    Closed
+                                  </span>
+                                )}
+                              </div>
+                              <p className="pertemuan-item-desc">
+                                <span>{pert.subjudul}</span>
+                                {pert.namaMapel && (
+                                  <span>• {pert.namaMapel}</span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div>
+                            {pert.isActive && !pert.statusPresensi ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  window.scrollTo({ top: 180, behavior: 'smooth' });
+                                }}
+                                style={{
+                                  padding: '7px 16px',
+                                  borderRadius: 10,
+                                  background: '#0284C7',
+                                  color: '#FFFFFF',
+                                  border: 'none',
+                                  fontWeight: 800,
+                                  fontSize: '0.8rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Absen Sekarang
+                              </button>
+                            ) : pert.statusPresensi ? (
+                              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isHadir ? '#16A34A' : '#D97706' }}>
+                                {pert.statusPresensi.toUpperCase()}
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '0.78rem', color: '#94A3B8', fontWeight: 700 }}>
+                                Terjadwal
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
-                <>
-                  {/* Tampilan Desktop: Tabel Lengkap */}
+                /* ── TAB REPORT PRESENSI (REKAP DATA) ── */
+                <div>
+                  <div className="pertemuan-header-strip">
+                    <div>
+                      <h2 className="pertemuan-title-main">Report Presensi Warga Belajar</h2>
+                      <p className="pertemuan-sub-main">
+                        Laporan rekapitulasi kehadiran belajar Anda di setiap pertemuan semester ini.
+                      </p>
+                    </div>
+                    {listMapel.length > 0 && (
+                      <select
+                        value={filterMapel}
+                        onChange={(e) => setFilterMapel(e.target.value)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: 10,
+                          border: '1.5px solid #CBD5E1',
+                          fontSize: '0.84rem',
+                          fontWeight: 700,
+                          background: '#F8FAFC',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="ALL">Semua Mata Pelajaran</option>
+                        {listMapel.map(m => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Ringkasan Minimalist Bar (Tanpa Kotak-Kotak Besar) */}
+                  <div className="report-summary-bar">
+                    <span className="report-summary-item">Total Sesi: <strong>{TOTAL_SEMESTER_PERTEMUAN}</strong></span>
+                    <span>•</span>
+                    <span className="report-summary-item" style={{ color: '#16A34A' }}>Hadir: <strong>{rekap?.hadir ?? 0}</strong></span>
+                    <span>•</span>
+                    <span className="report-summary-item" style={{ color: '#D97706' }}>Izin: <strong>{rekap?.izin ?? 0}</strong></span>
+                    <span>•</span>
+                    <span className="report-summary-item" style={{ color: '#2563EB' }}>Sakit: <strong>{rekap?.sakit ?? 0}</strong></span>
+                    <span>•</span>
+                    <span className="report-summary-item" style={{ color: '#DC2626' }}>Alpa: <strong>{rekap?.alpa ?? 0}</strong></span>
+                    <span>•</span>
+                    <span className="report-summary-item" style={{ color: '#0284C7' }}>Tingkat Kehadiran: <strong>{rekap?.persentase_hadir ?? 100}%</strong></span>
+                  </div>
+
+                  {/* Tabel Report Presensi */}
                   <div className="riwayat-desktop-table">
                     <div style={{ overflowX: 'auto' }}>
                       <table className="riwayat-table">
@@ -728,56 +603,33 @@ export default function AbsensiSiswa() {
                           <tr>
                             <th>Pertemuan</th>
                             <th>Mata Pelajaran</th>
-                            <th>Hari & Tanggal</th>
-                            <th>Tutor Pembimbing</th>
+                            <th>Tutor Pengampu</th>
                             <th>Status Kehadiran</th>
                             <th>Keterangan / Catatan</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {riwayatFiltered.map((p, idx) => {
-                            const status = (p.status || 'alpa').toLowerCase();
+                          {daftarPertemuan.map((p, idx) => {
+                            const status = (p.statusPresensi || 'alpa').toLowerCase();
                             let badgeClass = 'alpa';
                             let badgeText = 'ALPA';
-
-                            if (status === 'hadir') {
-                              badgeClass = 'hadir';
-                              badgeText = 'HADIR';
-                            } else if (status === 'izin') {
-                              badgeClass = 'izin';
-                              badgeText = 'IZIN';
-                            } else if (status === 'sakit') {
-                              badgeClass = 'sakit';
-                              badgeText = 'SAKIT';
-                            }
-
-                            const dateObj = p.waktu_mulai ? new Date(p.waktu_mulai) : null;
-                            const dateStr = dateObj
-                              ? dateObj.toLocaleDateString('id-ID', {
-                                  weekday: 'long',
-                                  day: 'numeric',
-                                  month: 'short',
-                                  year: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })
-                              : '-';
+                            if (status === 'hadir') { badgeClass = 'hadir'; badgeText = 'HADIR'; }
+                            else if (status === 'izin') { badgeClass = 'izin'; badgeText = 'IZIN'; }
+                            else if (status === 'sakit') { badgeClass = 'sakit'; badgeText = 'SAKIT'; }
+                            else if (p.isClosed) { badgeClass = 'closed'; badgeText = 'TERJADWAL'; }
 
                             return (
-                              <tr key={p.id || idx}>
-                                <td style={{ fontWeight: 900, color: '#1E293B' }}>
-                                  <span style={{ background: '#EEF2FF', color: '#4F46E5', padding: '4px 10px', borderRadius: 8, fontSize: '0.78rem', fontWeight: 800 }}>
-                                    P-{p.pertemuan_ke || (idx + 1)}
+                              <tr key={idx}>
+                                <td style={{ fontWeight: 800, color: '#1E293B' }}>
+                                  <span style={{ background: '#EFF6FF', color: '#1D4ED8', padding: '4px 10px', borderRadius: 8, fontSize: '0.8rem', fontWeight: 800 }}>
+                                    Pertemuan {p.pertemuan_ke}
                                   </span>
                                 </td>
-                                <td style={{ fontWeight: 800, color: '#0F172A' }}>
-                                  {p.nama_mapel || 'Pelajaran Umum'}
+                                <td style={{ fontWeight: 700, color: '#0F172A' }}>
+                                  {p.namaMapel}
                                 </td>
                                 <td style={{ color: '#475569', fontSize: '0.84rem' }}>
-                                  {dateStr}
-                                </td>
-                                <td style={{ color: '#475569', fontSize: '0.84rem', fontWeight: 600 }}>
-                                  {p.nama_tutor || '-'}
+                                  {p.namaTutor}
                                 </td>
                                 <td>
                                   <span className={`badge-kehadiran ${badgeClass}`}>
@@ -795,75 +647,40 @@ export default function AbsensiSiswa() {
                     </div>
                   </div>
 
-                  {/* Tampilan Mobile: Kartu Responsif Rapi & Touch-Friendly */}
-                  <div className="riwayat-mobile-list">
-                    {riwayatFiltered.map((p, idx) => {
-                      const status = (p.status || 'alpa').toLowerCase();
+                  {/* Versi Mobile Cards untuk Report */}
+                  <div className="riwayat-mobile-list d-md-none">
+                    {daftarPertemuan.map((p, idx) => {
+                      const status = (p.statusPresensi || 'alpa').toLowerCase();
                       let badgeClass = 'alpa';
                       let badgeText = 'ALPA';
-
-                      if (status === 'hadir') {
-                        badgeClass = 'hadir';
-                        badgeText = 'HADIR';
-                      } else if (status === 'izin') {
-                        badgeClass = 'izin';
-                        badgeText = 'IZIN';
-                      } else if (status === 'sakit') {
-                        badgeClass = 'sakit';
-                        badgeText = 'SAKIT';
-                      }
-
-                      const dateObj = p.waktu_mulai ? new Date(p.waktu_mulai) : null;
-                      const dateStr = dateObj
-                        ? dateObj.toLocaleDateString('id-ID', {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
-                        : '-';
+                      if (status === 'hadir') { badgeClass = 'hadir'; badgeText = 'HADIR'; }
+                      else if (status === 'izin') { badgeClass = 'izin'; badgeText = 'IZIN'; }
+                      else if (status === 'sakit') { badgeClass = 'sakit'; badgeText = 'SAKIT'; }
+                      else if (p.isClosed) { badgeClass = 'closed'; badgeText = 'TERJADWAL'; }
 
                       return (
-                        <div key={p.id || idx} className="riwayat-mobile-card">
+                        <div key={idx} className="riwayat-mobile-card">
                           <div className="riwayat-mobile-card-header">
-                            <span className="riwayat-mobile-pertemuan">
-                              P-{p.pertemuan_ke || (idx + 1)}
-                            </span>
-                            <span className={`badge-kehadiran ${badgeClass}`}>
-                              {badgeText}
-                            </span>
+                            <span className="riwayat-mobile-pertemuan">Pertemuan {p.pertemuan_ke}</span>
+                            <span className={`badge-kehadiran ${badgeClass}`}>{badgeText}</span>
                           </div>
-
-                          <h4 className="riwayat-mobile-mapel">
-                            {p.nama_mapel || 'Pelajaran Umum'}
-                          </h4>
-
+                          <h4 className="riwayat-mobile-mapel">{p.namaMapel}</h4>
                           <div className="riwayat-mobile-meta">
-                            <div className="riwayat-meta-item">
-                              <Calendar size={13} />
-                              <span>{dateStr}</span>
-                            </div>
-                            <div className="riwayat-meta-item">
-                              <UserCheck size={13} />
-                              <span>{p.nama_tutor || 'Tutor PKBM'}</span>
-                            </div>
+                            <span>Tutor: {p.namaTutor}</span>
                           </div>
-
-                          {(p.catatan || status !== 'hadir') && (
+                          {p.catatan && (
                             <div className="riwayat-mobile-note">
-                              <strong>Catatan:</strong> {p.catatan || (status === 'hadir' ? 'Hadir di sesi kelas' : '-')}
+                              <strong>Catatan:</strong> {p.catatan}
                             </div>
                           )}
                         </div>
                       );
                     })}
                   </div>
-                </>
+                </div>
               )}
-            </div>
-          )}
+            </section>
+          </div>
 
         </div>
       </main>

@@ -2142,8 +2142,8 @@ function KelasTerpaduSiswa() {
                                   options={pertemuans.map((pert) => ({
                                     value: pert.id,
                                     label: `Sesi ${String(pert.pertemuan_ke).padStart(2, '0')}: ${pert.judul}`,
-                                    badge: new Date(pert.tanggal_pelaksanaan).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-                                    icon: 'bi-calendar-event'
+                                    badge: `Pertemuan ${pert.pertemuan_ke}`,
+                                    icon: 'bi-journal-text'
                                   }))}
                                 />
                               </div>
@@ -2184,7 +2184,7 @@ function KelasTerpaduSiswa() {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', paddingBottom: '1.25rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.22)' }}>
                             <div>
                               <span className="sheet-header-pill">
-                                ● {new Date(pertemuanDetail.pertemuan.tanggal_pelaksanaan).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                ● Pertemuan Ke-{pertemuanDetail.pertemuan.pertemuan_ke} • Jadwal Belajar PKBM
                               </span>
                               <h2 className="sheet-header-title">
                                 Sesi {pertemuanDetail.pertemuan.pertemuan_ke}: {pertemuanDetail.pertemuan.judul}
