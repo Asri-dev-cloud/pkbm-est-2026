@@ -1,34 +1,39 @@
 // ============================================================
-// src/pages/admin/AbsensiAdmin.jsx — Rekapitulasi Presensi Admin
-// PKBM Bina Mandiri — Desain Elegan, Modern, & Menarik (Sapphire Obsidian)
-// Jadwal KBM Khusus: Setiap Hari Sabtu & Minggu
+// src/pages/admin/AbsensiAdmin.jsx — Kelola Presensi KBM Admin
+// PKBM Bina Mandiri — Desain Elegan, Modern, & Sederhana
+// Jadwal KBM Khusus: 20 Pertemuan Sabtu & 20 Pertemuan Minggu
 // ============================================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
 import { SiswaAPI, AbsensiAPI } from '../../services/api.js';
+import { 
+  CalendarCheck, BookOpen, RefreshCw, Filter, 
+  CheckCircle2, Clock, Coffee, 
+  Users, Check, X, AlertCircle, ArrowRight,
+  Info, Edit2, Trash2
+} from 'lucide-react';
+import '../siswa/AbsensiSiswa.css';
 import './AbsensiAdmin.css';
 
-function AbsensiAdmin() {
+const TOTAL_SESI_PER_HARI = 20; // 20 Pertemuan Sabtu & 20 Pertemuan Minggu
+
+export default function AbsensiAdmin() {
   const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
 
-  // Deteksi Hari Ini & Akhir Pekan Terdekat
+  // Deteksi Hari Ini & Akhir Pekan
   const today = new Date();
+  const dayOfWeek = today.getDay(); // 0 = Minggu, 6 = Sabtu, 1..5 = Senin..Jumat
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
   const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-  const currentDayName = dayNames[today.getDay()];
-  const currentDateFormatted = today.toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
+  const currentDayName = dayNames[dayOfWeek];
 
   // Helper mendapatkan tanggal Sabtu dan Minggu terdekat
   const getUpcomingSaturday = () => {
     const d = new Date();
     const day = d.getDay();
     const diff = (6 - day + 7) % 7;
-    d.setDate(d.getDate() + (diff === 0 && d.getHours() >= 16 ? 7 : diff));
+    d.setDate(d.getDate() + (diff === 0 && d.getHours() >= 17 ? 7 : diff));
     return d.toISOString().split('T')[0];
   };
 
@@ -36,14 +41,17 @@ function AbsensiAdmin() {
     const d = new Date();
     const day = d.getDay();
     const diff = (7 - day) % 7;
-    d.setDate(d.getDate() + (diff === 0 && d.getHours() >= 16 ? 7 : diff));
+    d.setDate(d.getDate() + (diff === 0 && d.getHours() >= 17 ? 7 : diff));
     return d.toISOString().split('T')[0];
   };
 
   const satDate = getUpcomingSaturday();
   const sunDate = getUpcomingSunday();
 
-  // ── Filter State ──────────────────────────────────────────
+  // Tab Navigasi Menu Kelas: 'sabtu' | 'minggu' | 'rekap'
+  const [activeTab, setActiveTab] = useState(dayOfWeek === 0 ? 'minggu' : 'sabtu');
+
+  // ── State: Rombongan Belajar & Filter ─────────────────────
   const [rombelList, setRombelList] = useState([]);
   const [selectedJenjang, setSelectedJenjang] = useState('semua');
   const [selectedRombelId, setSelectedRombelId] = useState('');
@@ -51,12 +59,14 @@ function AbsensiAdmin() {
   const [selectedMapelId, setSelectedMapelId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ── Data Matriks State ────────────────────────────────────
+  // ── State: Data Matriks Presensi & Loading ────────────────
   const [loading, setLoading] = useState(true);
   const [rekapData, setRekapData] = useState(null);
   const [error, setError] = useState('');
+  const [actionLoadingId, setActionLoadingId] = useState(null); // 'Sabtu-1', dll.
+  const [feedback, setFeedback] = useState({ type: '', msg: '' });
 
-  // ── Modal Quick Edit Status Siswa ─────────────────────────
+  // ── State: Modal Input Presensi Siswa di Matriks ───────────
   const [editModal, setEditModal] = useState({
     isOpen: false,
     sesiId: null,
@@ -64,12 +74,13 @@ function AbsensiAdmin() {
     tanggal: '',
     wargaBelajarId: null,
     namaSiswa: '',
+    nis: '',
     currentStatus: 'hadir',
     catatan: '',
   });
   const [savingEdit, setSavingEdit] = useState(false);
 
-  // ── 1. Inisialisasi Daftar 10 Rombel ───────────────────────
+  // ── 1. Ambil Opsi Rombel ──────────────────────────────────
   useEffect(() => {
     const fetchRombel = async () => {
       try {
@@ -88,11 +99,13 @@ function AbsensiAdmin() {
   }, []);
 
   // Filter rombel berdasarkan Jenjang Tab (Semua, Paket A, Paket B, Paket C)
-  const filteredRombelList = rombelList.filter(r => {
-    if (selectedJenjang === 'semua') return true;
-    const name = (r.nama_rombel || r.nama || '').toLowerCase();
-    return name.includes(selectedJenjang.toLowerCase());
-  });
+  const filteredRombelList = useMemo(() => {
+    return rombelList.filter(r => {
+      if (selectedJenjang === 'semua') return true;
+      const name = (r.nama_rombel || r.nama || '').toLowerCase();
+      return name.includes(selectedJenjang.toLowerCase());
+    });
+  }, [rombelList, selectedJenjang]);
 
   const handleSelectJenjang = (jenjang) => {
     setSelectedJenjang(jenjang);
@@ -126,8 +139,8 @@ function AbsensiAdmin() {
     fetchMapel();
   }, [selectedRombelId]);
 
-  // ── 3. Ambil Data Matriks Presensi ────────────────────────
-  const fetchRekapMatriks = async () => {
+  // ── 3. Ambil Rekapitulasi Presensi & Sesi Rombel ───────────
+  const fetchRekapMatriks = useCallback(async () => {
     if (!selectedRombelId) return;
 
     setLoading(true);
@@ -139,8 +152,7 @@ function AbsensiAdmin() {
       });
       setRekapData(res.data?.data || null);
     } catch (err) {
-      console.warn('[AbsensiAdmin.fetchRekapMatriks] Backend matriks belum sinkron, menggunakan fallback:', err);
-
+      console.warn('[AbsensiAdmin.fetchRekapMatriks] Menggunakan fallback sesi rombel:', err);
       try {
         const [sesiRes, siswaRes] = await Promise.all([
           AbsensiAPI.getSesiByRombel(selectedRombelId).catch(() => ({ data: { data: [] } })),
@@ -160,21 +172,19 @@ function AbsensiAdmin() {
           ? siswaRes.data.data
           : (siswaRes.data?.data?.warga_belajar || siswaRes.data?.data?.siswa || []);
 
-        const matrix = siswaList.map((sw, idx) => {
-          return {
-            no: idx + 1,
-            warga_belajar_id: sw.id || sw.warga_belajar_id,
-            nis: sw.nis || '-',
-            nama_lengkap: sw.nama_lengkap || sw.nama || 'Siswa',
-            kehadiran: {},
-            total_h: 0,
-            total_i: 0,
-            total_s: 0,
-            total_a: 0,
-            persentase: 100,
-            is_memenuhi_syarat: true
-          };
-        });
+        const matrix = siswaList.map((sw, idx) => ({
+          no: idx + 1,
+          warga_belajar_id: sw.id || sw.warga_belajar_id,
+          nis: sw.nis || '-',
+          nama_lengkap: sw.nama_lengkap || sw.nama || 'Siswa',
+          kehadiran: {},
+          total_h: 0,
+          total_i: 0,
+          total_s: 0,
+          total_a: 0,
+          persentase: 100,
+          is_memenuhi_syarat: true
+        }));
 
         const rombelObj = rombelList.find(r => String(r.id) === String(selectedRombelId)) || { id: selectedRombelId, nama_rombel: 'Rombel ' + selectedRombelId };
         const mapelObj = selectedMapelId ? mapelList.find(m => String(m.id) === String(selectedMapelId)) : null;
@@ -204,42 +214,136 @@ function AbsensiAdmin() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedRombelId, selectedMapelId, rombelList, mapelList]);
 
   useEffect(() => {
     fetchRekapMatriks();
-  }, [selectedRombelId, selectedMapelId]);
+  }, [fetchRekapMatriks]);
 
-  // ── 5. Handler Tutup Sesi & Hapus Sesi ─────────────────────
-  const handleTutupSesi = async (sesiId, pKe) => {
-    const konfirmasi = window.confirm(`Tutup sesi presensi Pertemuan ${pKe}? Warga belajar tidak dapat mengisi presensi mandiri lagi.`);
+  // Helper mencari sesi untuk pertemuan & hari tertentu
+  const getSesiItem = useCallback((pertKe, hari) => {
+    if (!rekapData?.sesi_list) return null;
+    return rekapData.sesi_list.find(s => {
+      const matchP = Number(s.pertemuan_ke) === pertKe;
+      if (!matchP) return false;
+
+      // Cek apakah ada catatan spesifik hari
+      const catatanLower = (s.catatan || '').toLowerCase();
+      if (catatanLower.includes('sabtu')) return hari === 'Sabtu';
+      if (catatanLower.includes('minggu')) return hari === 'Minggu';
+
+      // Cek dari tanggal sesi
+      if (s.tanggal) {
+        const parts = s.tanggal.split('T')[0].split('-').map(Number);
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        const day = d.getDay();
+        if (hari === 'Sabtu' && day === 6) return true;
+        if (hari === 'Minggu' && day === 0) return true;
+      }
+
+      return true; // Fallback jika hanya ada 1 sesi per pertemuan
+    });
+  }, [rekapData?.sesi_list]);
+
+  // ── 4. Handler 1-Click Buka Presensi Per Pertemuan ─────────
+  const handleBukaPresensi = async (pertKe, hari) => {
+    if (!selectedRombelId) {
+      alert('Pilih rombongan belajar (kelas) terlebih dahulu.');
+      return;
+    }
+
+    const actionKey = `${hari}-${pertKe}`;
+    setActionLoadingId(actionKey);
+    setFeedback({ type: '', msg: '' });
+
+    try {
+      const targetTanggal = hari === 'Minggu' ? sunDate : satDate;
+      const payload = {
+        rombel_id: Number(selectedRombelId),
+        mapel_id: selectedMapelId ? Number(selectedMapelId) : null,
+        pertemuan_ke: pertKe,
+        tanggal: targetTanggal,
+        mode: 'mandiri',
+        durasi_timer: 86400, // Aktif pada hari KBM s/d 17.00 WIB
+        catatan: `Pertemuan ${pertKe} Sesi ${hari}`,
+      };
+
+      const res = await AbsensiAPI.bukaSesi(payload);
+      if (res.data?.success) {
+        setFeedback({
+          type: 'success',
+          msg: `Presensi Pertemuan ${pertKe} Sesi ${hari} BERHASIL DIBUKA. Siswa sekarang dapat melakukan presensi mandiri.`
+        });
+        await fetchRekapMatriks();
+      } else {
+        setFeedback({
+          type: 'error',
+          msg: res.data?.message || 'Gagal membuka sesi presensi.'
+        });
+      }
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        msg: err.response?.data?.message || 'Terjadi kesalahan saat membuka presensi.'
+      });
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  // ── 5. Handler 1-Click Tutup Presensi ──────────────────────
+  const handleTutupPresensi = async (sesiId, pertKe, hari) => {
+    const konfirmasi = window.confirm(`Tutup presensi Pertemuan ${pertKe} (${hari})? Siswa tidak dapat mengisi presensi mandiri lagi.`);
     if (!konfirmasi) return;
+
+    const actionKey = `${hari}-${pertKe}`;
+    setActionLoadingId(actionKey);
+    setFeedback({ type: '', msg: '' });
 
     try {
       await AbsensiAPI.tutupSesi(sesiId);
-      alert(`Sesi presensi Pertemuan ${pKe} telah ditutup.`);
+      setFeedback({
+        type: 'success',
+        msg: `Presensi Pertemuan ${pertKe} (${hari}) telah DITUTUP.`
+      });
       await fetchRekapMatriks();
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal menutup sesi.');
+      setFeedback({
+        type: 'error',
+        msg: err.response?.data?.message || 'Gagal menutup sesi presensi.'
+      });
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
-  const handleHapusSesi = async (sesiId, pKe) => {
-    const konfirmasi = window.confirm(
-      `PERINGATAN: Hapus sesi Pertemuan ${pKe} beserta seluruh rekaman presensi pada sesi ini? Tindakan ini tidak dapat dibatalkan.`
-    );
+  // ── 5b. Handler Hapus / Reset Sesi Pertemuan ───────────────
+  const handleHapusSesi = async (sesiId, pertKe, hari) => {
+    const konfirmasi = window.confirm(`Hapus sesi Pertemuan ${pertKe} (${hari})? Status akan kembali menjadi 'Menunggu Dibuka' dan data kehadiran sesi ini akan direset.`);
     if (!konfirmasi) return;
+
+    const actionKey = `${hari}-${pertKe}`;
+    setActionLoadingId(actionKey);
+    setFeedback({ type: '', msg: '' });
 
     try {
       await AbsensiAPI.hapusSesi(sesiId);
-      alert(`Sesi presensi Pertemuan ${pKe} berhasil dihapus.`);
+      setFeedback({
+        type: 'success',
+        msg: `Sesi Pertemuan ${pertKe} (${hari}) berhasil dihapus. Status kembali 'Menunggu Dibuka'.`
+      });
       await fetchRekapMatriks();
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal menghapus sesi.');
+      setFeedback({
+        type: 'error',
+        msg: err.response?.data?.message || 'Gagal menghapus sesi presensi.'
+      });
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
-  // ── 6. Handler Quick Edit Status Siswa ─────────────────────
+  // ── 6. Handler Quick Edit 1 Siswa di Matriks Presensi ──────
   const handleOpenEditModal = (sesi, siswa, record) => {
     setEditModal({
       isOpen: true,
@@ -248,6 +352,7 @@ function AbsensiAdmin() {
       tanggal: sesi.tanggal,
       wargaBelajarId: siswa.warga_belajar_id,
       namaSiswa: siswa.nama_lengkap,
+      nis: siswa.nis || '—',
       currentStatus: record?.status === 'belum' ? 'alpa' : (record?.status || 'hadir'),
       catatan: record?.catatan || '',
     });
@@ -264,13 +369,17 @@ function AbsensiAdmin() {
       } catch (putErr) {
         if (putErr.response?.status === 404) {
           await AbsensiAPI.submitManual(editModal.sesiId, [
-            { warga_belajar_id: editModal.wargaBelajarId, status: editModal.currentStatus }
+            { warga_belajar_id: editModal.wargaBelajarId, status: editModal.currentStatus, catatan: editModal.catatan.trim() || null }
           ]);
         } else {
           throw putErr;
         }
       }
       setEditModal(prev => ({ ...prev, isOpen: false }));
+      setFeedback({
+        type: 'success',
+        msg: `Presensi siswa ${editModal.namaSiswa} untuk Pertemuan ${editModal.pertemuanKe} berhasil diperbarui menjadi [${editModal.currentStatus.toUpperCase()}].`
+      });
       await fetchRekapMatriks();
     } catch (err) {
       alert(err.response?.data?.message || 'Gagal memperbarui status presensi.');
@@ -279,81 +388,19 @@ function AbsensiAdmin() {
     }
   };
 
-  // ── 7. Fitur Export CSV (Excel Compatible) ─────────────────
-  const handleExportCSV = () => {
-    if (!rekapData || !rekapData.matrix || rekapData.matrix.length === 0) {
-      alert('Tidak ada data kehadiran untuk diekspor.');
-      return;
-    }
-
-    const sesiList = rekapData.sesi_list || [];
-    const matrix = rekapData.matrix || [];
-
-    const headers = [
-      'No',
-      'NIS',
-      'Nama Lengkap Siswa',
-      ...sesiList.map(s => {
-        const d = s.tanggal ? new Date(s.tanggal) : null;
-        const dayStr = d ? (d.getDay() === 0 ? 'Minggu' : d.getDay() === 6 ? 'Sabtu' : 'Hari') : '';
-        return `P${s.pertemuan_ke} ${dayStr} (${s.tanggal ? s.tanggal.split('T')[0] : ''})`;
-      }),
-      'Hadir (H)',
-      'Izin (I)',
-      'Sakit (S)',
-      'Alpa (A)',
-      'Persentase Hadir (%)',
-      'Status Kelayakan (Min. 75%)'
-    ];
-
-    const rows = matrix.map(m => {
-      const pCols = sesiList.map(s => {
-        const item = m.kehadiran?.[s.id];
-        if (!item || item.status === 'belum') return '-';
-        return item.status.toUpperCase();
-      });
-
-      return [
-        m.no,
-        `"${m.nis || '-'}"`,
-        `"${m.nama_lengkap.replace(/"/g, '""')}"`,
-        ...pCols,
-        m.total_h,
-        m.total_i,
-        m.total_s,
-        m.total_a,
-        `${m.persentase}%`,
-        m.is_memenuhi_syarat ? 'MEMENUHI (>=75%)' : 'KRITIS (<75%)'
-      ];
+  // Filter siswa berdasarkan input pencarian di tabel matriks
+  const filteredMatrix = useMemo(() => {
+    return (rekapData?.matrix || []).filter(item => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        item.nama_lengkap?.toLowerCase().includes(q) ||
+        item.nis?.toLowerCase().includes(q)
+      );
     });
+  }, [rekapData?.matrix, searchQuery]);
 
-    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    const rombelNama = (rekapData.rombel?.nama_rombel || 'Rombel').replace(/[^a-zA-Z0-9]/g, '_');
-    link.download = `Presensi_Weekend_${rombelNama}_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // ── 8. Fitur Cetak Laporan ─────────────────────────────────
-  const handlePrint = () => {
-    window.print();
-  };
-
-  // Filter siswa berdasarkan input pencarian
-  const filteredMatrix = (rekapData?.matrix || []).filter(item => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      item.nama_lengkap?.toLowerCase().includes(q) ||
-      item.nis?.toLowerCase().includes(q)
-    );
-  });
-
-  // Helper status badge matriks
+  // Helper badge status sel matriks
   const getStatusBadge = (status) => {
     switch (status) {
       case 'hadir':
@@ -369,580 +416,680 @@ function AbsensiAdmin() {
     }
   };
 
-  // Helper nama hari dari tanggal
-  const getDayShortName = (tanggalStr) => {
-    if (!tanggalStr) return '';
-    const d = new Date(tanggalStr);
-    const day = d.getDay();
-    if (day === 6) return 'Sabtu';
-    if (day === 0) return 'Minggu';
-    return dayNames[day] || '';
-  };
+  // Generate 20 Pertemuan untuk Tab Aktif (Sabtu / Minggu)
+  const currentHariName = activeTab === 'minggu' ? 'Minggu' : 'Sabtu';
+  const currentPertemuanList = useMemo(() => {
+    return Array.from({ length: TOTAL_SESI_PER_HARI }, (_, i) => {
+      const pertKe = i + 1;
+      const sesi = getSesiItem(pertKe, currentHariName);
+      const isAktif = sesi && sesi.status_sesi === 'aktif';
+      const isSelesai = sesi && sesi.status_sesi === 'selesai';
+
+      return {
+        id: `${currentHariName.toLowerCase()}-${pertKe}`,
+        pertemuan_ke: pertKe,
+        hari: currentHariName,
+        judul: `Pertemuan ${pertKe} Sesi ${currentHariName}`,
+        subjudul: 'Sesi Pembelajaran Tatap Muka & Mandiri',
+        sesi: sesi,
+        isAktif: Boolean(isAktif),
+        isSelesai: Boolean(isSelesai),
+        isMenunggu: !sesi
+      };
+    });
+  }, [currentHariName, getSesiItem]);
 
   return (
     <div className="app-layout">
       <Sidebar user={user} />
       <main className="app-main">
-        <div className="absensi-admin-wrapper">
-          <div className="absensi-admin-container">
-            
-            {/* ── 1. Sapphire Hero Banner ── */}
-            <div className="admin-hero-banner">
-              <div className="admin-hero-content">
-                <div className="admin-hero-left">
-                  <div className="admin-hero-badge">
-                    <i className="bi bi-calendar2-week"></i>
-                    <span>JADWAL KBM: SETIAP SABTU & MINGGU</span>
-                  </div>
-                  <h1 className="admin-hero-title">
-                    Rekapitulasi Presensi Warga Belajar
-                  </h1>
-                  <p className="admin-hero-subtitle">
-                    Pusat pengelolaan & pemantauan kehadiran KBM tatap muka akhir pekan (Sabtu & Minggu) • Paket A, Paket B, & Paket C PKBM Bina Mandiri.
-                  </p>
+        <div className="app-content absensi-siswa-page absensi-admin-redesign">
+
+          {/* ── 1. Top Header Banner ── */}
+          <div className="absensi-header-card">
+            <div>
+              <div className="absensi-header-badge">
+                <CalendarCheck size={13} />
+                <span>ADMIN PRESENSI • PKBM BINA MANDIRI</span>
+              </div>
+              <h1 className="absensi-header-title">
+                Kelola Presensi KBM (Sabtu & Minggu)
+              </h1>
+              <p className="absensi-header-subtitle">
+                Buka dan tutup presensi per pertemuan secara langsung (20 Pertemuan Sabtu & 20 Pertemuan Minggu).
+              </p>
+            </div>
+
+            <button 
+              type="button"
+              onClick={() => fetchRekapMatriks()}
+              className="absensi-refresh-btn"
+            >
+              <RefreshCw size={14} />
+              <span>Segarkan Data</span>
+            </button>
+          </div>
+
+          {/* ── 2. Weekend Notice Banner ── */}
+          <div className="weekend-schedule-banner">
+            <div className="weekend-schedule-left">
+              <div className="weekend-schedule-icon">
+                {isWeekend ? <CalendarCheck size={20} /> : <Coffee size={20} />}
+              </div>
+              <div>
+                <h3 className="weekend-schedule-title">
+                  {isWeekend 
+                    ? `Hari Ini Sesi KBM Akhir Pekan (${currentDayName})` 
+                    : `Hari Ini ${currentDayName} • Waktu Belajar Mandiri`}
+                </h3>
+                <p className="weekend-schedule-desc">
+                  {isWeekend 
+                    ? `Admin dapat membuka presensi per pertemuan. Siswa dapat mengisi presensi mandiri sebelum pukul 17.00 WIB.`
+                    : `Jadwal resmi pembelajaran tatap muka berlangsung setiap Sabtu & Minggu. Anda tetap dapat meninjau atau mengoreksi presensi.`}
+                </p>
+              </div>
+            </div>
+
+            <div className="weekend-schedule-right">
+              <div className="weekend-schedule-pill">
+                <span>Sabtu: {satDate}</span>
+              </div>
+              <div className="weekend-schedule-pill">
+                <span>Minggu: {sunDate}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── 3. Rombel Selector & Filter Strip ── */}
+          <div className="admin-rombel-toolbar">
+            <div className="admin-rombel-toolbar-left">
+              <div className="admin-jenjang-chips">
+                {[
+                  { id: 'semua', label: 'Semua' },
+                  { id: 'Paket A', label: 'Paket A (SD)' },
+                  { id: 'Paket B', label: 'Paket B (SMP)' },
+                  { id: 'Paket C', label: 'Paket C (SMA)' }
+                ].map(chip => (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    onClick={() => handleSelectJenjang(chip.id)}
+                    className={`admin-jenjang-chip ${selectedJenjang === chip.id ? 'active' : ''}`}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="admin-rombel-dropdown-wrap">
+                <label className="admin-rombel-label">Kelas / Rombel:</label>
+                <select
+                  value={selectedRombelId}
+                  onChange={(e) => setSelectedRombelId(e.target.value)}
+                  className="admin-rombel-select"
+                >
+                  {filteredRombelList.map(r => (
+                    <option key={r.id} value={r.id}>
+                      {r.nama_rombel || r.nama}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="admin-rombel-toolbar-right">
+              {rekapData?.rombel && (
+                <span className="admin-selected-rombel-pill">
+                  Rombel Aktif: <strong>{rekapData.rombel.nama_rombel}</strong> ({rekapData.matrix?.length || 0} Siswa)
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* ── 4. Feedback Alert Bar ── */}
+          {feedback.msg && (
+            <div className={`feedback-alert-box ${feedback.type === 'success' ? 'success' : 'error'}`}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                  <span>{feedback.msg}</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setFeedback({ type: '', msg: '' })}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          )}
 
-                <div className="admin-hero-actions">
-                  <button
-                    type="button"
-                    onClick={handlePrint}
-                    className="admin-hero-btn glass"
-                    title="Cetak format cetak presensi"
-                  >
-                    <i className="bi bi-printer"></i>
-                    <span>Cetak Presensi</span>
-                  </button>
+          {/* ── 5. Layout Menu Kelas (Sama Persis Tampilan Siswa) ── */}
+          <div className="menu-kelas-layout">
 
-                  <button
-                    type="button"
-                    onClick={handleExportCSV}
-                    className="admin-hero-btn glass"
-                    title="Unduh rekap presensi format Excel / CSV"
-                  >
-                    <i className="bi bi-file-earmark-excel text-emerald-300"></i>
-                    <span>Unduh Excel (CSV)</span>
-                  </button>
+            {/* ══ SISI KIRI: MENU KELAS (TAB SABTU, MINGGU, REKAP) ══ */}
+            <aside className="menu-kelas-sidebar">
+              <div className="menu-kelas-title">MENU KELAS</div>
 
-                  {isWeekend ? (
-                    <div className="admin-status-auto-pill active" title="Sesi presensi otomatis aktif setiap hari Sabtu & Minggu">
-                      <span className="auto-pill-dot green"></span>
-                      <div>
-                        <div className="auto-pill-title">Sesi Otomatis Aktif</div>
-                        <div className="auto-pill-sub">Hari Ini: {currentDayName} (Sabtu & Minggu)</div>
-                      </div>
+              {/* Menu 1: Pertemuan Sabtu */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('sabtu')}
+                className={`menu-kelas-btn ${activeTab === 'sabtu' ? 'active' : ''}`}
+              >
+                <div className="menu-kelas-btn-left">
+                  <BookOpen size={18} />
+                  <span>Pertemuan Sabtu</span>
+                </div>
+                <span className="menu-kelas-badge">{TOTAL_SESI_PER_HARI}</span>
+              </button>
+
+              {/* Menu 2: Pertemuan Minggu */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('minggu')}
+                className={`menu-kelas-btn ${activeTab === 'minggu' ? 'active' : ''}`}
+              >
+                <div className="menu-kelas-btn-left">
+                  <BookOpen size={18} />
+                  <span>Pertemuan Minggu</span>
+                </div>
+                <span className="menu-kelas-badge">{TOTAL_SESI_PER_HARI}</span>
+              </button>
+
+              {/* Menu 3: Rekap Presensi / Buku Matriks */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('rekap')}
+                className={`menu-kelas-btn ${activeTab === 'rekap' ? 'active' : ''}`}
+              >
+                <div className="menu-kelas-btn-left">
+                  <CalendarCheck size={18} />
+                  <span>Buku Matriks Presensi</span>
+                </div>
+                <span className="menu-kelas-badge">
+                  {rekapData?.matrix?.length || 0} Siswa
+                </span>
+              </button>
+            </aside>
+
+            {/* ══ SISI KANAN: KONTEN UTAMA ══ */}
+            <section className="menu-kelas-content">
+
+              {/* ──────────────── TAB PERTEMUAN (SABTU ATAU MINGGU) ──────────────── */}
+              {activeTab === 'sabtu' || activeTab === 'minggu' ? (
+                <div>
+                  <div className="pertemuan-header-strip">
+                    <div>
+                      <h2 className="pertemuan-title-main">
+                        Pertemuan Kelas — Sesi {currentHariName}
+                      </h2>
+                      <p className="pertemuan-sub-main">
+                        Daftar 20 sesi {currentHariName}. Buka presensi agar siswa dapat check-in mandiri, atau tutup presensi setelah KBM berakhir.
+                      </p>
                     </div>
-                  ) : (
-                    <div className="admin-status-auto-pill closed" title="Presensi tatap muka dan mandiri ditutup pada hari Senin s.d. Jumat">
-                      <i className="bi bi-lock-fill"></i>
-                      <div>
-                        <div className="auto-pill-title">Presensi KBM Ditutup</div>
-                        <div className="auto-pill-sub">Buka Otomatis Sabtu & Minggu</div>
-                      </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span className="pertemuan-count-pill">
+                        20 pertemuan {currentHariName}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Switch Bar Hari Sabtu / Minggu */}
+                  <div className="hari-switch-bar">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('sabtu')}
+                      className={`hari-switch-btn ${activeTab === 'sabtu' ? 'active' : ''}`}
+                    >
+                      <BookOpen size={16} />
+                      <span>Sesi Hari Sabtu</span>
+                      <span className="hari-switch-pill">20 Sesi</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('minggu')}
+                      className={`hari-switch-btn ${activeTab === 'minggu' ? 'active' : ''}`}
+                    >
+                      <BookOpen size={16} />
+                      <span>Sesi Hari Minggu</span>
+                      <span className="hari-switch-pill">20 Sesi</span>
+                    </button>
+                  </div>
+
+                  {/* Loading State */}
+                  {loading && (
+                    <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}>
+                      <RefreshCw size={24} className="spin-icon" style={{ margin: '0 auto 8px' }} />
+                      <p>Memuat status presensi pertemuan...</p>
+                    </div>
+                  )}
+
+                  {/* 20 Meeting Cards List (Rapi, Bersih, Sederhana) */}
+                  {!loading && (
+                    <div className="pertemuan-list-grid">
+                      {currentPertemuanList.map((item) => {
+                        const numStr = String(item.pertemuan_ke).padStart(2, '0');
+                        const actionKey = `${item.hari}-${item.pertemuan_ke}`;
+                        const isActionRunning = actionLoadingId === actionKey;
+
+                        return (
+                          <div
+                            key={item.id}
+                            className={`pertemuan-item-card admin-meeting-card ${item.isAktif ? 'is-active-card' : ''}`}
+                          >
+                            <div className="pertemuan-item-left">
+                              <div className="pertemuan-number-box">
+                                {numStr}
+                              </div>
+                              <div className="pertemuan-item-body">
+                                <div className="pertemuan-item-title-row">
+                                  <span className="pertemuan-item-title">
+                                    {item.judul}
+                                  </span>
+                                  {item.isAktif ? (
+                                    <span className="pertemuan-badge-open">
+                                      🟢 Sedang Buka
+                                    </span>
+                                  ) : item.isSelesai ? (
+                                    <span className="pertemuan-badge-closed status-ditutup">
+                                      Ditutup
+                                    </span>
+                                  ) : (
+                                    <span className="pertemuan-badge-closed status-menunggu">
+                                      Menunggu Dibuka
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="pertemuan-item-desc">
+                                  <span>{item.subjudul}</span>
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* ══ TOMBOL BUKA / TUTUP ELEGAN & MINIMALIS ══ */}
+                            <div className="pertemuan-item-action" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              {item.isAktif ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    disabled={isActionRunning}
+                                    onClick={() => handleTutupPresensi(item.sesi.id, item.pertemuan_ke, item.hari)}
+                                    className="btn-admin-action tutup"
+                                    title="Tutup sesi presensi ini agar siswa tidak dapat check-in lagi"
+                                  >
+                                    <Clock size={15} />
+                                    <span>{isActionRunning ? 'Menutup...' : 'Tutup Presensi'}</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={isActionRunning}
+                                    onClick={() => handleHapusSesi(item.sesi.id, item.pertemuan_ke, item.hari)}
+                                    className="btn-admin-action hapus"
+                                    title="Hapus sesi ini dan kembalikan ke status Menunggu Dibuka"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </>
+                              ) : item.isSelesai ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    disabled={isActionRunning}
+                                    onClick={() => handleBukaPresensi(item.pertemuan_ke, item.hari)}
+                                    className="btn-admin-action reopen"
+                                    title="Buka kembali sesi presensi pertemuan ini"
+                                  >
+                                    <RefreshCw size={14} />
+                                    <span>{isActionRunning ? 'Membuka...' : 'Buka Kembali'}</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={isActionRunning}
+                                    onClick={() => handleHapusSesi(item.sesi.id, item.pertemuan_ke, item.hari)}
+                                    className="btn-admin-action hapus"
+                                    title="Hapus sesi ini dan kembalikan ke status Menunggu Dibuka"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={isActionRunning}
+                                  onClick={() => handleBukaPresensi(item.pertemuan_ke, item.hari)}
+                                  className="btn-admin-action buka"
+                                  title="Buka sesi presensi untuk pertemuan ini agar siswa dapat check-in"
+                                >
+                                  <CheckCircle2 size={15} />
+                                  <span>{isActionRunning ? 'Membuka...' : 'Buka Presensi'}</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
+              ) : (
 
-            {/* ── 2. Weekend Notice Capsule ── */}
-            <div className="admin-weekend-strip">
-              <div className="admin-weekend-strip-left">
-                <div className="admin-weekend-strip-icon">
-                  <i className="bi bi-calendar-week-fill"></i>
-                </div>
+                /* ──────────────── TAB REKAP & BUKU MATRIKS PRESENSI ──────────────── */
                 <div>
-                  <div style={{ fontWeight: 700, color: '#78350F' }}>
-                    Jadwal KBM Tatap Muka: <strong>Setiap Sabtu & Minggu</strong>
-                  </div>
-                  <div style={{ fontSize: '0.82rem', color: '#92400E' }}>
-                    Hari ini adalah <strong>{currentDateFormatted}</strong> (Waktu Belajar Mandiri Warga Belajar).
-                  </div>
-                </div>
-              </div>
-
-              <div className="admin-weekend-strip-pills">
-                <span className="admin-weekend-tag sabtu">
-                  <i className="bi bi-calendar2-check"></i>
-                  <span>Sabtu: {satDate}</span>
-                </span>
-                <span className="admin-weekend-tag minggu">
-                  <i className="bi bi-calendar2-check"></i>
-                  <span>Minggu: {sunDate}</span>
-                </span>
-              </div>
-            </div>
-
-            {/* ── 3. Filter Card & Segmented Control ── */}
-            <div className="admin-filter-card">
-              <div className="admin-filter-jenjang-row">
-                <span className="admin-jenjang-label">
-                  Jenjang Pendidikan:
-                </span>
-                <div className="admin-jenjang-segmented">
-                  {[
-                    { id: 'semua', label: 'Semua Rombel', icon: 'bi-grid' },
-                    { id: 'Paket A', label: 'Paket A (SD)', icon: 'bi-backpack' },
-                    { id: 'Paket B', label: 'Paket B (SMP)', icon: 'bi-book' },
-                    { id: 'Paket C', label: 'Paket C (SMA)', icon: 'bi-mortarboard' }
-                  ].map(tab => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => handleSelectJenjang(tab.id)}
-                      className={`admin-jenjang-btn ${selectedJenjang === tab.id ? 'active' : ''}`}
-                    >
-                      <i className={`bi ${tab.icon}`} style={{ marginRight: 6 }}></i>
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="admin-filter-grid">
-                <div className="admin-filter-field">
-                  <label>
-                    <i className="bi bi-door-open"></i>
-                    Rombongan Belajar (Kelas) <span style={{ color: '#DC2626' }}>*</span>
-                  </label>
-                  <select
-                    value={selectedRombelId}
-                    onChange={(e) => setSelectedRombelId(e.target.value)}
-                    className="admin-filter-select"
-                  >
-                    {filteredRombelList.map(r => (
-                      <option key={r.id} value={r.id}>
-                        {r.nama_rombel || r.nama}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="admin-filter-field">
-                  <label>
-                    <i className="bi bi-journal-text"></i>
-                    Mata Pelajaran (Mapel)
-                  </label>
-                  <select
-                    value={selectedMapelId}
-                    onChange={(e) => setSelectedMapelId(e.target.value)}
-                    className="admin-filter-select"
-                  >
-                    <option value="">-- Rekap Gabungan Seluruh Mapel --</option>
-                    {mapelList.map(m => (
-                      <option key={m.id} value={m.id}>
-                        {m.kode ? `[${m.kode}] ` : ''}{m.nama}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="admin-filter-field">
-                  <label>
-                    <i className="bi bi-search"></i>
-                    Cari Warga Belajar / NIS
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ketik nama atau NIS warga belajar..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="admin-filter-input"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* ── 4. Active Session Alert (If Running) ── */}
-            {rekapData?.sesi_list?.some(s => s.status_sesi === 'aktif') && (
-              <div className="admin-active-session-banner">
-                <div className="admin-broadcast-left">
-                  <div className="admin-broadcast-radar">
-                    <i className="bi bi-broadcast"></i>
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span className="admin-broadcast-tag">
-                        <i className="bi bi-record-circle" style={{ color: '#16A34A', marginRight: 4 }}></i>
-                        SESI AKTIF BERJALAN
-                      </span>
-                    </div>
-                    <div className="admin-broadcast-title">
-                      {(() => {
-                        const aktif = rekapData.sesi_list.find(s => s.status_sesi === 'aktif');
-                        const dayName = getDayShortName(aktif.tanggal);
-                        return `Pertemuan ${aktif.pertemuan_ke} (${dayName || 'Weekend'}) • ${aktif.nama_mapel || 'Mata Pelajaran'} • Mode: ${aktif.mode.toUpperCase()}`;
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {(() => {
-                    const aktif = rekapData.sesi_list.find(s => s.status_sesi === 'aktif');
-                    return (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleTutupSesi(aktif.id, aktif.pertemuan_ke)}
-                          className="admin-hero-btn glass"
-                          style={{ color: '#92400E', background: '#FFFFFF', borderColor: '#FDE047' }}
-                        >
-                          <i className="bi bi-stop-circle"></i> Tutup Sesi
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleHapusSesi(aktif.id, aktif.pertemuan_ke)}
-                          className="admin-hero-btn glass"
-                          style={{ color: '#DC2626', background: '#FFFFFF', borderColor: '#FECACA' }}
-                        >
-                          <i className="bi bi-trash3"></i> Hapus Sesi
-                        </button>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            )}
-
-            {/* ── 5. Vibrant & Professional Metric Cards ── */}
-            {rekapData?.statistik && (
-              <div className="admin-metric-grid">
-                {/* Card 1: Total Siswa */}
-                <div className="admin-metric-card card-blue">
-                  <div className="admin-metric-top">
-                    <span className="admin-metric-badge blue">TOTAL WARGA BELAJAR</span>
-                    <div className="admin-metric-icon-box blue">
-                      <i className="bi bi-people-fill"></i>
-                    </div>
-                  </div>
-                  <div className="admin-metric-val">
-                    {rekapData.total_siswa || 0} <span>Siswa</span>
-                  </div>
-                  <div className="admin-metric-label">
-                    Rombel {rekapData.rombel?.nama_rombel || '-'}
-                  </div>
-                </div>
-
-                {/* Card 2: Rata-Rata Kehadiran */}
-                <div className="admin-metric-card card-green">
-                  <div className="admin-metric-top">
-                    <span className="admin-metric-badge green">RATA-RATA KEHADIRAN</span>
-                    <div className="admin-metric-icon-box green">
-                      <i className="bi bi-check-circle-fill"></i>
-                    </div>
-                  </div>
-                  <div className="admin-metric-val" style={{ color: rekapData.statistik.rata_rata_hadir >= 75 ? '#059669' : '#DC2626' }}>
-                    {rekapData.statistik.rata_rata_hadir}%
-                  </div>
-                  <div className="admin-metric-label">
-                    Target Evaluasi (Min. 75%)
-                  </div>
-                </div>
-
-                {/* Card 3: Total Sesi Weekend */}
-                <div className="admin-metric-card card-indigo">
-                  <div className="admin-metric-top">
-                    <span className="admin-metric-badge indigo">SESI PERTEMUAN</span>
-                    <div className="admin-metric-icon-box indigo">
-                      <i className="bi bi-calendar2-check-fill"></i>
-                    </div>
-                  </div>
-                  <div className="admin-metric-val">
-                    {rekapData.total_sesi || 0} <span>Sesi</span>
-                  </div>
-                  <div className="admin-metric-label">
-                    Total KBM Akhir Pekan
-                  </div>
-                </div>
-
-                {/* Card 4: Siswa Kritis */}
-                <div className="admin-metric-card card-rose">
-                  <div className="admin-metric-top">
-                    <span className="admin-metric-badge rose">PERLU PEMBINAAN</span>
-                    <div className="admin-metric-icon-box rose">
-                      <i className="bi bi-exclamation-triangle-fill"></i>
-                    </div>
-                  </div>
-                  <div className="admin-metric-val" style={{ color: rekapData.statistik.siswa_kritis > 0 ? '#DC2626' : '#059669' }}>
-                    {rekapData.statistik.siswa_kritis} <span>Siswa</span>
-                  </div>
-                  <div className="admin-metric-label">
-                    Kehadiran di bawah 75%
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ── 6. Loading & Error States ── */}
-            {loading && (
-              <div style={{ padding: '3.5rem', textAlign: 'center', background: '#FFFFFF', borderRadius: 16, border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                <div className="spinner" style={{ margin: '0 auto 12px' }}></div>
-                <p style={{ color: '#64748B', fontWeight: 600, margin: 0, fontSize: '0.95rem' }}>
-                  Memuat data rekapitulasi presensi akhir pekan...
-                </p>
-              </div>
-            )}
-
-            {!loading && error && (
-              <div style={{ padding: '1rem 1.25rem', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, color: '#991B1B', fontWeight: 600, fontSize: '0.92rem' }}>
-                <i className="bi bi-exclamation-triangle" style={{ marginRight: 8 }}></i>
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* ── 7. Matriks Kehadiran Grid Table ── */}
-            {!loading && !error && rekapData && (
-              <div className="admin-ledger-card">
-                <div className="admin-ledger-header">
-                  <div className="admin-ledger-title-group">
-                    <i className="bi bi-table"></i>
-                    <h2 className="admin-ledger-title">
-                      Buku Matriks Presensi: {rekapData.rombel?.nama_rombel || 'Kelas'}
-                    </h2>
-                  </div>
-
-                  {/* Interactive Legend Badges */}
-                  <div className="admin-ledger-legend">
-                    <div className="admin-legend-item">
-                      <span className="admin-legend-badge hadir">H</span>
-                      <span>Hadir</span>
-                    </div>
-                    <div className="admin-legend-item">
-                      <span className="admin-legend-badge izin">I</span>
-                      <span>Izin</span>
-                    </div>
-                    <div className="admin-legend-item">
-                      <span className="admin-legend-badge sakit">S</span>
-                      <span>Sakit</span>
-                    </div>
-                    <div className="admin-legend-item">
-                      <span className="admin-legend-badge alpa">A</span>
-                      <span>Alpa</span>
-                    </div>
-                    <div className="admin-legend-item">
-                      <span className="admin-legend-badge empty">—</span>
-                      <span>Belum Absen</span>
-                    </div>
-                  </div>
-                </div>
-
-                {filteredMatrix.length === 0 ? (
-                  <div className="admin-empty-state-box">
-                    <div className="admin-empty-icon">
-                      <i className="bi bi-people"></i>
-                    </div>
-                    <h3 className="admin-empty-title">Tidak Ada Data Warga Belajar</h3>
-                    <p className="admin-empty-desc">
-                      {searchQuery
-                        ? `Tidak ditemukan warga belajar dengan kata kunci "${searchQuery}".`
-                        : 'Belum ada warga belajar yang terdaftar aktif pada rombongan belajar ini.'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="admin-matrix-scroll-wrapper">
-                    <table className="admin-matrix-table">
-                      <thead>
-                        <tr>
-                          <th className="sticky-col-no">No</th>
-                          <th className="sticky-col-nis">NIS</th>
-                          <th className="sticky-col-name">Nama Lengkap Warga Belajar</th>
-
-                          {/* Kolom Sesi Pertemuan KBM Akhir Pekan */}
-                          {rekapData.sesi_list?.map((sesi) => {
-                            const dayName = getDayShortName(sesi.tanggal);
-                            const isSabtu = dayName === 'Sabtu';
-                            const dateObj = sesi.tanggal ? new Date(sesi.tanggal) : null;
-                            const dateLabel = dateObj ? `${dateObj.getDate()}/${dateObj.getMonth() + 1}` : '';
-
-                            return (
-                              <th
-                                key={sesi.id}
-                                style={{
-                                  minWidth: 70,
-                                  background: sesi.status_sesi === 'aktif' ? '#EFF6FF' : '#F8FAFC'
-                                }}
-                                title={`Pertemuan ${sesi.pertemuan_ke} (${dayName}) • ${sesi.tanggal} • ${sesi.nama_mapel || 'Mapel'}`}
-                              >
-                                <div className="header-sesi-card">
-                                  <span className="header-sesi-p-tag">P{sesi.pertemuan_ke}</span>
-                                  <span className={`header-sesi-day-tag ${isSabtu ? 'sabtu' : 'minggu'}`}>
-                                    {dayName ? dayName.slice(0, 3) : 'KBM'}
-                                  </span>
-                                  <span className="header-sesi-date-tag">{dateLabel}</span>
-                                </div>
-                              </th>
-                            );
-                          })}
-
-                          {/* Kolom Ringkasan Total */}
-                          <th style={{ width: 44, color: '#15803D' }}>H</th>
-                          <th style={{ width: 44, color: '#92400E' }}>I</th>
-                          <th style={{ width: 44, color: '#1E40AF' }}>S</th>
-                          <th style={{ width: 44, color: '#991B1B' }}>A</th>
-                          <th style={{ width: 95, color: '#0F172A' }}>% Hadir</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredMatrix.map((siswa) => (
-                          <tr key={siswa.warga_belajar_id}>
-                            <td className="sticky-col-no">
-                              {siswa.no}
-                            </td>
-                            <td className="sticky-col-nis">
-                              {siswa.nis || '—'}
-                            </td>
-                            <td className="sticky-col-name">
-                              <div className="admin-student-name-box">
-                                <div className="admin-student-avatar">
-                                  {siswa.nama_lengkap?.charAt(0)?.toUpperCase()}
-                                </div>
-                                <span className="admin-student-fullname">{siswa.nama_lengkap}</span>
-                              </div>
-                            </td>
-
-                            {/* Cells Kehadiran Per Sesi */}
-                            {rekapData.sesi_list?.map((sesi) => {
-                              const rec = siswa.kehadiran?.[sesi.id];
-                              const badge = getStatusBadge(rec?.status);
-
-                              return (
-                                <td key={sesi.id}>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleOpenEditModal(sesi, siswa, rec)}
-                                    className={`cell-badge-btn ${badge.className}`}
-                                    title={`${siswa.nama_lengkap} • P${sesi.pertemuan_ke}: ${badge.title}${rec?.catatan ? ` (${rec.catatan})` : ''} - Klik untuk ubah`}
-                                  >
-                                    {badge.label}
-                                  </button>
-                                </td>
-                              );
-                            })}
-
-                            {/* Ringkasan Total Siswa */}
-                            <td style={{ fontWeight: 700, color: '#15803D' }}>{siswa.total_h}</td>
-                            <td style={{ fontWeight: 700, color: '#92400E' }}>{siswa.total_i}</td>
-                            <td style={{ fontWeight: 700, color: '#1E40AF' }}>{siswa.total_s}</td>
-                            <td style={{ fontWeight: 700, color: '#991B1B' }}>{siswa.total_a}</td>
-                            <td>
-                              <span className={`admin-percent-badge ${siswa.persentase >= 75 ? 'lulus' : 'kritis'}`}>
-                                {siswa.persentase}%
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ════ MODAL QUICK EDIT STATUS SISWA ════ */}
-            {editModal.isOpen && (
-              <div className="admin-modal-overlay" onClick={() => setEditModal(prev => ({ ...prev, isOpen: false }))}>
-                <div className="admin-modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
-                  <div className="admin-modal-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <i className="bi bi-pencil-square text-primary"></i>
-                      <h3>Ubah Status Presensi Siswa</h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setEditModal(prev => ({ ...prev, isOpen: false }))}
-                      className="admin-modal-close-btn"
-                    >
-                      <i className="bi bi-x-lg"></i>
-                    </button>
-                  </div>
-
-                  <div className="admin-modal-body">
-                    <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: 8, border: '1px solid #E2E8F0', fontSize: '0.88rem' }}>
-                      <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.96rem' }}>
-                        {editModal.namaSiswa}
-                      </div>
-                      <div style={{ color: '#64748B', fontSize: '0.8rem', marginTop: 2 }}>
-                        Pertemuan P{editModal.pertemuanKe} • {editModal.tanggal ? new Date(editModal.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' }) : ''}
-                      </div>
-                    </div>
-
+                  <div className="pertemuan-header-strip">
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 6 }}>
-                        Pilih Status Kehadiran
-                      </label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                        {[
-                          { val: 'hadir', label: 'Hadir (H)', className: 'hadir' },
-                          { val: 'izin', label: 'Izin (I)', className: 'izin' },
-                          { val: 'sakit', label: 'Sakit (S)', className: 'sakit' },
-                          { val: 'alpa', label: 'Alpa (A)', className: 'alpa' },
-                        ].map(item => (
-                          <button
-                            key={item.val}
-                            type="button"
-                            onClick={() => setEditModal({ ...editModal, currentStatus: item.val })}
-                            className={`cell-badge-btn ${item.className}`}
-                            style={{
-                              width: '100%',
-                              height: 38,
-                              borderRadius: 6,
-                              border: editModal.currentStatus === item.val ? '2px solid #1D4ED8' : '1px solid #CBD5E1',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 6,
-                              fontSize: '0.86rem'
-                            }}
-                          >
-                            {editModal.currentStatus === item.val && <i className="bi bi-check2"></i>}
-                            <span>{item.label}</span>
-                          </button>
-                        ))}
+                      <h2 className="pertemuan-title-main">
+                        Buku Matriks Presensi: {rekapData?.rombel?.nama_rombel || 'Kelas'}
+                      </h2>
+                      <p className="pertemuan-sub-main">
+                        Rekapitulasi lengkap kehadiran seluruh siswa. Klik kotak status (H/I/S/A) pada siswa untuk mengoreksi kehadiran.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Helper Petunjuk Input Manual */}
+                  <div className="admin-matrix-hint-card">
+                    <Info size={16} className="hint-icon" />
+                    <span>
+                      <strong>Petunjuk Absen Manual:</strong> Klik langsung pada kotak status <strong>[ H ] [ I ] [ S ] [ A ]</strong> di tabel siswa mana pun untuk mengubah kehadirannya jika siswa masuk kelas tetapi lupa absen mandiri.
+                    </span>
+                  </div>
+
+                  {/* Summary Metric Strip */}
+                  {rekapData?.statistik && (
+                    <div className="admin-stats-strip">
+                      <div className="admin-stat-box">
+                        <span className="lbl">Total Siswa</span>
+                        <strong className="val">{rekapData.total_siswa || 0}</strong>
+                      </div>
+                      <div className="admin-stat-box">
+                        <span className="lbl">Total Masuk Siswa</span>
+                        <strong className="val" style={{ color: '#16A34A' }}>
+                          {rekapData.statistik?.total_hadir || 0} Hari
+                        </strong>
+                      </div>
+                      <div className="admin-stat-box">
+                        <span className="lbl">Total Sesi Diadakan</span>
+                        <strong className="val">{rekapData.total_sesi || 0}</strong>
+                      </div>
+                      <div className="admin-stat-box">
+                        <span className="lbl">Perlu Pembinaan</span>
+                        <strong className="val" style={{ color: rekapData.statistik.siswa_kritis > 0 ? '#DC2626' : '#16A34A' }}>
+                          {rekapData.statistik.siswa_kritis} Siswa
+                        </strong>
                       </div>
                     </div>
+                  )}
 
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 4 }}>
-                        Catatan / Alasan (Opsional)
-                      </label>
+                  {/* Search & Filter Mapel */}
+                  <div className="admin-matrix-filter-row">
+                    <div className="admin-search-wrap">
                       <input
                         type="text"
-                        placeholder="Contoh: Izin dinas kerja / Sakit demam"
-                        value={editModal.catatan}
-                        onChange={(e) => setEditModal({ ...editModal, catatan: e.target.value })}
-                        className="admin-filter-input"
+                        placeholder="Cari nama warga belajar atau NIS..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="admin-search-input"
                       />
+                    </div>
+
+                    <div className="admin-mapel-wrap">
+                      <select
+                        value={selectedMapelId}
+                        onChange={(e) => setSelectedMapelId(e.target.value)}
+                        className="admin-mapel-select"
+                      >
+                        <option value="">-- Rekap Gabungan Seluruh Mapel --</option>
+                        {mapelList.map(m => (
+                          <option key={m.id} value={m.id}>
+                            {m.kode ? `[${m.kode}] ` : ''}{m.nama}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Legend */}
+                    <div className="admin-matrix-legend">
+                      <span className="legend-badge hadir">H: Hadir</span>
+                      <span className="legend-badge izin">I: Izin</span>
+                      <span className="legend-badge sakit">S: Sakit</span>
+                      <span className="legend-badge alpa">A: Alpa</span>
                     </div>
                   </div>
 
-                  <div className="admin-modal-footer">
-                    <button
-                      type="button"
-                      onClick={() => setEditModal(prev => ({ ...prev, isOpen: false }))}
-                      className="quick-weekend-btn"
-                      style={{ background: '#F1F5F9' }}
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSaveEditStatus}
-                      disabled={savingEdit}
-                      className="admin-hero-btn gold"
-                      style={{ borderRadius: 8, padding: '7px 18px', fontSize: '0.85rem' }}
-                    >
-                      {savingEdit ? 'Menyimpan...' : 'Simpan Presensi'}
-                    </button>
+                  {/* Matriks Table */}
+                  {filteredMatrix.length === 0 ? (
+                    <div className="admin-empty-state-box">
+                      <Users size={48} style={{ color: '#CBD5E1', marginBottom: 12 }} />
+                      <h3 className="admin-empty-title">Tidak Ada Data Warga Belajar</h3>
+                      <p className="admin-empty-desc">
+                        {searchQuery
+                          ? `Tidak ditemukan warga belajar dengan kata kunci "${searchQuery}".`
+                          : 'Belum ada warga belajar yang terdaftar aktif pada rombongan belajar ini.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Petunjuk Geser Layar Mobile */}
+                      <div className="admin-mobile-table-hint">
+                        <ArrowRight size={14} />
+                        <span>Geser tabel ke samping untuk melihat sesi pertemuan & total masuk</span>
+                      </div>
+
+                      <div className="admin-matrix-scroll-wrapper">
+                        <table className="admin-matrix-table">
+                        <thead>
+                          <tr>
+                            <th className="sticky-col-no">No</th>
+                            <th className="sticky-col-nis">NIS</th>
+                            <th className="sticky-col-name">Nama Warga Belajar</th>
+                            {rekapData.sesi_list?.map((sesi) => {
+                              const d = sesi.tanggal ? new Date(sesi.tanggal) : null;
+                              const isSabtu = d ? d.getDay() === 6 : true;
+                              const dateLabel = d ? `${d.getDate()}/${d.getMonth() + 1}` : '';
+
+                              return (
+                                <th
+                                  key={sesi.id}
+                                  style={{
+                                    minWidth: 64,
+                                    background: sesi.status_sesi === 'aktif' ? '#EFF6FF' : '#F8FAFC'
+                                  }}
+                                  title={`Pertemuan ${sesi.pertemuan_ke} • ${sesi.tanggal} • Klik sel siswa untuk ubah`}
+                                >
+                                  <div className="header-sesi-card">
+                                    <span className="header-sesi-p-tag">P{sesi.pertemuan_ke}</span>
+                                    <span className={`header-sesi-day-tag ${isSabtu ? 'sabtu' : 'minggu'}`}>
+                                      {isSabtu ? 'Sab' : 'Min'}
+                                    </span>
+                                    <span className="header-sesi-date-tag">{dateLabel}</span>
+                                  </div>
+                                </th>
+                              );
+                            })}
+                            <th style={{ width: 40, color: '#15803D' }}>H</th>
+                            <th style={{ width: 40, color: '#92400E' }}>I</th>
+                            <th style={{ width: 40, color: '#1E40AF' }}>S</th>
+                            <th style={{ width: 40, color: '#991B1B' }}>A</th>
+                            <th style={{ width: 110, color: '#0F172A' }}>Total Masuk</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredMatrix.map((siswa) => (
+                            <tr key={siswa.warga_belajar_id}>
+                              <td className="sticky-col-no">{siswa.no}</td>
+                              <td className="sticky-col-nis">{siswa.nis || '—'}</td>
+                              <td className="sticky-col-name">
+                                <div className="admin-student-name-box">
+                                  <div className="admin-student-avatar">
+                                    {siswa.nama_lengkap?.charAt(0)?.toUpperCase()}
+                                  </div>
+                                  <span className="admin-student-fullname">{siswa.nama_lengkap}</span>
+                                </div>
+                              </td>
+
+                              {/* Status per Sesi (Klik untuk input / ubah status manual) */}
+                              {rekapData.sesi_list?.map((sesi) => {
+                                const rec = siswa.kehadiran?.[sesi.id];
+                                const badge = getStatusBadge(rec?.status);
+
+                                return (
+                                  <td key={sesi.id}>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenEditModal(sesi, siswa, rec)}
+                                      className={`cell-badge-btn ${badge.className}`}
+                                      title={`${siswa.nama_lengkap} • P${sesi.pertemuan_ke}: Status ${badge.title} — Klik untuk input/ubah`}
+                                    >
+                                      {badge.label}
+                                    </button>
+                                  </td>
+                                );
+                              })}
+
+                              {/* Ringkasan Kehadiran */}
+                              <td style={{ fontWeight: 700, color: '#15803D' }}>{siswa.total_h}</td>
+                              <td style={{ fontWeight: 700, color: '#92400E' }}>{siswa.total_i}</td>
+                              <td style={{ fontWeight: 700, color: '#1E40AF' }}>{siswa.total_s}</td>
+                              <td style={{ fontWeight: 700, color: '#991B1B' }}>{siswa.total_a}</td>
+                              <td>
+                                <span className={`admin-masuk-badge ${siswa.total_h > 0 ? 'hadir' : 'nol'}`}>
+                                  {siswa.total_h} Hari
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+            </section>
+          </div>
+
+          {/* ════ MODAL UBAH STATUS SISWA (ABSEN MANUAL DARI MATRIKS) ════ */}
+          {editModal.isOpen && (
+            <div className="admin-modal-overlay" onClick={() => setEditModal(prev => ({ ...prev, isOpen: false }))}>
+              <div className="admin-modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+                <div className="admin-modal-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Edit2 size={18} style={{ color: '#0284C7' }} />
+                    <h3 style={{ margin: 0, fontSize: '1.02rem', fontWeight: 800 }}>
+                      Ubah Status Presensi Siswa
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditModal(prev => ({ ...prev, isOpen: false }))}
+                    className="admin-modal-close-btn"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="admin-modal-body">
+                  <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: 10, border: '1px solid #E2E8F0', fontSize: '0.88rem' }}>
+                    <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '1rem' }}>
+                      {editModal.namaSiswa}
+                    </div>
+                    <div style={{ color: '#64748B', fontSize: '0.82rem', marginTop: 3 }}>
+                      NIS: <strong>{editModal.nis}</strong> • Pertemuan <strong>P{editModal.pertemuanKe}</strong> {editModal.tanggal ? `(${new Date(editModal.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })})` : ''}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 8 }}>
+                      Pilih Status Kehadiran
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                      {[
+                        { val: 'hadir', label: 'Hadir (H)', className: 'hadir' },
+                        { val: 'izin', label: 'Izin (I)', className: 'izin' },
+                        { val: 'sakit', label: 'Sakit (S)', className: 'sakit' },
+                        { val: 'alpa', label: 'Alpa (A)', className: 'alpa' },
+                      ].map(item => (
+                        <button
+                          key={item.val}
+                          type="button"
+                          onClick={() => setEditModal({ ...editModal, currentStatus: item.val })}
+                          className={`cell-badge-btn ${item.className}`}
+                          style={{
+                            width: '100%',
+                            height: 42,
+                            borderRadius: 8,
+                            border: editModal.currentStatus === item.val ? '2px solid #0284C7' : '1px solid #CBD5E1',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.8rem',
+                            fontWeight: 800,
+                            boxShadow: editModal.currentStatus === item.val ? '0 2px 8px rgba(2, 132, 199, 0.25)' : 'none'
+                          }}
+                        >
+                          <span>{item.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 6 }}>
+                      Catatan / Keterangan (Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Masuk kelas tapi lupa absen mandiri"
+                      value={editModal.catatan}
+                      onChange={(e) => setEditModal({ ...editModal, catatan: e.target.value })}
+                      className="admin-filter-input"
+                      style={{ width: '100%', height: 40, borderRadius: 8, border: '1px solid #CBD5E1', padding: '6px 12px', fontSize: '0.85rem' }}
+                    />
                   </div>
                 </div>
-              </div>
-            )}
 
-          </div>
+                <div className="admin-modal-footer">
+                  <button
+                    type="button"
+                    onClick={() => setEditModal(prev => ({ ...prev, isOpen: false }))}
+                    style={{ background: '#F1F5F9', border: '1px solid #CBD5E1', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.84rem' }}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveEditStatus}
+                    disabled={savingEdit}
+                    style={{
+                      background: '#0284C7',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      padding: '8px 20px',
+                      borderRadius: 8,
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      fontSize: '0.84rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      boxShadow: '0 2px 8px rgba(2, 132, 199, 0.25)'
+                    }}
+                  >
+                    <Check size={16} />
+                    <span>{savingEdit ? 'Menyimpan...' : 'Simpan Presensi'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
     </div>
   );
 }
-
-export default AbsensiAdmin;

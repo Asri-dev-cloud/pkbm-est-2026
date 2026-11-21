@@ -91,6 +91,24 @@ const AbsensiModel = {
   // Buka sesi absensi (kompatibilitas sistem)
   // -----------------------------------------------------------
   bukaSesi: async ({ tutor_id, rombel_id, mapel_id, tanggal, mode, durasi_timer = null, pertemuan_id = null, pertemuan_ke = 1, catatan = null }) => {
+    // Cek apakah sudah pernah dibuat sesi untuk rombel, pertemuan_ke, dan hari/catatan ini
+    if (catatan) {
+      const [existingRows] = await pool.execute(
+        `SELECT id FROM sesi_absensi WHERE rombel_id = ? AND pertemuan_ke = ? AND catatan = ? ORDER BY id DESC LIMIT 1`,
+        [rombel_id, pertemuan_ke, catatan]
+      );
+      if (existingRows.length > 0) {
+        const existingId = existingRows[0].id;
+        await pool.execute(
+          `UPDATE sesi_absensi
+           SET status_sesi = 'aktif', waktu_mulai = NOW(), waktu_selesai = NULL, durasi_timer = ?, tanggal = ?
+           WHERE id = ?`,
+          [durasi_timer, tanggal, existingId]
+        );
+        return existingId;
+      }
+    }
+
     const sql = `
       INSERT INTO sesi_absensi
         (tutor_id, rombel_id, mapel_id, tanggal, mode, waktu_mulai, durasi_timer, status_sesi, pertemuan_id, pertemuan_ke, catatan)
@@ -211,20 +229,22 @@ const AbsensiModel = {
     const values = kehadiranList.map(k => [
       sesi_id,
       k.warga_belajar_id,
-      k.status,        // hadir / izin / sakit / alpa
-      new Date(),      // waktu_check_in
-      'manual_tutor',  // metode
+      k.status,                                     // hadir / izin / sakit / alpa
+      k.catatan ? String(k.catatan).trim() : null,  // catatan
+      new Date(),                                   // waktu_check_in
+      'manual_tutor',                               // metode
     ]);
 
-    const placeholders = values.map(() => '(?,?,?,?,?)').join(',');
+    const placeholders = values.map(() => '(?,?,?,?,?,?)').join(',');
     const flatParams = values.flat();
 
     const sql = `
       INSERT INTO rekaman_kehadiran
-        (sesi_id, warga_belajar_id, status, waktu_check_in, metode)
+        (sesi_id, warga_belajar_id, status, catatan, waktu_check_in, metode)
       VALUES ${placeholders}
       ON DUPLICATE KEY UPDATE
         status          = VALUES(status),
+        catatan         = COALESCE(VALUES(catatan), rekaman_kehadiran.catatan),
         waktu_check_in  = VALUES(waktu_check_in),
         metode          = VALUES(metode),
         updated_at      = NOW()
@@ -244,10 +264,16 @@ const AbsensiModel = {
 
     // 1. Strict Server-Side & Database Enforcement:
     // Presensi KBM Resmi HANYA diperbolehkan pada hari Sabtu (7) dan Minggu (1)
-    const [dayRows] = await pool.execute(`SELECT DAYOFWEEK(CURDATE()) AS dow`);
+    const [dayRows] = await pool.execute(`SELECT DAYOFWEEK(CURDATE()) AS dow, HOUR(NOW()) AS curr_hour`);
     const dow = Number(dayRows[0]?.dow || 0);
+    const currHour = Number(dayRows[0]?.curr_hour || 0);
     if (dow !== 1 && dow !== 7) {
       throw new Error('Presensi KBM ditutup. Pengisian presensi hanya diperbolehkan pada hari Sabtu dan Minggu sesuai jadwal pembelajaran resmi PKBM Bina Mandiri.');
+    }
+
+    // Batas waktu presensi mandiri: sebelum pukul 17.00 WIB
+    if (currHour >= 17) {
+      throw new Error('Batas waktu presensi mandiri (pukul 17.00 WIB) telah berakhir. Kehadiran sesi ini tercatat sebagai Alpa.');
     }
 
     // Ambil info sesi terlebih dahulu dengan kalkulasi timer langsung dari database MySQL
@@ -272,7 +298,9 @@ const AbsensiModel = {
     if (!sesi) throw new Error('Sesi absensi tidak ditemukan.');
     if (!wargaBelajar) throw new Error('Profil Warga Belajar tidak ditemukan.');
     if (sesi.status_sesi !== 'aktif') throw new Error('Sesi presensi sudah ditutup.');
-    if (!sesi.is_today) throw new Error('Presensi hanya dapat diisi pada hari sesi KBM berlangsung.');
+    if (!sesi.is_today && sesi.status_sesi !== 'aktif') {
+      throw new Error('Presensi hanya dapat diisi pada hari sesi KBM berlangsung.');
+    }
 
     // Validasi kesesuaian rombel (bila sesi dikhususkan untuk rombel tertentu)
     if (sesi.rombel_id && sesi.rombel_id > 0) {
@@ -400,21 +428,31 @@ const AbsensiModel = {
 
   getSesiAktifWb: async ({ warga_belajar_id, rombel_id }) => {
     // 1. Cek jadwal KBM di server MySQL (1 = Minggu, 7 = Sabtu)
-    const [dayRows] = await pool.execute(`SELECT DAYOFWEEK(CURDATE()) AS dow`);
+    const [dayRows] = await pool.execute(`SELECT DAYOFWEEK(CURDATE()) AS dow, HOUR(NOW()) AS curr_hour`);
     const dow = Number(dayRows[0]?.dow || 0);
+    const currHour = Number(dayRows[0]?.curr_hour || 0);
     const isWeekend = dow === 1 || dow === 7;
 
     if (!isWeekend) {
       return {
         status_jadwal: 'tutup',
         is_weekend: false,
-        message: 'Presensi KBM ditutup. Jadwal sesi pembelajaran tatap muka dan mandiri hanya dibuka otomatis pada hari Sabtu dan Minggu.'
+        message: 'Presensi KBM ditutup. Jadwal tatap muka dan presensi mandiri hanya dibuka pada hari Sabtu dan Minggu.'
       };
     }
 
-    // 2. Jika hari Sabtu atau Minggu, otomatis pastikan sesi hari ini tersedia di database
-    await AbsensiModel.ensureSesiOtomatisAkhirPekan(rombel_id);
+    // Jika waktu saat ini telah melewati pukul 17.00 WIB, otomatis tutup sesi aktif hari ini
+    if (currHour >= 17) {
+      await pool.execute(
+        `UPDATE sesi_absensi
+         SET status_sesi = 'selesai', waktu_selesai = COALESCE(waktu_selesai, NOW())
+         WHERE rombel_id = ? AND status_sesi = 'aktif' AND tanggal = CURDATE()`,
+        [rombel_id]
+      );
+      return null;
+    }
 
+    // Tutup otomatis sesi yang timernya telah lampau jika ada
     await pool.execute(
       `UPDATE sesi_absensi
        SET status_sesi = 'selesai', waktu_selesai = COALESCE(waktu_selesai, NOW())
@@ -448,7 +486,6 @@ const AbsensiModel = {
       LEFT JOIN rekaman_kehadiran rk ON rk.sesi_id = sa.id AND rk.warga_belajar_id = ?
       WHERE sa.rombel_id = ?
         AND sa.status_sesi = 'aktif'
-        AND sa.tanggal = CURDATE()
       ORDER BY sa.id DESC
       LIMIT 1
     `;
@@ -493,19 +530,6 @@ const AbsensiModel = {
   // Menghasilkan data matriks kehadiran: Siswa x Pertemuan (P1..Pn)
   // -----------------------------------------------------------
   getRekapMatriks: async ({ rombel_id, mapel_id = null }) => {
-    // 0. Auto-provision sesi akhir pekan jika hari ini Sabtu atau Minggu
-    if (rombel_id) {
-      try {
-        const [dayRows] = await pool.execute(`SELECT DAYOFWEEK(CURDATE()) AS dow`);
-        const dow = Number(dayRows[0]?.dow || 0);
-        if (dow === 1 || dow === 7) {
-          await AbsensiModel.ensureSesiOtomatisAkhirPekan(rombel_id);
-        }
-      } catch (autoErr) {
-        console.warn('[getRekapMatriks] Auto weekend session notice:', autoErr.message);
-      }
-    }
-
     // 1. Data rombel
     const [rombelRows] = await pool.execute(`SELECT id, nama_rombel, jenjang FROM rombel WHERE id = ?`, [rombel_id]);
     const rombelInfo = rombelRows[0] || null;
@@ -577,15 +601,20 @@ const AbsensiModel = {
           else if (record.status === 'sakit') s++;
           else if (record.status === 'alpa') a++;
         } else {
-          const isSelesai = sesi.status_sesi === 'selesai';
+          const sesiDateStr = sesi.tanggal ? (typeof sesi.tanggal === 'string' ? sesi.tanggal.split('T')[0] : new Date(sesi.tanggal).toISOString().split('T')[0]) : null;
+          const todayStr = new Date().toISOString().split('T')[0];
+          const isPastDate = sesiDateStr && sesiDateStr < todayStr;
+          const isTodayPast17 = sesiDateStr === todayStr && new Date().getHours() >= 17;
+          const isClosed = sesi.status_sesi === 'selesai' || isPastDate || isTodayPast17;
+
           kehadiran[sesi.id] = {
             rekaman_id: null,
-            status: isSelesai ? 'alpa' : 'belum',
+            status: isClosed ? 'alpa' : 'belum',
             catatan: null,
             waktu: null,
             metode: null
           };
-          if (isSelesai) a++;
+          if (isClosed) a++;
         }
       }
 
@@ -594,7 +623,8 @@ const AbsensiModel = {
       grandS += s;
       grandA += a;
 
-      const persen = totalSesi > 0 ? Math.round((h / totalSesi) * 100) : 0;
+      const totalSelesai = h + i + s + a;
+      const persen = totalSelesai > 0 ? Math.round((h / totalSelesai) * 100) : (totalSesi > 0 ? 100 : 0);
 
       return {
         no: idx + 1,
@@ -685,7 +715,16 @@ const AbsensiModel = {
         mp.nama AS nama_mapel,
         mp.kode AS kode_mapel,
         u.nama_lengkap AS nama_tutor,
-        COALESCE(rk.status, CASE WHEN sa.status_sesi = 'selesai' THEN 'alpa' ELSE 'belum' END) AS status_kehadiran,
+        COALESCE(
+          rk.status,
+          CASE
+            WHEN sa.status_sesi = 'selesai' THEN 'alpa'
+            WHEN sa.tanggal < CURDATE() THEN 'alpa'
+            WHEN sa.tanggal = CURDATE() AND HOUR(NOW()) >= 17 THEN 'alpa'
+            WHEN sa.status_sesi = 'aktif' AND HOUR(NOW()) < 17 THEN 'buka'
+            ELSE 'alpa'
+          END
+        ) AS status_kehadiran,
         rk.catatan AS catatan_siswa,
         rk.waktu_check_in,
         rk.metode,

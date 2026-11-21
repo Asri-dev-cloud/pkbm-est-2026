@@ -1606,10 +1606,18 @@ function KelasTerpaduSiswa() {
   // ── Tutor Action: Buka & Periksa Lembar Pengumpulan Siswa ──
   const handleOpenDetailTugas = async (tugas) => {
     setLoadingDetailTugas(true);
-    setDetailTugasModal(tugas);
+    setDetailTugasModal({ ...tugas, pengumpulan: [] });
     try {
-      const res = await LmsAPI.getTugasById(tugas.id);
-      const fullTugas = res.data.data;
+      let fullTugas = null;
+      try {
+        const res = await LmsAPI.getTugasById(tugas.id);
+        fullTugas = res?.data?.data || null;
+      } catch (apiErr) {
+        console.warn('[handleOpenDetailTugas] Fallback ke data tugas lokal:', apiErr?.message);
+        fullTugas = { ...tugas, pengumpulan: [] };
+      }
+
+      if (!fullTugas) fullTugas = { ...tugas, pengumpulan: [] };
 
       // Pastikan pengumpulan berupa array lengkap
       let pengumpulanList = Array.isArray(fullTugas?.pengumpulan) ? [...fullTugas.pengumpulan] : [];
@@ -1660,8 +1668,7 @@ function KelasTerpaduSiswa() {
       });
       setGradingInputMap(initGrading);
     } catch (err) {
-      console.error('[handleOpenDetailTugas] Error:', err);
-      alert('Gagal mengambil detail pengumpulan tugas.');
+      console.warn('[handleOpenDetailTugas] Non-critical warning:', err);
     } finally {
       setLoadingDetailTugas(false);
     }

@@ -921,9 +921,15 @@ function TugasSiswa() {
     setModalSubmissionsOpen(true);
     setLoadingSubmissions(true);
     try {
-      const res = await LmsAPI.getTugasById(tugas.id);
-      const detail = res.data.data;
-      const list = detail.pengumpulan || [];
+      let detail = null;
+      try {
+        const res = await LmsAPI.getTugasById(tugas.id);
+        detail = res?.data?.data || null;
+      } catch (apiErr) {
+        console.warn('[handleOpenSubmissionsModal] Fallback:', apiErr?.message);
+        detail = { ...tugas, pengumpulan: [] };
+      }
+      const list = detail?.pengumpulan || [];
       setSubmissionsList(list);
 
       // Inisialisasi form koreksi nilai & feedback
@@ -936,8 +942,7 @@ function TugasSiswa() {
       });
       setGradingState(initialGrading);
     } catch (err) {
-      console.error('[handleOpenSubmissionsModal] Error:', err);
-      showToast('Gagal memuat daftar jawaban siswa untuk tugas ini.');
+      console.warn('[handleOpenSubmissionsModal] Warning:', err);
     } finally {
       setLoadingSubmissions(false);
     }

@@ -242,19 +242,35 @@ export const TugasModel = {
     if (!tugas[0]) return null;
 
     // Ambil SEMUA rekaman pengumpulan untuk tugas ini secara lengkap dan akurat
-    const [pengumpulan] = await pool.execute(
-      `SELECT pt.*,
-         COALESCE(u_wb.nama_lengkap, u_direct.nama_lengkap, 'Warga Belajar') AS nama_lengkap,
-         COALESCE(wb_direct.nis, wb_user.nis, u_direct.username, CONCAT('WB-', pt.warga_belajar_id)) AS nis
-       FROM pengumpulan_tugas pt
-       LEFT JOIN warga_belajar wb_direct ON wb_direct.id = pt.warga_belajar_id
-       LEFT JOIN users u_wb ON u_wb.id = wb_direct.user_id
-       LEFT JOIN users u_direct ON u_direct.id = pt.warga_belajar_id
-       LEFT JOIN warga_belajar wb_user ON wb_user.user_id = pt.warga_belajar_id
-       WHERE pt.tugas_id = ?
-       ORDER BY pt.submitted_at ASC, pt.id ASC`,
-      [id]
-    );
+    let pengumpulan = [];
+    try {
+      const [rows] = await pool.execute(
+        `SELECT pt.*,
+           COALESCE(u_wb.nama_lengkap, u_direct.nama_lengkap, 'Warga Belajar') AS nama_lengkap,
+           COALESCE(wb_direct.nis, wb_user.nis, CONCAT('WB-', pt.warga_belajar_id)) AS nis
+         FROM pengumpulan_tugas pt
+         LEFT JOIN warga_belajar wb_direct ON wb_direct.id = pt.warga_belajar_id
+         LEFT JOIN users u_wb ON u_wb.id = wb_direct.user_id
+         LEFT JOIN users u_direct ON u_direct.id = pt.warga_belajar_id
+         LEFT JOIN warga_belajar wb_user ON wb_user.user_id = pt.warga_belajar_id
+         WHERE pt.tugas_id = ?
+         ORDER BY pt.submitted_at ASC, pt.id ASC`,
+        [id]
+      );
+      pengumpulan = rows || [];
+    } catch (subErr) {
+      console.warn('[TugasModel.findById] Warning query pengumpulan:', subErr.message);
+      try {
+        const [simpleRows] = await pool.execute(
+          `SELECT pt.* FROM pengumpulan_tugas pt WHERE pt.tugas_id = ?`,
+          [id]
+        );
+        pengumpulan = simpleRows || [];
+      } catch (_) {
+        pengumpulan = [];
+      }
+    }
+
     return { ...tugas[0], pengumpulan };
   },
 

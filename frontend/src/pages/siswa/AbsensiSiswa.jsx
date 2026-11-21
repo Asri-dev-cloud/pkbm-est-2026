@@ -1,20 +1,20 @@
 // ============================================================
 // src/pages/siswa/AbsensiSiswa.jsx — Presensi & Kehadiran Belajar Siswa
-// PKBM Bina Mandiri — Jadwal Belajar Khusus: Sabtu & Minggu
+// PKBM Bina Mandiri — Jadwal Belajar Khusus: 20 Sesi Sabtu & 20 Sesi Minggu
 // ============================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
 import { AbsensiAPI } from '../../services/api.js';
 import { 
-  CheckCircle2, Clock, AlertTriangle, CalendarCheck, 
-  BookOpen, UserCheck, ShieldCheck, RefreshCw, 
-  ArrowRight, Coffee
+  CheckCircle2, Clock, CalendarCheck, 
+  BookOpen, RefreshCw, ArrowRight, Coffee, Filter
 } from 'lucide-react';
 import './AbsensiSiswa.css';
 
 const POLLING_INTERVAL = 6000;
+const TOTAL_SESI_PER_HARI = 20; // 20 Pertemuan Sabtu & 20 Pertemuan Minggu
 
 export default function AbsensiSiswa() {
   const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
@@ -26,26 +26,11 @@ export default function AbsensiSiswa() {
   const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
   const currentDayName = dayNames[dayOfWeek];
 
-  // Hitung tanggal sesi Sabtu & Minggu terdekat
-  const getUpcomingWeekendDates = () => {
-    const now = new Date();
-    const sabtu = new Date(now);
-    const diffSabtu = (6 - now.getDay() + 7) % 7;
-    sabtu.setDate(now.getDate() + (diffSabtu === 0 && now.getHours() >= 16 ? 7 : diffSabtu));
+  // Tab Navigasi Menu Kelas: 'sabtu' | 'minggu' | 'report' (Default sesuai hari saat ini)
+  const [activeTab, setActiveTab] = useState(dayOfWeek === 0 ? 'minggu' : 'sabtu');
 
-    const minggu = new Date(sabtu);
-    minggu.setDate(sabtu.getDate() + 1);
-
-    const fmt = (d) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    return {
-      sabtuStr: fmt(sabtu),
-      mingguStr: fmt(minggu),
-    };
-  };
-  const weekendDates = getUpcomingWeekendDates();
-
-  // Tab Navigasi Menu Kelas: 'pertemuan' | 'report' (Sesuai Mockup)
-  const [activeTab, setActiveTab] = useState('pertemuan');
+  // Filter untuk Report Presensi: 'ALL' | 'Sabtu' | 'Minggu'
+  const [filterHariReport, setFilterHariReport] = useState('ALL');
 
   // ── State: Sesi Aktif ─────────────────────────────────────
   const [sesiAktif, setSesiAktif] = useState(null);
@@ -56,25 +41,9 @@ export default function AbsensiSiswa() {
   const [feedbackCi, setFeedbackCi] = useState({ type: '', msg: '' });
   const [sisaWaktu, setSisaWaktu] = useState(0);
 
-  // ── State: Rekap & Riwayat Pertemuan ─────────────────────
-  const [rekap, setRekap] = useState(null);
-  const [loadingRekap, setLoadingRekap] = useState(true);
+  // ── State: Riwayat Pertemuan ──────────────────────────────
   const [riwayatPertemuan, setRiwayatPertemuan] = useState([]);
   const [loadingRiwayat, setLoadingRiwayat] = useState(false);
-  const [filterMapel, setFilterMapel] = useState('ALL');
-
-  // ── Fetch Rekap Saya ──────────────────────────────────────
-  const fetchRekap = async () => {
-    try {
-      setLoadingRekap(true);
-      const res = await AbsensiAPI.getRekapSaya();
-      setRekap(res.data?.data || null);
-    } catch {
-      setRekap(null);
-    } finally {
-      setLoadingRekap(false);
-    }
-  };
 
   // ── Fetch Riwayat Pertemuan LMS ───────────────────────────
   const fetchRiwayatLms = async () => {
@@ -90,7 +59,6 @@ export default function AbsensiSiswa() {
   };
 
   useEffect(() => {
-    fetchRekap();
     fetchRiwayatLms();
   }, []);
 
@@ -171,7 +139,6 @@ export default function AbsensiSiswa() {
         msg: `Presensi [${pilihanStatus.toUpperCase()}] berhasil dikonfirmasi ke sistem.`
       });
 
-      await fetchRekap();
       await fetchRiwayatLms();
       await cekSesiAktif();
     } catch (err) {
@@ -184,33 +151,154 @@ export default function AbsensiSiswa() {
     }
   };
 
-  // Daftar mapel unik untuk filter riwayat
-  const listMapel = Array.from(new Set(riwayatPertemuan.map(item => item.nama_mapel).filter(Boolean)));
-  const riwayatFiltered = filterMapel === 'ALL' 
-    ? riwayatPertemuan 
-    : riwayatPertemuan.filter(item => item.nama_mapel === filterMapel);
+  // ── Logika Status Presensi Sesuai Aturan PKBM: ─────────────
+  // 1. Sebelum admin buka absen: "Menunggu Pertemuan Dibuka" (BUKAN ALPA)
+  // 2. Admin buka presensi: siswa dapat check-in (Hadir / Izin / Sakit) sebelum jam 17.00 WIB
+  // 3. Lebih dari jam 17.00 WIB atau sesi selesai tanpa presensi -> ALPA
+  const resolveStatusPresensi = useCallback((riwayatItem, isTodayActive) => {
+    // A. Jika admin belum pernah membuka sesi ini sama sekali
+    if (!riwayatItem && !isTodayActive) {
+      return {
+        key: 'menunggu',
+        label: 'Menunggu Dibuka',
+        badgeClass: 'menunggu',
+        tableText: 'Menunggu Dibuka'
+      };
+    }
 
-  // Standar Semester PKBM: 14 Pertemuan (Sesuai Desain Mockup)
-  const TOTAL_SEMESTER_PERTEMUAN = 14;
+    // B. Cek apakah ada status check-in yang sudah disubmit
+    const rawStatus = String(
+      (isTodayActive && statusCi) || riwayatItem?.status_kehadiran || ''
+    ).toLowerCase();
 
-  // Bentuk array 14 pertemuan semester dengan menggabungkan data aktual
-  const daftarPertemuan = Array.from({ length: TOTAL_SEMESTER_PERTEMUAN }, (_, i) => {
-    const pertKe = i + 1;
-    const isActive = sesiAktif && Number(sesiAktif.pertemuan_ke || 1) === pertKe;
-    const riwayatItem = riwayatPertemuan.find(r => Number(r.pertemuan_ke) === pertKe);
+    if (rawStatus === 'hadir') {
+      return { key: 'hadir', label: 'HADIR', badgeClass: 'hadir', tableText: 'HADIR' };
+    }
+    if (rawStatus === 'izin') {
+      return { key: 'izin', label: 'IZIN', badgeClass: 'izin', tableText: 'IZIN' };
+    }
+    if (rawStatus === 'sakit') {
+      return { key: 'sakit', label: 'SAKIT', badgeClass: 'sakit', tableText: 'SAKIT' };
+    }
 
+    // C. Jika admin sudah buka sesi ini tetapi siswa belum klik absen:
+    // Cek batas jam 17.00 WIB
+    const now = new Date();
+    const currHour = now.getHours();
+    const isSesiHariIni = Boolean(isTodayActive);
+
+    // Jika status_kehadiran dari server adalah 'buka' atau sesi hari ini aktif sebelum jam 17.00 WIB
+    if (rawStatus === 'buka' || (isSesiHariIni && currHour < 17 && rawStatus !== 'alpa')) {
+      return {
+        key: 'buka',
+        label: '🟢 Buka Presensi',
+        badgeClass: 'buka',
+        tableText: '🟢 BUKA PRESENSI'
+      };
+    }
+
+    // Jika sudah lewat jam 17.00 WIB atau sesi telah ditutup/selesai tanpa absen -> ALPA
     return {
-      pertemuan_ke: pertKe,
-      judul: `Pertemuan ${pertKe} Sesi 1`,
-      subjudul: 'Sesi Pembelajaran Mandiri & Tatap Muka',
-      isActive: Boolean(isActive),
-      statusPresensi: riwayatItem?.status_kehadiran || (isActive && statusCi ? statusCi : null),
-      catatan: riwayatItem?.catatan_siswa || (isActive && catatanCi ? catatanCi : ''),
-      namaMapel: riwayatItem?.nama_mapel || (isActive ? sesiAktif.nama_mapel : 'Mata Pelajaran Umum'),
-      namaTutor: riwayatItem?.nama_tutor || (isActive ? sesiAktif.nama_tutor : 'Tutor Pembimbing'),
-      isClosed: !isActive && !riwayatItem
+      key: 'alpa',
+      label: 'ALPA',
+      badgeClass: 'alpa',
+      tableText: 'ALPA'
     };
-  });
+  }, [statusCi]);
+
+  // ── 20 Pertemuan Sabtu ────────────────────────────────────
+  const daftarSabtu = useMemo(() => {
+    return Array.from({ length: TOTAL_SESI_PER_HARI }, (_, i) => {
+      const pertKe = i + 1;
+      const isTodayActive = isWeekend && dayOfWeek === 6 && sesiAktif && Number(sesiAktif.pertemuan_ke || 1) === pertKe;
+      const riwayatItem = riwayatPertemuan.find(r => {
+        const matchP = Number(r.pertemuan_ke) === pertKe;
+        if (!matchP) return false;
+        const catatan = (r.catatan_sesi || '').toLowerCase();
+        if (catatan.includes('sabtu')) return true;
+        if (catatan.includes('minggu')) return false;
+        if (r.tanggal) {
+          const parts = r.tanggal.split('T')[0].split('-').map(Number);
+          const d = new Date(parts[0], parts[1] - 1, parts[2]);
+          return d.getDay() === 6;
+        }
+        return true;
+      });
+
+      const statusInfo = resolveStatusPresensi(riwayatItem, isTodayActive);
+
+      return {
+        id: `sabtu-${pertKe}`,
+        hari: 'Sabtu',
+        pertemuan_ke: pertKe,
+        judul: `Pertemuan ${pertKe} Sesi Sabtu`,
+        subjudul: 'Sesi Pembelajaran Tatap Muka & Mandiri',
+        isActive: Boolean(isTodayActive),
+        statusInfo: statusInfo,
+        rawStatus: riwayatItem?.status_kehadiran || (isTodayActive && statusCi ? statusCi : null)
+      };
+    });
+  }, [riwayatPertemuan, sesiAktif, isWeekend, dayOfWeek, statusCi, resolveStatusPresensi]);
+
+  // ── 20 Pertemuan Minggu ───────────────────────────────────
+  const daftarMinggu = useMemo(() => {
+    return Array.from({ length: TOTAL_SESI_PER_HARI }, (_, i) => {
+      const pertKe = i + 1;
+      const isTodayActive = isWeekend && dayOfWeek === 0 && sesiAktif && Number(sesiAktif.pertemuan_ke || 1) === pertKe;
+      const riwayatItem = riwayatPertemuan.find(r => {
+        const matchP = Number(r.pertemuan_ke) === pertKe;
+        if (!matchP) return false;
+        const catatan = (r.catatan_sesi || '').toLowerCase();
+        if (catatan.includes('minggu')) return true;
+        if (catatan.includes('sabtu')) return false;
+        if (r.tanggal) {
+          const parts = r.tanggal.split('T')[0].split('-').map(Number);
+          const d = new Date(parts[0], parts[1] - 1, parts[2]);
+          return d.getDay() === 0;
+        }
+        return false;
+      });
+
+      const statusInfo = resolveStatusPresensi(riwayatItem, isTodayActive);
+
+      return {
+        id: `minggu-${pertKe}`,
+        hari: 'Minggu',
+        pertemuan_ke: pertKe,
+        judul: `Pertemuan ${pertKe} Sesi Minggu`,
+        subjudul: 'Sesi Pembelajaran Tatap Muka & Mandiri',
+        isActive: Boolean(isTodayActive),
+        statusInfo: statusInfo,
+        rawStatus: riwayatItem?.status_kehadiran || (isTodayActive && statusCi ? statusCi : null)
+      };
+    });
+  }, [riwayatPertemuan, sesiAktif, isWeekend, dayOfWeek, statusCi, resolveStatusPresensi]);
+
+  // ── Gabungan 40 Pertemuan untuk Report Presensi ────────────
+  const semuaPertemuan = useMemo(() => {
+    return [...daftarSabtu, ...daftarMinggu];
+  }, [daftarSabtu, daftarMinggu]);
+
+  // Filtered untuk Report Presensi
+  const riwayatFiltered = useMemo(() => {
+    if (filterHariReport === 'Sabtu') return daftarSabtu;
+    if (filterHariReport === 'Minggu') return daftarMinggu;
+    return semuaPertemuan;
+  }, [semuaPertemuan, daftarSabtu, daftarMinggu, filterHariReport]);
+
+  // Hitungan Rekapitulasi Presensi
+  const countHadir = semuaPertemuan.filter(p => p.statusInfo.key === 'hadir').length;
+  const countIzin = semuaPertemuan.filter(p => p.statusInfo.key === 'izin').length;
+  const countSakit = semuaPertemuan.filter(p => p.statusInfo.key === 'sakit').length;
+  const countAlpa = semuaPertemuan.filter(p => p.statusInfo.key === 'alpa').length;
+  const countMenunggu = semuaPertemuan.filter(p => p.statusInfo.key === 'menunggu').length;
+  const totalSesi = TOTAL_SESI_PER_HARI * 2; // 40 sesi
+  const totalSelesai = countHadir + countIzin + countSakit + countAlpa;
+  const persenHadir = totalSelesai > 0 ? Math.round((countHadir / totalSelesai) * 100) : 100;
+
+  // Sesi yang aktif di tab pertemuan
+  const currentList = activeTab === 'minggu' ? daftarMinggu : daftarSabtu;
+  const isSelectedDayToday = (activeTab === 'sabtu' && dayOfWeek === 6) || (activeTab === 'minggu' && dayOfWeek === 0);
 
   return (
     <div className="app-layout">
@@ -229,13 +317,13 @@ export default function AbsensiSiswa() {
                 Presensi & Log Kehadiran Belajar
               </h1>
               <p className="absensi-header-subtitle">
-                Akses presensi pertemuan dan laporan rekapitulasi kehadiran warga belajar.
+                Jadwal KBM: 20 Pertemuan Hari Sabtu & 20 Pertemuan Hari Minggu (Batas Check-in s/d 17.00 WIB).
               </p>
             </div>
 
             <button 
               type="button"
-              onClick={() => { cekSesiAktif(); fetchRekap(); fetchRiwayatLms(); }}
+              onClick={() => { cekSesiAktif(); fetchRiwayatLms(); }}
               className="absensi-refresh-btn"
             >
               <RefreshCw size={14} />
@@ -257,18 +345,18 @@ export default function AbsensiSiswa() {
                 </h3>
                 <p className="weekend-schedule-desc">
                   {isWeekend 
-                    ? `Selamat belajar di sesi akhir pekan PKBM Bina Mandiri. Pastikan mengisi presensi pada mata pelajaran yang sedang aktif!`
-                    : `Jadwal tatap muka dan kelas interaktif berlangsung setiap hari Sabtu & Minggu. Anda dapat mempelajari materi modul di Ruang Belajar.`}
+                    ? `Presensi dibuka otomatis pada hari KBM. Pastikan mengisi presensi mandiri sebelum pukul 17.00 WIB agar tidak terhitung Alpa.`
+                    : `Jadwal tatap muka dan kelas interaktif berlangsung setiap hari Sabtu & Minggu (sebelum pukul 17.00 WIB). Anda dapat mempelajari modul di Ruang Belajar.`}
                 </p>
               </div>
             </div>
 
             <div className="weekend-schedule-right">
               <div className="weekend-schedule-pill">
-                <span>Sabtu: {weekendDates.sabtuStr}</span>
+                <span>20 Pertemuan Sabtu</span>
               </div>
               <div className="weekend-schedule-pill">
-                <span>Minggu: {weekendDates.mingguStr}</span>
+                <span>20 Pertemuan Minggu</span>
               </div>
               {!isWeekend && (
                 <NavLink 
@@ -282,27 +370,40 @@ export default function AbsensiSiswa() {
             </div>
           </div>
 
-          {/* ── 3. Layout Dua Kolom: MENU KELAS (Kiri) & KONTEN (Kanan) Sesuai Mockup ── */}
+          {/* ── 3. Layout: MENU KELAS & KONTEN ── */}
           <div className="menu-kelas-layout">
             
-            {/* ══ SISI KIRI: MENU KELAS (HANYA PERTEMUAN & REPORT PRESENSI) ══ */}
+            {/* ══ MENU KELAS: NAVIGASI TAB (SABTU, MINGGU, REPORT PRESENSI) ══ */}
             <aside className="menu-kelas-sidebar">
               <div className="menu-kelas-title">MENU KELAS</div>
 
-              {/* Menu 1: Pertemuan */}
+              {/* Menu 1: Pertemuan Sabtu */}
               <button
                 type="button"
-                onClick={() => setActiveTab('pertemuan')}
-                className={`menu-kelas-btn ${activeTab === 'pertemuan' ? 'active' : ''}`}
+                onClick={() => setActiveTab('sabtu')}
+                className={`menu-kelas-btn ${activeTab === 'sabtu' ? 'active' : ''}`}
               >
                 <div className="menu-kelas-btn-left">
                   <BookOpen size={18} />
-                  <span>Pertemuan</span>
+                  <span>Pertemuan Sabtu</span>
                 </div>
-                <span className="menu-kelas-badge">{TOTAL_SEMESTER_PERTEMUAN}</span>
+                <span className="menu-kelas-badge">{TOTAL_SESI_PER_HARI}</span>
               </button>
 
-              {/* Menu 2: Report Presensi */}
+              {/* Menu 2: Pertemuan Minggu */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('minggu')}
+                className={`menu-kelas-btn ${activeTab === 'minggu' ? 'active' : ''}`}
+              >
+                <div className="menu-kelas-btn-left">
+                  <BookOpen size={18} />
+                  <span>Pertemuan Minggu</span>
+                </div>
+                <span className="menu-kelas-badge">{TOTAL_SESI_PER_HARI}</span>
+              </button>
+
+              {/* Menu 3: Report Presensi */}
               <button
                 type="button"
                 onClick={() => setActiveTab('report')}
@@ -313,130 +414,116 @@ export default function AbsensiSiswa() {
                   <span>Report Presensi</span>
                 </div>
                 <span className="menu-kelas-badge">
-                  {rekap?.persentase_hadir !== undefined ? `${rekap.persentase_hadir}%` : 'Rekap'}
+                  {totalSesi} Sesi
                 </span>
               </button>
             </aside>
 
             {/* ══ SISI KANAN: KONTEN UTAMA ══ */}
             <section className="menu-kelas-content">
-              {activeTab === 'pertemuan' ? (
-                /* ── TAB PERTEMUAN KELAS (SESUAI MOCKUP GAMBAR 1) ── */
+              {activeTab === 'sabtu' || activeTab === 'minggu' ? (
+                /* ── TAB PERTEMUAN (SABTU ATAU MINGGU) ── */
                 <div>
                   <div className="pertemuan-header-strip">
                     <div>
-                      <h2 className="pertemuan-title-main">Pertemuan kelas</h2>
+                      <h2 className="pertemuan-title-main">
+                        {activeTab === 'sabtu' ? 'Pertemuan Kelas — Sesi Sabtu' : 'Pertemuan Kelas — Sesi Minggu'}
+                      </h2>
                       <p className="pertemuan-sub-main">
-                        Pilih pertemuan untuk melihat materi dan melakukan aktivitas presensi kehadiran.
+                        {activeTab === 'sabtu' 
+                          ? 'Daftar 20 sesi pembelajaran hari Sabtu. Presensi dibuka pada hari KBM sebelum pukul 17.00 WIB.'
+                          : 'Daftar 20 sesi pembelajaran hari Minggu. Presensi dibuka pada hari KBM sebelum pukul 17.00 WIB.'}
                       </p>
                     </div>
                     <span className="pertemuan-count-pill">
-                      {TOTAL_SEMESTER_PERTEMUAN} pertemuan
+                      {TOTAL_SESI_PER_HARI} pertemuan
                     </span>
                   </div>
 
-                  {/* Sesi Presensi Aktif Hari Ini (Bisa Langsung Check-in) */}
-                  {sesiAktif && isWeekend && (
-                    <div style={{
-                      background: '#F0FDF4',
-                      border: '1.5px solid #86EFAC',
-                      borderRadius: '16px',
-                      padding: '1.25rem 1.4rem',
-                      marginBottom: '1.5rem',
-                      boxShadow: '0 4px 14px rgba(22, 101, 52, 0.06)'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ background: '#16A34A', color: '#FFFFFF', padding: '3px 10px', borderRadius: 999, fontSize: '0.74rem', fontWeight: 800 }}>
-                            🟢 Sesi Presensi Buka
-                          </span>
-                          <strong style={{ fontSize: '0.98rem', color: '#166534' }}>
-                            {sesiAktif.nama_mapel || 'Mata Pelajaran Aktif'} (Pertemuan {sesiAktif.pertemuan_ke || 1})
-                          </strong>
-                        </div>
+                  {/* Switch Bar Hari Sabtu / Minggu */}
+                  <div className="hari-switch-bar">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('sabtu')}
+                      className={`hari-switch-btn ${activeTab === 'sabtu' ? 'active' : ''}`}
+                    >
+                      <BookOpen size={16} />
+                      <span>Sesi Hari Sabtu</span>
+                      <span className="hari-switch-pill">20 Sesi</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('minggu')}
+                      className={`hari-switch-btn ${activeTab === 'minggu' ? 'active' : ''}`}
+                    >
+                      <BookOpen size={16} />
+                      <span>Sesi Hari Minggu</span>
+                      <span className="hari-switch-pill">20 Sesi</span>
+                    </button>
+                  </div>
+
+                  {/* Sesi Presensi Aktif Hari Ini (Bisa Langsung Check-in Sebelum Jam 17.00) */}
+                  {sesiAktif && isWeekend && isSelectedDayToday && (
+                    <div className="sesi-aktif-checkin-box">
+                      <div className="sesi-aktif-header">
+                        <span className="badge-sesi-live">
+                          🟢 Sesi Presensi Buka
+                        </span>
+                        <strong className="sesi-aktif-mapel-title">
+                          {sesiAktif.nama_mapel || 'Mata Pelajaran Aktif'} (Pertemuan {sesiAktif.pertemuan_ke || 1})
+                        </strong>
+                        <span style={{ fontSize: '0.78rem', color: '#166534', marginLeft: 'auto', fontWeight: 700 }}>
+                          ⏰ Batas Presensi: s/d 17.00 WIB
+                        </span>
                       </div>
 
                       {feedbackCi.msg && (
-                        <div style={{
-                          padding: '10px 14px',
-                          borderRadius: 10,
-                          background: feedbackCi.type === 'success' ? '#DCFCE7' : '#FEE2E2',
-                          color: feedbackCi.type === 'success' ? '#166534' : '#991B1B',
-                          fontSize: '0.84rem',
-                          fontWeight: 700,
-                          marginBottom: 12
-                        }}>
+                        <div className={`feedback-alert-box ${feedbackCi.type === 'success' ? 'success' : 'error'}`}>
                           {feedbackCi.msg}
                         </div>
                       )}
 
                       {statusCi ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#15803D', fontWeight: 800, fontSize: '0.92rem' }}>
+                        <div className="checkin-success-confirmed">
                           <CheckCircle2 size={20} />
                           <span>Kehadiran Anda Telah Dikonfirmasi: <strong>{statusCi.toUpperCase()}</strong></span>
                         </div>
                       ) : (
-                        <form onSubmit={handleCheckIn} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                            {['hadir', 'izin', 'sakit'].map((st) => (
+                        <form onSubmit={handleCheckIn} className="checkin-form-container">
+                          <div className="checkin-options-grid">
+                            {[
+                              { key: 'hadir', label: 'HADIR' },
+                              { key: 'izin', label: 'IZIN' },
+                              { key: 'sakit', label: 'SAKIT' }
+                            ].map((opt) => (
                               <label
-                                key={st}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: 6,
-                                  padding: '7px 14px',
-                                  borderRadius: 10,
-                                  border: pilihanStatus === st ? '2px solid #059669' : '1.5px solid #CBD5E1',
-                                  background: pilihanStatus === st ? '#ECFDF5' : '#FFFFFF',
-                                  color: pilihanStatus === st ? '#065F46' : '#334155',
-                                  fontWeight: 800,
-                                  fontSize: '0.84rem',
-                                  cursor: 'pointer'
-                                }}
+                                key={opt.key}
+                                className={`checkin-radio-card ${pilihanStatus === opt.key ? 'selected' : ''}`}
                               >
                                 <input
                                   type="radio"
                                   name="pilihanStatus"
-                                  value={st}
-                                  checked={pilihanStatus === st}
-                                  onChange={() => setPilihanStatus(st)}
-                                  style={{ accentColor: '#059669' }}
+                                  value={opt.key}
+                                  checked={pilihanStatus === opt.key}
+                                  onChange={() => setPilihanStatus(opt.key)}
                                 />
-                                <span>{st.toUpperCase()}</span>
+                                <span>{opt.label}</span>
                               </label>
                             ))}
                           </div>
 
-                          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                          <div className="checkin-action-row">
                             <input
                               type="text"
                               value={catatanCi}
                               onChange={(e) => setCatatanCi(e.target.value)}
                               placeholder="Catatan kehadiran (opsional)..."
-                              style={{
-                                flex: 1,
-                                minWidth: '200px',
-                                padding: '8px 12px',
-                                borderRadius: 10,
-                                border: '1.5px solid #CBD5E1',
-                                fontSize: '0.84rem',
-                                outline: 'none'
-                              }}
+                              className="checkin-input-note"
                             />
                             <button
                               type="submit"
                               disabled={loadingCi}
-                              style={{
-                                padding: '8px 20px',
-                                borderRadius: 10,
-                                background: '#16A34A',
-                                color: '#FFFFFF',
-                                border: 'none',
-                                fontWeight: 800,
-                                fontSize: '0.86rem',
-                                cursor: 'pointer'
-                              }}
+                              className="checkin-submit-btn"
                             >
                               {loadingCi ? 'Menyimpan...' : 'Check-In Sekarang'}
                             </button>
@@ -447,101 +534,74 @@ export default function AbsensiSiswa() {
                   )}
 
                   {!isWeekend && (
-                    <div style={{
-                      background: '#F8FAFC',
-                      border: '1.5px solid #E2E8F0',
-                      borderRadius: '14px',
-                      padding: '1rem 1.25rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      marginBottom: '1.25rem',
-                      color: '#475569'
-                    }}>
-                      <Coffee size={20} style={{ color: '#64748B', flexShrink: 0 }} />
-                      <div style={{ fontSize: '0.84rem', lineHeight: 1.5 }}>
-                        <strong>Presensi KBM Ditutup (Senin – Jumat).</strong> Sesi presensi interaktif dibuka otomatis pada hari <strong>Sabtu dan Minggu</strong> sesuai jadwal pembelajaran resmi PKBM Bina Mandiri.
+                    <div className="weekday-closed-notice">
+                      <Coffee size={20} className="weekday-closed-icon" />
+                      <div className="weekday-closed-text">
+                        <strong>Presensi KBM Ditutup (Senin – Jumat).</strong> Sesi presensi interaktif dibuka otomatis pada hari <strong>Sabtu (20 Pertemuan)</strong> dan <strong>Minggu (20 Pertemuan)</strong> sebelum pukul 17.00 WIB sesuai jadwal pembelajaran resmi PKBM Bina Mandiri.
                       </div>
                     </div>
                   )}
 
-                  {/* 14 Pertemuan Cards List (Identik Mockup 1) */}
+                  {/* 20 Pertemuan Cards List (Identik Mockup, Tanpa Tanggal) */}
                   <div className="pertemuan-list-grid">
-                    {daftarPertemuan.map((pert) => {
+                    {currentList.map((pert) => {
                       const numStr = String(pert.pertemuan_ke).padStart(2, '0');
-                      const isHadir = pert.statusPresensi === 'hadir';
-                      const isIzinSakit = pert.statusPresensi === 'izin' || pert.statusPresensi === 'sakit';
+                      const { key, label, badgeClass } = pert.statusInfo;
 
                       return (
                         <div
-                          key={pert.pertemuan_ke}
-                          className={`pertemuan-item-card ${pert.isActive ? 'is-active-card' : ''}`}
+                          key={pert.id}
+                          className={`pertemuan-item-card ${key === 'buka' ? 'is-active-card' : ''}`}
                         >
                           <div className="pertemuan-item-left">
                             <div className="pertemuan-number-box">
                               {numStr}
                             </div>
-                            <div>
+                            <div className="pertemuan-item-body">
                               <div className="pertemuan-item-title-row">
                                 <span className="pertemuan-item-title">
                                   {pert.judul}
                                 </span>
-                                {pert.isActive ? (
+                                {key === 'buka' ? (
                                   <span className="pertemuan-badge-open">
                                     🟢 Buka Presensi
                                   </span>
-                                ) : isHadir ? (
+                                ) : key === 'hadir' ? (
                                   <span className="pertemuan-badge-hadir">
                                     ✓ Hadir
                                   </span>
-                                ) : isIzinSakit ? (
-                                  <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A' }}>
-                                    {pert.statusPresensi.toUpperCase()}
+                                ) : key === 'izin' || key === 'sakit' ? (
+                                  <span className="badge-kehadiran-inline izin">
+                                    {label}
+                                  </span>
+                                ) : key === 'alpa' ? (
+                                  <span className="pertemuan-badge-closed">
+                                    ALPA
                                   </span>
                                 ) : (
-                                  <span className="pertemuan-badge-closed">
-                                    Closed
+                                  <span className="pertemuan-badge-closed" style={{ background: '#F1F5F9', color: '#64748B', borderColor: '#E2E8F0' }}>
+                                    Menunggu Dibuka
                                   </span>
                                 )}
                               </div>
                               <p className="pertemuan-item-desc">
                                 <span>{pert.subjudul}</span>
-                                {pert.namaMapel && (
-                                  <span>• {pert.namaMapel}</span>
-                                )}
                               </p>
                             </div>
                           </div>
 
-                          <div>
-                            {pert.isActive && !pert.statusPresensi ? (
+                          <div className="pertemuan-item-action">
+                            {key === 'buka' && !pert.rawStatus ? (
                               <button
                                 type="button"
                                 onClick={() => {
                                   window.scrollTo({ top: 180, behavior: 'smooth' });
                                 }}
-                                style={{
-                                  padding: '7px 16px',
-                                  borderRadius: 10,
-                                  background: '#0284C7',
-                                  color: '#FFFFFF',
-                                  border: 'none',
-                                  fontWeight: 800,
-                                  fontSize: '0.8rem',
-                                  cursor: 'pointer'
-                                }}
+                                className="btn-absen-sekarang"
                               >
                                 Absen Sekarang
                               </button>
-                            ) : pert.statusPresensi ? (
-                              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isHadir ? '#16A34A' : '#D97706' }}>
-                                {pert.statusPresensi.toUpperCase()}
-                              </span>
-                            ) : (
-                              <span style={{ fontSize: '0.78rem', color: '#94A3B8', fontWeight: 700 }}>
-                                Terjadwal
-                              </span>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       );
@@ -549,134 +609,124 @@ export default function AbsensiSiswa() {
                   </div>
                 </div>
               ) : (
-                /* ── TAB REPORT PRESENSI (REKAP DATA) ── */
+                /* ── TAB REPORT PRESENSI (HANYA: SESI HARI, PERTEMUAN, KETERANGAN PRESENSI) ── */
                 <div>
                   <div className="pertemuan-header-strip">
                     <div>
                       <h2 className="pertemuan-title-main">Report Presensi Warga Belajar</h2>
                       <p className="pertemuan-sub-main">
-                        Laporan rekapitulasi kehadiran belajar Anda di setiap pertemuan semester ini.
+                        Laporan presensi 40 sesi pembelajaran (Batas check-in s/d 17.00 WIB di hari KBM).
                       </p>
                     </div>
-                    {listMapel.length > 0 && (
+
+                    {/* Filter Hari */}
+                    <div className="report-filter-wrapper">
+                      <Filter size={14} style={{ color: '#64748B' }} />
                       <select
-                        value={filterMapel}
-                        onChange={(e) => setFilterMapel(e.target.value)}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: 10,
-                          border: '1.5px solid #CBD5E1',
-                          fontSize: '0.84rem',
-                          fontWeight: 700,
-                          background: '#F8FAFC',
-                          outline: 'none'
-                        }}
+                        value={filterHariReport}
+                        onChange={(e) => setFilterHariReport(e.target.value)}
+                        className="report-filter-select"
                       >
-                        <option value="ALL">Semua Mata Pelajaran</option>
-                        {listMapel.map(m => (
-                          <option key={m} value={m}>{m}</option>
-                        ))}
+                        <option value="ALL">Semua Sesi (40 Pertemuan)</option>
+                        <option value="Sabtu">Khusus Hari Sabtu (20 Sesi)</option>
+                        <option value="Minggu">Khusus Hari Minggu (20 Sesi)</option>
                       </select>
-                    )}
-                  </div>
-
-                  {/* Ringkasan Minimalist Bar (Tanpa Kotak-Kotak Besar) */}
-                  <div className="report-summary-bar">
-                    <span className="report-summary-item">Total Sesi: <strong>{TOTAL_SEMESTER_PERTEMUAN}</strong></span>
-                    <span>•</span>
-                    <span className="report-summary-item" style={{ color: '#16A34A' }}>Hadir: <strong>{rekap?.hadir ?? 0}</strong></span>
-                    <span>•</span>
-                    <span className="report-summary-item" style={{ color: '#D97706' }}>Izin: <strong>{rekap?.izin ?? 0}</strong></span>
-                    <span>•</span>
-                    <span className="report-summary-item" style={{ color: '#2563EB' }}>Sakit: <strong>{rekap?.sakit ?? 0}</strong></span>
-                    <span>•</span>
-                    <span className="report-summary-item" style={{ color: '#DC2626' }}>Alpa: <strong>{rekap?.alpa ?? 0}</strong></span>
-                    <span>•</span>
-                    <span className="report-summary-item" style={{ color: '#0284C7' }}>Tingkat Kehadiran: <strong>{rekap?.persentase_hadir ?? 100}%</strong></span>
-                  </div>
-
-                  {/* Tabel Report Presensi */}
-                  <div className="riwayat-desktop-table">
-                    <div style={{ overflowX: 'auto' }}>
-                      <table className="riwayat-table">
-                        <thead>
-                          <tr>
-                            <th>Pertemuan</th>
-                            <th>Mata Pelajaran</th>
-                            <th>Tutor Pengampu</th>
-                            <th>Status Kehadiran</th>
-                            <th>Keterangan / Catatan</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {daftarPertemuan.map((p, idx) => {
-                            const status = (p.statusPresensi || 'alpa').toLowerCase();
-                            let badgeClass = 'alpa';
-                            let badgeText = 'ALPA';
-                            if (status === 'hadir') { badgeClass = 'hadir'; badgeText = 'HADIR'; }
-                            else if (status === 'izin') { badgeClass = 'izin'; badgeText = 'IZIN'; }
-                            else if (status === 'sakit') { badgeClass = 'sakit'; badgeText = 'SAKIT'; }
-                            else if (p.isClosed) { badgeClass = 'closed'; badgeText = 'TERJADWAL'; }
-
-                            return (
-                              <tr key={idx}>
-                                <td style={{ fontWeight: 800, color: '#1E293B' }}>
-                                  <span style={{ background: '#EFF6FF', color: '#1D4ED8', padding: '4px 10px', borderRadius: 8, fontSize: '0.8rem', fontWeight: 800 }}>
-                                    Pertemuan {p.pertemuan_ke}
-                                  </span>
-                                </td>
-                                <td style={{ fontWeight: 700, color: '#0F172A' }}>
-                                  {p.namaMapel}
-                                </td>
-                                <td style={{ color: '#475569', fontSize: '0.84rem' }}>
-                                  {p.namaTutor}
-                                </td>
-                                <td>
-                                  <span className={`badge-kehadiran ${badgeClass}`}>
-                                    {badgeText}
-                                  </span>
-                                </td>
-                                <td style={{ color: '#64748B', fontSize: '0.84rem' }}>
-                                  {p.catatan || (status === 'hadir' ? 'Hadir di sesi kelas' : '-')}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
                     </div>
                   </div>
 
-                  {/* Versi Mobile Cards untuk Report */}
-                  <div className="riwayat-mobile-list d-md-none">
-                    {daftarPertemuan.map((p, idx) => {
-                      const status = (p.statusPresensi || 'alpa').toLowerCase();
-                      let badgeClass = 'alpa';
-                      let badgeText = 'ALPA';
-                      if (status === 'hadir') { badgeClass = 'hadir'; badgeText = 'HADIR'; }
-                      else if (status === 'izin') { badgeClass = 'izin'; badgeText = 'IZIN'; }
-                      else if (status === 'sakit') { badgeClass = 'sakit'; badgeText = 'SAKIT'; }
-                      else if (p.isClosed) { badgeClass = 'closed'; badgeText = 'TERJADWAL'; }
+                  {/* Ringkasan Bar Minimalis & Mobile-Friendly */}
+                  <div className="report-summary-bar">
+                    <div className="report-summary-card total full-width">
+                      <span className="summary-lbl">Total Sesi Semester</span>
+                      <strong className="summary-val">{totalSesi} <span className="summary-sub">(20 Sabtu + 20 Minggu)</span></strong>
+                    </div>
+                    <div className="report-summary-card hadir">
+                      <span className="summary-lbl">Hadir (Masuk)</span>
+                      <strong className="summary-val">{countHadir} Hari</strong>
+                    </div>
+                    <div className="report-summary-card izin">
+                      <span className="summary-lbl">Izin</span>
+                      <strong className="summary-val">{countIzin}</strong>
+                    </div>
+                    <div className="report-summary-card sakit">
+                      <span className="summary-lbl">Sakit</span>
+                      <strong className="summary-val">{countSakit}</strong>
+                    </div>
+                    <div className="report-summary-card alpa">
+                      <span className="summary-lbl">Alpa (&gt;17.00)</span>
+                      <strong className="summary-val">{countAlpa}</strong>
+                    </div>
+                    <div className="report-summary-card menunggu">
+                      <span className="summary-lbl">Menunggu Dibuka</span>
+                      <strong className="summary-val">{countMenunggu}</strong>
+                    </div>
+                    <div className="report-summary-card persentase">
+                      <span className="summary-lbl">Total Masuk</span>
+                      <strong className="summary-val">{countHadir} Hari</strong>
+                    </div>
+                  </div>
+
+                  {/* ══ TABEL DESKTOP REPORT PRESENSI (HANYA 3 KOLOM) ══ */}
+                  <div className="report-desktop-table">
+                    <table className="riwayat-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: '22%' }}>Sesi Hari</th>
+                          <th style={{ width: '38%' }}>Pertemuan</th>
+                          <th style={{ width: '40%' }}>Keterangan Presensi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {riwayatFiltered.map((p) => {
+                          const { badgeClass, tableText } = p.statusInfo;
+
+                          return (
+                            <tr key={p.id}>
+                              <td>
+                                <span className={p.hari === 'Sabtu' ? 'badge-hari-sabtu' : 'badge-hari-minggu'}>
+                                  {p.hari}
+                                </span>
+                              </td>
+                              <td>
+                                <span className="pertemuan-table-pill">
+                                  Pertemuan {p.pertemuan_ke}
+                                </span>
+                              </td>
+                              <td>
+                                <span className={`badge-kehadiran ${badgeClass}`}>
+                                  {tableText}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* ══ TAMPILAN MOBILE LIST REPORT PRESENSI (RESPONSIF & RAPIH) ══ */}
+                  <div className="report-mobile-list">
+                    {riwayatFiltered.map((p) => {
+                      const { badgeClass, tableText } = p.statusInfo;
 
                       return (
-                        <div key={idx} className="riwayat-mobile-card">
-                          <div className="riwayat-mobile-card-header">
-                            <span className="riwayat-mobile-pertemuan">Pertemuan {p.pertemuan_ke}</span>
-                            <span className={`badge-kehadiran ${badgeClass}`}>{badgeText}</span>
+                        <div key={p.id} className="report-mobile-row">
+                          <div className="report-mobile-row-left">
+                            <span className={p.hari === 'Sabtu' ? 'badge-hari-sabtu' : 'badge-hari-minggu'}>
+                              {p.hari}
+                            </span>
+                            <span className="report-mobile-pertemuan">
+                              Pertemuan {p.pertemuan_ke}
+                            </span>
                           </div>
-                          <h4 className="riwayat-mobile-mapel">{p.namaMapel}</h4>
-                          <div className="riwayat-mobile-meta">
-                            <span>Tutor: {p.namaTutor}</span>
-                          </div>
-                          {p.catatan && (
-                            <div className="riwayat-mobile-note">
-                              <strong>Catatan:</strong> {p.catatan}
-                            </div>
-                          )}
+                          <span className={`badge-kehadiran ${badgeClass}`}>
+                            {tableText}
+                          </span>
                         </div>
                       );
                     })}
                   </div>
+
                 </div>
               )}
             </section>
