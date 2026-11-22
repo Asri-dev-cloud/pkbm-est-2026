@@ -182,10 +182,10 @@ const SpmbController = {
 
       const sqlPendaftar = `
         INSERT INTO pendaftar_spmb
-          (nama_lengkap, email, nik, npsn, nisn, password_hash, no_telp, jenjang_daftar, tanggal_lahir,
+          (nama_lengkap, email, nik, npsn, nisn, password_hash, password_plain, no_telp, jenjang_daftar, tanggal_lahir,
            jenis_kelamin, alamat, jarak_rumah_km, tinggi_badan, berat_badan, jumlah_saudara_kandung,
            nama_ayah, nama_ibu, nama_wali, tahun_ajaran_id, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
       `;
       const paramsPendaftar = [
         nama_lengkap.trim(),
@@ -194,6 +194,7 @@ const SpmbController = {
         npsn ? String(npsn).trim() : 'P2970848',
         nisn ? String(nisn).trim() : null,
         password_hash,
+        String(password).trim(),
         no_telp.trim(),
         jenjang_daftar,
         tanggal_lahir,
@@ -1067,6 +1068,34 @@ const SpmbController = {
       });
     }
   },
+
+  // -----------------------------------------------------------
+  // POST /api/spmb/:id/sinkron-akun  [Admin, Super Admin]
+  // Sinkronisasi paksa akun Warga Belajar untuk pendaftar berstatus 'diterima'
+  // -----------------------------------------------------------
+  sinkronAkunManual: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { rombel_id } = req.body;
+      const pendaftar = await SpmbModel.findById(parseInt(id));
+      if (!pendaftar) {
+        return res.status(404).json({ success: false, message: 'Pendaftar tidak ditemukan.' });
+      }
+
+      const syncResult = await ensureWargaBelajarAccount(parseInt(id), rombel_id || null, req.user?.id || 1);
+      return res.status(200).json({
+        success: true,
+        message: `Akun Warga Belajar '${pendaftar.nama_lengkap}' berhasil disinkronkan. NIS: ${syncResult.nis}.`,
+        data: syncResult,
+      });
+    } catch (error) {
+      console.error('[SpmbController.sinkronAkunManual] Error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal menyinkronkan akun: ' + error.message,
+      });
+    }
+  },
 };
 
 // -----------------------------------------------------------
@@ -1100,51 +1129,37 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
   const tahun_ajaran_id = tahunAjaranAktif?.id || pendaftar.tahun_ajaran_id || 1;
 
   // 3. User account (cek duplikasi email)
+  const rawEmail = (pendaftar.email || '').trim().toLowerCase();
+  const safeEmail = rawEmail || `siswa${pendaftar.id}@pkbmbinamandiri.sch.id`;
+
   let userId;
-  const existingUser = await UserModel.findByEmail(pendaftar.email);
+  const existingUser = await UserModel.findByEmail(safeEmail);
+
   // Cek apakah ada pas foto di berkas_spmb
   const [berkasFoto] = await pool.execute(
-    `SELECT path_file FROM berkas_spmb WHERE pendaftar_id = ? AND jenis_berkas = 'foto' ORDER BY id DESC LIMIT 1`,
+    `SELECT path_file FROM berkas_spmb WHERE pendaftar_id = ? AND jenis_berkas IN ('foto', 'pas_foto', 'pasfoto') ORDER BY id DESC LIMIT 1`,
     [pendaftarId]
   );
   const pasFotoFile = berkasFoto[0]?.path_file || null;
 
   if (existingUser) {
-    // Kebijakan ketat: 1 Email untuk 1 Akun (1 Siswa)
-    const [existingWb] = await pool.execute(
-      `SELECT id, nis FROM warga_belajar WHERE user_id = ? LIMIT 1`,
-      [existingUser.id]
-    );
-    if (existingWb.length > 0) {
-      if (pendaftar.warga_belajar_id && pendaftar.warga_belajar_id !== existingWb[0].id) {
-        throw new Error(
-          `Aturan 1 Email untuk 1 Akun (1 Siswa): Alamat email "${pendaftar.email}" sudah terikat pada siswa lain (NIS: ${existingWb[0].nis}). Tidak diperbolehkan menggunakan 1 email untuk lebih dari 1 siswa.`
-        );
-      }
-      const [otherPendaftar] = await pool.execute(
-        `SELECT id, nama_lengkap FROM pendaftar_spmb WHERE warga_belajar_id = ? AND id != ? LIMIT 1`,
-        [existingWb[0].id, pendaftarId]
-      );
-      if (otherPendaftar.length > 0) {
-        throw new Error(
-          `Aturan 1 Email untuk 1 Akun (1 Siswa): Alamat email "${pendaftar.email}" sudah dimiliki oleh siswa "${otherPendaftar[0].nama_lengkap}" (NIS: ${existingWb[0].nis}). Setiap siswa wajib memiliki email unik sendiri.`
-        );
-      }
-    }
-
     userId = existingUser.id;
     if (existingUser.role !== 'warga_belajar') {
       await pool.execute(`UPDATE users SET role = 'warga_belajar' WHERE id = ?`, [userId]);
+    }
+    if (pendaftar.password_plain) {
+      await pool.execute(`UPDATE users SET password_plain = COALESCE(password_plain, ?) WHERE id = ?`, [pendaftar.password_plain, userId]);
     }
     if (pasFotoFile) {
       await pool.execute(`UPDATE users SET foto_profil = COALESCE(foto_profil, ?) WHERE id = ?`, [pasFotoFile, userId]);
     }
   } else {
     const password_hash = pendaftar.password_hash || await hashPassword(pendaftar.no_telp || '12345678');
+    const password_plain = pendaftar.password_plain || (pendaftar.password_hash ? null : (pendaftar.no_telp || '12345678'));
     const [uResult] = await pool.execute(
-      `INSERT INTO users (nama_lengkap, email, password_hash, role, foto_profil, is_active, created_at)
-       VALUES (?, ?, ?, 'warga_belajar', ?, 1, NOW())`,
-      [pendaftar.nama_lengkap, pendaftar.email, password_hash, pasFotoFile]
+      `INSERT INTO users (nama_lengkap, email, password_hash, password_plain, role, foto_profil, is_active, created_at)
+       VALUES (?, ?, ?, ?, 'warga_belajar', ?, 1, NOW())`,
+      [pendaftar.nama_lengkap, safeEmail, password_hash, password_plain, pasFotoFile]
     );
     userId = uResult.insertId;
   }
@@ -1156,6 +1171,10 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
     `SELECT id, nis, rombel_id FROM warga_belajar WHERE user_id = ? LIMIT 1`,
     [userId]
   );
+
+  const safeTanggalLahir = pendaftar.tanggal_lahir || '2005-01-01';
+  const safeJenisKelamin = (pendaftar.jenis_kelamin === 'P' || String(pendaftar.jenis_kelamin).toUpperCase().startsWith('P')) ? 'P' : 'L';
+  const safeAlamat = pendaftar.alamat || 'Alamat belum dilengkapi';
 
   if (wbRows.length > 0) {
     wbId = wbRows[0].id;
@@ -1196,7 +1215,15 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
   } else {
     const [cntRows] = await pool.execute(`SELECT COUNT(*) AS total FROM warga_belajar`);
     const totalWb = cntRows[0]?.total || 0;
-    nis = generateNIS(totalWb + 1, tahunAjaranAktif?.nama_tahun_ajaran || '2026/2027');
+
+    // Pastikan NIS benar-benar unik
+    let offset = 0;
+    while (true) {
+      nis = generateNIS(totalWb + 1 + offset, tahunAjaranAktif?.nama_tahun_ajaran || '2026/2027');
+      const [chkNis] = await pool.execute(`SELECT id FROM warga_belajar WHERE nis = ? LIMIT 1`, [nis]);
+      if (chkNis.length === 0) break;
+      offset++;
+    }
 
     const [wbResult] = await pool.execute(
       `INSERT INTO warga_belajar
@@ -1211,9 +1238,9 @@ export const ensureWargaBelajarAccount = async (pendaftarId, rombelIdParam = nul
         pendaftar.npsn || 'P2970848',
         pendaftar.nisn || null,
         pendaftar.jenjang_daftar,
-        pendaftar.tanggal_lahir,
-        pendaftar.jenis_kelamin,
-        pendaftar.alamat,
+        safeTanggalLahir,
+        safeJenisKelamin,
+        safeAlamat,
         pendaftar.jarak_rumah_km || null,
         pendaftar.tinggi_badan || null,
         pendaftar.berat_badan || null,

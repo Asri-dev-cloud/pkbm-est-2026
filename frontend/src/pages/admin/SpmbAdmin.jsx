@@ -34,6 +34,9 @@ function SpmbAdmin() {
   const [modalExcelOpen, setModalExcelOpen] = useState(false);
   const [downloadingExcel, setDownloadingExcel] = useState(false);
   const [previewBerkasTarget, setPreviewBerkasTarget] = useState(null);
+  const [showDetailPass, setShowDetailPass] = useState(false);
+  const [copiedDetailPass, setCopiedDetailPass] = useState(false);
+  const [syncingAkun, setSyncingAkun] = useState(false);
 
   // ── State: Modal Batalkan Penerimaan / Keputusan ──
   const [modalBatalOpen, setModalBatalOpen] = useState(false);
@@ -257,6 +260,26 @@ function SpmbAdmin() {
       alert('Gagal memuat detail pendaftar.');
     } finally {
       setLoadDetail(false);
+    }
+  };
+
+  const handleSinkronAkunManual = async () => {
+    if (!detail?.id) return;
+    setSyncingAkun(true);
+    try {
+      const res = await SpmbAPI.sinkronAkun(detail.id, { rombel_id: selectedRombelId || undefined });
+      alert(res.data?.message || 'Akun Warga Belajar berhasil disinkronkan ke Data Siswa & Manajemen Akun!');
+      await bukaDetail(detail.id);
+      const [resList, resStat] = await Promise.all([
+        SpmbAPI.getAll({ status: filterStatus || undefined }),
+        SpmbAPI.getStatistik(),
+      ]);
+      setList(resList.data.data || []);
+      setStat(resStat.data.data);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal menyinkronkan akun Warga Belajar.');
+    } finally {
+      setSyncingAkun(false);
     }
   };
 
@@ -789,6 +812,14 @@ function SpmbAdmin() {
                                     <i className="bi bi-exclamation-triangle-fill"></i> Berkas Kosong
                                   </span>
                                 )}
+                                {pendaftar.password_plain && (
+                                  <>
+                                    <span>•</span>
+                                    <span style={{ color: '#0284C7', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }} title={`Password Akun: ${pendaftar.password_plain}`}>
+                                      <i className="bi bi-key-fill"></i> Pass: {pendaftar.password_plain}
+                                    </span>
+                                  </>
+                                )}
                               </div>
                             </div>
                             <span className={`badge ${getBadgeClass(pendaftar.status)}`} style={{ textTransform: 'capitalize', fontWeight: 700, padding: '4px 10px' }}>
@@ -880,6 +911,181 @@ function SpmbAdmin() {
                             <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0F172A' }}>{item.value || '—'}</div>
                           </div>
                         ))}
+                      </div>
+
+                      {/* Card Kredensial Akun Siswa (Ruang Belajar LMS) */}
+                      <div style={{
+                        marginBottom: '1.25rem',
+                        padding: '1rem 1.25rem',
+                        background: '#F0F9FF',
+                        borderRadius: '12px',
+                        border: '1.5px solid #BAE6FD',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              background: '#0284C7',
+                              color: '#FFFFFF',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '1rem',
+                            }}>
+                              <i className="bi bi-key-fill"></i>
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 800, fontSize: '0.925rem', color: '#0369A1' }}>
+                                Kredensial Akun Siswa (Ruang Belajar LMS)
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: '#0284C7' }}>
+                                Digunakan siswa untuk login ke portal pembelajaran
+                              </div>
+                            </div>
+                          </div>
+                          <span className="badge" style={{
+                            background: detail.status === 'diterima' ? '#DCFCE7' : '#FEF3C7',
+                            color: detail.status === 'diterima' ? '#166534' : '#92400E',
+                            border: '1px solid currentColor',
+                            fontWeight: 700,
+                            fontSize: '0.75rem',
+                          }}>
+                            {detail.status === 'diterima' ? 'Akun Aktif (Dapat Login)' : 'Pendaftar Baru'}
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+                          <div style={{ background: '#FFFFFF', padding: '0.65rem 0.85rem', borderRadius: 8, border: '1px solid #BAE6FD' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Email Login Siswa</div>
+                            <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0F172A', marginTop: 2, wordBreak: 'break-all' }}>
+                              {detail.email || '—'}
+                            </div>
+                          </div>
+
+                          <div style={{ background: '#FFFFFF', padding: '0.65rem 0.85rem', borderRadius: 8, border: '1px solid #BAE6FD', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div>
+                              <div style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Password Akun Siswa</div>
+                              {detail.password_plain ? (
+                                <div style={{ fontSize: '0.925rem', fontWeight: 800, color: '#0369A1', marginTop: 2, fontFamily: showDetailPass ? 'monospace' : 'inherit' }}>
+                                  {showDetailPass ? detail.password_plain : '••••••••'}
+                                </div>
+                              ) : (
+                                <div style={{ fontSize: '0.78rem', color: '#64748B', fontStyle: 'italic', marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                  <i className="bi bi-shield-lock" /> Terenkripsi (Dibuat Siswa Saat Daftar)
+                                </div>
+                              )}
+                            </div>
+                            {detail.password_plain && (
+                              <div style={{ display: 'flex', gap: 4 }}>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowDetailPass(!showDetailPass)}
+                                  style={{ background: '#F1F5F9', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: '#475569', fontSize: '0.9rem' }}
+                                  title={showDetailPass ? 'Sembunyikan password' : 'Lihat password siswa'}
+                                >
+                                  <i className={`bi ${showDetailPass ? 'bi-eye-slash-fill' : 'bi-eye-fill'}`}></i>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(detail.password_plain);
+                                    setCopiedDetailPass(true);
+                                    setTimeout(() => setCopiedDetailPass(false), 2000);
+                                  }}
+                                  style={{ background: copiedDetailPass ? '#DCFCE7' : '#F1F5F9', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: copiedDetailPass ? '#16A34A' : '#475569', fontSize: '0.9rem' }}
+                                  title={copiedDetailPass ? 'Tersalin!' : 'Salin password'}
+                                >
+                                  <i className={`bi ${copiedDetailPass ? 'bi-check-lg' : 'bi-clipboard'}`}></i>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Peringatan jika status diterima tapi belum tersinkron ke Data Siswa */}
+                        {detail.status === 'diterima' && !detail.warga_belajar_id && (
+                          <div style={{
+                            padding: '0.85rem 1rem',
+                            background: '#FEF3C7',
+                            borderRadius: 8,
+                            border: '1.5px solid #F59E0B',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '0.75rem',
+                            flexWrap: 'wrap',
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.825rem', color: '#92400E', fontWeight: 700 }}>
+                              <i className="bi bi-exclamation-triangle-fill" style={{ color: '#D97706', fontSize: '1.2rem' }}></i>
+                              <div>
+                                <div>Status Resmi Diterima, namun profil Warga Belajar belum terhubung ke Data Siswa.</div>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#B45309' }}>Klik tombol di samping untuk otomatis membuat NIS &amp; memasukkan siswa ke Data Siswa.</div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleSinkronAkunManual}
+                              disabled={syncingAkun}
+                              className="btn btn-primary"
+                              style={{ height: 36, padding: '0 14px', fontSize: '0.8rem', fontWeight: 800, background: '#D97706', borderColor: '#D97706', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                            >
+                              {syncingAkun ? (
+                                <><span className="spinner-sm"></span> Menyinkronkan Data...</>
+                              ) : (
+                                <><i className="bi bi-arrow-repeat"></i> Sinkronkan ke Data Siswa Sekarang</>
+                              )}
+                            </button>
+                          </div>
+                        )}
+
+                        {detail.warga_belajar_id && detail.nis && (
+                          <div style={{
+                            padding: '0.5rem 0.75rem',
+                            background: '#DCFCE7',
+                            borderRadius: 6,
+                            border: '1px solid #86EFAC',
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            color: '#166534',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6
+                          }}>
+                            <i className="bi bi-check-circle-fill"></i>
+                            <span>Terdaftar Resmi di Data Siswa (NIS: {detail.nis})</span>
+                          </div>
+                        )}
+
+                        {detail.no_telp && (
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
+                            <a
+                              href={`https://wa.me/${detail.no_telp.replace(/^0/, '62').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                                `Halo ${detail.nama_lengkap},\n\nBerikut informasi akun Ruang Belajar LMS PKBM Bina Mandiri Anda:\n- Email: ${detail.email}\n- Password: ${detail.password_plain || 'Password123!'}\n\nSilakan masuk melalui link: ${window.location.origin}/login\n\nTerima kasih.`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                background: '#16A34A',
+                                color: '#FFFFFF',
+                                padding: '6px 12px',
+                                borderRadius: 8,
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                textDecoration: 'none',
+                              }}
+                            >
+                              <i className="bi bi-whatsapp"></i> Kirim Akun ke Siswa via WhatsApp
+                            </a>
+                          </div>
+                        )}
                       </div>
 
                       {/* Data Isian Dapodik */}
@@ -1293,6 +1499,14 @@ function SpmbAdmin() {
                                   <span className="badge badge-primary" style={{ fontSize: '0.8rem', fontWeight: 700 }}>
                                     NIS: {detail.nis}
                                   </span>
+                                )}
+                                {pendaftar.password_plain && (
+                                  <>
+                                    <span>•</span>
+                                    <span style={{ color: '#0284C7', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }} title={`Password Akun: ${pendaftar.password_plain}`}>
+                                      <i className="bi bi-key-fill"></i> Pass: {pendaftar.password_plain}
+                                    </span>
+                                  </>
                                 )}
                               </div>
 

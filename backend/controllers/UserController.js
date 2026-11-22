@@ -5,6 +5,7 @@
 // ============================================================
 
 import bcrypt from 'bcryptjs';
+import pool from '../config/db.js';
 import UserModel from '../models/UserModel.js';
 
 const UserController = {
@@ -56,7 +57,13 @@ const UserController = {
       // Hash password sebelum disimpan (cost factor: 10)
       const password_hash = await bcrypt.hash(password, 10);
 
-      const newId = await UserModel.create({ nama_lengkap, email, password_hash, role });
+      const newId = await UserModel.create({
+        nama_lengkap,
+        email,
+        password_hash,
+        password_plain: password,
+        role,
+      });
 
       return res.status(201).json({
         success: true,
@@ -117,10 +124,22 @@ const UserController = {
       }
 
       const password_hash = await bcrypt.hash(password_baru, 10);
-      const affected = await UserModel.updatePassword(parseInt(id), password_hash);
+      const affected = await UserModel.updatePassword(parseInt(id), password_hash, password_baru);
 
       if (affected === 0) {
         return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
+      }
+
+      // Sinkronisasikan juga ke pendaftar_spmb jika akun terkait dengan siswa SPMB
+      try {
+        await pool.execute(
+          `UPDATE pendaftar_spmb 
+           SET password_hash = ?, password_plain = ? 
+           WHERE email = (SELECT email FROM users WHERE id = ?)`,
+          [password_hash, password_baru, parseInt(id)]
+        );
+      } catch (syncErr) {
+        console.warn('[UserController.resetPassword] Warning sync spmb:', syncErr.message);
       }
 
       return res.status(200).json({ success: true, message: 'Password berhasil direset.' });

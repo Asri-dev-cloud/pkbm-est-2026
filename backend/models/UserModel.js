@@ -86,12 +86,12 @@ const UserModel = {
   // Buat user baru (dipanggil otomatis saat SPMB disetujui
   // atau saat Super Admin menambah Tutor/Admin baru)
   // -----------------------------------------------------------
-  create: async ({ nama_lengkap, email, password_hash, role }) => {
+  create: async ({ nama_lengkap, email, password_hash, password_plain = null, role }) => {
     const sql = `
-      INSERT INTO users (nama_lengkap, email, password_hash, role, is_active, created_at)
-      VALUES (?, ?, ?, ?, 1, NOW())
+      INSERT INTO users (nama_lengkap, email, password_hash, password_plain, role, is_active, created_at)
+      VALUES (?, ?, ?, ?, ?, 1, NOW())
     `;
-    const [result] = await pool.execute(sql, [nama_lengkap, email, password_hash, role]);
+    const [result] = await pool.execute(sql, [nama_lengkap, email, password_hash, password_plain, role]);
     const insertId = result.insertId;
 
     if (role === 'tutor') {
@@ -113,9 +113,17 @@ const UserModel = {
   // -----------------------------------------------------------
   findAll: async () => {
     const sql = `
-      SELECT id, nama_lengkap, email, role, is_active, created_at
-      FROM users
-      ORDER BY created_at DESC
+      SELECT 
+        u.id, 
+        u.nama_lengkap, 
+        u.email, 
+        u.role, 
+        COALESCE(u.password_plain, ps.password_plain) AS password_plain, 
+        u.is_active, 
+        u.created_at
+      FROM users u
+      LEFT JOIN pendaftar_spmb ps ON LOWER(TRIM(ps.email)) = LOWER(TRIM(u.email))
+      ORDER BY u.created_at DESC
     `;
     const [rows] = await pool.execute(sql);
     return rows;
@@ -133,9 +141,9 @@ const UserModel = {
   // -----------------------------------------------------------
   // Update password (dipanggil saat reset password)
   // -----------------------------------------------------------
-  updatePassword: async (id, password_hash) => {
-    const sql = `UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?`;
-    const [result] = await pool.execute(sql, [password_hash, id]);
+  updatePassword: async (id, password_hash, password_plain = null) => {
+    const sql = `UPDATE users SET password_hash = ?, password_plain = COALESCE(?, password_plain), updated_at = NOW() WHERE id = ?`;
+    const [result] = await pool.execute(sql, [password_hash, password_plain, id]);
     return result.affectedRows;
   },
 };

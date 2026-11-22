@@ -55,6 +55,19 @@ function UserAdmin() {
 
   // ── State: Memproses toggle status ──────────────────────
   const [togglingId, setTogglingId] = useState(null);
+  const [showPassMap, setShowPassMap] = useState({});
+  const [copiedId, setCopiedId] = useState(null);
+
+  const toggleShowPass = (id) => {
+    setShowPassMap(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleCopyPassword = (id, pass) => {
+    if (!pass) return;
+    navigator.clipboard.writeText(pass);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   // ── Fetch Daftar User ────────────────────────────────────
   const fetchUsers = async () => {
@@ -140,6 +153,9 @@ function UserAdmin() {
     setResetFeedback({ type: '', msg: '' });
     try {
       await UserAPI.resetPassword(resetTarget.id, passwordBaru);
+      setUserList(prev => prev.map(item =>
+        item.id === resetTarget.id ? { ...item, password_plain: passwordBaru } : item
+      ));
       setResetFeedback({ type: 'success', msg: 'Password berhasil direset!' });
       setTimeout(() => {
         setResetTarget(null);
@@ -287,15 +303,19 @@ function UserAdmin() {
                   <thead>
                     <tr>
                       <th>Nama Lengkap & Email</th>
-                      <th style={{ width: '180px' }}>Role Akun</th>
-                      <th style={{ width: '130px' }}>Status Akun</th>
-                      <th style={{ width: '160px' }}>Tanggal Dibuat</th>
+                      <th style={{ width: '150px' }}>Role Akun</th>
+                      <th style={{ width: '180px' }}>Password Akun</th>
+                      <th style={{ width: '120px' }}>Status Akun</th>
+                      <th style={{ width: '150px' }}>Tanggal Dibuat</th>
                       <th style={{ width: '160px', textAlign: 'right' }}>Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filtered.map(u => {
                       const rc = ROLE_COLOR[u.role] || { bg: '#F1F5F9', color: '#475569' };
+                      const isPassShown = !!showPassMap[u.id];
+                      const plainPassword = u.password_plain;
+
                       return (
                         <tr key={u.id}>
                           <td>
@@ -319,6 +339,49 @@ function UserAdmin() {
                             <span className="badge" style={{ background: rc.bg, color: rc.color, border: '1px solid currentColor', fontWeight: 700 }}>
                               {ROLE_LABEL[u.role] || u.role}
                             </span>
+                          </td>
+                          <td>
+                            {plainPassword ? (
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F8FAFC', padding: '4px 8px', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                                <span style={{ fontFamily: isPassShown ? 'monospace' : 'inherit', fontSize: '0.85rem', fontWeight: 700, color: '#0F172A' }}>
+                                  {isPassShown ? plainPassword : '••••••••'}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleShowPass(u.id)}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: '0 2px' }}
+                                  title={isPassShown ? 'Sembunyikan password' : 'Lihat password'}
+                                >
+                                  <i className={`bi ${isPassShown ? 'bi-eye-slash-fill' : 'bi-eye-fill'}`} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyPassword(u.id, plainPassword)}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: copiedId === u.id ? '#16A34A' : '#64748B', padding: '0 2px' }}
+                                  title={copiedId === u.id ? 'Tersalin!' : 'Salin password'}
+                                >
+                                  <i className={`bi ${copiedId === u.id ? 'bi-check-lg' : 'bi-clipboard'}`} />
+                                </button>
+                              </div>
+                            ) : (
+                              <span
+                                style={{
+                                  fontSize: '0.78rem',
+                                  color: '#64748B',
+                                  fontStyle: 'italic',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  padding: '3px 8px',
+                                  background: '#F1F5F9',
+                                  borderRadius: 6,
+                                  border: '1px solid #E2E8F0',
+                                }}
+                                title="Akun lama terdaftar sebelum fitur simpan password aktif. Password terenkripsi aman di database. Klik tombol 'Reset' di kanan jika ingin membuatkan password baru."
+                              >
+                                <i className="bi bi-shield-lock" style={{ color: '#94A3B8' }} /> Terenkripsi (Akun Lama)
+                              </span>
+                            )}
                           </td>
                           <td>
                             <span className={`badge ${u.is_active ? 'badge-success' : 'badge-danger'}`} style={{ fontWeight: 700 }}>

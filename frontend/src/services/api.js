@@ -485,6 +485,10 @@ export const SpmbAPI = {
   // PUT /api/spmb/:id/batal-terima - Batalkan penerimaan calon siswa & kembalikan ke pending (Admin)
   batalkanPenerimaan: (id, payload = {}) =>
     apiClient.put(`/spmb/${id}/batal-terima`, payload),
+
+  // POST /api/spmb/:id/sinkron-akun - Sinkronisasi paksa akun Warga Belajar (Admin)
+  sinkronAkun: (id, payload = {}) =>
+    apiClient.post(`/spmb/${id}/sinkron-akun`, payload),
 };
 
 

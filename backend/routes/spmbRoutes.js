@@ -122,6 +122,14 @@ router.put(
   SpmbController.buatKeputusan
 );
 
+// POST /api/spmb/:id/sinkron-akun — Sinkronisasi paksa akun Warga Belajar (Admin)
+router.post(
+  '/:id/sinkron-akun',
+  verifyToken,
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  SpmbController.sinkronAkunManual
+);
+
 // PUT /api/spmb/:id/batal-terima — Batalkan penerimaan calon siswa & kembalikan ke pending (Admin)
 router.put(
   '/:id/batal-terima',

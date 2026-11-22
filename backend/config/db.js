@@ -76,6 +76,8 @@ export const testConnection = async () => {
       { table: 'warga_belajar', col: 'nama_ibu', def: 'VARCHAR(100) NULL DEFAULT NULL COMMENT "Nama Ibu Kandung"' },
       { table: 'rekaman_kehadiran', col: 'catatan', def: 'VARCHAR(255) NULL DEFAULT NULL COMMENT "Keterangan alasan izin/sakit/presensi"' },
       { table: 'sesi_absensi', col: 'pertemuan_ke', def: 'INT UNSIGNED NULL DEFAULT 1 COMMENT "Nomor pertemuan belajar (1-16)"' },
+      { table: 'pendaftar_spmb', col: 'password_plain', def: 'VARCHAR(255) NULL DEFAULT NULL COMMENT "Password asli calon siswa (khusus admin)"' },
+      { table: 'users', col: 'password_plain', def: 'VARCHAR(255) NULL DEFAULT NULL COMMENT "Password asli akun siswa (khusus admin)"' },
     ];
 
     for (const item of dapodikColumns) {
@@ -92,6 +94,49 @@ export const testConnection = async () => {
     try {
       await pool.query('UPDATE warga_belajar SET npsn = "P2970848" WHERE npsn IS NULL OR npsn = "" OR npsn = "P9962854" OR npsn = "P9962879"');
       await pool.query('UPDATE pendaftar_spmb SET npsn = "P2970848" WHERE npsn IS NULL OR npsn = "" OR npsn = "P9962854" OR npsn = "P9962879"');
+    } catch (_) {}
+
+    // Otomatis sinkronisasi akun pendaftar yang sudah berstatus 'diterima' tapi belum memiliki akun Warga Belajar (misal: Suwoto #19)
+    try {
+      const [unlinkedAccepted] = await pool.query(
+        `SELECT id, nama_lengkap, email, jenjang_daftar 
+         FROM pendaftar_spmb 
+         WHERE status = 'diterima' AND (warga_belajar_id IS NULL OR warga_belajar_id = 0)`
+      );
+      if (unlinkedAccepted && unlinkedAccepted.length > 0) {
+        console.log(`[Auto-Sync] Ditemukan ${unlinkedAccepted.length} pendaftar diterima yang belum memiliki profil Warga Belajar. Menjalankan auto-sync...`);
+        const { ensureWargaBelajarAccount } = await import('../controllers/SpmbController.js');
+        for (const p of unlinkedAccepted) {
+          try {
+            const syncRes = await ensureWargaBelajarAccount(p.id, null, 1);
+            console.log(`[Auto-Sync] Berhasil membuat Warga Belajar & Akun untuk ${p.nama_lengkap} (ID: ${p.id}, NIS: ${syncRes?.nis})`);
+          } catch (itemErr) {
+            console.warn(`[Auto-Sync] Warning sync pendaftar ID ${p.id} (${p.nama_lengkap}):`, itemErr.message);
+          }
+        }
+      }
+    } catch (syncErr) {
+      console.warn('[Auto-Sync] Warning auto-sync pendaftar diterima:', syncErr.message);
+    }
+
+    // Otomatis sinkronisasi password calon siswa Ervina syama (#50) jika belum tercatat password_plain
+    try {
+      const bcrypt = (await import('bcryptjs')).default;
+      const hashVina = await bcrypt.hash('Vina0804', 10);
+      await pool.execute(
+        `UPDATE pendaftar_spmb 
+         SET password_hash = ?, password_plain = 'Vina0804' 
+         WHERE (LOWER(email) = 'ervina08april@gmail.com' OR id = 50) 
+           AND (password_plain IS NULL OR password_plain = '')`,
+        [hashVina]
+      );
+      await pool.execute(
+        `UPDATE users 
+         SET password_hash = ?, password_plain = 'Vina0804' 
+         WHERE LOWER(email) = 'ervina08april@gmail.com' 
+           AND (password_plain IS NULL OR password_plain = '')`,
+        [hashVina]
+      );
     } catch (_) {}
 
     // Kebijakan resmi: 1 Email untuk 1 Akun (1 Siswa)
