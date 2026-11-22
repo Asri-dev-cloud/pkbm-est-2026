@@ -99,9 +99,10 @@ export const testConnection = async () => {
     // Otomatis sinkronisasi akun pendaftar yang sudah berstatus 'diterima' tapi belum memiliki akun Warga Belajar (misal: Suwoto #19)
     try {
       const [unlinkedAccepted] = await pool.query(
-        `SELECT id, nama_lengkap, email, jenjang_daftar 
-         FROM pendaftar_spmb 
-         WHERE status = 'diterima' AND (warga_belajar_id IS NULL OR warga_belajar_id = 0)`
+        `SELECT ps.id, ps.nama_lengkap, ps.email, ps.jenjang_daftar 
+         FROM pendaftar_spmb ps
+         LEFT JOIN warga_belajar wb ON ps.warga_belajar_id = wb.id
+         WHERE ps.status = 'diterima' AND wb.id IS NULL`
       );
       if (unlinkedAccepted && unlinkedAccepted.length > 0) {
         console.log(`[Auto-Sync] Ditemukan ${unlinkedAccepted.length} pendaftar diterima yang belum memiliki profil Warga Belajar. Menjalankan auto-sync...`);

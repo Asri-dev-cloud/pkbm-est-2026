@@ -16,6 +16,28 @@ const UserController = {
   // -----------------------------------------------------------
   getAll: async (req, res) => {
     try {
+      // Auto-heal: Pastikan pendaftar SPMB berstatus 'diterima' otomatis memiliki akun user
+      try {
+        const [unsynced] = await pool.query(
+          `SELECT ps.id 
+           FROM pendaftar_spmb ps 
+           LEFT JOIN users u ON LOWER(TRIM(ps.email)) = LOWER(TRIM(u.email))
+           WHERE ps.status = 'diterima' AND u.id IS NULL`
+        );
+        if (unsynced && unsynced.length > 0) {
+          const { ensureWargaBelajarAccount } = await import('./SpmbController.js');
+          for (const item of unsynced) {
+            try {
+              await ensureWargaBelajarAccount(item.id);
+            } catch (syncErr) {
+              console.warn('[UserController.getAll] Auto-sync failed for SPMB ID ' + item.id, syncErr.message);
+            }
+          }
+        }
+      } catch (checkErr) {
+        console.warn('[UserController.getAll] Check unsynced error:', checkErr.message);
+      }
+
       const users = await UserModel.findAll();
       return res.status(200).json({
         success: true,

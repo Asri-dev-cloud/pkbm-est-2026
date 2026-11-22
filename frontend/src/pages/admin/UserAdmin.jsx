@@ -364,23 +364,50 @@ function UserAdmin() {
                                 </button>
                               </div>
                             ) : (
-                              <span
-                                style={{
-                                  fontSize: '0.78rem',
-                                  color: '#64748B',
-                                  fontStyle: 'italic',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  padding: '3px 8px',
-                                  background: '#F1F5F9',
-                                  borderRadius: 6,
-                                  border: '1px solid #E2E8F0',
-                                }}
-                                title="Akun lama terdaftar sebelum fitur simpan password aktif. Password terenkripsi aman di database. Klik tombol 'Reset' di kanan jika ingin membuatkan password baru."
-                              >
-                                <i className="bi bi-shield-lock" style={{ color: '#94A3B8' }} /> Terenkripsi (Akun Lama)
-                              </span>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                <span
+                                  style={{
+                                    fontSize: '0.78rem',
+                                    color: '#64748B',
+                                    fontStyle: 'italic',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                    padding: '3px 8px',
+                                    background: '#F1F5F9',
+                                    borderRadius: 6,
+                                    border: '1px solid #E2E8F0',
+                                  }}
+                                  title="Password akun lama ini terenkripsi hash di database (tidak bisa dibaca balik). Klik tombol 'Set Sandi' untuk membuatkan kata sandi baru yang bisa Anda lihat."
+                                >
+                                  <i className="bi bi-shield-lock" style={{ color: '#94A3B8' }} /> Terenkripsi
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setResetTarget({ id: u.id, nama: u.nama_lengkap });
+                                    setPasswordBaru('');
+                                    setShowPass(false);
+                                    setResetFeedback({ type: '', msg: '' });
+                                  }}
+                                  style={{
+                                    background: '#EFF6FF',
+                                    color: '#1D4ED8',
+                                    border: '1px solid #BFDBFE',
+                                    borderRadius: 6,
+                                    padding: '3px 8px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 3,
+                                  }}
+                                  title="Klik untuk membuatkan password baru yang bisa Anda lihat"
+                                >
+                                  <i className="bi bi-key-fill"></i> Set Sandi
+                                </button>
+                              </div>
                             )}
                           </td>
                           <td>

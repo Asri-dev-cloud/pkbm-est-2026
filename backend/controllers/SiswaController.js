@@ -23,11 +23,18 @@ const SiswaController = {
       // Auto-heal: Pastikan semua pendaftar SPMB berstatus 'diterima' otomatis aktif di warga_belajar
       try {
         const [unsynced] = await pool.query(
-          `SELECT id FROM pendaftar_spmb WHERE status = 'diterima' AND (warga_belajar_id IS NULL OR warga_belajar_id NOT IN (SELECT id FROM warga_belajar))`
+          `SELECT ps.id 
+           FROM pendaftar_spmb ps 
+           LEFT JOIN warga_belajar wb ON ps.warga_belajar_id = wb.id 
+           WHERE ps.status = 'diterima' AND wb.id IS NULL`
         );
         if (unsynced && unsynced.length > 0) {
           for (const u of unsynced) {
-            await ensureWargaBelajarAccount(u.id);
+            try {
+              await ensureWargaBelajarAccount(u.id);
+            } catch (syncErr) {
+              console.warn(`[SiswaController.getAll] Auto-sync failed for pendaftar ID ${u.id}:`, syncErr.message);
+            }
           }
         }
       } catch (syncErr) {
