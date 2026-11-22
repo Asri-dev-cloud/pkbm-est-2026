@@ -304,15 +304,18 @@ const TUTORIAL_VIDEOS = [
     blobRadiusInner: "61% 39% 43% 57% / 54% 59% 41% 46%",
     auraRadius: "38% 62% 63% 37% / 41% 44% 56% 59%",
     coverImg: "/images/LMS.png",
-    duration: "5 Menit",
+    duration: "8 Menit",
     highlights: [
       "Akses e-modul resmi kapan saja",
       "Pengumpulan tugas mingguan",
       "Simulasi latihan & ujian online"
     ],
+    youtubeId: "mfrlfFl0Gx0",
+    youtubeUrl: "https://youtu.be/mfrlfFl0Gx0?si=GwHJPbsqIh21-YAV",
     localVideoUrl: "/videos/tutorial-lms.mp4",
-    videoUrl: "https://drive.google.com/file/d/15y1KrURVGksUtpeHV_W7CqTzgxJ3ineO/preview",
-    externalUrl: "https://drive.google.com/file/d/15y1KrURVGksUtpeHV_W7CqTzgxJ3ineO/view?usp=sharing",
+    videoUrl: "https://www.youtube.com/embed/mfrlfFl0Gx0?autoplay=1&rel=0",
+    externalUrl: "https://youtu.be/mfrlfFl0Gx0?si=GwHJPbsqIh21-YAV",
+    externalLabel: "Tonton di YouTube ↗",
     actionTo: "/login",
     actionLabel: "Masuk Portal LMS"
   }
@@ -2059,7 +2062,7 @@ export default function HomePage() {
               style={{
                 position: "relative",
                 width: "100%",
-                background: "#FFFFFF",
+                background: "#000000",
                 borderTop: "1px solid #F1F5F9",
                 borderBottom: "1px solid #F1F5F9",
                 overflow: "hidden",
@@ -2068,24 +2071,44 @@ export default function HomePage() {
                 justifyContent: "center"
               }}
             >
-              <video
-                key={videoModal.id}
-                src={videoModal.localVideoUrl}
-                poster={videoModal.coverImg}
-                controls
-                autoPlay
-                playsInline
-                controlsList="nodownload"
-                style={{
-                  width: "100%",
-                  maxHeight: "clamp(220px, 54vw, 440px)",
-                  objectFit: "contain",
-                  background: "#FFFFFF",
-                  display: "block"
-                }}
-              >
-                Browser Anda tidak mendukung pemutar video HTML5. Silakan tonton lewat Google Drive.
-              </video>
+              {videoModal.youtubeId ? (
+                <div style={{ position: "relative", width: "100%", paddingBottom: "56.25%", height: 0 }}>
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${videoModal.youtubeId}?autoplay=1&rel=0`}
+                    title={videoModal.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      border: "none",
+                      display: "block"
+                    }}
+                  />
+                </div>
+              ) : (
+                <video
+                  key={videoModal.id}
+                  src={videoModal.localVideoUrl}
+                  poster={videoModal.coverImg}
+                  controls
+                  autoPlay
+                  playsInline
+                  controlsList="nodownload"
+                  style={{
+                    width: "100%",
+                    maxHeight: "clamp(220px, 54vw, 440px)",
+                    objectFit: "contain",
+                    background: "#FFFFFF",
+                    display: "block"
+                  }}
+                >
+                  Browser Anda tidak mendukung pemutar video HTML5. Silakan tonton lewat Google Drive.
+                </video>
+              )}
             </div>
 
             {/* Modal Body & Tombol Aksi — Ringkas, Terbaca Jelas & Rapi di Mobile */}
@@ -2161,7 +2184,7 @@ export default function HomePage() {
                       whiteSpace: "nowrap"
                     }}
                   >
-                    <span>Buka di Drive ↗</span>
+                    <span>{videoModal.externalLabel || "Buka di Drive ↗"}</span>
                   </a>
                 )}
 
