@@ -209,7 +209,7 @@ const KEUNGGULAN_GRID = [
     desc: "Izin operasional resmi di bawah naungan Disdik Kabupaten Sumedang.",
     badge: "RESMI",
     icon: ShieldCheck,
-    img: "/images/gedung.jpeg"
+    img: "/images/BG 2.png"
   },
   {
     title: "Tutor Sabar & Bersahabat",
@@ -236,7 +236,7 @@ const KEUNGGULAN_GRID = [
 
 // ── DOKUMENTASI & GALERI ─────────────────────────────────────
 const GALERI = [
-  { src: "/images/gedung.jpeg", label: "Gedung Pusat Belajar & Pelayanan PKBM Bina Mandiri", position: "center" },
+  { src: "/images/BG 2.png", label: "Gedung Pusat Belajar & Pelayanan PKBM Bina Mandiri", position: "center" },
   { src: "/images/kelas1.jpg", label: "Aktivitas Belajar Tatap Muka & Diskusi Interaktif", position: "center" },
   { src: "/images/kelas2.jpg", label: "Pendampingan Modul & Literasi Warga Belajar", position: "center" },
   { src: "/images/Foto Pengganti C.jpeg", label: "Pertemuan Evaluasi Akademik & Ujian Kesetaraan", position: "center" },
@@ -2615,7 +2615,7 @@ export default function HomePage() {
                 }}
               >
                 <img
-                  src="/images/gedung.jpeg"
+                  src="/images/BG 2.png"
                   alt="Gedung PKBM Bina Mandiri"
                   loading="lazy"
                   decoding="async"
