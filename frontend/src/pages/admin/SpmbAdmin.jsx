@@ -170,10 +170,10 @@ function SpmbAdmin() {
       if (!searchKeyword.trim()) return true;
       const q = searchKeyword.toLowerCase();
       return (
-        p.nama_lengkap?.toLowerCase().includes(q) ||
-        p.email?.toLowerCase().includes(q) ||
-        p.no_telp?.includes(q) ||
-        String(p.id).includes(q)
+        String(p?.nama_lengkap || '').toLowerCase().includes(q) ||
+        String(p?.email || '').toLowerCase().includes(q) ||
+        String(p?.no_telp || '').includes(q) ||
+        String(p?.id || '').includes(q)
       );
     });
   };
@@ -736,10 +736,10 @@ function SpmbAdmin() {
                   if (!searchKeyword.trim()) return true;
                   const q = searchKeyword.toLowerCase();
                   return (
-                    p.nama_lengkap?.toLowerCase().includes(q) ||
-                    p.email?.toLowerCase().includes(q) ||
-                    p.no_telp?.includes(q) ||
-                    String(p.id).includes(q)
+                    String(p?.nama_lengkap || '').toLowerCase().includes(q) ||
+                    String(p?.email || '').toLowerCase().includes(q) ||
+                    String(p?.no_telp || '').includes(q) ||
+                    String(p?.id || '').includes(q)
                   );
                 });
 
