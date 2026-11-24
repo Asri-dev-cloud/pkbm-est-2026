@@ -5,14 +5,12 @@ export default defineConfig({
   base: '/', // Penting agar asset dipanggil dengan path root yang benar saat build
   plugins: [react()],
   build: {
-    chunkSizeWarningLimit: 1200,
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
           if (id.includes('exceljs')) return 'exceljs';
-          if (id.includes('react') || id.includes('scheduler')) return 'react-core';
-          if (id.includes('axios')) return 'axios';
           return 'vendor';
         },
       },

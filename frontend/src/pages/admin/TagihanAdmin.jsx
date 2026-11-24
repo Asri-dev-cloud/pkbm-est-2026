@@ -107,10 +107,12 @@ function TagihanAdmin() {
   }, [tab]);
 
   // ── Filter Lokal ─────────────────────────────────────────
-  const tagihanFiltered = tagihanList.filter(t => {
+  const tagihanFiltered = (Array.isArray(tagihanList) ? tagihanList : []).filter(t => {
+    if (!t) return false;
     if (!searchNama.trim()) return true;
-    return t.nama_wb?.toLowerCase().includes(searchNama.toLowerCase()) ||
-           t.nis?.toLowerCase().includes(searchNama.toLowerCase());
+    const q = searchNama.toLowerCase();
+    return String(t.nama_wb || '').toLowerCase().includes(q) ||
+           String(t.nis || '').toLowerCase().includes(q);
   });
 
   // ── Hitung Ringkasan Cepat dari Daftar ──────────────────

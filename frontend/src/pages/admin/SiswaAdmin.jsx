@@ -32,7 +32,12 @@ const JENJANG_COLOR = {
 };
 
 function SiswaAdmin() {
-  const user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
+  let user = {};
+  try {
+    user = JSON.parse(localStorage.getItem('pkbm_user') || '{}');
+  } catch {
+    user = {};
+  }
 
   // ── State: Daftar Siswa ──────────────────────────────────
   const [siswaList,  setSiswaList]  = useState([]);
@@ -75,9 +80,18 @@ function SiswaAdmin() {
           SiswaAPI.getStatistikPerJenjang(),
         ]);
 
-        if (resList.status === 'fulfilled')  setSiswaList(resList.value.data.data || []);
-        else setError('Gagal memuat data siswa.');
-        if (resStat.status === 'fulfilled') setStatJenjang(resStat.value.data.data || []);
+        if (resList.status === 'fulfilled' && resList.value?.data?.data) {
+          setSiswaList(Array.isArray(resList.value.data.data) ? resList.value.data.data : []);
+        } else {
+          setSiswaList([]);
+          if (resList.status === 'rejected') setError('Gagal memuat data siswa.');
+        }
+
+        if (resStat.status === 'fulfilled' && resStat.value?.data?.data) {
+          setStatJenjang(Array.isArray(resStat.value.data.data) ? resStat.value.data.data : []);
+        } else {
+          setStatJenjang([]);
+        }
       } catch {
         setError('Terjadi kesalahan saat memuat data.');
       } finally {
@@ -88,16 +102,22 @@ function SiswaAdmin() {
   }, [filterJenjang, filterAktif]);
 
   // ── Filter Pencarian Lokal (di client) ───────────────────
-  // Filter berdasarkan nama, NIS, NPSN, atau email — tidak hit API ulang
-  const siswaFiltered = siswaList.filter(s => {
+  // Filter berdasarkan nama, NIS, NPSN, atau email — aman terhadap tipe data number/null
+  const siswaFiltered = (Array.isArray(siswaList) ? siswaList : []).filter(s => {
+    if (!s) return false;
     if (!search || !search.trim()) return true;
     const q = search.trim().toLowerCase();
+    const nama = String(s.nama_lengkap || '').toLowerCase();
+    const nis = String(s.nis || '').toLowerCase();
+    const npsn = String(s.npsn || '').toLowerCase();
+    const nisn = String(s.nisn || '').toLowerCase();
+    const email = String(s.email || '').toLowerCase();
     return (
-      s.nama_lengkap?.toLowerCase().includes(q) ||
-      s.nis?.toLowerCase().includes(q) ||
-      s.npsn?.toLowerCase().includes(q) ||
-      s.nisn?.toLowerCase().includes(q) ||
-      s.email?.toLowerCase().includes(q)
+      nama.includes(q) ||
+      nis.includes(q) ||
+      npsn.includes(q) ||
+      nisn.includes(q) ||
+      email.includes(q)
     );
   });
 
@@ -199,8 +219,8 @@ function SiswaAdmin() {
   };
 
   // ── Total WB Aktif (ringkasan cepat) ────────────────────
-  const totalWB    = statJenjang.reduce((sum, s) => sum + Number(s.jumlah || 0), 0);
-  const totalAktif = siswaList.filter(s => s.is_aktif).length;
+  const totalWB    = Array.isArray(statJenjang) ? statJenjang.reduce((sum, s) => sum + Number(s?.jumlah || 0), 0) : 0;
+  const totalAktif = (Array.isArray(siswaList) ? siswaList : []).filter(s => s && s.is_aktif).length;
 
   return (
     <div className="app-layout">
@@ -306,7 +326,7 @@ function SiswaAdmin() {
                 <span className="admin-stat-tag">PAKET A</span>
               </div>
               <div className="admin-stat-info">
-                <div className="admin-stat-value">{statJenjang.find(s => s.jenjang === 'paket_a')?.jumlah || 0}</div>
+                <div className="admin-stat-value">{Array.isArray(statJenjang) ? (statJenjang.find(s => s?.jenjang === 'paket_a')?.jumlah || 0) : 0}</div>
                 <div className="admin-stat-label">WB Paket A (SD)</div>
               </div>
             </div>
@@ -319,7 +339,7 @@ function SiswaAdmin() {
                 <span className="admin-stat-tag">PAKET B</span>
               </div>
               <div className="admin-stat-info">
-                <div className="admin-stat-value">{statJenjang.find(s => s.jenjang === 'paket_b')?.jumlah || 0}</div>
+                <div className="admin-stat-value">{Array.isArray(statJenjang) ? (statJenjang.find(s => s?.jenjang === 'paket_b')?.jumlah || 0) : 0}</div>
                 <div className="admin-stat-label">WB Paket B (SMP)</div>
               </div>
             </div>
@@ -332,7 +352,7 @@ function SiswaAdmin() {
                 <span className="admin-stat-tag">PAKET C</span>
               </div>
               <div className="admin-stat-info">
-                <div className="admin-stat-value">{statJenjang.find(s => s.jenjang === 'paket_c')?.jumlah || 0}</div>
+                <div className="admin-stat-value">{Array.isArray(statJenjang) ? (statJenjang.find(s => s?.jenjang === 'paket_c')?.jumlah || 0) : 0}</div>
                 <div className="admin-stat-label">WB Paket C (SMA)</div>
               </div>
             </div>
@@ -978,14 +998,16 @@ function SiswaAdmin() {
       )}
 
       {/* ── Modal Pratinjau & Download Excel Resmi ── */}
-      <ModalPratinjauExcel
-        isOpen={modalExcelOpen}
-        onClose={() => setModalExcelOpen(false)}
-        data={siswaFiltered}
-        defaultTahunAjaran={getTahunAjaranRealTime()}
-        filterInfo={`${filterJenjang ? (JENJANG_LABEL[filterJenjang] || filterJenjang) : 'Semua Jenjang'} (${filterAktif === '1' ? 'Aktif' : filterAktif === '0' ? 'Nonaktif' : 'Semua Status'})`}
-        tipeLaporan="Data Warga Belajar"
-      />
+      {modalExcelOpen && (
+        <ModalPratinjauExcel
+          isOpen={modalExcelOpen}
+          onClose={() => setModalExcelOpen(false)}
+          data={siswaFiltered}
+          defaultTahunAjaran={getTahunAjaranRealTime()}
+          filterInfo={`${filterJenjang ? (JENJANG_LABEL[filterJenjang] || filterJenjang) : 'Semua Jenjang'} (${filterAktif === '1' ? 'Aktif' : filterAktif === '0' ? 'Nonaktif' : 'Semua Status'})`}
+          tipeLaporan="Data Warga Belajar"
+        />
+      )}
     </div>
   );
 }

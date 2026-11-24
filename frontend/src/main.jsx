@@ -23,6 +23,16 @@ const rootElement = document.getElementById('root');
 
 // Pembersihan otomatis cache browser lama dan service worker yang tertinggal
 if (typeof window !== 'undefined') {
+  // Versi build aplikasi untuk memastikan sinkronisasi cache di seluruh device
+  const BUILD_VERSION = '20261124_v4';
+  try {
+    const currentVer = localStorage.getItem('pkbm_build_version');
+    if (currentVer !== BUILD_VERSION) {
+      localStorage.setItem('pkbm_build_version', BUILD_VERSION);
+      sessionStorage.removeItem('pkbm_global_chunk_reload');
+    }
+  } catch {}
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       for (const registration of registrations) {

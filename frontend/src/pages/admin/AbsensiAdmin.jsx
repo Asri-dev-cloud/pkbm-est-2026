@@ -394,8 +394,8 @@ export default function AbsensiAdmin() {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
       return (
-        item.nama_lengkap?.toLowerCase().includes(q) ||
-        item.nis?.toLowerCase().includes(q)
+        String(item?.nama_lengkap || '').toLowerCase().includes(q) ||
+        String(item?.nis || '').toLowerCase().includes(q)
       );
     });
   }, [rekapData?.matrix, searchQuery]);

@@ -1207,11 +1207,11 @@ function RuangBelajarSiswa() {
       // Filter Keyword
       if (searchKeyword.trim()) {
         const q = searchKeyword.toLowerCase();
-        const matchTitle = item.nama.toLowerCase().includes(q);
-        const matchTutor = item.nama_tutor.toLowerCase().includes(q);
-        const matchKode = item.kode.toLowerCase().includes(q);
-        const matchRombel = item.nama_rombel.toLowerCase().includes(q);
-        const matchHari = item.hari.toLowerCase().includes(q);
+        const matchTitle = String(item.nama || '').toLowerCase().includes(q);
+        const matchTutor = String(item.nama_tutor || '').toLowerCase().includes(q);
+        const matchKode = String(item.kode || '').toLowerCase().includes(q);
+        const matchRombel = String(item.nama_rombel || '').toLowerCase().includes(q);
+        const matchHari = String(item.hari || '').toLowerCase().includes(q);
         if (!matchTitle && !matchTutor && !matchKode && !matchRombel && !matchHari) {
           return false;
         }

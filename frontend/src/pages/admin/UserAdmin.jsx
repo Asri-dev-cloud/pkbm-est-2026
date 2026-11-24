@@ -86,10 +86,11 @@ function UserAdmin() {
   useEffect(() => { fetchUsers(); }, []);
 
   // ── Filter Pencarian Lokal ───────────────────────────────
-  const filtered = userList.filter(u => {
+  const filtered = (Array.isArray(userList) ? userList : []).filter(u => {
+    if (!u) return false;
     if (!search.trim()) return true;
     const q = search.toLowerCase();
-    return u.nama_lengkap?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
+    return String(u.nama_lengkap || '').toLowerCase().includes(q) || String(u.email || '').toLowerCase().includes(q);
   });
 
   // ── Toggle Status Aktif / Nonaktif ───────────────────────

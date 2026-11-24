@@ -84,61 +84,29 @@ class RouteErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      // Popup modal "Menampilkan Halaman Terbaru" / "Sistem sedang memperbarui sesi tampilan" dihapus total
       return (
-        <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg, #F8FAFC)', padding: '2rem' }}>
-          <div style={{ textAlign: 'center', maxWidth: 440, background: '#FFFFFF', padding: '32px 24px', borderRadius: 24, boxShadow: '0 12px 36px rgba(0,0,0,0.08)', border: '1px solid #E2E8F0' }}>
-            <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#EFF6FF', color: '#1D4ED8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <i className="bi bi-arrow-clockwise" style={{ fontSize: '1.8rem' }}></i>
-            </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
-              Memuat Ulang Tampilan
-            </h3>
-            <p style={{ color: '#64748B', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: 16 }}>
-              Terjadi pembaruan sesi data. Silakan klik tombol di bawah untuk menampilkan konten seketika.
+        <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+          <div style={{ textAlign: 'center', maxWidth: 400 }}>
+            <p style={{ color: '#64748B', fontSize: '0.9rem', marginBottom: 16 }}>
+              Memuat data halaman...
             </p>
-            {this.state.error && (
-              <details style={{ textAlign: 'left', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 16, fontSize: '0.78rem', color: '#991B1B' }}>
-                <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Rincian Teknis</summary>
-                <pre style={{ marginTop: 6, fontSize: '0.74rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#7F1D1D' }}>
-                  {String(this.state.error?.message || this.state.error)}
-                </pre>
-              </details>
-            )}
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button
-                type="button"
-                onClick={this.handleRetry}
-                style={{
-                  background: '#1D4ED8',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '12px',
-                  padding: '10px 20px',
-                  fontSize: '0.875rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(29, 78, 216, 0.35)'
-                }}
-              >
-                Buka Ulang Halaman
-              </button>
-              <button
-                type="button"
-                onClick={() => window.location.href = '/dashboard'}
-                style={{
-                  background: '#F1F5F9',
-                  color: '#475569',
-                  border: '1px solid #CBD5E1',
-                  borderRadius: '12px',
-                  padding: '10px 18px',
-                  fontSize: '0.875rem',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
-              >
-                Kembali ke Beranda
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={this.handleRetry}
+              style={{
+                background: '#1D4ED8',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '8px 18px',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              Muat Ulang
+            </button>
           </div>
         </div>
       );
