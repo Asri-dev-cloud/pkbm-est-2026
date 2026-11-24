@@ -71,19 +71,30 @@ class RouteErrorBoundary extends React.Component {
     console.error('[RouteErrorBoundary] Komponen gagal me-render:', error, errorInfo);
   }
 
+  componentDidUpdate(prevProps) {
+    // Otomatis reset error saat user berpindah halaman / rute
+    if (this.state.hasError && prevProps.location?.pathname !== this.props.location?.pathname) {
+      this.setState({ hasError: false, error: null });
+    }
+  }
+
+  handleRetry = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg, #F8FAFC)', padding: '2rem' }}>
+        <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg, #F8FAFC)', padding: '2rem' }}>
           <div style={{ textAlign: 'center', maxWidth: 440, background: '#FFFFFF', padding: '32px 24px', borderRadius: 24, boxShadow: '0 12px 36px rgba(0,0,0,0.08)', border: '1px solid #E2E8F0' }}>
             <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#EFF6FF', color: '#1D4ED8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <i className="bi bi-arrow-clockwise" style={{ fontSize: '1.8rem' }}></i>
             </div>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
-              Menampilkan Halaman Terbaru
+              Memuat Ulang Tampilan
             </h3>
             <p style={{ color: '#64748B', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: 16 }}>
-              Sistem sedang memperbarui sesi tampilan. Klik tombol di bawah untuk menampilkan konten seketika.
+              Terjadi pembaruan sesi data. Silakan klik tombol di bawah untuk menampilkan konten seketika.
             </p>
             {this.state.error && (
               <details style={{ textAlign: 'left', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 16, fontSize: '0.78rem', color: '#991B1B' }}>
@@ -93,29 +104,53 @@ class RouteErrorBoundary extends React.Component {
                 </pre>
               </details>
             )}
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              style={{
-                background: '#1D4ED8',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '12px',
-                padding: '11px 24px',
-                fontSize: '0.9rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(29, 78, 216, 0.35)'
-              }}
-            >
-              Segarkan & Buka Halaman
-            </button>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={this.handleRetry}
+                style={{
+                  background: '#1D4ED8',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '10px 20px',
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(29, 78, 216, 0.35)'
+                }}
+              >
+                Buka Ulang Halaman
+              </button>
+              <button
+                type="button"
+                onClick={() => window.location.href = '/dashboard'}
+                style={{
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  border: '1px solid #CBD5E1',
+                  borderRadius: '12px',
+                  padding: '10px 18px',
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Kembali ke Beranda
+              </button>
+            </div>
           </div>
         </div>
       );
     }
     return this.props.children;
   }
+}
+
+// Wrapper agar RouteErrorBoundary mendeteksi navigasi rute secara instan
+function RouteBoundaryWrapper({ children }) {
+  const location = useLocation();
+  return <RouteErrorBoundary location={location}>{children}</RouteErrorBoundary>;
 }
 
 function ScrollToTop() {
@@ -226,7 +261,7 @@ function SeoMetaManager() {
 
 function App() {
   return (
-    <RouteErrorBoundary>
+    <RouteBoundaryWrapper>
       <ScrollToTop />
       <SeoMetaManager />
       <Routes>
@@ -327,7 +362,7 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
 
       </Routes>
-    </RouteErrorBoundary>
+    </RouteBoundaryWrapper>
   );
 }
 

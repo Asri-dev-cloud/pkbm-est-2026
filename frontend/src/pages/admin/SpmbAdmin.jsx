@@ -453,14 +453,20 @@ function SpmbAdmin() {
     }
   };
 
-  const formatTanggal = (tanggal) =>
-    tanggal
-      ? new Date(tanggal).toLocaleDateString('id-ID', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-        })
-      : '—';
+  const formatTanggal = (tanggal) => {
+    if (!tanggal) return '—';
+    try {
+      const d = new Date(tanggal);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch {
+      return '—';
+    }
+  };
 
   const labelJenjang = {
     paket_a: 'Paket A',
@@ -1064,7 +1070,7 @@ function SpmbAdmin() {
                         {detail.no_telp && (
                           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
                             <a
-                              href={`https://wa.me/${detail.no_telp.replace(/^0/, '62').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                              href={`https://wa.me/${String(detail.no_telp).replace(/^0/, '62').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
                                 `Halo ${detail.nama_lengkap},\n\nBerikut informasi akun Ruang Belajar LMS PKBM Bina Mandiri Anda:\n- Email: ${detail.email}\n- Password: ${detail.password_plain || 'Password123!'}\n\nSilakan masuk melalui link: ${window.location.origin}/login\n\nTerima kasih.`
                               )}`}
                               target="_blank"
@@ -1500,13 +1506,10 @@ function SpmbAdmin() {
                                     NIS: {detail.nis}
                                   </span>
                                 )}
-                                {pendaftar.password_plain && (
-                                  <>
-                                    <span>•</span>
-                                    <span style={{ color: '#0284C7', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }} title={`Password Akun: ${pendaftar.password_plain}`}>
-                                      <i className="bi bi-key-fill"></i> Pass: {pendaftar.password_plain}
-                                    </span>
-                                  </>
+                                {detail.password_plain && (
+                                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0284C7', background: '#E0F2FE', padding: '3px 8px', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                    <i className="bi bi-key-fill"></i> Pass: {detail.password_plain}
+                                  </span>
                                 )}
                               </div>
 

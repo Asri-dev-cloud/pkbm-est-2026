@@ -838,11 +838,18 @@ function LoginPage() {
                       <span className="metric-label">Tanggal Registrasi</span>
                       <strong className="metric-val">
                         {searchResult.created_at
-                          ? new Date(searchResult.created_at).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          })
+                          ? (() => {
+                              try {
+                                const d = new Date(searchResult.created_at);
+                                return !isNaN(d.getTime()) ? d.toLocaleDateString('id-ID', {
+                                  day: 'numeric',
+                                  month: 'long',
+                                  year: 'numeric'
+                                }) : '-';
+                              } catch {
+                                return '-';
+                              }
+                            })()
                           : '-'}
                       </strong>
                     </div>

@@ -187,9 +187,15 @@ function SiswaAdmin() {
   // ── Format Tanggal ───────────────────────────────────────
   const formatTanggal = (tgl) => {
     if (!tgl) return '—';
-    return new Date(tgl).toLocaleDateString('id-ID', {
-      day: '2-digit', month: 'long', year: 'numeric',
-    });
+    try {
+      const d = new Date(tgl);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('id-ID', {
+        day: '2-digit', month: 'long', year: 'numeric',
+      });
+    } catch {
+      return '—';
+    }
   };
 
   // ── Total WB Aktif (ringkasan cepat) ────────────────────

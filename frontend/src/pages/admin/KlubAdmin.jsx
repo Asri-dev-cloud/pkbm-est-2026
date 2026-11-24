@@ -525,7 +525,7 @@ function KlubAdmin() {
                               <td style={{ fontSize: '0.85rem' }}><code style={{ background: '#EFF6FF', color: '#1D4ED8', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>{a.nis || '—'}</code></td>
                               <td><span className="badge" style={{ background: '#F1F5F9', color: '#334155', fontWeight: 700 }}>{a.jenjang || '—'}</span></td>
                               <td style={{ fontSize: '0.82rem', color: '#64748B' }}>
-                                {a.tanggal_daftar ? new Date(a.tanggal_daftar).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                                {a.tanggal_daftar ? (() => { try { const d = new Date(a.tanggal_daftar); return !isNaN(d.getTime()) ? d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'; } catch { return '—'; } })() : '—'}
                               </td>
                             </tr>
                           ))}

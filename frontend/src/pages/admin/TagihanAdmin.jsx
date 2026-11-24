@@ -206,9 +206,16 @@ function TagihanAdmin() {
   };
 
   const formatRupiah = (n) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
-  const formatTanggal = (tgl) => tgl
-    ? new Date(tgl).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
-    : '—';
+  const formatTanggal = (tgl) => {
+    if (!tgl) return '—';
+    try {
+      const d = new Date(tgl);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch {
+      return '—';
+    }
+  };
 
   return (
     <div className="app-layout">

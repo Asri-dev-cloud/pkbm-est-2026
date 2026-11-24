@@ -25,11 +25,17 @@ export function formatRupiah(amount) {
  */
 export function formatTanggal(isoString) {
   if (!isoString) return '-';
-  return new Date(isoString).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return '-';
+  }
 }
 
 /**

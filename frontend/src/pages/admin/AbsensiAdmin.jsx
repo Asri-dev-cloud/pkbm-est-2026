@@ -998,7 +998,7 @@ export default function AbsensiAdmin() {
                       {editModal.namaSiswa}
                     </div>
                     <div style={{ color: '#64748B', fontSize: '0.82rem', marginTop: 3 }}>
-                      NIS: <strong>{editModal.nis}</strong> • Pertemuan <strong>P{editModal.pertemuanKe}</strong> {editModal.tanggal ? `(${new Date(editModal.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })})` : ''}
+                      NIS: <strong>{editModal.nis}</strong> • Pertemuan <strong>P{editModal.pertemuanKe}</strong> {editModal.tanggal ? (() => { try { const d = new Date(editModal.tanggal); return !isNaN(d.getTime()) ? `(${d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })})` : ''; } catch { return ''; } })() : ''}
                     </div>
                   </div>
 
